@@ -44,10 +44,12 @@ export function getStorage(): StorageProvider {
   if (!storage) {
     const backend = process.env.STORAGE_BACKEND ?? 'filesystem';
     if (backend === 's3') {
-      // TODO: S3 storage implementation
-      throw new Error('S3 storage not yet implemented');
+      // Dynamic import to avoid loading S3 deps when using filesystem
+      const { S3Storage } = require('./s3') as typeof import('./s3');
+      storage = new S3Storage();
+    } else {
+      storage = new FilesystemStorage();
     }
-    storage = new FilesystemStorage();
   }
   return storage;
 }

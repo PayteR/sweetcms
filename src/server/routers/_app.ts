@@ -2,6 +2,7 @@ import { createTRPCRouter } from '../trpc';
 import { authRouter } from './auth';
 import { categoriesRouter } from './categories';
 import { cmsRouter } from './cms';
+import { contentSearchRouter } from './content-search';
 import { mediaRouter } from './media';
 import { optionsRouter } from './options';
 import { revisionsRouter } from './revisions';
@@ -14,6 +15,7 @@ export const appRouter = createTRPCRouter({
   auth: authRouter,
   cms: cmsRouter,
   categories: categoriesRouter,
+  contentSearch: contentSearchRouter,
   media: mediaRouter,
   options: optionsRouter,
   revisions: revisionsRouter,

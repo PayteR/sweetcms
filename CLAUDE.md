@@ -29,7 +29,7 @@ SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack: Nex
 
 **Procedure types:** `publicProcedure`, `protectedProcedure`, `staffProcedure`, `sectionProcedure(section)`, `superadminProcedure`.
 
-**Routers (`src/server/routers/_app.ts`):** `auth`, `cms`, `categories`, `media`, `options`, `revisions`, `users`.
+**Routers (`src/server/routers/_app.ts`):** `auth`, `cms`, `categories`, `contentSearch`, `media`, `options`, `revisions`, `users`.
 
 ### Database
 
@@ -149,7 +149,7 @@ Content is stored as HTML in `cms_posts.content` / `cms_categories.text`.
 
 **Media picker:** `MediaPickerDialog` component for selecting images from the media library. Used in PostForm for featured images.
 
-**Storage provider:** `src/server/storage/index.ts` — pluggable (filesystem default, S3 TODO). Always use `getStorage().url()` for URLs.
+**Storage provider:** `src/server/storage/index.ts` — pluggable (filesystem default, S3-compatible via `src/server/storage/s3.ts`). Set `STORAGE_BACKEND=s3` + S3 env vars for production. Always use `getStorage().url()` for URLs.
 
 ### Admin Panel (`/dashboard`)
 
@@ -231,6 +231,10 @@ URL patterns:
 - `/category/tech` → category (shows description + posts in category)
 
 Supports preview mode via `?preview=<token>`.
+
+### Content Search
+
+`contentSearch.search` — searches across all published content types (posts + categories) by title/slug. Returns `{ type, id, title, url }` results. Used by the rich text editor for internal link picking. Requires `section.content` capability.
 
 ### Post-Category Relationship
 
