@@ -83,6 +83,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       });
       return {
         title: `${tag.name} | ${siteConfig.name}`,
+        description: `Browse all posts tagged with "${tag.name}".`,
       };
     }
 

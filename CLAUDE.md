@@ -12,7 +12,7 @@ SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack: Nex
 
 - **Package manager:** `bun`
 - **Dev server:** `bun run dev` — custom server with Turbopack (port 3000)
-- **First-time setup:** `bun run init` — creates DB, runs migrations, creates superadmin, seeds defaults (3 pages, 4 blog posts, 3 categories)
+- **First-time setup:** `bun run init` — creates DB, runs migrations, creates superadmin, seeds defaults (3 pages, 4 blog posts, 3 categories, 4 tags)
 - **Promote user:** `bun run promote <email>` — promote user to superadmin
 - **Change password:** `bun run change-password <email>` — change a user's password
 - **Entry point:** `src/app/` (Next.js App Router, no locale routing yet)
@@ -29,7 +29,7 @@ SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack: Nex
 
 **Procedure types:** `publicProcedure`, `protectedProcedure`, `staffProcedure`, `sectionProcedure(section)`, `superadminProcedure`.
 
-**Routers (`src/server/routers/_app.ts`):** `auth`, `cms`, `categories`, `contentSearch`, `media`, `options`, `revisions`, `users`.
+**Routers (`src/server/routers/_app.ts`):** `auth`, `cms`, `categories`, `contentSearch`, `media`, `options`, `revisions`, `tags`, `users`.
 
 ### Database
 
@@ -39,8 +39,9 @@ PostgreSQL only. All CMS tables prefixed `cms_`. UUID primary keys via `gen_rand
 - `user`, `session`, `account`, `verification` — Better Auth standard
 - `cms_posts` — pages and blog posts (type discriminator: `PostType.PAGE=1`, `PostType.BLOG=2`)
 - `cms_post_attachments` — file attachments per post
-- `cms_categories` — standalone category table
-- `cms_post_categories` — many-to-many join table (post ↔ category)
+- `cms_categories` — standalone category table (rich: SEO, content, icon, jsonLd)
+- `cms_terms` — universal taxonomy terms (simple: name, slug, lang, status, order). Used for tags; extensible for future taxonomies
+- `cms_term_relationships` — polymorphic M:N (objectId, termId, taxonomyId). Links posts to categories AND tags. `taxonomyId` discriminator: `'category'` → termId points to `cms_categories.id`, `'tag'` → termId points to `cms_terms.id`. No FK on termId (app-level enforcement)
 - `cms_content_revisions` — JSONB snapshots for revision history
 - `cms_slug_redirects` — automatic redirects when slugs change
 - `cms_options` — runtime key-value config (JSONB values)
@@ -50,9 +51,39 @@ PostgreSQL only. All CMS tables prefixed `cms_`. UUID primary keys via `gen_rand
 
 `src/config/cms.ts` — single source of truth for all CMS content types.
 
-Content types: `page` (PostType.PAGE), `blog` (PostType.BLOG), `category` (separate table).
+Content types: `page` (PostType.PAGE), `blog` (PostType.BLOG), `category` (separate table), `tag` (uses `cms_terms`).
 
 Lookup helpers: `getContentType(id)`, `getContentTypeByPostType(type)`, `getContentTypeByAdminSlug(slug)`.
+
+### Taxonomy System
+
+WordPress-style universal taxonomy with config-driven declarations.
+
+**Config:** `src/config/taxonomies.ts` — `TaxonomyDeclaration` interface + registry.
+
+| Taxonomy | Table | Input type | Content types | Detail page |
+|---|---|---|---|---|
+| `category` | `cms_categories` (custom) | checkbox | blog | yes |
+| `tag` | `cms_terms` (universal) | tag-input (autocomplete + create-on-enter) | blog, page | yes |
+
+**Helpers:** `getTaxonomy(id)`, `getTaxonomyByAdminSlug(slug)`, `getTaxonomiesForContentType(ctId)`.
+
+**Relationship helpers** (`src/server/utils/taxonomy-helpers.ts`):
+- `syncTermRelationships(db, objectId, taxonomyId, termIds[])` — delete+insert
+- `getTermRelationships(db, objectId, taxonomyId?)` — get relations for a post
+- `deleteAllTermRelationships(db, objectId)` — cascade on post delete
+- `deleteTermRelationshipsByTerm(db, termId, taxonomyId)` — cascade on term delete
+
+**Tags router** (`src/server/routers/tags.ts`): Full CRUD on `cms_terms` where `taxonomyId='tag'`. Special: `getOrCreate` mutation (find by slug or create), `search` query (autocomplete).
+
+**To add a new taxonomy:**
+1. Add declaration in `src/config/taxonomies.ts`
+2. If simple (name+slug only): reuse `cms_terms` table, create router scoped to new taxonomyId
+3. If rich (custom fields): create dedicated table + router, set `customTable: true`
+4. Add to `cms_term_relationships` with new taxonomyId discriminator
+5. Add admin UI input component + wire into PostForm
+6. Add content type entry in `src/config/cms.ts` if it has a public detail page
+7. Update catch-all route + sitemap
 
 **To add a new content type:**
 1. Add config entry in `src/config/cms.ts`
@@ -83,17 +114,17 @@ src/
 │   │   └── users/        — user management
 │   └── sitemap.ts        — dynamic sitemap generation
 ├── components/
-│   ├── admin/            — PostForm, CategoryForm, CmsListView, RichTextEditor, MediaPickerDialog, AdminHeader, AdminSidebar, RevisionHistory
+│   ├── admin/            — PostForm, CategoryForm, TermForm, TagInput, CmsListView, RichTextEditor, MediaPickerDialog, AdminHeader, AdminSidebar, RevisionHistory
 │   └── ui/               — ConfirmDialog, Toaster
-├── config/               — cms.ts (content types), site.ts (site config)
+├── config/               — cms.ts (content types), taxonomies.ts (taxonomy declarations), site.ts (site config)
 ├── lib/                  — auth, auth-client, policy, slug, translations, trpc, utils
 ├── scripts/              — init.ts, promote.ts, change-password.ts
 ├── server/
-│   ├── db/schema/        — auth, cms, categories, media, post-categories
+│   ├── db/schema/        — auth, cms, categories, terms, term-relationships, media
 │   ├── jobs/             — email queue (BullMQ + nodemailer)
-│   ├── routers/          — auth, cms, categories, media, options, revisions, users
+│   ├── routers/          — auth, cms, categories, tags, media, options, revisions, users
 │   ├── storage/          — pluggable storage (filesystem, future S3)
-│   └── utils/            — admin-crud, cms-helpers, content-revisions
+│   └── utils/            — admin-crud, cms-helpers, content-revisions, taxonomy-helpers
 ├── store/                — toast-store (Zustand)
 └── types/                — cms.ts (PostType, ContentStatus, FileType)
 ```
@@ -229,16 +260,19 @@ URL patterns:
 - `/privacy-policy` → page
 - `/blog/my-post` → blog post
 - `/category/tech` → category (shows description + posts in category)
+- `/tag/nextjs` → tag (shows posts with that tag, paginated via `?page=N`)
 
 Supports preview mode via `?preview=<token>`.
 
 ### Content Search
 
-`contentSearch.search` — searches across all published content types (posts + categories) by title/slug. Returns `{ type, id, title, url }` results. Used by the rich text editor for internal link picking. Requires `section.content` capability.
+`contentSearch.search` — searches across all published content types (posts + categories + tags) by title/slug. Returns `{ type, id, title, url }` results. Used by the rich text editor for internal link picking. Requires `section.content` capability.
 
-### Post-Category Relationship
+### Post-Taxonomy Relationships
 
-Many-to-many via `cms_post_categories` join table. CMS router `create`/`update` accept `categoryIds` array. `get` returns `categoryIds`. `listPublished` accepts optional `categoryId` to filter posts by category. PostForm includes category checkbox selector in sidebar.
+Many-to-many via `cms_term_relationships` (polymorphic). CMS router `create`/`update` accept `categoryIds` and `tagIds` arrays. `get` returns both. `listPublished` accepts optional `categoryId` or `tagId` to filter posts by taxonomy term.
+
+PostForm includes: category checkbox selector + tag autocomplete input (`TagInput`) in sidebar. Tags support create-on-enter via `tags.getOrCreate` mutation.
 
 ### Auth Pages
 

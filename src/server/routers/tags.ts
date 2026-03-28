@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, eq, ilike, isNull, or, sql } from 'drizzle-orm';
+import { and, eq, ilike, inArray, isNull, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { cmsTerms } from '@/server/db/schema';
@@ -112,6 +112,23 @@ export const tagsRouter = createTRPCRouter({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Tag not found' });
       }
       return tag;
+    }),
+
+  /** Get multiple tags by IDs (for resolving selected tags in TagInput) */
+  getByIds: contentProcedure
+    .input(z.object({ ids: z.array(z.string().uuid()).max(50) }))
+    .query(async ({ ctx, input }) => {
+      if (input.ids.length === 0) return [];
+      return ctx.db
+        .select({ id: cmsTerms.id, name: cmsTerms.name, slug: cmsTerms.slug })
+        .from(cmsTerms)
+        .where(
+          and(
+            eq(cmsTerms.taxonomyId, TAXONOMY_ID),
+            inArray(cmsTerms.id, input.ids)
+          )
+        )
+        .limit(50);
     }),
 
   /** Admin: create a new tag */
@@ -249,7 +266,7 @@ export const tagsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const slug = slugify(input.name);
 
-      // Try to find existing
+      // Try to find existing (including soft-deleted)
       const [existing] = await ctx.db
         .select()
         .from(cmsTerms)
@@ -257,27 +274,61 @@ export const tagsRouter = createTRPCRouter({
           and(
             eq(cmsTerms.taxonomyId, TAXONOMY_ID),
             eq(cmsTerms.slug, slug),
-            eq(cmsTerms.lang, input.lang),
-            isNull(cmsTerms.deletedAt)
+            eq(cmsTerms.lang, input.lang)
           )
         )
         .limit(1);
 
-      if (existing) return existing;
+      if (existing) {
+        // Restore if trashed, update name if it changed
+        if (existing.deletedAt) {
+          await ctx.db
+            .update(cmsTerms)
+            .set({
+              deletedAt: null,
+              name: input.name,
+              status: ContentStatus.PUBLISHED,
+              updatedAt: new Date(),
+            })
+            .where(eq(cmsTerms.id, existing.id));
+          return { ...existing, deletedAt: null, name: input.name, status: ContentStatus.PUBLISHED };
+        }
+        return existing;
+      }
 
-      // Create
-      const [tag] = await ctx.db
-        .insert(cmsTerms)
-        .values({
-          taxonomyId: TAXONOMY_ID,
-          name: input.name,
-          slug,
-          lang: input.lang,
-          status: ContentStatus.PUBLISHED,
-        })
-        .returning();
+      // Create — retry on unique constraint race condition
+      try {
+        const [tag] = await ctx.db
+          .insert(cmsTerms)
+          .values({
+            taxonomyId: TAXONOMY_ID,
+            name: input.name,
+            slug,
+            lang: input.lang,
+            status: ContentStatus.PUBLISHED,
+          })
+          .returning();
 
-      return tag!;
+        return tag!;
+      } catch (err: unknown) {
+        // Unique constraint violation (concurrent insert) — re-fetch
+        const code = (err as { code?: string })?.code;
+        if (code === '23505') {
+          const [raced] = await ctx.db
+            .select()
+            .from(cmsTerms)
+            .where(
+              and(
+                eq(cmsTerms.taxonomyId, TAXONOMY_ID),
+                eq(cmsTerms.slug, slug),
+                eq(cmsTerms.lang, input.lang)
+              )
+            )
+            .limit(1);
+          if (raced) return raced;
+        }
+        throw err;
+      }
     }),
 
   /** Public: get a published tag by slug */

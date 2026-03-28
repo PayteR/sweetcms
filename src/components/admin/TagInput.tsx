@@ -48,21 +48,23 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
   // Get or create mutation
   const getOrCreate = trpc.tags.getOrCreate.useMutation();
 
-  // Load tag info for pre-selected IDs
-  const allTags = trpc.tags.listPublished.useQuery({ lang, pageSize: 100 });
+  // Resolve selected tag IDs to full info
+  const resolvedTags = trpc.tags.getByIds.useQuery(
+    { ids: selectedTagIds },
+    { enabled: selectedTagIds.length > 0 }
+  );
 
-  // Sync selected tags when allTags loads or selectedTagIds change
+  // Sync selected tags when resolved data loads or selectedTagIds change
   useEffect(() => {
-    if (allTags.data?.results) {
-      const tagMap = new Map(
-        allTags.data.results.map((t) => [t.id, { id: t.id, name: t.name, slug: t.slug }])
-      );
-      const resolved = selectedTagIds
+    if (resolvedTags.data) {
+      // Preserve order of selectedTagIds
+      const tagMap = new Map(resolvedTags.data.map((t) => [t.id, t]));
+      const ordered = selectedTagIds
         .map((id) => tagMap.get(id))
         .filter((t): t is TagOption => !!t);
-      setSelectedTags(resolved);
+      setSelectedTags(ordered);
     }
-  }, [allTags.data, selectedTagIds]);
+  }, [resolvedTags.data, selectedTagIds]);
 
   // Close dropdown on outside click
   useEffect(() => {

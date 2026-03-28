@@ -213,13 +213,18 @@ export function CmsListView({ contentType }: Props) {
     publishedAt: (item.publishedAt ?? null) as Date | null,
   }));
 
-  const tabs: { key: StatusTab; label: string; count?: number }[] = [
+  const allTabs: { key: StatusTab; label: string; count?: number }[] = [
     { key: 'all', label: 'All', count: counts?.all },
     { key: 'draft', label: 'Draft', count: counts?.draft },
     { key: 'published', label: 'Published', count: counts?.published },
     { key: 'scheduled', label: 'Scheduled', count: counts?.scheduled },
     { key: 'trash', label: 'Trash', count: counts?.trash },
   ];
+
+  // Tags don't support scheduling
+  const tabs = isTagType
+    ? allTabs.filter((t) => t.key !== 'scheduled')
+    : allTabs;
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
