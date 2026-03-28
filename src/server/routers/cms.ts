@@ -4,7 +4,7 @@ import { z } from 'zod';
 import crypto from 'crypto';
 
 import { getContentTypeByPostType } from '@/config/cms';
-import { cmsPosts } from '@/server/db/schema';
+import { cmsPosts, cmsPostCategories, cmsCategories } from '@/server/db/schema';
 import { ContentStatus, PostType } from '@/types/cms';
 import {
   buildAdminList,
@@ -108,7 +108,7 @@ export const cmsRouter = createTRPCRouter({
       );
     }),
 
-  /** Get single post by ID */
+  /** Get single post by ID (with category IDs) */
   get: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
@@ -121,7 +121,13 @@ export const cmsRouter = createTRPCRouter({
       if (!post) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Post not found' });
       }
-      return post;
+
+      const cats = await ctx.db
+        .select({ categoryId: cmsPostCategories.categoryId })
+        .from(cmsPostCategories)
+        .where(eq(cmsPostCategories.postId, post.id));
+
+      return { ...post, categoryIds: cats.map((c) => c.categoryId) };
     }),
 
   /** Create a new post */
@@ -143,10 +149,12 @@ export const cmsRouter = createTRPCRouter({
         publishedAt: z.string().datetime().optional(),
         translationGroup: z.string().uuid().optional(),
         fallbackToDefault: z.boolean().optional(),
+        categoryIds: z.array(z.string().uuid()).max(20).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const contentType = getContentTypeByPostType(input.type);
+      const { categoryIds, ...postInput } = input;
+      const contentType = getContentTypeByPostType(postInput.type);
 
       await ensureSlugUnique(
         ctx.db,
@@ -167,25 +175,35 @@ export const cmsRouter = createTRPCRouter({
       const [post] = await ctx.db
         .insert(cmsPosts)
         .values({
-          type: input.type,
-          title: input.title,
-          slug: input.slug,
-          lang: input.lang,
-          content: input.content,
-          status: input.status,
-          metaDescription: input.metaDescription ?? null,
-          seoTitle: input.seoTitle ?? null,
-          featuredImage: input.featuredImage ?? null,
-          featuredImageAlt: input.featuredImageAlt ?? null,
-          jsonLd: input.jsonLd ?? null,
-          noindex: input.noindex,
-          publishedAt: input.publishedAt ? new Date(input.publishedAt) : null,
+          type: postInput.type,
+          title: postInput.title,
+          slug: postInput.slug,
+          lang: postInput.lang,
+          content: postInput.content,
+          status: postInput.status,
+          metaDescription: postInput.metaDescription ?? null,
+          seoTitle: postInput.seoTitle ?? null,
+          featuredImage: postInput.featuredImage ?? null,
+          featuredImageAlt: postInput.featuredImageAlt ?? null,
+          jsonLd: postInput.jsonLd ?? null,
+          noindex: postInput.noindex,
+          publishedAt: postInput.publishedAt ? new Date(postInput.publishedAt) : null,
           previewToken,
-          translationGroup: input.translationGroup ?? null,
-          fallbackToDefault: input.fallbackToDefault ?? null,
+          translationGroup: postInput.translationGroup ?? null,
+          fallbackToDefault: postInput.fallbackToDefault ?? null,
           authorId: ctx.session.user.id as string,
         })
         .returning();
+
+      // Sync categories
+      if (categoryIds?.length && post) {
+        await ctx.db.insert(cmsPostCategories).values(
+          categoryIds.map((catId) => ({
+            postId: post.id,
+            categoryId: catId,
+          }))
+        );
+      }
 
       return post!;
     }),
@@ -208,10 +226,11 @@ export const cmsRouter = createTRPCRouter({
         publishedAt: z.string().datetime().optional().nullable(),
         translationGroup: z.string().uuid().optional().nullable(),
         fallbackToDefault: z.boolean().optional().nullable(),
+        categoryIds: z.array(z.string().uuid()).max(20).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...updates } = input;
+      const { id, categoryIds, ...updates } = input;
 
       const [existing] = await ctx.db
         .select()
@@ -268,6 +287,22 @@ export const cmsRouter = createTRPCRouter({
             .where(eq(cmsPosts.id, id));
         },
       });
+
+      // Sync categories if provided
+      if (categoryIds !== undefined) {
+        await ctx.db
+          .delete(cmsPostCategories)
+          .where(eq(cmsPostCategories.postId, id));
+
+        if (categoryIds.length > 0) {
+          await ctx.db.insert(cmsPostCategories).values(
+            categoryIds.map((catId) => ({
+              postId: id,
+              categoryId: catId,
+            }))
+          );
+        }
+      }
 
       return { success: true };
     }),
@@ -367,6 +402,7 @@ export const cmsRouter = createTRPCRouter({
       z.object({
         type: z.number().int().min(1),
         lang: z.string().max(2).default('en'),
+        categoryId: z.string().uuid().optional(),
         page: z.number().int().min(1).default(1),
         pageSize: z.number().int().min(1).max(50).default(10),
       })
@@ -374,32 +410,85 @@ export const cmsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const offset = (input.page - 1) * input.pageSize;
 
+      const baseConditions = and(
+        eq(cmsPosts.type, input.type),
+        eq(cmsPosts.lang, input.lang),
+        eq(cmsPosts.status, ContentStatus.PUBLISHED),
+        isNull(cmsPosts.deletedAt)
+      );
+
+      // If filtering by category, join through post_categories
+      if (input.categoryId) {
+        const [items, countResult] = await Promise.all([
+          ctx.db
+            .select({
+              id: cmsPosts.id,
+              type: cmsPosts.type,
+              status: cmsPosts.status,
+              lang: cmsPosts.lang,
+              slug: cmsPosts.slug,
+              title: cmsPosts.title,
+              content: cmsPosts.content,
+              metaDescription: cmsPosts.metaDescription,
+              seoTitle: cmsPosts.seoTitle,
+              featuredImage: cmsPosts.featuredImage,
+              featuredImageAlt: cmsPosts.featuredImageAlt,
+              jsonLd: cmsPosts.jsonLd,
+              noindex: cmsPosts.noindex,
+              publishedAt: cmsPosts.publishedAt,
+              previewToken: cmsPosts.previewToken,
+              translationGroup: cmsPosts.translationGroup,
+              fallbackToDefault: cmsPosts.fallbackToDefault,
+              authorId: cmsPosts.authorId,
+              createdAt: cmsPosts.createdAt,
+              updatedAt: cmsPosts.updatedAt,
+              deletedAt: cmsPosts.deletedAt,
+            })
+            .from(cmsPosts)
+            .innerJoin(
+              cmsPostCategories,
+              eq(cmsPosts.id, cmsPostCategories.postId)
+            )
+            .where(
+              and(baseConditions, eq(cmsPostCategories.categoryId, input.categoryId))
+            )
+            .orderBy(desc(cmsPosts.publishedAt))
+            .offset(offset)
+            .limit(input.pageSize),
+          ctx.db
+            .select({ count: sql<number>`count(*)` })
+            .from(cmsPosts)
+            .innerJoin(
+              cmsPostCategories,
+              eq(cmsPosts.id, cmsPostCategories.postId)
+            )
+            .where(
+              and(baseConditions, eq(cmsPostCategories.categoryId, input.categoryId))
+            ),
+        ]);
+
+        const total = Number(countResult[0]?.count ?? 0);
+        return {
+          results: items,
+          total,
+          page: input.page,
+          pageSize: input.pageSize,
+          totalPages: Math.ceil(total / input.pageSize),
+        };
+      }
+
       const [items, countResult] = await Promise.all([
         ctx.db
           .select()
           .from(cmsPosts)
-          .where(
-            and(
-              eq(cmsPosts.type, input.type),
-              eq(cmsPosts.lang, input.lang),
-              eq(cmsPosts.status, ContentStatus.PUBLISHED),
-              isNull(cmsPosts.deletedAt)
-            )
-          )
+          .where(baseConditions)
           .orderBy(desc(cmsPosts.publishedAt))
           .offset(offset)
           .limit(input.pageSize),
         ctx.db
           .select({ count: sql<number>`count(*)` })
           .from(cmsPosts)
-          .where(
-            and(
-              eq(cmsPosts.type, input.type),
-              eq(cmsPosts.lang, input.lang),
-              eq(cmsPosts.status, ContentStatus.PUBLISHED),
-              isNull(cmsPosts.deletedAt)
-            )
-          ),
+          .where(baseConditions),
       ]);
 
       const total = Number(countResult[0]?.count ?? 0);

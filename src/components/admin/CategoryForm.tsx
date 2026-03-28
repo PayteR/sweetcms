@@ -11,6 +11,7 @@ import { useBlankTranslations } from '@/lib/translations';
 import { ContentStatus } from '@/types/cms';
 import { toast } from '@/store/toast-store';
 import { RevisionHistory } from './RevisionHistory';
+import { RichTextEditor } from './RichTextEditor';
 
 interface Props {
   categoryId?: string;
@@ -235,15 +236,13 @@ export function CategoryForm({ categoryId }: Props) {
             </div>
 
             <div className="admin-card p-6">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
                 {__('Description')}
               </label>
-              <textarea
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                rows={8}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder={__('Category description (HTML supported)')}
+              <RichTextEditor
+                content={text}
+                onChange={setText}
+                placeholder={__('Category description...')}
               />
             </div>
 

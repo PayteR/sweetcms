@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, desc, eq, isNull } from 'drizzle-orm';
+import { and, count, desc, eq, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { cmsMedia } from '@/server/db/schema';
@@ -28,6 +28,15 @@ function getFileType(mimeType: string): number {
 }
 
 export const mediaRouter = createTRPCRouter({
+  /** Count total media files */
+  count: mediaProcedure.query(async ({ ctx }) => {
+    const [row] = await ctx.db
+      .select({ count: count() })
+      .from(cmsMedia)
+      .where(isNull(cmsMedia.deletedAt));
+    return { count: row?.count ?? 0 };
+  }),
+
   /** List media files */
   list: mediaProcedure
     .input(

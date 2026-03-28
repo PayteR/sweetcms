@@ -1,0 +1,288 @@
+@layer theme, base, components, utilities;
+
+/*
+ * Admin table and list view classes.
+ * Comprehensive set matching sai_flirtcam's admin-table.css.
+ */
+
+@layer components {
+  /* Table row */
+  .admin-tr {
+    transition-property: background-color;
+    transition-duration: var(--duration-fast);
+  }
+
+  .admin-tr:hover {
+    background-color: var(--color-gray-50);
+  }
+
+  /* Action buttons in table rows */
+  .admin-action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 500;
+    transition-property: background-color, color;
+    transition-duration: var(--duration-fast);
+    cursor: pointer;
+  }
+
+  .admin-action-btn:hover {
+    background-color: var(--color-gray-100);
+  }
+
+  .admin-action-btn-danger {
+    color: var(--color-danger-600);
+  }
+
+  .admin-action-btn-danger:hover {
+    background-color: var(--color-danger-50);
+  }
+
+  /* Badges / status pills */
+  .admin-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+
+  .admin-badge-published {
+    background-color: var(--color-success-50);
+    color: var(--color-success-700);
+  }
+
+  .admin-badge-draft {
+    background-color: var(--color-gray-100);
+    color: var(--color-gray-600);
+  }
+
+  .admin-badge-scheduled {
+    background-color: var(--color-brand-50);
+    color: var(--color-brand-700);
+  }
+
+  .admin-badge-trashed {
+    background-color: var(--color-danger-50);
+    color: var(--color-danger-700);
+  }
+
+  /* Search input */
+  .admin-search-input {
+    display: block;
+    width: 100%;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    box-shadow: var(--shadow-sm);
+    transition-property: border-color, box-shadow;
+    transition-duration: var(--duration-fast);
+  }
+
+  .admin-search-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .admin-search-input:focus {
+    outline: none;
+    border-color: var(--color-brand-500);
+    box-shadow: 0 0 0 1px var(--color-brand-500);
+  }
+
+  /* Filter select */
+  .admin-filter-select {
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    background-color: var(--color-white);
+    transition-property: border-color;
+    transition-duration: var(--duration-fast);
+  }
+
+  .admin-filter-select:focus {
+    outline: none;
+    border-color: var(--color-brand-500);
+    box-shadow: 0 0 0 1px var(--color-brand-500);
+  }
+
+  /* Empty state */
+  .admin-empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--text-muted);
+  }
+
+  .admin-empty-state-icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+
+  .admin-empty-state-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .admin-empty-state-text {
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  /* Sortable table header */
+  .admin-sortable-th {
+    cursor: pointer;
+    user-select: none;
+    transition-property: color;
+    transition-duration: var(--duration-fast);
+  }
+
+  .admin-sortable-th:hover {
+    color: var(--text-primary);
+  }
+
+  /* Pagination */
+  .admin-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--border-secondary);
+  }
+
+  .admin-pagination-info {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+
+  .admin-pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    border: 1px solid var(--border-primary);
+    background-color: var(--color-white);
+    color: var(--text-secondary);
+    transition-property: background-color, color, border-color;
+    transition-duration: var(--duration-fast);
+    cursor: pointer;
+  }
+
+  .admin-pagination-btn:hover {
+    background-color: var(--color-gray-50);
+    color: var(--text-primary);
+  }
+
+  .admin-pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Status tabs */
+  .admin-status-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border-primary);
+    margin-bottom: 1rem;
+  }
+
+  .admin-status-tab {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    border-bottom: 2px solid transparent;
+    transition-property: color, border-color;
+    transition-duration: var(--duration-fast);
+    cursor: pointer;
+  }
+
+  .admin-status-tab:hover {
+    color: var(--text-secondary);
+  }
+
+  .admin-status-tab.active {
+    color: var(--color-brand-600);
+    border-bottom-color: var(--color-brand-600);
+  }
+
+  .admin-status-tab-count {
+    margin-left: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  /* Form inputs in admin */
+  .admin-input {
+    display: block;
+    width: 100%;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    box-shadow: var(--shadow-sm);
+    transition-property: border-color, box-shadow;
+    transition-duration: var(--duration-fast);
+  }
+
+  .admin-input:focus {
+    outline: none;
+    border-color: var(--color-brand-500);
+    box-shadow: 0 0 0 1px var(--color-brand-500);
+  }
+
+  .admin-input::placeholder {
+    color: var(--text-muted);
+  }
+
+  .admin-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+  }
+
+  /* Role badges */
+  .admin-role-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .admin-role-superadmin {
+    background-color: #fdf4ff;
+    color: #a21caf;
+  }
+
+  .admin-role-admin {
+    background-color: var(--color-brand-50);
+    color: var(--color-brand-700);
+  }
+
+  .admin-role-editor {
+    background-color: var(--color-success-50);
+    color: var(--color-success-700);
+  }
+
+  .admin-role-user {
+    background-color: var(--color-gray-100);
+    color: var(--color-gray-600);
+  }
+}

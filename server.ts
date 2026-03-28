@@ -62,16 +62,18 @@ async function main() {
     }
   });
 
-  // Initialize BullMQ workers (placeholder — Phase 3)
+  // Initialize BullMQ workers
   if (enableWorkers) {
-    // TODO: startAllWorkers() when email/jobs are implemented
-    console.log('BullMQ workers ready (no jobs registered yet)');
+    const { startEmailWorker } = await import('./src/server/jobs/email/index');
+    startEmailWorker();
+    console.log('BullMQ workers ready (email worker started)');
   }
 
   // Graceful shutdown
   const shutdown = async () => {
     console.log('Shutting down gracefully...');
-    // TODO: shutdownAllWorkers() when jobs are implemented
+    const { shutdownAllWorkers } = await import('./src/server/jobs/queue');
+    await shutdownAllWorkers();
     server.close(() => {
       console.log('Server closed');
       process.exit(0);

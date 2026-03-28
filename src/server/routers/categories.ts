@@ -316,20 +316,46 @@ export const categoriesRouter = createTRPCRouter({
     .input(
       z.object({
         lang: z.string().max(2).default('en'),
+        page: z.number().int().min(1).default(1),
+        pageSize: z.number().int().min(1).max(100).default(100),
       })
     )
     .query(async ({ ctx, input }) => {
-      return ctx.db
-        .select()
-        .from(cmsCategories)
-        .where(
-          and(
-            eq(cmsCategories.lang, input.lang),
-            eq(cmsCategories.status, ContentStatus.PUBLISHED),
-            isNull(cmsCategories.deletedAt)
+      const offset = (input.page - 1) * input.pageSize;
+
+      const [items, countResult] = await Promise.all([
+        ctx.db
+          .select()
+          .from(cmsCategories)
+          .where(
+            and(
+              eq(cmsCategories.lang, input.lang),
+              eq(cmsCategories.status, ContentStatus.PUBLISHED),
+              isNull(cmsCategories.deletedAt)
+            )
           )
-        )
-        .orderBy(cmsCategories.order)
-        .limit(100);
+          .orderBy(cmsCategories.order)
+          .offset(offset)
+          .limit(input.pageSize),
+        ctx.db
+          .select({ count: sql<number>`count(*)` })
+          .from(cmsCategories)
+          .where(
+            and(
+              eq(cmsCategories.lang, input.lang),
+              eq(cmsCategories.status, ContentStatus.PUBLISHED),
+              isNull(cmsCategories.deletedAt)
+            )
+          ),
+      ]);
+
+      const total = Number(countResult[0]?.count ?? 0);
+      return {
+        results: items,
+        total,
+        page: input.page,
+        pageSize: input.pageSize,
+        totalPages: Math.ceil(total / input.pageSize),
+      };
     }),
 });

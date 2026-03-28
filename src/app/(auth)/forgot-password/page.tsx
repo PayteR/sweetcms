@@ -2,14 +2,12 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 
-import { signIn } from '@/lib/auth-client';
+import { requestReset } from './actions';
 
-export default function LoginPage() {
-  const router = useRouter();
+export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -19,11 +17,11 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const result = await signIn.email({ email, password });
-      if (result.error) {
-        setError(result.error.message ?? 'Invalid credentials');
+      const result = await requestReset(email);
+      if (result.success) {
+        setSent(true);
       } else {
-        router.push('/dashboard');
+        setError(result.error ?? 'Something went wrong.');
       }
     } catch {
       setError('Something went wrong. Please try again.');
@@ -32,11 +30,29 @@ export default function LoginPage() {
     }
   }
 
+  if (sent) {
+    return (
+      <div className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
+        <h1 className="text-2xl font-bold text-gray-900">Check your email</h1>
+        <p className="mt-3 text-sm text-gray-600">
+          If an account exists for <strong>{email}</strong>, we&apos;ve sent a password reset link.
+          Check your inbox and follow the instructions.
+        </p>
+        <Link
+          href="/login"
+          className="mt-6 inline-block text-sm font-medium text-blue-600 hover:text-blue-500"
+        >
+          Back to Sign In
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-8 shadow-sm">
-      <h1 className="text-2xl font-bold text-gray-900">Sign In</h1>
+      <h1 className="text-2xl font-bold text-gray-900">Forgot Password</h1>
       <p className="mt-1 text-sm text-gray-500">
-        Sign in to your SweetCMS account
+        Enter your email and we&apos;ll send you a reset link.
       </p>
 
       {error && (
@@ -64,44 +80,19 @@ export default function LoginPage() {
           />
         </div>
 
-        <div>
-          <label
-            htmlFor="password"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Password
-          </label>
-          <input
-            id="password"
-            type="password"
-            required
-            minLength={6}
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            placeholder="••••••••"
-          />
-        </div>
-
         <button
           type="submit"
           disabled={loading}
           className="w-full rounded-md bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
         >
-          {loading ? 'Signing in...' : 'Sign In'}
+          {loading ? 'Sending...' : 'Send Reset Link'}
         </button>
       </form>
 
-      <div className="mt-4 text-center">
-        <Link href="/forgot-password" className="text-sm text-gray-500 hover:text-blue-600">
-          Forgot your password?
-        </Link>
-      </div>
-
-      <p className="mt-4 text-center text-sm text-gray-500">
-        Don&apos;t have an account?{' '}
-        <Link href="/register" className="font-medium text-blue-600 hover:text-blue-500">
-          Sign up
+      <p className="mt-6 text-center text-sm text-gray-500">
+        Remember your password?{' '}
+        <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+          Sign in
         </Link>
       </p>
     </div>

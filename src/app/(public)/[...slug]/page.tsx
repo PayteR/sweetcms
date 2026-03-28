@@ -162,11 +162,19 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
       );
     }
 
-    // Category detail
+    // Category detail — shows description + posts in this category
     if (resolved.contentType.id === 'category') {
       const cat = await api.categories.getBySlug({
         slug: resolved.slug,
         lang: 'en',
+      });
+
+      // Fetch blog posts in this category
+      const posts = await api.cms.listPublished({
+        type: PostType.BLOG,
+        lang: 'en',
+        categoryId: cat.id,
+        pageSize: 20,
       });
 
       return (
@@ -180,6 +188,40 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
               className="prose prose-gray mt-6 max-w-none"
               dangerouslySetInnerHTML={{ __html: cat.text }}
             />
+          )}
+
+          {posts.results.length > 0 && (
+            <div className="mt-10">
+              <h2 className="text-xl font-semibold text-gray-900">
+                Posts in this category
+              </h2>
+              <div className="mt-4 space-y-6">
+                {posts.results.map((post) => (
+                  <article key={post.id} className="border-b border-gray-100 pb-4">
+                    <Link
+                      href={`/blog/${post.slug}`}
+                      className="text-lg font-semibold text-gray-900 hover:text-blue-600"
+                    >
+                      {post.title}
+                    </Link>
+                    {post.metaDescription && (
+                      <p className="mt-1 text-sm text-gray-600">
+                        {post.metaDescription}
+                      </p>
+                    )}
+                    {post.publishedAt && (
+                      <time className="mt-1 block text-xs text-gray-400">
+                        {new Date(post.publishedAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
+                      </time>
+                    )}
+                  </article>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       );

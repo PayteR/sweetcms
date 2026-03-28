@@ -1,0 +1,107 @@
+@layer theme, base, components, utilities;
+
+/*
+ * CMS content rendering styles.
+ * Applied to prose containers where user-authored HTML is rendered.
+ */
+
+@layer components {
+  /* Public-facing content container */
+  .cms-content {
+    max-width: 65ch;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 3rem 1rem;
+  }
+
+  /* Preview banner for draft content */
+  .cms-preview-banner {
+    margin-bottom: 1.5rem;
+    border-radius: var(--radius-md);
+    background-color: var(--color-warning-50);
+    border: 1px solid #fde68a;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    color: #92400e;
+  }
+
+  /* Featured image */
+  .cms-featured-image {
+    width: 100%;
+    margin-bottom: 2rem;
+    border-radius: var(--radius-lg);
+    object-fit: cover;
+    max-height: 400px;
+  }
+
+  /* Page/post header */
+  .cms-title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1.2;
+  }
+
+  .cms-date {
+    display: block;
+    margin-top: 0.75rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  /* Post card in listings */
+  .cms-post-card {
+    border-bottom: 1px solid var(--border-secondary);
+    padding-bottom: 1.5rem;
+  }
+
+  .cms-post-card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    transition-property: color;
+    transition-duration: var(--duration-fast);
+  }
+
+  .cms-post-card-title:hover {
+    color: var(--color-brand-600);
+  }
+
+  .cms-post-card-excerpt {
+    margin-top: 0.5rem;
+    color: var(--text-secondary);
+  }
+
+  .cms-post-card-meta {
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+
+  /* Pagination */
+  .cms-pagination {
+    display: flex;
+    gap: 0.5rem;
+    padding-top: 1rem;
+    align-items: center;
+  }
+
+  .cms-pagination-btn {
+    border-radius: var(--radius-md);
+    background-color: var(--color-gray-100);
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    transition-property: background-color;
+    transition-duration: var(--duration-fast);
+  }
+
+  .cms-pagination-btn:hover {
+    background-color: var(--color-gray-200);
+  }
+
+  .cms-pagination-info {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--text-muted);
+  }
+}

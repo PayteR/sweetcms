@@ -5,6 +5,7 @@ import { role } from 'better-auth/plugins/access';
 
 import { Role } from '@/lib/policy';
 import { db } from '@/server/db';
+import { enqueueEmail } from '@/server/jobs/email';
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: 'pg' }),
@@ -34,6 +35,17 @@ export const auth = betterAuth({
     enabled: true,
     minPasswordLength: 6,
     requireEmailVerification: false,
+    sendResetPassword: async ({ user, url }) => {
+      await enqueueEmail({
+        to: user.email,
+        subject: 'Reset your password — SweetCMS',
+        html: `<p>Hi ${user.name ?? 'there'},</p>
+<p>Click the link below to reset your password:</p>
+<p><a href="${url}">${url}</a></p>
+<p>If you didn't request this, you can safely ignore this email.</p>
+<p>— SweetCMS</p>`,
+      });
+    },
   },
 
   socialProviders: {

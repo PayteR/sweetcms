@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Save, Eye, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Loader2, ImageIcon, X } from 'lucide-react';
 import Link from 'next/link';
 
 import type { ContentTypeDeclaration } from '@/config/cms';
@@ -13,6 +13,8 @@ import { ContentStatus } from '@/types/cms';
 import { toast } from '@/store/toast-store';
 import { cn } from '@/lib/utils';
 import { RevisionHistory } from './RevisionHistory';
+import { RichTextEditor } from './RichTextEditor';
+import { MediaPickerDialog } from './MediaPickerDialog';
 
 interface Props {
   contentType: ContentTypeDeclaration;
@@ -39,12 +41,21 @@ export function PostForm({ contentType, postId }: Props) {
   const [jsonLd, setJsonLd] = useState('');
   const [noindex, setNoindex] = useState(false);
   const [publishedAt, setPublishedAt] = useState('');
+  const [categoryIds, setCategoryIds] = useState<string[]>([]);
+  const [showMediaPicker, setShowMediaPicker] = useState(false);
 
   // Fetch existing post
   const existingPost = trpc.cms.get.useQuery(
     { id: postId! },
     { enabled: !!postId }
   );
+
+  // Fetch published categories for the selector
+  const categoriesList = trpc.categories.listPublished.useQuery({
+    lang: 'en',
+    page: 1,
+    pageSize: 100,
+  });
 
   // Populate form with existing data
   useEffect(() => {
@@ -65,6 +76,7 @@ export function PostForm({ contentType, postId }: Props) {
       setPublishedAt(
         p.publishedAt ? new Date(p.publishedAt).toISOString().slice(0, 16) : ''
       );
+      setCategoryIds(p.categoryIds ?? []);
     }
   }, [existingPost.data]);
 
@@ -114,6 +126,7 @@ export function PostForm({ contentType, postId }: Props) {
         jsonLd: jsonLd || undefined,
         noindex,
         publishedAt: publishedAt ? new Date(publishedAt).toISOString() : undefined,
+        categoryIds: categoryIds.length > 0 ? categoryIds : undefined,
       });
     } else {
       updatePost.mutate({
@@ -129,6 +142,7 @@ export function PostForm({ contentType, postId }: Props) {
         jsonLd: jsonLd || null,
         noindex,
         publishedAt: publishedAt ? new Date(publishedAt).toISOString() : null,
+        categoryIds,
       });
     }
   }
@@ -138,11 +152,18 @@ export function PostForm({ contentType, postId }: Props) {
     if (!publishedAt) {
       setPublishedAt(new Date().toISOString().slice(0, 16));
     }
-    // Need to submit after state update — use setTimeout
     setTimeout(() => {
       const form = document.getElementById('post-form') as HTMLFormElement;
       form?.requestSubmit();
     }, 0);
+  }
+
+  function toggleCategory(catId: string) {
+    setCategoryIds((prev) =>
+      prev.includes(catId)
+        ? prev.filter((id) => id !== catId)
+        : [...prev, catId]
+    );
   }
 
   if (!isNew && existingPost.isLoading) {
@@ -242,17 +263,15 @@ export function PostForm({ contentType, postId }: Props) {
               />
             </div>
 
-            {/* Content */}
+            {/* Content — Rich Text Editor */}
             <div className="admin-card p-6">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
                 {__('Content')}
               </label>
-              <textarea
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-                rows={20}
-                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm font-mono focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder={__('Write your content here... (HTML supported)')}
+              <RichTextEditor
+                content={content}
+                onChange={setContent}
+                placeholder={__('Start writing your content...')}
               />
             </div>
 
@@ -378,48 +397,109 @@ export function PostForm({ contentType, postId }: Props) {
               </div>
             </div>
 
+            {/* Categories */}
+            <div className="admin-card p-6">
+              <h3 className="admin-h2">{__('Categories')}</h3>
+              <div className="mt-3 max-h-48 space-y-1.5 overflow-y-auto">
+                {categoriesList.isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                ) : (categoriesList.data?.results ?? []).length === 0 ? (
+                  <p className="text-xs text-gray-400">
+                    {__('No categories yet.')}
+                  </p>
+                ) : (
+                  (categoriesList.data?.results ?? []).map((cat) => (
+                    <label
+                      key={cat.id}
+                      className="flex items-center gap-2 text-sm"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={categoryIds.includes(cat.id)}
+                        onChange={() => toggleCategory(cat.id)}
+                        className="rounded border-gray-300"
+                      />
+                      {cat.name}
+                    </label>
+                  ))
+                )}
+              </div>
+            </div>
+
             {/* Featured Image */}
             {contentType.postFormFields?.featuredImage && (
               <div className="admin-card p-6">
                 <h3 className="admin-h2">{__('Featured Image')}</h3>
                 <div className="mt-4 space-y-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      {__('Image URL')}
-                    </label>
-                    <input
-                      type="text"
-                      value={featuredImage}
-                      onChange={(e) => setFeaturedImage(e.target.value)}
-                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      placeholder="https://..."
-                    />
-                  </div>
-                  {featuredImage && (
-                    <img
-                      src={featuredImage}
-                      alt={featuredImageAlt || 'Preview'}
-                      className="h-32 w-full rounded-md border border-gray-200 object-cover"
-                    />
+                  {featuredImage ? (
+                    <div className="relative">
+                      <img
+                        src={featuredImage}
+                        alt={featuredImageAlt || 'Preview'}
+                        className="h-32 w-full rounded-md border border-gray-200 object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFeaturedImage('');
+                          setFeaturedImageAlt('');
+                        }}
+                        className="absolute right-1 top-1 rounded bg-white/90 p-1 shadow-sm hover:bg-white"
+                      >
+                        <X className="h-3.5 w-3.5 text-gray-600" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowMediaPicker(true)}
+                      className="flex w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-gray-300 px-4 py-6 text-sm text-gray-500 hover:border-gray-400 hover:text-gray-600"
+                    >
+                      <ImageIcon className="h-5 w-5" />
+                      {__('Select Image')}
+                    </button>
                   )}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      {__('Alt Text')}
-                    </label>
-                    <input
-                      type="text"
-                      value={featuredImageAlt}
-                      onChange={(e) => setFeaturedImageAlt(e.target.value)}
-                      className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      placeholder={__('Describe the image')}
-                    />
-                  </div>
+                  {featuredImage && (
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setShowMediaPicker(true)}
+                        className="text-xs text-blue-600 hover:text-blue-700"
+                      >
+                        {__('Change')}
+                      </button>
+                    </div>
+                  )}
+                  {featuredImage && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        {__('Alt Text')}
+                      </label>
+                      <input
+                        type="text"
+                        value={featuredImageAlt}
+                        onChange={(e) => setFeaturedImageAlt(e.target.value)}
+                        className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        placeholder={__('Describe the image')}
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             )}
           </div>
         </div>
       </form>
+
+      {/* Media Picker Dialog */}
+      <MediaPickerDialog
+        open={showMediaPicker}
+        onClose={() => setShowMediaPicker(false)}
+        onSelect={(url, alt) => {
+          setFeaturedImage(url);
+          if (alt) setFeaturedImageAlt(alt);
+        }}
+      />
     </div>
   );
 }
