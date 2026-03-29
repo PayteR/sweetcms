@@ -6,6 +6,7 @@ import { ArrowLeft, Save, Eye, Loader2, ImageIcon, X } from 'lucide-react';
 import Link from 'next/link';
 
 import type { ContentTypeDeclaration } from '@/config/cms';
+import { useSession } from '@/lib/auth-client';
 import { trpc } from '@/lib/trpc/client';
 import { slugify } from '@/lib/slug';
 import { useBlankTranslations } from '@/lib/translations';
@@ -32,6 +33,7 @@ export function PostForm({ contentType, postId }: Props) {
   const __ = useBlankTranslations();
   const router = useRouter();
   const utils = trpc.useUtils();
+  const { data: session } = useSession();
   const isNew = !postId;
 
   // Form state
@@ -53,18 +55,17 @@ export function PostForm({ contentType, postId }: Props) {
   const [parentId, setParentId] = useState<string | null>(null);
   const [showMediaPicker, setShowMediaPicker] = useState(false);
 
-  // Fetch existing post
+  // Fetch existing post (wait for session to avoid UNAUTHORIZED on first render)
   const existingPost = trpc.cms.get.useQuery(
     { id: postId! },
-    { enabled: !!postId }
+    { enabled: !!postId && !!session }
   );
 
   // Fetch published categories for the selector
-  const categoriesList = trpc.categories.listPublished.useQuery({
-    lang: 'en',
-    page: 1,
-    pageSize: 100,
-  });
+  const categoriesList = trpc.categories.listPublished.useQuery(
+    { lang: 'en', page: 1, pageSize: 100 },
+    { enabled: !!session },
+  );
 
   // Populate form with existing data
   useEffect(() => {
@@ -161,7 +162,7 @@ export function PostForm({ contentType, postId }: Props) {
   const isPageType = contentType.postType === PostType.PAGE;
   const pageTree = trpc.cms.getPageTree.useQuery(
     { lang: 'en' },
-    { enabled: isPageType }
+    { enabled: isPageType && !!session }
   );
 
   // Use ref so keyboard shortcut always calls the latest handlePublish

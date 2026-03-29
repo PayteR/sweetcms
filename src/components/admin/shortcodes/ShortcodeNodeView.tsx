@@ -58,10 +58,10 @@ export function ShortcodeNodeView({ node, updateAttributes, deleteNode }: NodeVi
             <span className="text-sm">{content || '(empty callout)'}</span>
           </div>
           <div className="absolute right-1 top-1 flex gap-0.5">
-            <button type="button" onClick={() => setEditOpen(true)} className="rounded p-1 hover:bg-black/10">
+            <button type="button" onClick={() => setEditOpen(true)} className="rounded p-1 hover:bg-black/10 dark:hover:bg-white/10">
               <Pencil className="h-3 w-3" />
             </button>
-            <button type="button" onClick={deleteNode} className="rounded p-1 hover:bg-black/10">
+            <button type="button" onClick={deleteNode} className="rounded p-1 hover:bg-black/10 dark:hover:bg-white/10">
               <X className="h-3 w-3" />
             </button>
           </div>

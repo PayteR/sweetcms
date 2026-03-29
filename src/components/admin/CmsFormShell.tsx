@@ -26,7 +26,7 @@ export default function CmsFormShell({ toolbar, children }: CmsFormShellProps) {
   }, []);
 
   return (
-    <div>
+    <div className="-mx-6 -mt-6">
       <div ref={sentinelRef} className="h-0" />
       <div
         className={cn(

@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { trpc } from '@/lib/trpc/client';
 import { slugify } from '@/lib/slug';
 import { useBlankTranslations } from '@/lib/translations';
+import { useSession } from '@/lib/auth-client';
 import { ContentStatus } from '@/types/cms';
 import { toast } from '@/store/toast-store';
 import { useCmsAutosave } from '@/hooks/useCmsAutosave';
@@ -28,6 +29,7 @@ export function CategoryForm({ categoryId }: Props) {
   const __ = useBlankTranslations();
   const router = useRouter();
   const utils = trpc.useUtils();
+  const { data: session } = useSession();
   const isNew = !categoryId;
 
   const [name, setName] = useState('');
@@ -47,7 +49,7 @@ export function CategoryForm({ categoryId }: Props) {
 
   const existingCat = trpc.categories.get.useQuery(
     { id: categoryId! },
-    { enabled: !!categoryId }
+    { enabled: !!categoryId && !!session }
   );
 
   useEffect(() => {

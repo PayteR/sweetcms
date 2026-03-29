@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { trpc } from '@/lib/trpc/client';
 import { slugify } from '@/lib/slug';
 import { useBlankTranslations } from '@/lib/translations';
+import { useSession } from '@/lib/auth-client';
 import { ContentStatus } from '@/types/cms';
 import { toast } from '@/store/toast-store';
 
@@ -19,6 +20,7 @@ export function TermForm({ tagId }: Props) {
   const __ = useBlankTranslations();
   const router = useRouter();
   const utils = trpc.useUtils();
+  const { data: session } = useSession();
   const isNew = !tagId;
 
   const [name, setName] = useState('');
@@ -30,7 +32,7 @@ export function TermForm({ tagId }: Props) {
 
   const existingTag = trpc.tags.get.useQuery(
     { id: tagId! },
-    { enabled: !!tagId }
+    { enabled: !!tagId && !!session }
   );
 
   useEffect(() => {

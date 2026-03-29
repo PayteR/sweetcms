@@ -37,7 +37,7 @@ export function ShortcodeEditDialog({ def, attrs, content, onSave, onClose }: Pr
     <dialog
       ref={dialogRef}
       onClose={onClose}
-      className="w-full max-w-md rounded-lg border border-(--border-primary) bg-(--surface-primary) p-6 shadow-lg backdrop:bg-black/50"
+      className="fixed inset-0 z-50 m-auto w-full max-w-md rounded-lg border border-(--border-primary) bg-(--surface-primary) p-6 shadow-xl backdrop:bg-black/30"
     >
       <h3 className="text-lg font-semibold text-(--text-primary)">
         {__(`Edit ${def.label}`)}
@@ -54,7 +54,7 @@ export function ShortcodeEditDialog({ def, attrs, content, onSave, onClose }: Pr
                 onChange={(e) =>
                   setFormAttrs((prev) => ({ ...prev, [attr.name]: e.target.value }))
                 }
-                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm"
+                className="mt-1 block w-full rounded-md border border-(--border-primary) bg-(--surface-primary) px-3 py-2 text-sm text-(--text-primary)"
               >
                 {attr.options?.map((opt) => (
                   <option key={opt} value={opt}>
@@ -69,7 +69,7 @@ export function ShortcodeEditDialog({ def, attrs, content, onSave, onClose }: Pr
                   setFormAttrs((prev) => ({ ...prev, [attr.name]: e.target.value }))
                 }
                 rows={3}
-                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm"
+                className="mt-1 block w-full rounded-md border border-(--border-primary) bg-(--surface-primary) px-3 py-2 text-sm text-(--text-primary)"
               />
             ) : (
               <input
@@ -78,7 +78,7 @@ export function ShortcodeEditDialog({ def, attrs, content, onSave, onClose }: Pr
                 onChange={(e) =>
                   setFormAttrs((prev) => ({ ...prev, [attr.name]: e.target.value }))
                 }
-                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm"
+                className="mt-1 block w-full rounded-md border border-(--border-primary) bg-(--surface-primary) px-3 py-2 text-sm text-(--text-primary)"
               />
             )}
           </div>
@@ -93,7 +93,7 @@ export function ShortcodeEditDialog({ def, attrs, content, onSave, onClose }: Pr
               value={formContent}
               onChange={(e) => setFormContent(e.target.value)}
               rows={4}
-              className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm"
+              className="mt-1 block w-full rounded-md border border-(--border-primary) bg-(--surface-primary) px-3 py-2 text-sm text-(--text-primary)"
             />
           </div>
         )}
