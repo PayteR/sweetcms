@@ -69,7 +69,7 @@ export function serializeShortcode(
   content?: string
 ): string {
   const attrsStr = Object.entries(attrs)
-    .map(([k, v]) => `${k}="${v}"`)
+    .map(([k, v]) => `${k}="${v.replace(/"/g, '&quot;')}"`)
     .join(' ');
   const attrsPart = attrsStr ? ` ${attrsStr}` : '';
 

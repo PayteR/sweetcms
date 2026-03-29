@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
@@ -83,6 +83,7 @@ function ToolbarDivider() {
 export function RichTextEditor({ content, onChange, placeholder }: Props) {
   const __ = useBlankTranslations();
   const [shortcodeMenuOpen, setShortcodeMenuOpen] = useState(false);
+  const isInternalChange = useRef(false);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -108,6 +109,7 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
     ],
     content: prepareForEditor(content),
     onUpdate: ({ editor: e }) => {
+      isInternalChange.current = true;
       onChange(serializeForStorage(e.getHTML()));
     },
     editorProps: {
@@ -117,6 +119,19 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
       },
     },
   });
+
+  // Sync content from parent when it changes externally (e.g. autosave restore)
+  useEffect(() => {
+    if (!editor || editor.isDestroyed) return;
+    if (isInternalChange.current) {
+      isInternalChange.current = false;
+      return;
+    }
+    const currentContent = serializeForStorage(editor.getHTML());
+    if (currentContent !== content) {
+      editor.commands.setContent(prepareForEditor(content), { emitUpdate: false });
+    }
+  }, [editor, content]);
 
   if (!editor) return null;
 

@@ -489,7 +489,8 @@ export const categoriesRouter = createTRPCRouter({
           message: 'Category not found',
         });
       }
-      return category;
+      const { previewToken: _pt, ...rest } = category;
+      return rest;
     }),
 
   /** Public: list published categories */
@@ -532,7 +533,7 @@ export const categoriesRouter = createTRPCRouter({
 
       const total = Number(countResult[0]?.count ?? 0);
       return {
-        results: items,
+        results: items.map(({ previewToken: _pt, ...rest }) => rest),
         total,
         page: input.page,
         pageSize: input.pageSize,
