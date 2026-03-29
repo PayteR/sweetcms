@@ -93,16 +93,19 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
       return 'wysiwyg';
     }
   });
-  const [sourceValue, setSourceValue] = useState('');
+  const [sourceValue, setSourceValue] = useState(content);
   const lastEmittedContent = useRef(content);
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Cleanup debounce timer on unmount
+  // Flush debounce on unmount so the last edit isn't lost
   useEffect(() => {
     return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+        debounceRef.current = null;
+      }
     };
   }, []);
 
