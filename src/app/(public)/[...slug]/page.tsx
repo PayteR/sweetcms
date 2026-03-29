@@ -1,4 +1,4 @@
-import { notFound, redirect } from 'next/navigation';
+import { notFound, permanentRedirect } from 'next/navigation';
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Rss } from 'lucide-react';
@@ -126,7 +126,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
           : null;
       if (!slugStr) continue;
       const redirectPath = await resolveSlugRedirect(slugStr, ct.urlPrefix);
-      if (redirectPath) redirect(redirectPath);
+      if (redirectPath) permanentRedirect(redirectPath);
     }
     notFound();
   }
@@ -414,7 +414,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
       resolved.slug,
       resolved.contentType.urlPrefix
     );
-    if (redirectPath) redirect(redirectPath);
+    if (redirectPath) permanentRedirect(redirectPath);
     notFound();
   }
 }

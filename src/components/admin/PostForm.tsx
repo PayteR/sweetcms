@@ -150,6 +150,7 @@ export function PostForm({ contentType, postId }: Props) {
     initialData,
     dbUpdatedAt: existingPost.data?.updatedAt ?? null,
     saving: isSaving,
+    loading: !!postId && existingPost.isLoading,
   });
 
   const handleRestore = useCallback(() => {

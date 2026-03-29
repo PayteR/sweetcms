@@ -9,6 +9,8 @@ interface CmsAutosaveConfig<T> {
   initialData: T;
   dbUpdatedAt: string | Date | null;
   saving: boolean;
+  /** Pass true while the existing content is still loading — delays recovery. */
+  loading?: boolean;
 }
 
 interface StoredAutosave<T> {
@@ -68,10 +70,12 @@ export function useCmsAutosave<T extends Record<string, unknown>>({
   initialData,
   dbUpdatedAt,
   saving,
+  loading = false,
 }: CmsAutosaveConfig<T>) {
   const storageKey = getStorageKey(contentTypeId, contentId);
   const baselineRef = useRef<T>(initialData);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasAttemptedRecovery = useRef(false);
   const [lastAutosaveAt, setLastAutosaveAt] = useState<number | null>(null);
   const [recoveredData, setRecoveredData] = useState<RecoveredData<T> | null>(
     null
@@ -80,8 +84,16 @@ export function useCmsAutosave<T extends Record<string, unknown>>({
   const isDirty = isFormDirty(formData, baselineRef.current);
   const normalizedDbUpdatedAt = normalizeDbUpdatedAt(dbUpdatedAt);
 
-  // Recovery on mount
+  // Sync baseline when initialData changes (e.g. query data loads, post-save refetch)
   useEffect(() => {
+    baselineRef.current = initialData;
+  }, [initialData]);
+
+  // Recovery — waits for existing content to load before attempting
+  useEffect(() => {
+    if (loading || hasAttemptedRecovery.current) return;
+    hasAttemptedRecovery.current = true;
+
     try {
       const raw = localStorage.getItem(storageKey);
       if (!raw) return;
@@ -104,9 +116,7 @@ export function useCmsAutosave<T extends Record<string, unknown>>({
       // Corrupted data — remove it
       localStorage.removeItem(storageKey);
     }
-    // Only run on mount
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loading, storageKey, normalizedDbUpdatedAt, initialData]);
 
   // Autosave effect
   useEffect(() => {

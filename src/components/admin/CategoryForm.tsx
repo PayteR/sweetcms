@@ -139,6 +139,7 @@ export function CategoryForm({ categoryId }: Props) {
     initialData,
     dbUpdatedAt: existingCat.data?.updatedAt ?? null,
     saving: isSaving,
+    loading: !!categoryId && existingCat.isLoading,
   });
 
   const handleRestore = useCallback(() => {
