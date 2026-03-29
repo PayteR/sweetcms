@@ -129,10 +129,11 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
     if (!editor || editor.isDestroyed) return;
     if (content === lastEmittedContent.current) return;
     lastEmittedContent.current = content;
+    if (mode === 'source') setSourceValue(content);
     editor.commands.setContent(prepareForEditor(markdownToHtml(content)), {
       emitUpdate: false,
     });
-  }, [editor, content]);
+  }, [editor, content, mode]);
 
   const toggleMode = useCallback(() => {
     if (!editor) return;
