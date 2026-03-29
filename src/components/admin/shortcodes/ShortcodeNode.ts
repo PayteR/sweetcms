@@ -1,4 +1,4 @@
-import { Node, mergeAttributes } from '@tiptap/core';
+import { Node } from '@tiptap/core';
 import { ReactNodeViewRenderer } from '@tiptap/react';
 import { ShortcodeNodeView } from './ShortcodeNodeView';
 
@@ -32,14 +32,14 @@ export const ShortcodeNode = Node.create({
     ];
   },
 
-  renderHTML({ HTMLAttributes }) {
+  renderHTML({ node }) {
     return [
       'div',
-      mergeAttributes(HTMLAttributes, {
-        'data-shortcode': HTMLAttributes.shortcodeName,
-        'data-shortcode-attrs': HTMLAttributes.shortcodeAttrs,
-        'data-shortcode-content': HTMLAttributes.shortcodeContent,
-      }),
+      {
+        'data-shortcode': node.attrs.shortcodeName,
+        'data-shortcode-attrs': node.attrs.shortcodeAttrs,
+        'data-shortcode-content': node.attrs.shortcodeContent,
+      },
     ];
   },
 

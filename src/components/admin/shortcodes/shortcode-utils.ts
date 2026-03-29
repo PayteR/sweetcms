@@ -30,18 +30,23 @@ export function prepareForEditor(html: string): string {
 
 /** Convert HTML wrappers → shortcode syntax (before saving to DB) */
 export function serializeForStorage(html: string): string {
+  // Match the data-shortcode div wrappers. Attribute values may be HTML-encoded
+  // by the browser's DOM serializer (e.g. " → &quot;), so we use a permissive
+  // capture and decode after.
   return html.replace(
-    /<div[^>]*data-shortcode="(\w+)"[^>]*data-shortcode-attrs=["']([^"']*)["'][^>]*data-shortcode-content="([^"]*)"[^>]*><\/div>/g,
-    (_match, name: string, attrsJson: string, content: string) => {
+    /<div[^>]*\bdata-shortcode="(\w+)"[^>]*\bdata-shortcode-attrs="([^"]*)"[^>]*\bdata-shortcode-content="([^"]*)"[^>]*><\/div>/g,
+    (_match, name: string, rawAttrsJson: string, rawContent: string) => {
+      // Decode HTML entities that the DOM serializer may have added
+      const attrsJson = unescapeHtml(rawAttrsJson);
       const attrs = JSON.parse(attrsJson || '{}') as Record<string, string>;
       const attrsStr = Object.entries(attrs)
         .map(([k, v]) => `${k}="${v}"`)
         .join(' ');
       const attrsPart = attrsStr ? ` ${attrsStr}` : '';
-      const unescapedContent = unescapeHtml(content);
+      const content = unescapeHtml(rawContent);
 
-      if (unescapedContent) {
-        return `[${name}${attrsPart}]${unescapedContent}[/${name}]`;
+      if (content) {
+        return `[${name}${attrsPart}]${content}[/${name}]`;
       }
       return `[${name}${attrsPart} /]`;
     }
@@ -59,9 +64,19 @@ function parseAttrsToJson(attrsStr: string): string {
 }
 
 function escapeHtml(s: string): string {
-  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 function unescapeHtml(s: string): string {
-  return s.replace(/&gt;/g, '>').replace(/&lt;/g, '<').replace(/&quot;/g, '"').replace(/&amp;/g, '&');
+  return s
+    .replace(/&#39;/g, "'")
+    .replace(/&gt;/g, '>')
+    .replace(/&lt;/g, '<')
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&');
 }

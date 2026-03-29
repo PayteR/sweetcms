@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { NodeViewWrapper } from '@tiptap/react';
 import type { NodeViewProps } from '@tiptap/react';
 import { Info, AlertTriangle, CheckCircle, XCircle, X, Pencil, MousePointer, Play, Images } from 'lucide-react';
@@ -26,7 +26,12 @@ const SHORTCODE_ICONS: Record<string, typeof Info> = {
 export function ShortcodeNodeView({ node, updateAttributes, deleteNode }: NodeViewProps) {
   const [editOpen, setEditOpen] = useState(false);
   const name = node.attrs.shortcodeName as string;
-  const attrs = JSON.parse((node.attrs.shortcodeAttrs as string) || '{}') as Record<string, string>;
+  let attrs: Record<string, string> = {};
+  try {
+    attrs = JSON.parse((node.attrs.shortcodeAttrs as string) || '{}') as Record<string, string>;
+  } catch {
+    // Malformed JSON — use empty attrs
+  }
   const content = node.attrs.shortcodeContent as string;
   const def = getShortcodeDef(name);
 

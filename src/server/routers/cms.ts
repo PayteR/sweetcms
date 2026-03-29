@@ -371,6 +371,16 @@ export const cmsRouter = createTRPCRouter({
         .set(updates)
         .where(eq(cmsPosts.id, input.id));
 
+      const action =
+        input.status === ContentStatus.PUBLISHED ? 'publish' : 'unpublish';
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id as string,
+        action,
+        entityType: 'post',
+        entityId: input.id,
+      });
+
       return { success: true };
     }),
 
@@ -451,6 +461,13 @@ export const cmsRouter = createTRPCRouter({
         attempt++;
       }
 
+      if (attempt >= 20) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Could not generate a unique slug after 20 attempts',
+        });
+      }
+
       const previewToken = crypto.randomBytes(32).toString('hex');
 
       const [copy] = await ctx.db
@@ -474,6 +491,21 @@ export const cmsRouter = createTRPCRouter({
           authorId: ctx.session.user.id as string,
         })
         .returning();
+
+      // Copy taxonomy relationships (categories + tags) from the original
+      const originalRels = await getTermRelationships(ctx.db, input.id);
+      const categoryIds = originalRels
+        .filter((r) => r.taxonomyId === 'category')
+        .map((r) => r.termId);
+      const tagIds = originalRels
+        .filter((r) => r.taxonomyId === 'tag')
+        .map((r) => r.termId);
+      if (categoryIds.length > 0) {
+        await syncTermRelationships(ctx.db, copy!.id, 'category', categoryIds);
+      }
+      if (tagIds.length > 0) {
+        await syncTermRelationships(ctx.db, copy!.id, 'tag', tagIds);
+      }
 
       logAudit({
         db: ctx.db,
@@ -603,7 +635,8 @@ export const cmsRouter = createTRPCRouter({
         if (!post) {
           throw new TRPCError({ code: 'NOT_FOUND', message: 'Post not found' });
         }
-        return post;
+        const { previewToken: _pt, ...rest } = post;
+        return rest;
       }
 
       const [post] = await ctx.db
@@ -623,7 +656,8 @@ export const cmsRouter = createTRPCRouter({
       if (!post) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Post not found' });
       }
-      return post;
+      const { previewToken: _pt, ...rest } = post;
+      return rest;
     }),
 
   /** Public: list published posts (optional category or tag filter) */
@@ -671,7 +705,6 @@ export const cmsRouter = createTRPCRouter({
           jsonLd: cmsPosts.jsonLd,
           noindex: cmsPosts.noindex,
           publishedAt: cmsPosts.publishedAt,
-          previewToken: cmsPosts.previewToken,
           translationGroup: cmsPosts.translationGroup,
           fallbackToDefault: cmsPosts.fallbackToDefault,
           authorId: cmsPosts.authorId,
@@ -715,7 +748,28 @@ export const cmsRouter = createTRPCRouter({
 
       const [items, countResult] = await Promise.all([
         ctx.db
-          .select()
+          .select({
+            id: cmsPosts.id,
+            type: cmsPosts.type,
+            status: cmsPosts.status,
+            lang: cmsPosts.lang,
+            slug: cmsPosts.slug,
+            title: cmsPosts.title,
+            content: cmsPosts.content,
+            metaDescription: cmsPosts.metaDescription,
+            seoTitle: cmsPosts.seoTitle,
+            featuredImage: cmsPosts.featuredImage,
+            featuredImageAlt: cmsPosts.featuredImageAlt,
+            jsonLd: cmsPosts.jsonLd,
+            noindex: cmsPosts.noindex,
+            publishedAt: cmsPosts.publishedAt,
+            translationGroup: cmsPosts.translationGroup,
+            fallbackToDefault: cmsPosts.fallbackToDefault,
+            authorId: cmsPosts.authorId,
+            createdAt: cmsPosts.createdAt,
+            updatedAt: cmsPosts.updatedAt,
+            deletedAt: cmsPosts.deletedAt,
+          })
           .from(cmsPosts)
           .where(baseConditions)
           .orderBy(desc(cmsPosts.publishedAt))

@@ -66,7 +66,7 @@ export const mediaRouter = createTRPCRouter({
           .offset(offset)
           .limit(pageSize),
         ctx.db
-          .select({ count: cmsMedia.id })
+          .select({ count: count() })
           .from(cmsMedia)
           .where(where),
       ]);
@@ -78,7 +78,8 @@ export const mediaRouter = createTRPCRouter({
         url: storage.url(item.filepath),
       }));
 
-      return paginatedResult(withUrls, countResult.length, page, pageSize);
+      const total = Number(countResult[0]?.count ?? 0);
+      return paginatedResult(withUrls, total, page, pageSize);
     }),
 
   /** Register an uploaded file in the media library */

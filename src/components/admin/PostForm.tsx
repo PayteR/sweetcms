@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Eye, Loader2, ImageIcon, X } from 'lucide-react';
 import Link from 'next/link';
@@ -164,6 +164,12 @@ export function PostForm({ contentType, postId }: Props) {
     { enabled: isPageType }
   );
 
+  // Use ref so keyboard shortcut always calls the latest handlePublish
+  const handlePublishRef = useRef(handlePublish);
+  useEffect(() => {
+    handlePublishRef.current = handlePublish;
+  });
+
   // Keyboard shortcuts
   useKeyboardShortcuts(
     useMemo(
@@ -180,10 +186,9 @@ export function PostForm({ contentType, postId }: Props) {
           key: 'p',
           ctrl: true,
           shift: true,
-          handler: () => handlePublish(),
+          handler: () => handlePublishRef.current(),
         },
       ],
-      // eslint-disable-next-line react-hooks/exhaustive-deps
       []
     )
   );

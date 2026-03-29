@@ -321,7 +321,9 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
           {post.jsonLd && (
             <script
               type="application/ld+json"
-              dangerouslySetInnerHTML={{ __html: post.jsonLd }}
+              dangerouslySetInnerHTML={{
+                __html: post.jsonLd.replace(/<\//g, '<\\/'),
+              }}
             />
           )}
         </article>

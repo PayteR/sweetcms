@@ -2,6 +2,7 @@ import {
   index,
   jsonb,
   pgTable,
+  text,
   timestamp,
   uuid,
   varchar,
@@ -15,7 +16,7 @@ export const cmsAuditLog = pgTable(
   'cms_audit_log',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    userId: uuid('user_id').references(() => user.id, {
+    userId: text('user_id').references(() => user.id, {
       onDelete: 'set null',
     }),
     action: varchar('action', { length: 30 }).notNull(),

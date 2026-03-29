@@ -216,19 +216,37 @@ export const categoriesRouter = createTRPCRouter({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Category not found' });
       }
 
-      const copySlug = original.slug + '-copy';
-      await ensureSlugUnique(
-        ctx.db,
-        {
-          table: cmsCategories,
-          slugCol: cmsCategories.slug,
-          slug: copySlug,
-          langCol: cmsCategories.lang,
-          lang: original.lang,
-          deletedAtCol: cmsCategories.deletedAt,
-        },
-        'Category'
-      );
+      // Generate a unique slug for the copy
+      let copySlug = original.slug + '-copy';
+      let attempt = 0;
+      while (attempt < 20) {
+        const suffix = attempt === 0 ? '' : `-${attempt + 1}`;
+        const candidate = original.slug + '-copy' + suffix;
+        const [existing] = await ctx.db
+          .select({ id: cmsCategories.id })
+          .from(cmsCategories)
+          .where(
+            and(
+              eq(cmsCategories.slug, candidate),
+              eq(cmsCategories.lang, original.lang),
+              isNull(cmsCategories.deletedAt)
+            )
+          )
+          .limit(1);
+
+        if (!existing) {
+          copySlug = candidate;
+          break;
+        }
+        attempt++;
+      }
+
+      if (attempt >= 20) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'Could not generate a unique slug after 20 attempts',
+        });
+      }
 
       const previewToken = crypto.randomBytes(32).toString('hex');
 
@@ -251,6 +269,15 @@ export const categoriesRouter = createTRPCRouter({
           jsonLd: original.jsonLd,
         })
         .returning();
+
+      // Copy taxonomy relationships (tags) from the original
+      const originalRels = await getTermRelationships(ctx.db, input.id);
+      const tagIds = originalRels
+        .filter((r) => r.taxonomyId === 'tag')
+        .map((r) => r.termId);
+      if (tagIds.length > 0) {
+        await syncTermRelationships(ctx.db, copy!.id, 'tag', tagIds);
+      }
 
       logAudit({
         db: ctx.db,
@@ -397,6 +424,16 @@ export const categoriesRouter = createTRPCRouter({
         .update(cmsCategories)
         .set(updates)
         .where(eq(cmsCategories.id, input.id));
+
+      const action =
+        input.status === ContentStatus.PUBLISHED ? 'publish' : 'unpublish';
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id as string,
+        action,
+        entityType: 'category',
+        entityId: input.id,
+      });
 
       return { success: true };
     }),

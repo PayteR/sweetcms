@@ -222,7 +222,7 @@ export const contentSearchRouter = createTRPCRouter({
             metaDescription: cmsPosts.metaDescription,
             publishedAt: cmsPosts.publishedAt,
             rank: sql<number>`ts_rank(search_vector, ${tsQuery})`.as('rank'),
-            headline: sql<string>`ts_headline('english', coalesce(content, ''), ${tsQuery}, 'MaxWords=35, MinWords=15, StartSel=<mark>, StopSel=</mark>')`.as('headline'),
+            headline: sql<string>`ts_headline('english', regexp_replace(coalesce(content, ''), '<[^>]*>', '', 'g'), ${tsQuery}, 'MaxWords=35, MinWords=15, StartSel=<mark>, StopSel=</mark>')`.as('headline'),
           })
           .from(cmsPosts)
           .where(conditions)

@@ -244,9 +244,15 @@ export function MenuBuilder({ menuId }: Props) {
   }, []);
 
   const outdentItem = useCallback((id: string) => {
-    setItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, parentId: null } : item))
-    );
+    setItems((prev) => {
+      const item = prev.find((i) => i.id === id);
+      if (!item?.parentId) return prev;
+      const parent = prev.find((i) => i.id === item.parentId);
+      const grandparentId = parent?.parentId ?? null;
+      return prev.map((i) =>
+        i.id === id ? { ...i, parentId: grandparentId } : i
+      );
+    });
   }, []);
 
   function addItem() {
