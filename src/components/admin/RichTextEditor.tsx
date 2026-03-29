@@ -84,7 +84,15 @@ function ToolbarDivider() {
 export function RichTextEditor({ content, onChange, placeholder }: Props) {
   const __ = useBlankTranslations();
   const [shortcodeMenuOpen, setShortcodeMenuOpen] = useState(false);
-  const [mode, setMode] = useState<'wysiwyg' | 'source'>('wysiwyg');
+  const [mode, setMode] = useState<'wysiwyg' | 'source'>(() => {
+    try {
+      return localStorage.getItem('cms-editor-mode') === 'source'
+        ? 'source'
+        : 'wysiwyg';
+    } catch {
+      return 'wysiwyg';
+    }
+  });
   const [sourceValue, setSourceValue] = useState('');
   const lastEmittedContent = useRef(content);
   const onChangeRef = useRef(onChange);
@@ -161,6 +169,7 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
       lastEmittedContent.current = md;
       onChangeRef.current(md);
       setMode('source');
+      try { localStorage.setItem('cms-editor-mode', 'source'); } catch { /* quota */ }
     } else {
       // Source → WYSIWYG: suppress emitUpdate to avoid double-fire
       editor.commands.setContent(prepareForEditor(markdownToHtml(sourceValue)), {
@@ -170,6 +179,7 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
       lastEmittedContent.current = md;
       onChangeRef.current(md);
       setMode('wysiwyg');
+      try { localStorage.setItem('cms-editor-mode', 'wysiwyg'); } catch { /* quota */ }
     }
   }, [editor, mode, sourceValue]);
 
@@ -396,23 +406,15 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
           <Redo className={iconSize} />
         </ToolbarButton>
 
-        <ToolbarDivider />
-
-        <ToolbarButton
-          onClick={toggleMode}
-          active={mode === 'source'}
-          title={mode === 'wysiwyg' ? __('Source') : __('Visual')}
-        >
-          <Code2 className={iconSize} />
-        </ToolbarButton>
       </div>
 
-      {/* Editor */}
-      <EditorContent
-        editor={editor}
-        style={{ display: mode === 'source' ? 'none' : undefined }}
-      />
-      {mode === 'source' && (
+      {/* Editor / Source */}
+      {mode === 'wysiwyg' ? (
+        <EditorContent
+          editor={editor}
+          className="min-h-[300px]"
+        />
+      ) : (
         <textarea
           value={sourceValue}
           onChange={(e) => {
@@ -420,22 +422,38 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
             lastEmittedContent.current = e.target.value;
             onChangeRef.current(e.target.value);
           }}
-          style={{
-            fontFamily: 'monospace',
-            fontSize: '13px',
-            lineHeight: 1.6,
-            tabSize: 2,
-            width: '100%',
-            minHeight: '300px',
-            padding: '12px 16px',
-            border: 'none',
-            outline: 'none',
-            resize: 'vertical',
-            background: 'transparent',
-            color: 'inherit',
-          }}
+          className="min-h-[300px] w-full resize-none border-none bg-transparent px-4 py-3 font-mono text-[13px] leading-relaxed text-inherit outline-none"
+          style={{ tabSize: 2 }}
         />
       )}
+
+      {/* Mode tabs (bottom) */}
+      <div className="flex justify-end border-t border-(--border-primary) bg-(--surface-secondary)">
+        <button
+          type="button"
+          className={cn(
+            '-mt-px border-t-2 px-4 py-1.5 text-[13px] transition-colors',
+            mode === 'wysiwyg'
+              ? 'border-blue-500 text-blue-500 dark:border-blue-400 dark:text-blue-400 bg-(--surface-primary)'
+              : 'border-transparent text-(--text-secondary) hover:text-(--text-primary) hover:bg-(--surface-primary)',
+          )}
+          onClick={() => mode !== 'wysiwyg' && toggleMode()}
+        >
+          {__('Visual')}
+        </button>
+        <button
+          type="button"
+          className={cn(
+            '-mt-px border-t-2 px-4 py-1.5 text-[13px] transition-colors',
+            mode === 'source'
+              ? 'border-blue-500 text-blue-500 dark:border-blue-400 dark:text-blue-400 bg-(--surface-primary)'
+              : 'border-transparent text-(--text-secondary) hover:text-(--text-primary) hover:bg-(--surface-primary)',
+          )}
+          onClick={() => mode !== 'source' && toggleMode()}
+        >
+          {__('Source')}
+        </button>
+      </div>
     </div>
   );
 }
