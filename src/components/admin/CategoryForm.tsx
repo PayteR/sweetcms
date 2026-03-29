@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import Link from 'next/link';
@@ -97,6 +97,11 @@ export function CategoryForm({ categoryId }: Props) {
     },
     onError: (err) => toast.error(err.message),
   });
+
+  const currentData = useMemo(() => ({
+    name, slug, title, text, status, metaDescription, seoTitle,
+    icon, order, noindex, publishedAt, lang,
+  }), [name, slug, title, text, status, metaDescription, seoTitle, icon, order, noindex, publishedAt, lang]);
 
   const isSaving = createCat.isPending || updateCat.isPending;
 
@@ -295,6 +300,7 @@ export function CategoryForm({ categoryId }: Props) {
               <RevisionHistory
                 contentType="category"
                 contentId={categoryId}
+                currentData={currentData}
                 onRestored={() => existingCat.refetch()}
               />
             )}

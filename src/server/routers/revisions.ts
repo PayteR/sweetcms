@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { eq } from 'drizzle-orm';
+import { and, count, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { cmsPosts, cmsCategories, cmsContentRevisions } from '@/server/db/schema';
@@ -81,6 +81,27 @@ export const revisionsRouter = createTRPCRouter({
       }
 
       return revision;
+    }),
+
+  /** Count revisions for a content item */
+  count: contentProcedure
+    .input(
+      z.object({
+        contentType: z.string().max(30),
+        contentId: z.string().uuid(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const [result] = await ctx.db
+        .select({ count: count() })
+        .from(cmsContentRevisions)
+        .where(
+          and(
+            eq(cmsContentRevisions.contentType, input.contentType),
+            eq(cmsContentRevisions.contentId, input.contentId)
+          )
+        );
+      return result?.count ?? 0;
     }),
 
   /** Restore a revision — overwrites the content item with safe snapshot fields only */

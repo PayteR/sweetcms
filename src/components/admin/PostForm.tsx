@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Eye, Loader2, ImageIcon, X } from 'lucide-react';
 import Link from 'next/link';
@@ -108,6 +108,11 @@ export function PostForm({ contentType, postId }: Props) {
     },
     onError: (err) => toast.error(err.message),
   });
+
+  const currentData = useMemo(() => ({
+    title, slug, content, status, metaDescription, seoTitle,
+    featuredImage, featuredImageAlt, jsonLd, noindex, publishedAt, lang,
+  }), [title, slug, content, status, metaDescription, seoTitle, featuredImage, featuredImageAlt, jsonLd, noindex, publishedAt, lang]);
 
   const isSaving = createPost.isPending || updatePost.isPending;
 
@@ -329,6 +334,7 @@ export function PostForm({ contentType, postId }: Props) {
               <RevisionHistory
                 contentType="post"
                 contentId={postId}
+                currentData={currentData}
                 onRestored={() => existingPost.refetch()}
               />
             )}
