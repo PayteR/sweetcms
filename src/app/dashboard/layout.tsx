@@ -13,8 +13,8 @@ export default function DashboardLayout({
       <AdminSidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
         <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-(--surface-secondary) p-6">
-          {children}
+        <main className="flex-1 overflow-y-auto bg-(--surface-secondary)">
+          <div className="p-6">{children}</div>
         </main>
       </div>
       <Toaster />
