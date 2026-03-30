@@ -7,3 +7,10 @@ export const DEFAULT_LOCALE = 'en';
 /** Supported locales */
 export const LOCALES = ['en', 'es', 'de'] as const;
 export type Locale = (typeof LOCALES)[number];
+
+/** Human-readable labels for each locale */
+export const LOCALE_LABELS: Record<Locale, string> = {
+  en: 'English',
+  es: 'Español',
+  de: 'Deutsch',
+};
