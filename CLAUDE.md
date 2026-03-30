@@ -23,6 +23,19 @@ SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack: Nex
 
 ## Architecture Overview
 
+### Engine / Project Boundary
+
+`src/engine/` contains reusable CMS infrastructure — do not modify per-project.
+`src/config/`, `src/server/`, `src/app/`, `src/components/admin/` (forms) are project-specific — customize freely.
+
+**Engine provides:** config interfaces + factory helpers, types (PostType, ContentStatus), RBAC policy, CRUD utils (admin-crud, taxonomy-helpers, cms-helpers, content-revisions, slug-redirects), lib utils (slug, markdown, audit, webhooks), hooks (form state, list state, autosave, bulk actions), shared components (CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPickerDialog, CustomFieldsEditor, RevisionHistory, BulkActionBar), styles (tokens, admin CSS).
+
+**Project provides:** content type data (`src/config/cms.ts`), taxonomy data (`src/config/taxonomies.ts`), DB schema, tRPC routers, form components (PostForm, CategoryForm, etc.), routes, public UI.
+
+**Import rule:** project imports from `@/engine/*`. Engine accepts cross-boundary imports from `@/server/db`, `@/lib/trpc/client`, `@/lib/translations`, `@/lib/utils`, `@/store/toast-store`.
+
+**To rebrand:** change hue value in `src/engine/styles/tokens.css` — all colors adapt automatically.
+
 ### tRPC Procedures & Usage
 
 **Usage:** Client: `trpc.cms.list.useQuery()` / `trpc.cms.create.useMutation()` from `@/lib/trpc/client`. Server: `const api = await serverTRPC()` from `@/lib/trpc/server`. Client uses `httpBatchStreamLink`.
@@ -79,7 +92,7 @@ WordPress-style universal taxonomy with config-driven declarations.
 
 **Helpers:** `getTaxonomy(id)`, `getTaxonomyByAdminSlug(slug)`, `getTaxonomiesForContentType(ctId)`.
 
-**Relationship helpers** (`src/server/utils/taxonomy-helpers.ts`):
+**Relationship helpers** (`src/engine/crud/taxonomy-helpers.ts`):
 - `syncTermRelationships(db, objectId, taxonomyId, termIds[])` — delete+insert
 - `getTermRelationships(db, objectId, taxonomyId?)` — get relations for a post
 - `deleteAllTermRelationships(db, objectId)` — cascade on post delete
@@ -107,7 +120,7 @@ WordPress-style universal taxonomy with config-driven declarations.
 ```
 src/
 ├── app/
-│   ├── assets/           — tokens.css, content.css, admin-table.css
+│   ├── assets/           — content.css
 │   ├── (auth)/           — login, register, forgot-password, reset-password
 │   ├── (public)/         — public-facing content
 │   │   ├── blog/         — blog list page
@@ -124,7 +137,6 @@ src/
 │   │   ├── uploads/      — file serving (static uploads)
 │   │   └── v1/           — REST API v1 (posts, categories, tags, menus)
 │   ├── dashboard/        — admin panel
-│   │   ├── assets/       — admin.css (imports admin-table.css)
 │   │   ├── cms/
 │   │   │   ├── [section]/ — CMS list/edit pages (pages, blog, categories, tags, landing pages)
 │   │   │   ├── activity/  — audit activity log
@@ -137,20 +149,28 @@ src/
 │   │   └── users/        — user management
 │   └── sitemap.ts        — dynamic sitemap generation
 ├── components/
-│   ├── admin/            — PostForm, CategoryForm, PortfolioForm, TermForm, TagInput, CmsListView, CmsFormShell, RichTextEditor, MediaPickerDialog, AdminHeader, AdminSidebar, RevisionHistory, MenuBuilder, ContentCalendar, CustomFieldsEditor, BulkActionBar, SEOFields, TranslationBar, shortcodes/
+│   ├── admin/            — PostForm, CategoryForm, PortfolioForm, TermForm, CmsListView, AdminHeader, AdminSidebar, TranslationBar, shortcodes/
 │   ├── public/           — ContactForm, DynamicNav, PostCard, ShortcodeRenderer, TagCloud, shortcodes/
 │   └── ui/               — ConfirmDialog, Toaster
 ├── config/               — cms.ts (content types), taxonomies.ts (taxonomy declarations), site.ts (site config)
-├── lib/                  — auth, auth-client, constants, datetime, env, extract-internal-links, markdown, password, policy, revision-diff, slug, translations, trpc, utils
+├── engine/
+│   ├── config/           — ContentTypeDeclaration, TaxonomyDeclaration interfaces + factory helpers
+│   ├── crud/             — admin-crud, taxonomy-helpers, cms-helpers, content-revisions, slug-redirects
+│   ├── hooks/            — useCmsFormState, useCmsAutosave, useListViewState, useBulkActions, etc.
+│   ├── policy/           — Role, Policy, Capability, isSuperAdmin
+│   ├── components/       — CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPickerDialog, etc.
+│   ├── lib/              — slug, markdown, audit, webhooks
+│   ├── types/            — PostType, ContentStatus, FileType, ContentSnapshot
+│   └── styles/           — tokens.css (OKLCH design tokens), admin.css, admin-table.css
+├── lib/                  — auth, auth-client, constants, datetime, env, extract-internal-links, password, revision-diff, translations, trpc, utils
 ├── scripts/              — init.ts, promote.ts, change-password.ts, migrate-html-to-markdown.ts, schedule-jobs.ts
 ├── server/
 │   ├── db/schema/        — auth, cms, categories, portfolio, terms, term-relationships, media, menu, webhooks, audit, custom-fields, forms
 │   ├── jobs/             — email queue (BullMQ + nodemailer)
 │   ├── routers/          — analytics, audit, auth, categories, cms, content-search, custom-fields, forms, import, job-queue, media, menus, options, portfolio, redirects, revisions, tags, users, webhooks
 │   ├── storage/          — pluggable storage (filesystem, S3-compatible)
-│   └── utils/            — admin-crud, api-auth, audit, cms-helpers, content-revisions, ga4, gdpr, page-seo, seo-routes, slug-redirects, taxonomy-helpers, webhooks
+│   └── utils/            — api-auth, ga4, gdpr, page-seo, seo-routes
 ├── store/                — toast-store, theme-store, sidebar-store (Zustand)
-└── types/                — cms.ts (PostType, ContentStatus, FileType, ContentSnapshot)
 ```
 
 ### User Roles & Permissions
@@ -159,7 +179,7 @@ src/
 
 **How to check permissions:**
 - **Server:** `Policy.for(role).can('section.content')` or `Policy.for(role).canAccessAdmin()`
-- **Superadmin-only:** `isSuperAdmin(role)` from `@/lib/policy`
+- **Superadmin-only:** `isSuperAdmin(role)` from `@/engine/policy`
 - **Never** use hardcoded role strings like `role === 'admin'` — always use `Role.*` consts or `Policy.for(role).can(...)`
 - **Invalid roles:** `Policy.for()` normalizes unknown/empty/null to `Role.USER` (fail-closed)
 
@@ -179,28 +199,28 @@ src/
 
 Always use these instead of manual alternatives:
 
-- **Slug uniqueness** (`src/server/utils/admin-crud.ts`): Use `ensureSlugUnique()` — never inline slug uniqueness checks
-- **Status counts** (`src/server/utils/admin-crud.ts`): Use `buildStatusCounts()` for admin tab counts
-- **Pagination** (`src/server/utils/admin-crud.ts`): Use `parsePagination()` + `paginatedResult()`. Standard response shape: `{ results, total, page, pageSize, totalPages }`
-- **Admin lists** (`src/server/utils/admin-crud.ts`): Use `buildAdminList()` — handles conditions, sort, pagination, count in parallel
-- **Soft-delete** (`src/server/utils/admin-crud.ts`): Use `softDelete()`, `softRestore()`, `permanentDelete()`
-- **Revisions** (`src/server/utils/content-revisions.ts`): Use `createRevision()`, `getRevisions()`, `pickSnapshot()`
-- **CMS updates** (`src/server/utils/cms-helpers.ts`): Use `updateWithRevision()` — wraps revision snapshot + slug redirect + update
-- **Slugs** (`src/lib/slug.ts`): `slugify()` for URL slugs, `slugifyFilename()` for uploads. Never inline slug regex
+- **Slug uniqueness** (`src/engine/crud/admin-crud.ts`): Use `ensureSlugUnique()` — never inline slug uniqueness checks
+- **Status counts** (`src/engine/crud/admin-crud.ts`): Use `buildStatusCounts()` for admin tab counts
+- **Pagination** (`src/engine/crud/admin-crud.ts`): Use `parsePagination()` + `paginatedResult()`. Standard response shape: `{ results, total, page, pageSize, totalPages }`
+- **Admin lists** (`src/engine/crud/admin-crud.ts`): Use `buildAdminList()` — handles conditions, sort, pagination, count in parallel
+- **Soft-delete** (`src/engine/crud/admin-crud.ts`): Use `softDelete()`, `softRestore()`, `permanentDelete()`
+- **Revisions** (`src/engine/crud/content-revisions.ts`): Use `createRevision()`, `getRevisions()`, `pickSnapshot()`
+- **CMS updates** (`src/engine/crud/cms-helpers.ts`): Use `updateWithRevision()` — wraps revision snapshot + slug redirect + update
+- **Slugs** (`src/engine/lib/slug.ts`): `slugify()` for URL slugs, `slugifyFilename()` for uploads. Never inline slug regex
 - **Translations** (`src/lib/translations.ts`): Use `useBlankTranslations()` in admin components. All user-visible text must be wrapped in `__()` so translations can be enabled later
 - **Email** (`src/server/jobs/email`): Use `enqueueEmail()` or `enqueueTemplateEmail()` — never call `sendEmail()` directly. Templates in `emails/` with `{{var}}` placeholders
-- **Audit logging** (`src/server/utils/audit.ts`): Use `logAudit()` — fire-and-forget, never blocks request
-- **Webhooks** (`src/server/utils/webhooks.ts`): Use `dispatchWebhook()` — fire-and-forget webhook dispatch
+- **Audit logging** (`src/engine/lib/audit.ts`): Use `logAudit()` — fire-and-forget, never blocks request
+- **Webhooks** (`src/engine/lib/webhooks.ts`): Use `dispatchWebhook()` — fire-and-forget webhook dispatch
 - **API auth** (`src/server/utils/api-auth.ts`): Use `validateApiKey()`, `checkRateLimit()`, `apiHeaders()` for REST API v1 endpoints
-- **Slug redirects** (`src/server/utils/slug-redirects.ts`): Use `resolveSlugRedirect()` to resolve old slugs to current slugs
+- **Slug redirects** (`src/engine/crud/slug-redirects.ts`): Use `resolveSlugRedirect()` to resolve old slugs to current slugs
 - **GDPR** (`src/server/utils/gdpr.ts`): Use `anonymizeUser()` for user data deletion
-- **Markdown** (`src/lib/markdown.ts`): Use `htmlToMarkdown()` / `markdownToHtml()` — preserve shortcodes through placeholder strategies
+- **Markdown** (`src/engine/lib/markdown.ts`): Use `htmlToMarkdown()` / `markdownToHtml()` — preserve shortcodes through placeholder strategies
 
 ### Rich Text Editor
 
-PostForm and CategoryForm use Tiptap (`src/components/admin/RichTextEditor.tsx`). Toolbar includes: bold, italic, underline, strikethrough, code, headings (1-3), lists, blockquote, code block, horizontal rule, text alignment, links, images, undo/redo.
+PostForm and CategoryForm use Tiptap (`src/engine/components/RichTextEditor.tsx`). Toolbar includes: bold, italic, underline, strikethrough, code, headings (1-3), lists, blockquote, code block, horizontal rule, text alignment, links, images, undo/redo.
 
-Content is stored as **markdown** in `cms_posts.content` / `cms_categories.text`. The RichTextEditor converts markdown→HTML on load (via `markdownToHtml()`) and HTML→markdown on save (via `htmlToMarkdown()`). Both functions preserve shortcodes like `[callout type="info"]...[/callout]` through placeholder strategies. See `src/lib/markdown.ts`.
+Content is stored as **markdown** in `cms_posts.content` / `cms_categories.text`. The RichTextEditor converts markdown→HTML on load (via `markdownToHtml()`) and HTML→markdown on save (via `htmlToMarkdown()`). Both functions preserve shortcodes like `[callout type="info"]...[/callout]` through placeholder strategies. See `src/engine/lib/markdown.ts`.
 
 ### Media System
 
@@ -220,7 +240,7 @@ Dashboard shows stat cards (pages, posts, categories, users, media), content sta
 
 AdminHeader displays user name + role badge. Role badges use CSS classes: `.admin-role-superadmin`, `.admin-role-admin`, `.admin-role-editor`, `.admin-role-user`.
 
-**Admin CSS classes** (`dashboard/assets/admin.css` + `assets/admin-table.css`):
+**Admin CSS classes** (`src/engine/styles/admin.css` + `src/engine/styles/admin-table.css`):
 | Class | Usage |
 |---|---|
 | `.admin-card` | Card containers. Add padding via utility |
@@ -267,18 +287,18 @@ const __ = useBlankTranslations();
 
 ### CSS Architecture
 
-Tailwind CSS v4 with `@tailwindcss/typography` for `prose` classes. CSS-first config (no `tailwind.config.ts`).
+Tailwind CSS v4 with `@tailwindcss/typography` for `prose` classes. CSS-first config.
+
+**Design token system:** OKLCH tinted-neutral palette in `src/engine/styles/tokens.css`. Single brand hue (default: 270 = indigo) controls entire color scheme. Change it to rebrand. Every gray carries subtle brand tint for cohesive feel.
 
 **File structure:**
-- `src/app/globals.css` — imports Tailwind, typography plugin, tokens, content CSS
-- `src/app/assets/tokens.css` — design tokens (`@theme` block for Tailwind utilities + `:root` CSS vars)
+- `src/engine/styles/tokens.css` — OKLCH design tokens (brand scale, tinted grays, semantic colors, surfaces, text, borders, shadows, radius, motion)
+- `src/engine/styles/admin.css` — admin panel core classes (cards, buttons, sidebar, typography)
+- `src/engine/styles/admin-table.css` — table, badge, form, pagination, role badge classes
 - `src/app/assets/content.css` — CMS content rendering classes (`.cms-content`, `.cms-title`, `.cms-post-card`)
-- `src/app/assets/admin-table.css` — comprehensive admin table/form classes
-- `src/app/dashboard/assets/admin.css` — admin panel core classes (cards, buttons, sidebar)
+- `src/app/globals.css` — imports Tailwind, typography, engine tokens, content CSS
 
 **Layer order:** `@layer theme, base, components, utilities;` — every CSS file must declare this.
-
-**Design tokens (`:root` vars):** `--surface-primary`, `--text-primary`, `--text-secondary`, `--text-muted`, `--border-primary`, `--shadow-sm/md/lg`, `--duration-fast/normal/slow`, `--radius-sm/md/lg/xl`.
 
 Use `cn()` from `@/lib/utils` for conditional classes — never template literals or raw `clsx()`.
 
