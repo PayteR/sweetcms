@@ -31,7 +31,7 @@ import { useListViewState, SortIcon } from '@/engine/hooks/useListViewState';
 import { useBulkSelection } from '@/engine/hooks/useBulkSelection';
 import { useBulkActions } from '@/engine/hooks/useBulkActions';
 import { useColumnVisibility } from '@/engine/hooks/useColumnVisibility';
-import BulkActionBar from './BulkActionBar';
+import BulkActionBar from '@/engine/components/BulkActionBar';
 
 const STATUS_LABELS: Record<number, string> = {
   [ContentStatus.DRAFT]: 'Draft',

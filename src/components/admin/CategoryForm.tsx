@@ -21,15 +21,15 @@ import { useKeyboardShortcuts } from '@/engine/hooks/useKeyboardShortcuts';
 import AutosaveIndicator from './AutosaveIndicator';
 import AutosaveRecoveryBanner from './AutosaveRecoveryBanner';
 import BrokenLinksBanner from './BrokenLinksBanner';
-import CmsFormShell from './CmsFormShell';
-import { CustomFieldsEditor, type CustomFieldsEditorHandle } from './CustomFieldsEditor';
+import CmsFormShell from '@/engine/components/CmsFormShell';
+import { CustomFieldsEditor, type CustomFieldsEditorHandle } from '@/engine/components/CustomFieldsEditor';
 import { FallbackRadio } from './FallbackRadio';
 import InternalLinkDialog from './InternalLinkDialog';
-import { RevisionHistory } from './RevisionHistory';
-import { RichTextEditor } from './RichTextEditor';
-import { SEOFields } from './SEOFields';
+import { RevisionHistory } from '@/engine/components/RevisionHistory';
+import { RichTextEditor } from '@/engine/components/RichTextEditor';
+import { SEOFields } from '@/engine/components/SEOFields';
 import { SeoPreviewCard } from './SeoPreviewCard';
-import { TagInput } from './TagInput';
+import { TagInput } from '@/engine/components/TagInput';
 import { TranslationBar } from './TranslationBar';
 
 interface CategoryFormData extends Record<string, unknown> {
