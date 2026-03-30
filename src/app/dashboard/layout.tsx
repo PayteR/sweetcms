@@ -9,14 +9,12 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div>
+      <AdminHeader />
       <AdminSidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <AdminHeader />
-        <main className="flex-1 overflow-y-auto bg-(--surface-secondary)">
-          <div className="p-6">{children}</div>
-        </main>
-      </div>
+      <main className="min-h-dvh pt-14 xl:ml-60">
+        <div className="bg-(--surface-secondary) p-6">{children}</div>
+      </main>
       <Toaster />
     </div>
   );

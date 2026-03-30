@@ -2,10 +2,12 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LogOut, Monitor, Moon, Sun, User } from 'lucide-react';
+import Link from 'next/link';
+import { LogOut, Menu, Monitor, Moon, Sun, User } from 'lucide-react';
 
 import { signOut, useSession } from '@/lib/auth-client';
 import { useThemeStore } from '@/store/theme-store';
+import { useSidebarStore } from '@/store/sidebar-store';
 
 function RoleBadge({ role }: { role: string }) {
   const classMap: Record<string, string> = {
@@ -30,6 +32,7 @@ export function AdminHeader() {
   const router = useRouter();
   const { data: session } = useSession();
   const { theme, setTheme, initTheme } = useThemeStore();
+  const toggleSidebar = useSidebarStore((s) => s.toggleSidebar);
 
   useEffect(() => {
     return initTheme();
@@ -50,8 +53,18 @@ export function AdminHeader() {
   const ThemeIcon = themeIcons[theme];
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-(--border-primary) bg-(--surface-primary) px-6">
-      <div />
+    <header className="fixed left-0 right-0 top-0 z-40 flex h-14 items-center justify-between border-b border-(--border-primary) bg-(--surface-primary) px-4">
+      <div className="flex items-center gap-3">
+        <button
+          onClick={toggleSidebar}
+          className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-primary) xl:hidden"
+        >
+          <Menu className="h-5 w-5" />
+        </button>
+        <Link href="/dashboard" className="text-lg font-bold text-(--text-primary)">
+          SweetCMS
+        </Link>
+      </div>
       <div className="flex items-center gap-3">
         <button
           onClick={cycleTheme}

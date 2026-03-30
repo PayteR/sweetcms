@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import { useSidebarStore } from '@/store/sidebar-store';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
@@ -37,14 +38,15 @@ const navigation = [
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const { isOpen, closeSidebar } = useSidebarStore();
 
   return (
-    <aside className="w-60 shrink-0 border-r border-(--border-primary) bg-(--surface-primary)">
-      <div className="flex h-14 items-center border-b border-(--border-primary) px-4">
-        <Link href="/dashboard" className="text-lg font-bold text-(--text-primary)">
-          SweetCMS
-        </Link>
-      </div>
+    <aside
+      className={cn(
+        'fixed bottom-0 left-0 top-14 z-[60] w-60 overflow-y-auto border-r border-(--border-primary) bg-(--surface-primary) transition-transform duration-300 ease-in-out xl:translate-x-0',
+        isOpen ? 'translate-x-0' : '-translate-x-full'
+      )}
+    >
       <nav className="flex flex-col gap-1 p-3">
         {navigation.map((item) => {
           if ('children' in item && item.children) {
@@ -60,6 +62,7 @@ export function AdminSidebar() {
                     <Link
                       key={child.href}
                       href={child.href}
+                      onClick={closeSidebar}
                       className={cn('admin-sidebar-link', active && 'active')}
                     >
                       <Icon className="h-4 w-4" />
@@ -79,6 +82,7 @@ export function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
+              onClick={closeSidebar}
               className={cn('admin-sidebar-link', active && 'active')}
             >
               <Icon className="h-4 w-4" />
