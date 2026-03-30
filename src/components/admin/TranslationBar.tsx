@@ -42,8 +42,15 @@ export function TranslationBar({
         setDropdownLang(null);
       }
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setDropdownLang(null);
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, [dropdownLang]);
 
   const handleDuplicate = async (lang: Locale, autoTranslate: boolean) => {
@@ -83,6 +90,8 @@ export function TranslationBar({
             <button
               type="button"
               disabled={duplicating !== null}
+              aria-haspopup={translationAvailable ? 'true' : undefined}
+              aria-expanded={dropdownLang === lang ? true : undefined}
               onClick={() => {
                 if (translationAvailable) {
                   setDropdownLang(dropdownLang === lang ? null : lang);
@@ -106,9 +115,10 @@ export function TranslationBar({
             </button>
 
             {dropdownLang === lang && (
-              <div className="absolute left-0 top-full z-10 mt-1 min-w-40 rounded-md border border-(--border-primary) bg-(--bg-primary) py-1 shadow-lg">
+              <div role="menu" className="absolute left-0 top-full z-10 mt-1 min-w-40 rounded-md border border-(--border-primary) bg-(--bg-primary) py-1 shadow-lg">
                 <button
                   type="button"
+                  role="menuitem"
                   className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-(--text-secondary) hover:bg-(--bg-secondary)"
                   onClick={() => handleDuplicate(lang, false)}
                 >
@@ -117,6 +127,7 @@ export function TranslationBar({
                 </button>
                 <button
                   type="button"
+                  role="menuitem"
                   className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-(--text-secondary) hover:bg-(--bg-secondary)"
                   onClick={() => handleDuplicate(lang, true)}
                 >
