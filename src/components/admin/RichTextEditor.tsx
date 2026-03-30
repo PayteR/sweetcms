@@ -30,6 +30,7 @@ import {
   Code2,
   Minus,
   Blocks,
+  FileSearch,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -38,11 +39,37 @@ import { SHORTCODE_REGISTRY } from '@/lib/shortcodes/registry';
 import { htmlToMarkdown, markdownToHtml } from '@/lib/markdown';
 import { ShortcodeNode } from './shortcodes/ShortcodeNode';
 import { prepareForEditor, serializeForStorage } from './shortcodes/shortcode-utils';
+import { toast } from '@/store/toast-store';
+
+export interface EditorHandle {
+  replaceSelection: (text: string) => void;
+}
 
 interface Props {
   content: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  // NEW:
+  postId?: string;
+  height?: string;
+  storageKey?: string;
+  onRequestLinkPicker?: () => void;
+  editorRef?: React.RefObject<EditorHandle | null>;
+}
+
+const HEIGHT_STORAGE_PREFIX = 'cms-editor-h:';
+
+async function uploadImage(file: File, postId?: string): Promise<string> {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (postId) formData.append('postId', postId);
+  const res = await fetch('/api/upload', { method: 'POST', body: formData });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({})) as { error?: string };
+    throw new Error(err.error ?? 'Upload failed');
+  }
+  const data = await res.json() as { url: string };
+  return data.url;
 }
 
 function ToolbarButton({
@@ -81,7 +108,16 @@ function ToolbarDivider() {
   return <div className="mx-1 h-6 w-px bg-(--border-primary)" />;
 }
 
-export function RichTextEditor({ content, onChange, placeholder }: Props) {
+export function RichTextEditor({
+  content,
+  onChange,
+  placeholder,
+  postId,
+  height,
+  storageKey,
+  onRequestLinkPicker,
+  editorRef,
+}: Props) {
   const __ = useBlankTranslations();
   const [shortcodeMenuOpen, setShortcodeMenuOpen] = useState(false);
   const [mode, setMode] = useState<'wysiwyg' | 'source'>(() => {
@@ -98,6 +134,8 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
   const onChangeRef = useRef(onChange);
   onChangeRef.current = onChange;
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
 
   // Clear pending debounce on unmount (editor may already be destroyed)
   useEffect(() => {
@@ -108,6 +146,23 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
       }
     };
   }, []);
+
+  // Height persistence
+  useEffect(() => {
+    if (!storageKey) return;
+    const wrapper = wrapperRef.current;
+    if (!wrapper) return;
+    const savedHeight = localStorage.getItem(HEIGHT_STORAGE_PREFIX + storageKey);
+    if (savedHeight) wrapper.style.height = savedHeight;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const h = Math.round(entry.contentRect.height);
+        if (h > 0) localStorage.setItem(HEIGHT_STORAGE_PREFIX + storageKey, `${h}px`);
+      }
+    });
+    observer.observe(wrapper);
+    return () => observer.disconnect();
+  }, [storageKey]);
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -147,6 +202,41 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
         class:
           'prose prose-sm dark:prose-invert max-w-none focus:outline-none min-h-[300px] px-4 py-3',
       },
+      handlePaste: (_view, event) => {
+        const items = event.clipboardData?.items;
+        if (!items) return false;
+        for (const item of items) {
+          if (item.type.startsWith('image/')) {
+            event.preventDefault();
+            const file = item.getAsFile();
+            if (file) {
+              uploadImage(file, postId).then((url) => {
+                editor?.chain().focus().setImage({ src: url }).run();
+              }).catch((err: unknown) => {
+                toast.error(err instanceof Error ? err.message : __('Image upload failed'));
+              });
+            }
+            return true;
+          }
+        }
+        return false;
+      },
+      handleDrop: (_view, event) => {
+        const files = (event as DragEvent).dataTransfer?.files;
+        if (!files?.length) return false;
+        for (const file of files) {
+          if (file.type.startsWith('image/')) {
+            event.preventDefault();
+            uploadImage(file, postId).then((url) => {
+              editor?.chain().focus().setImage({ src: url }).run();
+            }).catch((err: unknown) => {
+              toast.error(err instanceof Error ? err.message : __('Image upload failed'));
+            });
+            return true;
+          }
+        }
+        return false;
+      },
     },
   });
 
@@ -160,6 +250,46 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
       emitUpdate: false,
     });
   }, [editor, content, mode]);
+
+  // EditorHandle — expose replaceSelection to parent via editorRef
+  useEffect(() => {
+    if (!editorRef) return;
+    editorRef.current = {
+      replaceSelection: (text: string) => {
+        if (mode === 'source') {
+          const textarea = document.querySelector('.tiptap-source-textarea') as HTMLTextAreaElement | null;
+          if (textarea) {
+            const start = textarea.selectionStart;
+            const end = textarea.selectionEnd;
+            const before = sourceValue.slice(0, start);
+            const after = sourceValue.slice(end);
+            const newValue = before + text + after;
+            setSourceValue(newValue);
+            onChange(newValue);
+            requestAnimationFrame(() => {
+              textarea.selectionStart = textarea.selectionEnd = start + text.length;
+              textarea.focus();
+            });
+          }
+        } else if (editor) {
+          const linkMatch = text.match(/^\[([^\]]+)\]\(([^)]+)\)$/);
+          if (linkMatch) {
+            const [, title, url] = linkMatch;
+            editor.chain().focus().insertContent({
+              type: 'text',
+              marks: [{ type: 'link', attrs: { href: url } }],
+              text: title,
+            }).run();
+          } else {
+            editor.chain().focus().insertContent(text).run();
+          }
+        }
+      },
+    };
+    return () => {
+      if (editorRef) editorRef.current = null;
+    };
+  }, [editor, editorRef, mode, sourceValue, onChange]);
 
   const toggleMode = useCallback(() => {
     if (!editor) return;
@@ -202,20 +332,17 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
     editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
   }
 
-  function addImage() {
-    if (!editor) return;
-    const url = window.prompt(__('Image URL'), 'https://');
-    if (!url) return;
-    editor.chain().focus().setImage({ src: url }).run();
-  }
-
   const iconSize = 'h-4 w-4';
 
   return (
-    <div className="overflow-hidden rounded-md border border-(--border-primary) focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+    <div
+      ref={wrapperRef}
+      style={{ height: height ?? '400px', resize: 'vertical', overflow: 'hidden' }}
+      className="flex flex-col overflow-hidden rounded-md border border-(--border-primary) focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500"
+    >
       {/* Toolbar — disabled in source mode to prevent modifying the hidden editor */}
       <div className={cn(
-        'flex flex-wrap items-center gap-0.5 border-b border-(--border-primary) bg-(--surface-secondary) px-2 py-1.5',
+        'flex flex-wrap items-center gap-0.5 border-b border-(--border-primary) bg-(--surface-secondary) px-2 py-1.5 shrink-0',
         mode === 'source' && 'pointer-events-none opacity-40',
       )}>
         <ToolbarButton
@@ -348,7 +475,12 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
         >
           <LinkIcon className={iconSize} />
         </ToolbarButton>
-        <ToolbarButton onClick={addImage} title={__('Image')}>
+        {onRequestLinkPicker && (
+          <ToolbarButton onClick={onRequestLinkPicker} title={__('Internal Link')} active={false}>
+            <FileSearch size={18} />
+          </ToolbarButton>
+        )}
+        <ToolbarButton onClick={() => imageInputRef.current?.click()} title={__('Image')}>
           <ImageIcon className={iconSize} />
         </ToolbarButton>
 
@@ -416,27 +548,48 @@ export function RichTextEditor({ content, onChange, placeholder }: Props) {
 
       </div>
 
+      {/* Hidden file input for image upload */}
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={async (e) => {
+          const file = e.target.files?.[0];
+          if (!file || !editor) return;
+          e.target.value = '';
+          try {
+            const url = await uploadImage(file, postId);
+            editor.chain().focus().setImage({ src: url }).run();
+          } catch (err) {
+            toast.error(err instanceof Error ? err.message : __('Image upload failed'));
+          }
+        }}
+      />
+
       {/* Editor / Source */}
-      {mode === 'wysiwyg' ? (
-        <EditorContent
-          editor={editor}
-          className="min-h-[300px]"
-        />
-      ) : (
-        <textarea
-          value={sourceValue}
-          onChange={(e) => {
-            setSourceValue(e.target.value);
-            lastEmittedContent.current = e.target.value;
-            onChangeRef.current(e.target.value);
-          }}
-          className="min-h-[300px] w-full resize-none border-none bg-transparent px-4 py-3 font-mono text-[13px] leading-relaxed text-inherit outline-none"
-          style={{ tabSize: 2 }}
-        />
-      )}
+      <div className="flex-1 overflow-auto">
+        {mode === 'wysiwyg' ? (
+          <EditorContent
+            editor={editor}
+            className="h-full"
+          />
+        ) : (
+          <textarea
+            value={sourceValue}
+            onChange={(e) => {
+              setSourceValue(e.target.value);
+              lastEmittedContent.current = e.target.value;
+              onChangeRef.current(e.target.value);
+            }}
+            className="tiptap-source-textarea h-full min-h-[300px] w-full resize-none border-none bg-transparent px-4 py-3 font-mono text-[13px] leading-relaxed text-inherit outline-none"
+            style={{ tabSize: 2 }}
+          />
+        )}
+      </div>
 
       {/* Mode tabs (bottom) */}
-      <div className="flex justify-end border-t border-(--border-primary) bg-(--surface-secondary)">
+      <div className="flex justify-end border-t border-(--border-primary) bg-(--surface-secondary) shrink-0">
         <button
           type="button"
           className={cn(
