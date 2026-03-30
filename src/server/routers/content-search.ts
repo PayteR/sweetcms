@@ -7,7 +7,7 @@ import { cmsPortfolio } from '@/server/db/schema/portfolio';
 import { cmsTerms } from '@/server/db/schema/terms';
 import { ContentStatus } from '@/engine/types/cms';
 import { CONTENT_TYPES } from '@/config/cms';
-import { parsePagination, paginatedResult } from '@/server/utils/admin-crud';
+import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
 import { createTRPCRouter, publicProcedure, sectionProcedure } from '../trpc';
 
 /**

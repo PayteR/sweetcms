@@ -9,7 +9,7 @@ import { serverTRPC } from '@/lib/trpc/server';
 import { PostType, ContentStatus } from '@/engine/types/cms';
 import { PostCard } from '@/components/public/PostCard';
 import { TagCloud } from '@/components/public/TagCloud';
-import { resolveSlugRedirect } from '@/server/utils/slug-redirects';
+import { resolveSlugRedirect } from '@/engine/crud/slug-redirects';
 import { ShortcodeRenderer } from '@/components/public/ShortcodeRenderer';
 import { db } from '@/server/db';
 import { cmsPosts } from '@/server/db/schema';

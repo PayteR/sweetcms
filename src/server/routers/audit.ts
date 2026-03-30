@@ -2,7 +2,7 @@ import { and, count, desc, eq, ilike, or } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { cmsAuditLog, user } from '@/server/db/schema';
-import { parsePagination, paginatedResult } from '@/server/utils/admin-crud';
+import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
 import { createTRPCRouter, sectionProcedure } from '../trpc';
 
 const settingsProcedure = sectionProcedure('settings');

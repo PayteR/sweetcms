@@ -4,12 +4,12 @@ import { z } from 'zod';
 
 import { slugify } from '@/engine/lib/slug';
 import { cmsForms, cmsFormSubmissions } from '@/server/db/schema';
-import { logAudit } from '@/server/utils/audit';
+import { logAudit } from '@/engine/lib/audit';
 import {
   ensureSlugUnique,
   parsePagination,
   paginatedResult,
-} from '@/server/utils/admin-crud';
+} from '@/engine/crud/admin-crud';
 import { createTRPCRouter, publicProcedure, sectionProcedure } from '../trpc';
 
 const contentProcedure = sectionProcedure('content');

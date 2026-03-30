@@ -3,8 +3,8 @@ import { and, count as drizzleCount, desc, eq, like, or } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { cmsSlugRedirects, cmsPosts, cmsCategories } from '@/server/db/schema';
-import { logAudit } from '@/server/utils/audit';
-import { parsePagination, paginatedResult } from '@/server/utils/admin-crud';
+import { logAudit } from '@/engine/lib/audit';
+import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
 import { createTRPCRouter, sectionProcedure } from '../trpc';
 
 const proc = sectionProcedure('content');

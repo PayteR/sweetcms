@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 import { user, session } from '@/server/db/schema';
 import { ROLES, Role, isSuperAdmin } from '@/engine/policy';
-import { parsePagination, paginatedResult } from '@/server/utils/admin-crud';
+import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
 import { anonymizeUser } from '@/server/utils/gdpr';
 import { createTRPCRouter, sectionProcedure, superadminProcedure } from '../trpc';
 

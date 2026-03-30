@@ -6,7 +6,7 @@ import { cmsMedia } from '@/server/db/schema';
 import { getStorage } from '@/server/storage';
 import { slugifyFilename } from '@/engine/lib/slug';
 import { FileType } from '@/engine/types/cms';
-import { parsePagination, paginatedResult } from '@/server/utils/admin-crud';
+import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
 import {
   createTRPCRouter,
   publicProcedure,
