@@ -444,11 +444,8 @@ async function seedContent() {
       content: `<p>This is a draft post about upcoming features. Edit and publish it when ready!</p>
 <h3>Planned Features</h3>
 <ul>
-  <li>S3 storage provider</li>
   <li>Image optimization pipeline</li>
   <li>Multi-language content (i18n)</li>
-  <li>API keys for headless access</li>
-  <li>Webhooks for content events</li>
 </ul>`,
       metaDescription: 'A preview of upcoming features planned for SweetCMS.',
       previewToken: crypto.randomBytes(32).toString('hex'),

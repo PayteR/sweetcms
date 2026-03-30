@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2, Search, X } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
@@ -13,11 +13,14 @@ export default function ActivityPage() {
   const __ = useBlankTranslations();
   const [entityType, setEntityType] = useState('');
   const [action, setAction] = useState('');
+  const [userSearch, setUserSearch] = useState('');
+  const [userSearchInput, setUserSearchInput] = useState('');
   const [page, setPage] = useState(1);
 
   const auditQuery = trpc.audit.list.useQuery({
     entityType: entityType || undefined,
     action: action || undefined,
+    userSearch: userSearch || undefined,
     page,
     pageSize: 20,
   });
@@ -33,12 +36,18 @@ export default function ActivityPage() {
     });
   }
 
+  function handleUserSearch(e: React.FormEvent) {
+    e.preventDefault();
+    setUserSearch(userSearchInput);
+    setPage(1);
+  }
+
   return (
     <div>
       <h1 className="text-2xl font-bold text-(--text-primary)">{__('Activity Log')}</h1>
 
       {/* Filters */}
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex flex-wrap gap-2">
         <select
           value={entityType}
           onChange={(e) => { setEntityType(e.target.value); setPage(1); }}
@@ -59,6 +68,36 @@ export default function ActivityPage() {
             <option key={a} value={a}>{a}</option>
           ))}
         </select>
+
+        {/* User search */}
+        <form onSubmit={handleUserSearch} className="flex gap-1">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-(--text-muted)" />
+            <input
+              type="text"
+              value={userSearchInput}
+              onChange={(e) => setUserSearchInput(e.target.value)}
+              placeholder={__('Filter by user...')}
+              className="rounded-md border border-(--border-primary) py-2 pl-8 pr-7 text-sm w-48 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+            {userSearch && (
+              <button
+                type="button"
+                onClick={() => {
+                  setUserSearch('');
+                  setUserSearchInput('');
+                  setPage(1);
+                }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-(--text-muted) hover:text-(--text-secondary)"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+          <button type="submit" className="admin-btn admin-btn-secondary text-sm">
+            {__('Search')}
+          </button>
+        </form>
       </div>
 
       {/* Table */}
@@ -77,6 +116,7 @@ export default function ActivityPage() {
               <tr>
                 <th className="admin-th w-36">{__('Time')}</th>
                 <th className="admin-th w-24">{__('Action')}</th>
+                <th className="admin-th w-36">{__('User')}</th>
                 <th className="admin-th w-24">{__('Type')}</th>
                 <th className="admin-th">{__('Entity')}</th>
               </tr>
@@ -91,6 +131,9 @@ export default function ActivityPage() {
                     <span className="inline-block rounded-full bg-(--surface-secondary) px-2 py-0.5 text-xs font-medium text-(--text-secondary)">
                       {entry.action}
                     </span>
+                  </td>
+                  <td className="admin-td text-xs text-(--text-muted)">
+                    {entry.userName ?? entry.userEmail ?? '\u2014'}
                   </td>
                   <td className="admin-td text-xs text-(--text-muted)">{entry.entityType}</td>
                   <td className="admin-td text-sm text-(--text-primary)">

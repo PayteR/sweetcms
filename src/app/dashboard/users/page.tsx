@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import {
   Search,
   Shield,
@@ -251,7 +252,12 @@ export default function UsersPage() {
                             </div>
                           )}
                           <div>
-                            <p className="font-medium text-(--text-primary)">{u.name}</p>
+                            <Link
+                              href={`/dashboard/users/${u.id}`}
+                              className="font-medium text-(--text-primary) hover:text-blue-600 hover:underline"
+                            >
+                              {u.name}
+                            </Link>
                             <p className="text-xs text-(--text-muted)">{u.email}</p>
                           </div>
                         </div>

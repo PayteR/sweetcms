@@ -29,7 +29,7 @@ SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack: Nex
 
 **Procedure types:** `publicProcedure`, `protectedProcedure`, `staffProcedure`, `sectionProcedure(section)`, `superadminProcedure`.
 
-**Routers (`src/server/routers/_app.ts`):** `auth`, `cms`, `categories`, `contentSearch`, `media`, `options`, `revisions`, `tags`, `users`.
+**Routers (`src/server/routers/_app.ts`):** `analytics`, `audit`, `auth`, `categories`, `cms`, `contentSearch`, `customFields`, `forms`, `import`, `jobQueue`, `media`, `menus`, `options`, `redirects`, `revisions`, `tags`, `users`, `webhooks`.
 
 ### Database
 
@@ -37,7 +37,7 @@ PostgreSQL only. All CMS tables prefixed `cms_`. UUID primary keys via `gen_rand
 
 **Tables:**
 - `user`, `session`, `account`, `verification` — Better Auth standard
-- `cms_posts` — pages and blog posts (type discriminator: `PostType.PAGE=1`, `PostType.BLOG=2`)
+- `cms_posts` — pages, blog posts, and landing pages (type discriminator: `PostType.PAGE=1`, `PostType.BLOG=2`, `PostType.LANDING=3`)
 - `cms_post_attachments` — file attachments per post
 - `cms_categories` — standalone category table (rich: SEO, content, icon, jsonLd)
 - `cms_terms` — universal taxonomy terms (simple: name, slug, lang, status, order). Used for tags; extensible for future taxonomies
@@ -46,14 +46,24 @@ PostgreSQL only. All CMS tables prefixed `cms_`. UUID primary keys via `gen_rand
 - `cms_slug_redirects` — automatic redirects when slugs change
 - `cms_options` — runtime key-value config (JSONB values)
 - `cms_media` — generic file storage (images, videos, documents)
+- `cms_menus` — menu definitions (name, slug)
+- `cms_menu_items` — hierarchical menu items (label, url, content link, parent, order)
+- `cms_webhooks` — webhook registrations (url, secret, events, active)
+- `cms_audit_log` — audit trail (userId, action, entityType, entityId, metadata)
+- `cms_custom_field_definitions` — custom field schemas (name, slug, fieldType, options, contentTypes)
+- `cms_custom_field_values` — custom field data (polymorphic: fieldDefinitionId, contentType, contentId, value JSONB)
+- `cms_forms` — form builder definitions (name, slug, fields JSONB, recipientEmail, honeypot)
+- `cms_form_submissions` — form submission data (formId, data JSONB, ip, userAgent)
 
 ### Content Type Registry
 
 `src/config/cms.ts` — single source of truth for all CMS content types.
 
-Content types: `page` (PostType.PAGE), `blog` (PostType.BLOG), `category` (separate table), `tag` (uses `cms_terms`).
+Content types: `page` (PostType.PAGE), `blog` (PostType.BLOG), `landing` (PostType.LANDING), `category` (separate table), `tag` (uses `cms_terms`).
 
 Lookup helpers: `getContentType(id)`, `getContentTypeByPostType(type)`, `getContentTypeByAdminSlug(slug)`.
+
+Exported types: `PostContentTypeId` (union of IDs with postType: `'page' | 'blog' | 'landing'`), `AdminSlug` (union of all adminSlugs: `'pages' | 'blog' | 'categories' | 'tags' | 'landingpages'`).
 
 ### Taxonomy System
 
@@ -100,33 +110,45 @@ src/
 │   ├── (auth)/           — login, register, forgot-password, reset-password
 │   ├── (public)/         — public-facing content
 │   │   ├── blog/         — blog list page
-│   │   └── [...slug]/    — catch-all CMS route (pages, posts, categories)
+│   │   ├── search/       — content search page
+│   │   └── [...slug]/    — catch-all CMS route (pages, posts, categories, tags)
 │   ├── api/
 │   │   ├── auth/         — Better Auth route handler
+│   │   ├── feed/         — RSS feeds (blog, tag)
+│   │   ├── forms/        — form submission API
+│   │   ├── gdpr-export/  — GDPR user data export
 │   │   ├── trpc/         — tRPC route handler
 │   │   ├── upload/       — file upload endpoint
-│   │   └── uploads/      — file serving (static uploads)
+│   │   ├── uploads/      — file serving (static uploads)
+│   │   └── v1/           — REST API v1 (posts, categories, tags, menus)
 │   ├── dashboard/        — admin panel
 │   │   ├── assets/       — admin.css (imports admin-table.css)
-│   │   ├── cms/[section]/ — CMS list/edit pages
+│   │   ├── cms/
+│   │   │   ├── [section]/ — CMS list/edit pages (pages, blog, categories, tags, landing pages)
+│   │   │   ├── activity/  — audit activity log
+│   │   │   ├── calendar/  — content calendar view
+│   │   │   ├── menus/     — menu management
+│   │   │   └── redirects/ — slug redirect management
+│   │   ├── forms/        — form builder & submissions
 │   │   ├── media/        — media library
-│   │   ├── settings/     — site settings
+│   │   ├── settings/     — site settings, custom-fields, email-templates, import, job-queue, webhooks
 │   │   └── users/        — user management
 │   └── sitemap.ts        — dynamic sitemap generation
 ├── components/
-│   ├── admin/            — PostForm, CategoryForm, TermForm, TagInput, CmsListView, RichTextEditor, MediaPickerDialog, AdminHeader, AdminSidebar, RevisionHistory
+│   ├── admin/            — PostForm, CategoryForm, TermForm, TagInput, CmsListView, CmsFormShell, RichTextEditor, MediaPickerDialog, AdminHeader, AdminSidebar, RevisionHistory, MenuBuilder, ContentCalendar, CustomFieldsEditor, BulkActionBar, SEOFields, TranslationBar, shortcodes/
+│   ├── public/           — ContactForm, DynamicNav, PostCard, ShortcodeRenderer, TagCloud, shortcodes/
 │   └── ui/               — ConfirmDialog, Toaster
 ├── config/               — cms.ts (content types), taxonomies.ts (taxonomy declarations), site.ts (site config)
-├── lib/                  — auth, auth-client, policy, slug, translations, trpc, utils
-├── scripts/              — init.ts, promote.ts, change-password.ts
+├── lib/                  — auth, auth-client, constants, datetime, env, extract-internal-links, markdown, password, policy, revision-diff, slug, translations, trpc, utils
+├── scripts/              — init.ts, promote.ts, change-password.ts, migrate-html-to-markdown.ts, schedule-jobs.ts
 ├── server/
-│   ├── db/schema/        — auth, cms, categories, terms, term-relationships, media
+│   ├── db/schema/        — auth, cms, categories, terms, term-relationships, media, menu, webhooks, audit, custom-fields, forms
 │   ├── jobs/             — email queue (BullMQ + nodemailer)
-│   ├── routers/          — auth, cms, categories, tags, media, options, revisions, users
-│   ├── storage/          — pluggable storage (filesystem, future S3)
-│   └── utils/            — admin-crud, cms-helpers, content-revisions, taxonomy-helpers
-├── store/                — toast-store (Zustand)
-└── types/                — cms.ts (PostType, ContentStatus, FileType)
+│   ├── routers/          — analytics, audit, auth, categories, cms, content-search, custom-fields, forms, import, job-queue, media, menus, options, redirects, revisions, tags, users, webhooks
+│   ├── storage/          — pluggable storage (filesystem, S3-compatible)
+│   └── utils/            — admin-crud, api-auth, audit, cms-helpers, content-revisions, ga4, gdpr, page-seo, seo-routes, slug-redirects, taxonomy-helpers, webhooks
+├── store/                — toast-store, theme-store, sidebar-store (Zustand)
+└── types/                — cms.ts (PostType, ContentStatus, FileType, ContentSnapshot)
 ```
 
 ### User Roles & Permissions
@@ -165,12 +187,18 @@ Always use these instead of manual alternatives:
 - **Slugs** (`src/lib/slug.ts`): `slugify()` for URL slugs, `slugifyFilename()` for uploads. Never inline slug regex
 - **Translations** (`src/lib/translations.ts`): Use `useBlankTranslations()` in admin components. All user-visible text must be wrapped in `__()` so translations can be enabled later
 - **Email** (`src/server/jobs/email`): Use `enqueueEmail()` or `enqueueTemplateEmail()` — never call `sendEmail()` directly. Templates in `emails/` with `{{var}}` placeholders
+- **Audit logging** (`src/server/utils/audit.ts`): Use `logAudit()` — fire-and-forget, never blocks request
+- **Webhooks** (`src/server/utils/webhooks.ts`): Use `dispatchWebhook()` — fire-and-forget webhook dispatch
+- **API auth** (`src/server/utils/api-auth.ts`): Use `validateApiKey()`, `checkRateLimit()`, `apiHeaders()` for REST API v1 endpoints
+- **Slug redirects** (`src/server/utils/slug-redirects.ts`): Use `resolveSlugRedirect()` to resolve old slugs to current slugs
+- **GDPR** (`src/server/utils/gdpr.ts`): Use `anonymizeUser()` for user data deletion
+- **Markdown** (`src/lib/markdown.ts`): Use `htmlToMarkdown()` / `markdownToHtml()` — preserve shortcodes through placeholder strategies
 
 ### Rich Text Editor
 
 PostForm and CategoryForm use Tiptap (`src/components/admin/RichTextEditor.tsx`). Toolbar includes: bold, italic, underline, strikethrough, code, headings (1-3), lists, blockquote, code block, horizontal rule, text alignment, links, images, undo/redo.
 
-Content is stored as HTML in `cms_posts.content` / `cms_categories.text`.
+Content is stored as **markdown** in `cms_posts.content` / `cms_categories.text`. The RichTextEditor converts markdown→HTML on load (via `markdownToHtml()`) and HTML→markdown on save (via `htmlToMarkdown()`). Both functions preserve shortcodes like `[callout type="info"]...[/callout]` through placeholder strategies. See `src/lib/markdown.ts`.
 
 ### Media System
 
@@ -290,10 +318,6 @@ BullMQ queue with nodemailer transport. Templates in `emails/` directory with HT
 - Password reset emails sent via Better Auth `sendResetPassword` callback
 - Templates: `welcome.html`, `password-reset.html`
 - Worker starts in `server.ts` when `SERVER_ROLE` includes workers
-
-### Auth Middleware
-
-`src/middleware.ts` — protects `/dashboard/*` routes. Checks `better-auth.session_token` cookie, validates via `/api/auth/get-session`, redirects banned users to `/?banned=1`, unauthenticated to `/login`.
 
 ### SERVER_ROLE (Production Scaling)
 

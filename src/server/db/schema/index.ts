@@ -9,3 +9,4 @@ export * from './audit';
 export * from './webhooks';
 export * from './custom-fields';
 export * from './forms';
+export * from './translations';

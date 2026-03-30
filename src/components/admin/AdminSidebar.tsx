@@ -20,7 +20,9 @@ import {
   Mail,
   Menu,
   Settings,
+  Upload,
   Users,
+  Webhook,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -75,6 +77,9 @@ const navigation: NavItem[] = [
     icon: Settings,
     children: [
       { name: 'General', href: '/dashboard/settings', icon: Settings },
+      { name: 'Custom Fields', href: '/dashboard/settings/custom-fields', icon: Layers },
+      { name: 'Import', href: '/dashboard/settings/import', icon: Upload },
+      { name: 'Webhooks', href: '/dashboard/settings/webhooks', icon: Webhook },
       { name: 'Job Queue', href: '/dashboard/settings/job-queue', icon: ListChecks },
       { name: 'Email Templates', href: '/dashboard/settings/email-templates', icon: Mail },
     ],

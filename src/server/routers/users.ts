@@ -2,7 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { and, count, desc, eq, ilike, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { user } from '@/server/db/schema';
+import { user, session } from '@/server/db/schema';
 import { ROLES, Role, isSuperAdmin } from '@/lib/policy';
 import { parsePagination, paginatedResult } from '@/server/utils/admin-crud';
 import { anonymizeUser } from '@/server/utils/gdpr';
@@ -190,6 +190,89 @@ export const usersRouter = createTRPCRouter({
           message: err instanceof Error ? err.message : 'Anonymization failed',
         });
       }
+    }),
+
+  /** Update user profile fields */
+  update: usersProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        name: z.string().max(100).optional(),
+        email: z.string().email().max(255).optional(),
+        role: z.enum(ROLES).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const [target] = await ctx.db
+        .select({ role: user.role })
+        .from(user)
+        .where(eq(user.id, input.id))
+        .limit(1);
+
+      if (!target) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
+      }
+
+      // Role change RBAC — same as updateRole
+      if (input.role && input.role !== target.role) {
+        const actorRole = ctx.session.user.role as string;
+        if (
+          (target.role === Role.SUPERADMIN || input.role === Role.SUPERADMIN) &&
+          !isSuperAdmin(actorRole)
+        ) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Only superadmin can promote to or demote from superadmin',
+          });
+        }
+      }
+
+      const updates: Record<string, unknown> = { updatedAt: new Date() };
+      if (input.name !== undefined) updates.name = input.name;
+      if (input.email !== undefined) updates.email = input.email;
+      if (input.role !== undefined) updates.role = input.role;
+
+      await ctx.db
+        .update(user)
+        .set(updates)
+        .where(eq(user.id, input.id));
+
+      return { success: true };
+    }),
+
+  /** Login history (sessions) for a user */
+  loginHistory: usersProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        page: z.number().int().min(1).default(1),
+        pageSize: z.number().int().min(1).max(100).default(20),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { page, pageSize, offset } = parsePagination(input);
+
+      const [items, [countRow]] = await Promise.all([
+        ctx.db
+          .select({
+            id: session.id,
+            ipAddress: session.ipAddress,
+            userAgent: session.userAgent,
+            createdAt: session.createdAt,
+            expiresAt: session.expiresAt,
+          })
+          .from(session)
+          .where(eq(session.userId, input.userId))
+          .orderBy(desc(session.createdAt))
+          .offset(offset)
+          .limit(pageSize),
+        ctx.db
+          .select({ count: count() })
+          .from(session)
+          .where(eq(session.userId, input.userId)),
+      ]);
+
+      return paginatedResult(items, countRow?.count ?? 0, page, pageSize);
     }),
 
   /** Count users by role */

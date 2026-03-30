@@ -2,6 +2,7 @@ import { eq, like } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { cmsOptions } from '@/server/db/schema';
+import { OPTION_REGISTRY } from '@/config/options-registry';
 import { createTRPCRouter, sectionProcedure, staffProcedure } from '../trpc';
 
 const settingsProcedure = sectionProcedure('settings');
@@ -45,6 +46,26 @@ export const optionsRouter = createTRPCRouter({
       result[row.key] = row.value;
     }
     return result;
+  }),
+
+  /** Get all registry options merged with DB values */
+  listWithDefaults: settingsProcedure.query(async ({ ctx }) => {
+    const rows = await ctx.db.select().from(cmsOptions).limit(500);
+    const dbMap = new Map<string, unknown>();
+    for (const row of rows) {
+      dbMap.set(row.key, row.value);
+    }
+
+    return OPTION_REGISTRY.map((def) => ({
+      key: def.key,
+      label: def.label,
+      description: def.description ?? null,
+      group: def.group,
+      type: def.type,
+      defaultValue: def.defaultValue,
+      currentValue: dbMap.has(def.key) ? dbMap.get(def.key) : def.defaultValue,
+      isCustom: dbMap.has(def.key),
+    }));
   }),
 
   /** Set a single option (upsert) */
@@ -93,6 +114,17 @@ export const optionsRouter = createTRPCRouter({
             set: { value, updatedAt: new Date() },
           });
       }
+
+      return { success: true };
+    }),
+
+  /** Reset an option to its default (delete from DB) */
+  resetToDefault: settingsProcedure
+    .input(z.object({ key: z.string().max(255) }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .delete(cmsOptions)
+        .where(eq(cmsOptions.key, input.key));
 
       return { success: true };
     }),

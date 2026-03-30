@@ -1,56 +1,53 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Save, Loader2, CheckCircle2, XCircle, Globe } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Save, Loader2, CheckCircle2, XCircle, Globe, RotateCcw } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
 import { SeoOverridesDialog } from '@/components/admin/SeoOverridesDialog';
+import { GROUP_LABELS } from '@/config/options-registry';
 
-interface SiteSettings {
-  'site.name': string;
-  'site.tagline': string;
-  'site.description': string;
-  'site.url': string;
-  'site.logo': string;
-  'site.favicon': string;
-  'site.social.twitter': string;
-  'site.social.github': string;
-  'site.analytics.ga_id': string;
-  'site.posts_per_page': number;
-  'site.allow_registration': boolean;
-  'ga4.propertyId': string;
-  'ga4.serviceAccountJson': string;
+interface OptionItem {
+  key: string;
+  label: string;
+  description: string | null;
+  group: string;
+  type: 'text' | 'url' | 'number' | 'boolean' | 'textarea' | 'json';
+  defaultValue: string | number | boolean;
+  currentValue: unknown;
+  isCustom: boolean;
 }
-
-const DEFAULT_SETTINGS: SiteSettings = {
-  'site.name': '',
-  'site.tagline': '',
-  'site.description': '',
-  'site.url': '',
-  'site.logo': '',
-  'site.favicon': '',
-  'site.social.twitter': '',
-  'site.social.github': '',
-  'site.analytics.ga_id': '',
-  'site.posts_per_page': 10,
-  'site.allow_registration': true,
-  'ga4.propertyId': '',
-  'ga4.serviceAccountJson': '',
-};
 
 export default function SettingsPage() {
   const __ = useBlankTranslations();
   const utils = trpc.useUtils();
 
-  const [settings, setSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
-  const [loaded, setLoaded] = useState(false);
+  // ─── Data ───────────────────────────────────────────────────────────────────
+  const registryQuery = trpc.options.listWithDefaults.useQuery();
+  const [localOverrides, setLocalOverrides] = useState<Record<string, unknown>>({});
 
-  const allOptions = trpc.options.getAll.useQuery();
   const setMany = trpc.options.setMany.useMutation({
     onSuccess: () => {
       toast.success(__('Settings saved'));
+      setLocalOverrides({});
+      utils.options.listWithDefaults.invalidate();
+      utils.options.getAll.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const resetToDefault = trpc.options.resetToDefault.useMutation({
+    onSuccess: (_data, variables) => {
+      toast.success(__(`Reset "${variables.key}" to default`));
+      // Clear local override if any
+      setLocalOverrides((prev) => {
+        const next = { ...prev };
+        delete next[variables.key];
+        return next;
+      });
+      utils.options.listWithDefaults.invalidate();
       utils.options.getAll.invalidate();
     },
     onError: (err) => toast.error(err.message),
@@ -70,37 +67,125 @@ export default function SettingsPage() {
     onError: (err) => toast.error(err.message),
   });
 
-  useEffect(() => {
-    if (allOptions.data && !loaded) {
-      const data = allOptions.data as Record<string, unknown>;
-      setSettings((prev) => {
-        const next = { ...prev };
-        for (const key of Object.keys(DEFAULT_SETTINGS) as (keyof SiteSettings)[]) {
-          if (key in data) {
-            (next as Record<string, unknown>)[key] = data[key];
-          }
-        }
-        return next;
-      });
-      setLoaded(true);
+  // ─── Derived state ─────────────────────────────────────────────────────────
+  const items = registryQuery.data as OptionItem[] | undefined;
+
+  const grouped = useMemo(() => {
+    if (!items) return {};
+    const groups: Record<string, OptionItem[]> = {};
+    for (const item of items) {
+      if (!groups[item.group]) groups[item.group] = [];
+      groups[item.group].push(item);
     }
-  }, [allOptions.data, loaded]);
+    return groups;
+  }, [items]);
+
+  const groupOrder = useMemo(() => Object.keys(GROUP_LABELS), []);
+
+  function getValue(item: OptionItem): unknown {
+    if (item.key in localOverrides) return localOverrides[item.key];
+    return item.currentValue;
+  }
+
+  function setValue(key: string, value: unknown) {
+    setLocalOverrides((prev) => ({ ...prev, [key]: value }));
+  }
+
+  const hasChanges = Object.keys(localOverrides).length > 0;
 
   function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    setMany.mutate({ options: settings as unknown as Record<string, unknown> });
+    if (!hasChanges) return;
+    setMany.mutate({ options: localOverrides });
   }
 
-  function updateField(key: keyof SiteSettings, value: string | number | boolean) {
-    setSettings((prev) => ({ ...prev, [key]: value }));
-  }
-
-  if (allOptions.isLoading) {
+  // ─── Loading ────────────────────────────────────────────────────────────────
+  if (registryQuery.isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
       </div>
     );
+  }
+
+  // ─── Render field by type ──────────────────────────────────────────────────
+  function renderField(item: OptionItem) {
+    const value = getValue(item);
+    const inputClass =
+      'mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500';
+
+    switch (item.type) {
+      case 'boolean':
+        return (
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={value as boolean}
+              onChange={(e) => setValue(item.key, e.target.checked)}
+              className="rounded border-(--border-primary)"
+            />
+            {__(item.label)}
+          </label>
+        );
+      case 'number':
+        return (
+          <input
+            type="number"
+            min={1}
+            max={100}
+            value={value as number}
+            onChange={(e) => setValue(item.key, Number(e.target.value))}
+            className="mt-1 block w-32 rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          />
+        );
+      case 'textarea':
+        return (
+          <textarea
+            value={(value as string) ?? ''}
+            onChange={(e) => setValue(item.key, e.target.value)}
+            rows={3}
+            className={inputClass}
+          />
+        );
+      case 'json':
+        return (
+          <textarea
+            value={(value as string) ?? ''}
+            onChange={(e) => setValue(item.key, e.target.value)}
+            rows={4}
+            className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 font-mono text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            placeholder='{"type":"service_account",...}'
+          />
+        );
+      case 'url':
+        return (
+          <>
+            <input
+              type="text"
+              value={(value as string) ?? ''}
+              onChange={(e) => setValue(item.key, e.target.value)}
+              className={inputClass}
+              placeholder="https://..."
+            />
+            {item.key === 'site.logo' && value && (
+              <img
+                src={value as string}
+                alt="Logo preview"
+                className="mt-2 h-12 object-contain"
+              />
+            )}
+          </>
+        );
+      default: // text
+        return (
+          <input
+            type="text"
+            value={(value as string) ?? ''}
+            onChange={(e) => setValue(item.key, e.target.value)}
+            className={inputClass}
+          />
+        );
+    }
   }
 
   return (
@@ -110,7 +195,7 @@ export default function SettingsPage() {
         <button
           type="submit"
           form="settings-form"
-          disabled={setMany.isPending}
+          disabled={setMany.isPending || !hasChanges}
           className="admin-btn admin-btn-primary disabled:opacity-50"
         >
           {setMany.isPending ? (
@@ -123,233 +208,96 @@ export default function SettingsPage() {
       </div>
 
       <form id="settings-form" onSubmit={handleSave} className="mt-6 space-y-6">
-        {/* General */}
-        <div className="admin-card p-6">
-          <h2 className="admin-h2">{__('General')}</h2>
-          <div className="mt-4 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-(--text-secondary)">
-                {__('Site Name')}
-              </label>
-              <input
-                type="text"
-                value={settings['site.name']}
-                onChange={(e) => updateField('site.name', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="My Website"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-(--text-secondary)">
-                {__('Tagline')}
-              </label>
-              <input
-                type="text"
-                value={settings['site.tagline']}
-                onChange={(e) => updateField('site.tagline', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder={__('A brief description of your site')}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-(--text-secondary)">
-                {__('Description')}
-              </label>
-              <textarea
-                value={settings['site.description']}
-                onChange={(e) => updateField('site.description', e.target.value)}
-                rows={3}
-                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-(--text-secondary)">
-                {__('Site URL')}
-              </label>
-              <input
-                type="url"
-                value={settings['site.url']}
-                onChange={(e) => updateField('site.url', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="https://example.com"
-              />
-            </div>
-          </div>
-        </div>
+        {groupOrder.map((groupKey) => {
+          const groupItems = grouped[groupKey];
+          if (!groupItems?.length) return null;
 
-        {/* Branding */}
-        <div className="admin-card p-6">
-          <h2 className="admin-h2">{__('Branding')}</h2>
-          <div className="mt-4 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-(--text-secondary)">
-                {__('Logo URL')}
-              </label>
-              <input
-                type="text"
-                value={settings['site.logo']}
-                onChange={(e) => updateField('site.logo', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="https://..."
-              />
-              {settings['site.logo'] && (
-                <img
-                  src={settings['site.logo']}
-                  alt="Logo preview"
-                  className="mt-2 h-12 object-contain"
-                />
+          return (
+            <div key={groupKey} className="admin-card p-6">
+              <h2 className="admin-h2">{__(GROUP_LABELS[groupKey] ?? groupKey)}</h2>
+              {groupKey === 'ga4' && (
+                <p className="mt-1 text-xs text-(--text-muted)">
+                  {__('Connect a GA4 property to display analytics on the dashboard. Requires a service account with Analytics read access.')}
+                </p>
               )}
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-(--text-secondary)">
-                {__('Favicon URL')}
-              </label>
-              <input
-                type="text"
-                value={settings['site.favicon']}
-                onChange={(e) => updateField('site.favicon', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="https://..."
-              />
-            </div>
-          </div>
-        </div>
+              <div className="mt-4 space-y-4">
+                {groupItems.map((item) => {
+                  if (item.type === 'boolean') {
+                    return (
+                      <div key={item.key} className="flex items-center justify-between">
+                        {renderField(item)}
+                        {item.isCustom && (
+                          <button
+                            type="button"
+                            onClick={() => resetToDefault.mutate({ key: item.key })}
+                            className="ml-2 text-xs text-(--text-muted) hover:text-(--text-secondary)"
+                            title={__('Reset to default')}
+                          >
+                            <RotateCcw className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    );
+                  }
 
-        {/* Social & Analytics */}
-        <div className="admin-card p-6">
-          <h2 className="admin-h2">{__('Social & Analytics')}</h2>
-          <div className="mt-4 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-(--text-secondary)">
-                {__('Twitter / X Handle')}
-              </label>
-              <input
-                type="text"
-                value={settings['site.social.twitter']}
-                onChange={(e) => updateField('site.social.twitter', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="@yourhandle"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-(--text-secondary)">
-                {__('GitHub URL')}
-              </label>
-              <input
-                type="text"
-                value={settings['site.social.github']}
-                onChange={(e) => updateField('site.social.github', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="https://github.com/..."
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-(--text-secondary)">
-                {__('Google Analytics ID')}
-              </label>
-              <input
-                type="text"
-                value={settings['site.analytics.ga_id']}
-                onChange={(e) => updateField('site.analytics.ga_id', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="G-XXXXXXXXXX"
-              />
-            </div>
-          </div>
-        </div>
+                  return (
+                    <div key={item.key}>
+                      <div className="flex items-center gap-2">
+                        <label className="block text-sm font-medium text-(--text-secondary)">
+                          {__(item.label)}
+                        </label>
+                        {item.isCustom && (
+                          <span className="rounded bg-blue-100 dark:bg-blue-500/20 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:text-blue-400">
+                            {__('Modified')}
+                          </span>
+                        )}
+                        {item.isCustom && (
+                          <button
+                            type="button"
+                            onClick={() => resetToDefault.mutate({ key: item.key })}
+                            className="text-xs text-(--text-muted) hover:text-(--text-secondary)"
+                            title={__('Reset to default')}
+                          >
+                            <RotateCcw className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
+                      {item.description && (
+                        <p className="mt-0.5 text-xs text-(--text-muted)">
+                          {__(item.description)}
+                        </p>
+                      )}
+                      {renderField(item)}
+                    </div>
+                  );
+                })}
 
-        {/* Google Analytics 4 */}
-        <div className="admin-card p-6">
-          <h2 className="admin-h2">{__('Google Analytics 4 (Dashboard)')}</h2>
-          <p className="mt-1 text-xs text-(--text-muted)">
-            {__('Connect a GA4 property to display analytics on the dashboard. Requires a service account with Analytics read access.')}
-          </p>
-          <div className="mt-4 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-(--text-secondary)">
-                {__('GA4 Property ID')}
-              </label>
-              <input
-                type="text"
-                value={settings['ga4.propertyId']}
-                onChange={(e) => updateField('ga4.propertyId', e.target.value)}
-                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder="123456789"
-              />
-              <p className="mt-1 text-xs text-(--text-muted)">
-                {__('Found in GA4 Admin > Property Settings > Property ID')}
-              </p>
+                {/* GA4 Test Connection button — special case */}
+                {groupKey === 'ga4' && (
+                  <div>
+                    <button
+                      type="button"
+                      disabled={testGA4.isPending}
+                      onClick={() => testGA4.mutate()}
+                      className="admin-btn admin-btn-secondary disabled:opacity-50"
+                    >
+                      {testGA4.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : testGA4.isSuccess ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                      ) : testGA4.isError ? (
+                        <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                      ) : null}
+                      {__('Test Connection')}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-(--text-secondary)">
-                {__('Service Account JSON')}
-              </label>
-              <textarea
-                value={settings['ga4.serviceAccountJson']}
-                onChange={(e) =>
-                  updateField('ga4.serviceAccountJson', e.target.value)
-                }
-                rows={4}
-                className="mt-1 block w-full rounded-md border border-(--border-primary) px-3 py-2 font-mono text-xs focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                placeholder='{"type":"service_account","project_id":"...","private_key":"...","client_email":"..."}'
-              />
-              <p className="mt-1 text-xs text-(--text-muted)">
-                {__('Paste the full JSON key file contents from Google Cloud Console.')}
-              </p>
-            </div>
-            <div>
-              <button
-                type="button"
-                disabled={testGA4.isPending || !settings['ga4.propertyId'] || !settings['ga4.serviceAccountJson']}
-                onClick={() => testGA4.mutate()}
-                className="admin-btn admin-btn-secondary disabled:opacity-50"
-              >
-                {testGA4.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : testGA4.isSuccess ? (
-                  <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-                ) : testGA4.isError ? (
-                  <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                ) : null}
-                {__('Test Connection')}
-              </button>
-            </div>
-          </div>
-        </div>
+          );
+        })}
 
-        {/* Reading */}
-        <div className="admin-card p-6">
-          <h2 className="admin-h2">{__('Reading')}</h2>
-          <div className="mt-4 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-(--text-secondary)">
-                {__('Posts per page')}
-              </label>
-              <input
-                type="number"
-                min={1}
-                max={100}
-                value={settings['site.posts_per_page']}
-                onChange={(e) =>
-                  updateField('site.posts_per_page', Number(e.target.value))
-                }
-                className="mt-1 block w-32 rounded-md border border-(--border-primary) px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={settings['site.allow_registration']}
-                onChange={(e) =>
-                  updateField('site.allow_registration', e.target.checked)
-                }
-                className="rounded border-(--border-primary)"
-              />
-              {__('Allow user registration')}
-            </label>
-          </div>
-        </div>
-        {/* SEO Overrides */}
+        {/* SEO Overrides — non-registry section */}
         <div className="admin-card p-6">
           <h2 className="admin-h2">{__('SEO Overrides')}</h2>
           <p className="mt-1 text-sm text-(--text-muted)">

@@ -18,7 +18,7 @@ Open-source CMS built for AI-assisted development. The comprehensive `CLAUDE.md`
 
 ## Features
 
-- Config-driven content types (pages, blog posts, categories)
+- Config-driven content types (pages, blog posts, landing pages, categories, tags)
 - Revision history with JSONB snapshots
 - Automatic slug redirects on rename
 - Media library with upload/serve pipeline
@@ -30,6 +30,16 @@ Open-source CMS built for AI-assisted development. The comprehensive `CLAUDE.md`
 - Custom server with `SERVER_ROLE` for production scaling
 - Pluggable storage (filesystem, S3-compatible)
 - Content search across all types (for internal linking)
+- Menu management with hierarchical items
+- Form builder with submissions
+- Custom fields (polymorphic, per content type)
+- Audit logging
+- Webhooks for content events
+- REST API v1 (posts, categories, tags, menus)
+- RSS feeds (blog, tag)
+- GDPR data export
+- Content calendar view
+- Shortcode system (callout, CTA, gallery, YouTube embed)
 
 ## Quick Start
 
@@ -72,7 +82,7 @@ openssl rand -hex 32
 bun run init
 ```
 
-Creates tables, runs migrations, prompts for a superadmin account, and seeds example content (3 pages, 4 blog posts, 3 categories).
+Creates tables, runs migrations, prompts for a superadmin account, and seeds example content (3 pages, 4 blog posts, 3 categories, 4 tags).
 
 ### 5. Start development server
 
@@ -93,7 +103,9 @@ Registered in `src/config/cms.ts`. Currently includes:
 |------|-------------|------------|
 | Page | `/{slug}` | `/dashboard/cms/pages` |
 | Blog | `/blog/{slug}` | `/dashboard/cms/blog` |
+| Landing Page | `/landing/{slug}` | `/dashboard/cms/landingpages` |
 | Category | `/category/{slug}` | `/dashboard/cms/categories` |
+| Tag | `/tag/{slug}` | `/dashboard/cms/tags` |
 
 Add new types by extending the `CONTENT_TYPES` array — no core code changes needed.
 
@@ -136,9 +148,9 @@ src/
 ├── config/              Content types registry, site config
 ├── lib/                 Auth, policy, slug, translations, tRPC
 ├── server/
-│   ├── db/schema/       Drizzle schema (8 tables)
+│   ├── db/schema/       Drizzle schema (21 tables)
 │   ├── jobs/            Email queue (BullMQ + nodemailer)
-│   ├── routers/         tRPC routers (8 routers)
+│   ├── routers/         tRPC routers (18 routers)
 │   ├── storage/         Pluggable storage providers (filesystem, S3)
 │   └── utils/           Admin CRUD, revisions, CMS helpers
 └── types/               PostType, ContentStatus, FileType

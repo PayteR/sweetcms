@@ -24,6 +24,10 @@ const envSchema = z.object({
   REDIS_URL: z.url().optional(),
   REDIS_PASSWORD: z.string().optional(),
 
+  // DeepL Translation (optional)
+  DEEPL_API_KEY: z.string().optional(),
+  DEEPL_API_FREE: z.coerce.boolean().default(true),
+
   // Storage
   STORAGE_BACKEND: z.enum(['s3', 'filesystem']).default('filesystem'),
 
