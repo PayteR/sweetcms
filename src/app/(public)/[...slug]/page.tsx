@@ -142,6 +142,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       };
     }
 
+    // Portfolio metadata
+    if (resolved.contentType.id === 'portfolio') {
+      const item = await api.portfolio.getBySlug({
+        slug: resolved.slug,
+        lang: 'en',
+      });
+      return {
+        title: item.seoTitle ?? `${item.title} | ${siteConfig.name}`,
+        description: item.metaDescription ?? undefined,
+        robots: item.noindex ? { index: false, follow: false } : undefined,
+        ...(item.featuredImage
+          ? {
+              openGraph: {
+                images: [{ url: item.featuredImage, alt: item.featuredImageAlt ?? item.title }],
+              },
+            }
+          : {}),
+      };
+    }
+
     // Category metadata
     if (resolved.contentType.id === 'category') {
       const cat = await api.categories.getBySlug({
@@ -430,6 +450,85 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
             sectionClassName="mt-12 border-t border-(--border-secondary) pt-8"
           />
         </div>
+      );
+    }
+
+    // Portfolio detail — shows project info + description
+    if (resolved.contentType.id === 'portfolio') {
+      const item = await api.portfolio.getBySlug({
+        slug: resolved.slug,
+        lang: 'en',
+        previewToken: preview,
+      });
+
+      return (
+        <article className="mx-auto max-w-3xl px-4 py-12">
+          {preview && (
+            <div className="mb-6 rounded-md bg-yellow-50 dark:bg-yellow-500/15 border border-yellow-200 dark:border-yellow-500/30 px-4 py-2 text-sm text-yellow-800 dark:text-yellow-300">
+              Preview mode — this content is not yet published.
+            </div>
+          )}
+
+          {item.featuredImage && (
+            <img
+              src={item.featuredImage}
+              alt={item.featuredImageAlt ?? item.title}
+              className="mb-8 w-full rounded-lg object-cover"
+              style={{ maxHeight: '400px' }}
+            />
+          )}
+
+          <h1 className="text-3xl font-bold text-(--text-primary) sm:text-4xl">
+            {item.title}
+          </h1>
+
+          {/* Project metadata bar */}
+          <div className="mt-4 flex flex-wrap items-center gap-4 text-sm text-(--text-muted)">
+            {item.clientName && (
+              <span>
+                <span className="font-medium text-(--text-secondary)">{item.clientName}</span>
+              </span>
+            )}
+            {item.completedAt && (
+              <time>
+                {new Date(item.completedAt).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                })}
+              </time>
+            )}
+            {item.projectUrl && (
+              <a
+                href={item.projectUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-700 hover:underline"
+              >
+                Visit Project
+              </a>
+            )}
+          </div>
+
+          {/* Tech stack chips */}
+          {item.techStack && item.techStack.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              {item.techStack.map((tech) => (
+                <span
+                  key={tech}
+                  className="inline-block rounded-full bg-blue-50 dark:bg-blue-500/15 px-2.5 py-0.5 text-xs font-medium text-blue-600 dark:text-blue-400"
+                >
+                  {tech}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {item.text && (
+            <div className="prose prose-gray dark:prose-invert mt-8 max-w-none">
+              <ShortcodeRenderer content={item.text} />
+            </div>
+          )}
+        </article>
       );
     }
 

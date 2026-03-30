@@ -156,6 +156,7 @@ export function PostForm({ contentType, postId }: Props) {
   const { linkPickerOpen, openLinkPicker, closeLinkPicker, handleLinkSelect, editorRef } = useLinkPicker();
   const { brokenLinks, validateLinks, dismissBrokenLinks } = useLinkValidation();
   const duplicateAsTranslation = trpc.cms.duplicateAsTranslation.useMutation();
+  const translationAvailableQuery = trpc.options.translationAvailable.useQuery();
   const customFieldsRef = useRef<CustomFieldsEditorHandle>(null);
 
   const createPost = trpc.cms.create.useMutation({
@@ -552,10 +553,12 @@ export function PostForm({ contentType, postId }: Props) {
                       currentLang={formData.lang}
                       translations={translationSiblings.data}
                       adminSlug={contentType.adminSlug}
-                      onDuplicate={async (targetLang) => {
+                      translationAvailable={translationAvailableQuery.data?.available ?? false}
+                      onDuplicate={async (targetLang, autoTranslate) => {
                         const result = await duplicateAsTranslation.mutateAsync({
                           id: post.id,
                           targetLang,
+                          autoTranslate,
                         });
                         router.push(`/dashboard/cms/${contentType.adminSlug}/${result.id}`);
                       }}

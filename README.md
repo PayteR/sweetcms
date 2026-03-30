@@ -18,7 +18,7 @@ Open-source CMS built for AI-assisted development. The comprehensive `CLAUDE.md`
 
 ## Features
 
-- Config-driven content types (pages, blog posts, landing pages, categories, tags)
+- Config-driven content types (pages, blog posts, portfolio, categories, tags)
 - Revision history with JSONB snapshots
 - Automatic slug redirects on rename
 - Media library with upload/serve pipeline
@@ -103,7 +103,7 @@ Registered in `src/config/cms.ts`. Currently includes:
 |------|-------------|------------|
 | Page | `/{slug}` | `/dashboard/cms/pages` |
 | Blog | `/blog/{slug}` | `/dashboard/cms/blog` |
-| Landing Page | `/landing/{slug}` | `/dashboard/cms/landingpages` |
+| Portfolio | `/portfolio/{slug}` | `/dashboard/cms/portfolio` |
 | Category | `/category/{slug}` | `/dashboard/cms/categories` |
 | Tag | `/tag/{slug}` | `/dashboard/cms/tags` |
 

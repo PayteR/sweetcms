@@ -29,7 +29,7 @@ SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack: Nex
 
 **Procedure types:** `publicProcedure`, `protectedProcedure`, `staffProcedure`, `sectionProcedure(section)`, `superadminProcedure`.
 
-**Routers (`src/server/routers/_app.ts`):** `analytics`, `audit`, `auth`, `categories`, `cms`, `contentSearch`, `customFields`, `forms`, `import`, `jobQueue`, `media`, `menus`, `options`, `redirects`, `revisions`, `tags`, `users`, `webhooks`.
+**Routers (`src/server/routers/_app.ts`):** `analytics`, `audit`, `auth`, `categories`, `cms`, `contentSearch`, `customFields`, `forms`, `import`, `jobQueue`, `media`, `menus`, `options`, `portfolio`, `redirects`, `revisions`, `tags`, `users`, `webhooks`.
 
 ### Database
 
@@ -37,9 +37,10 @@ PostgreSQL only. All CMS tables prefixed `cms_`. UUID primary keys via `gen_rand
 
 **Tables:**
 - `user`, `session`, `account`, `verification` — Better Auth standard
-- `cms_posts` — pages, blog posts, and landing pages (type discriminator: `PostType.PAGE=1`, `PostType.BLOG=2`, `PostType.LANDING=3`)
+- `cms_posts` — pages and blog posts (type discriminator: `PostType.PAGE=1`, `PostType.BLOG=2`)
 - `cms_post_attachments` — file attachments per post
 - `cms_categories` — standalone category table (rich: SEO, content, icon, jsonLd)
+- `cms_portfolio` — portfolio items (custom table: clientName, projectUrl, techStack jsonb, completedAt, featuredImage, SEO fields, revision history)
 - `cms_terms` — universal taxonomy terms (simple: name, slug, lang, status, order). Used for tags; extensible for future taxonomies
 - `cms_term_relationships` — polymorphic M:N (objectId, termId, taxonomyId). Links posts to categories AND tags. `taxonomyId` discriminator: `'category'` → termId points to `cms_categories.id`, `'tag'` → termId points to `cms_terms.id`. No FK on termId (app-level enforcement)
 - `cms_content_revisions` — JSONB snapshots for revision history
@@ -59,11 +60,11 @@ PostgreSQL only. All CMS tables prefixed `cms_`. UUID primary keys via `gen_rand
 
 `src/config/cms.ts` — single source of truth for all CMS content types.
 
-Content types: `page` (PostType.PAGE), `blog` (PostType.BLOG), `landing` (PostType.LANDING), `category` (separate table), `tag` (uses `cms_terms`).
+Content types: `page` (PostType.PAGE), `blog` (PostType.BLOG), `portfolio` (separate table), `category` (separate table), `tag` (uses `cms_terms`).
 
 Lookup helpers: `getContentType(id)`, `getContentTypeByPostType(type)`, `getContentTypeByAdminSlug(slug)`.
 
-Exported types: `PostContentTypeId` (union of IDs with postType: `'page' | 'blog' | 'landing'`), `AdminSlug` (union of all adminSlugs: `'pages' | 'blog' | 'categories' | 'tags' | 'landingpages'`).
+Exported types: `PostContentTypeId` (union of IDs with postType: `'page' | 'blog'`), `AdminSlug` (union of all adminSlugs: `'pages' | 'blog' | 'categories' | 'tags' | 'portfolio'`).
 
 ### Taxonomy System
 
@@ -74,7 +75,7 @@ WordPress-style universal taxonomy with config-driven declarations.
 | Taxonomy | Table | Input type | Content types | Detail page |
 |---|---|---|---|---|
 | `category` | `cms_categories` (custom) | checkbox | blog | yes |
-| `tag` | `cms_terms` (universal) | tag-input (autocomplete + create-on-enter) | blog, page | yes |
+| `tag` | `cms_terms` (universal) | tag-input (autocomplete + create-on-enter) | blog, page, portfolio | yes |
 
 **Helpers:** `getTaxonomy(id)`, `getTaxonomyByAdminSlug(slug)`, `getTaxonomiesForContentType(ctId)`.
 
@@ -110,8 +111,9 @@ src/
 │   ├── (auth)/           — login, register, forgot-password, reset-password
 │   ├── (public)/         — public-facing content
 │   │   ├── blog/         — blog list page
+│   │   ├── portfolio/    — portfolio list page
 │   │   ├── search/       — content search page
-│   │   └── [...slug]/    — catch-all CMS route (pages, posts, categories, tags)
+│   │   └── [...slug]/    — catch-all CMS route (pages, posts, categories, tags, portfolio)
 │   ├── api/
 │   │   ├── auth/         — Better Auth route handler
 │   │   ├── feed/         — RSS feeds (blog, tag)
@@ -135,16 +137,16 @@ src/
 │   │   └── users/        — user management
 │   └── sitemap.ts        — dynamic sitemap generation
 ├── components/
-│   ├── admin/            — PostForm, CategoryForm, TermForm, TagInput, CmsListView, CmsFormShell, RichTextEditor, MediaPickerDialog, AdminHeader, AdminSidebar, RevisionHistory, MenuBuilder, ContentCalendar, CustomFieldsEditor, BulkActionBar, SEOFields, TranslationBar, shortcodes/
+│   ├── admin/            — PostForm, CategoryForm, PortfolioForm, TermForm, TagInput, CmsListView, CmsFormShell, RichTextEditor, MediaPickerDialog, AdminHeader, AdminSidebar, RevisionHistory, MenuBuilder, ContentCalendar, CustomFieldsEditor, BulkActionBar, SEOFields, TranslationBar, shortcodes/
 │   ├── public/           — ContactForm, DynamicNav, PostCard, ShortcodeRenderer, TagCloud, shortcodes/
 │   └── ui/               — ConfirmDialog, Toaster
 ├── config/               — cms.ts (content types), taxonomies.ts (taxonomy declarations), site.ts (site config)
 ├── lib/                  — auth, auth-client, constants, datetime, env, extract-internal-links, markdown, password, policy, revision-diff, slug, translations, trpc, utils
 ├── scripts/              — init.ts, promote.ts, change-password.ts, migrate-html-to-markdown.ts, schedule-jobs.ts
 ├── server/
-│   ├── db/schema/        — auth, cms, categories, terms, term-relationships, media, menu, webhooks, audit, custom-fields, forms
+│   ├── db/schema/        — auth, cms, categories, portfolio, terms, term-relationships, media, menu, webhooks, audit, custom-fields, forms
 │   ├── jobs/             — email queue (BullMQ + nodemailer)
-│   ├── routers/          — analytics, audit, auth, categories, cms, content-search, custom-fields, forms, import, job-queue, media, menus, options, redirects, revisions, tags, users, webhooks
+│   ├── routers/          — analytics, audit, auth, categories, cms, content-search, custom-fields, forms, import, job-queue, media, menus, options, portfolio, redirects, revisions, tags, users, webhooks
 │   ├── storage/          — pluggable storage (filesystem, S3-compatible)
 │   └── utils/            — admin-crud, api-auth, audit, cms-helpers, content-revisions, ga4, gdpr, page-seo, seo-routes, slug-redirects, taxonomy-helpers, webhooks
 ├── store/                — toast-store, theme-store, sidebar-store (Zustand)
@@ -287,6 +289,7 @@ Use `cn()` from `@/lib/utils` for conditional classes — never template literal
 URL patterns:
 - `/privacy-policy` → page
 - `/blog/my-post` → blog post
+- `/portfolio/my-project` → portfolio item (project details + description)
 - `/category/tech` → category (shows description + posts in category)
 - `/tag/nextjs` → tag (shows posts with that tag, paginated via `?page=N`)
 
@@ -294,7 +297,7 @@ Supports preview mode via `?preview=<token>`.
 
 ### Content Search
 
-`contentSearch.search` — searches across all published content types (posts + categories + tags) by title/slug. Returns `{ type, id, title, url }` results. Used by the rich text editor for internal link picking. Requires `section.content` capability.
+`contentSearch.search` — searches across all published content types (posts + categories + tags + portfolio) by title/slug. Returns `{ type, id, title, url }` results. Used by the rich text editor for internal link picking. Requires `section.content` capability.
 
 ### Post-Taxonomy Relationships
 

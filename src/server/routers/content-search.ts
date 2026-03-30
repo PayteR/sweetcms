@@ -3,6 +3,7 @@ import { and, desc, eq, ilike, isNull, or, sql } from 'drizzle-orm';
 
 import { cmsPosts } from '@/server/db/schema/cms';
 import { cmsCategories } from '@/server/db/schema/categories';
+import { cmsPortfolio } from '@/server/db/schema/portfolio';
 import { cmsTerms } from '@/server/db/schema/terms';
 import { ContentStatus } from '@/types/cms';
 import { CONTENT_TYPES } from '@/config/cms';
@@ -130,6 +131,35 @@ export const contentSearchRouter = createTRPCRouter({
           id: tag.id,
           title: tag.name,
           url: `/tag/${tag.slug}`,
+        });
+      }
+
+      // Search portfolio
+      const portfolioItems = await ctx.db
+        .select({
+          id: cmsPortfolio.id,
+          slug: cmsPortfolio.slug,
+          name: cmsPortfolio.name,
+        })
+        .from(cmsPortfolio)
+        .where(
+          and(
+            eq(cmsPortfolio.status, ContentStatus.PUBLISHED),
+            isNull(cmsPortfolio.deletedAt),
+            or(
+              ilike(cmsPortfolio.name, pattern),
+              ilike(cmsPortfolio.slug, pattern)
+            )
+          )
+        )
+        .limit(limit);
+
+      for (const item of portfolioItems) {
+        results.push({
+          type: 'portfolio',
+          id: item.id,
+          title: item.name,
+          url: `/portfolio/${item.slug}`,
         });
       }
 

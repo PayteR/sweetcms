@@ -15,7 +15,7 @@ import {
   Home,
   Image,
   Layers,
-  Layout,
+  Briefcase,
   ListChecks,
   Mail,
   Menu,
@@ -60,7 +60,7 @@ const navigation: NavItem[] = [
     children: [
       { name: 'Pages', href: '/dashboard/cms/pages', icon: FileText },
       { name: 'Blog', href: '/dashboard/cms/blog', icon: Layers },
-      { name: 'Landing Pages', href: '/dashboard/cms/landingpages', icon: Layout },
+      { name: 'Portfolio', href: '/dashboard/cms/portfolio', icon: Briefcase },
       { name: 'Categories', href: '/dashboard/cms/categories', icon: FolderOpen },
       { name: 'Tags', href: '/dashboard/cms/tags', icon: Hash },
       { name: 'Menus', href: '/dashboard/cms/menus', icon: Menu },

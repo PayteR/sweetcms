@@ -3,7 +3,7 @@ import { and, eq, isNull, desc } from 'drizzle-orm';
 
 import { siteConfig } from '@/config/site';
 import { db } from '@/server/db';
-import { cmsPosts, cmsCategories, cmsTerms } from '@/server/db/schema';
+import { cmsPosts, cmsCategories, cmsPortfolio, cmsTerms } from '@/server/db/schema';
 import { ContentStatus, PostType } from '@/types/cms';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -99,6 +99,39 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: cat.updatedAt,
       changeFrequency: 'monthly',
       priority: 0.5,
+    });
+  }
+
+  // Portfolio list page
+  entries.push({
+    url: `${baseUrl}/portfolio`,
+    lastModified: new Date(),
+    changeFrequency: 'weekly',
+    priority: 0.7,
+  });
+
+  // Published portfolio items
+  const portfolioItems = await db
+    .select({
+      slug: cmsPortfolio.slug,
+      updatedAt: cmsPortfolio.updatedAt,
+    })
+    .from(cmsPortfolio)
+    .where(
+      and(
+        eq(cmsPortfolio.status, ContentStatus.PUBLISHED),
+        isNull(cmsPortfolio.deletedAt)
+      )
+    )
+    .orderBy(desc(cmsPortfolio.completedAt))
+    .limit(500);
+
+  for (const item of portfolioItems) {
+    entries.push({
+      url: `${baseUrl}/portfolio/${item.slug}`,
+      lastModified: item.updatedAt,
+      changeFrequency: 'monthly',
+      priority: 0.6,
     });
   }
 

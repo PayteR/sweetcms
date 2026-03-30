@@ -2,7 +2,6 @@
 export const PostType = {
   PAGE: 1,
   BLOG: 2,
-  LANDING: 3,
 } as const;
 export type PostTypeValue = (typeof PostType)[keyof typeof PostType];
 

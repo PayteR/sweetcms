@@ -106,6 +106,7 @@ export function CmsListView({ contentType }: Props) {
   const isPostType = contentType.postType != null;
   const isCategoryType = contentType.id === 'category';
   const isTagType = contentType.id === 'tag';
+  const isPortfolioType = contentType.id === 'portfolio';
 
   // Post queries
   const postList = trpc.cms.list.useQuery(
@@ -161,6 +162,24 @@ export function CmsListView({ contentType }: Props) {
     enabled: isTagType,
   });
 
+  // Portfolio queries
+  const portfolioList = trpc.portfolio.list.useQuery(
+    {
+      search: search || undefined,
+      trashed: tab === 'trash',
+      lang: langFilter || undefined,
+      sortBy,
+      sortDir,
+      page,
+      pageSize: 20,
+    },
+    { enabled: isPortfolioType }
+  );
+
+  const portfolioCounts = trpc.portfolio.counts.useQuery(undefined, {
+    enabled: isPortfolioType,
+  });
+
   // ── Single-item mutations ─────────────────────────────
   const deletePost = trpc.cms.delete.useMutation({
     onSuccess: () => { toast.success(__('Moved to trash')); utils.cms.list.invalidate(); utils.cms.counts.invalidate(); },
@@ -204,6 +223,20 @@ export function CmsListView({ contentType }: Props) {
   });
   const updateTagStatus = trpc.tags.updateStatus.useMutation();
 
+  const deletePortfolio = trpc.portfolio.delete.useMutation({
+    onSuccess: () => { toast.success(__('Moved to trash')); utils.portfolio.list.invalidate(); utils.portfolio.counts.invalidate(); },
+    onError: (err) => toast.error(err.message),
+  });
+  const restorePortfolio = trpc.portfolio.restore.useMutation({
+    onSuccess: () => { toast.success(__('Restored')); utils.portfolio.list.invalidate(); utils.portfolio.counts.invalidate(); },
+    onError: (err) => toast.error(err.message),
+  });
+  const permanentDeletePortfolio = trpc.portfolio.permanentDelete.useMutation({
+    onSuccess: () => { toast.success(__('Permanently deleted')); utils.portfolio.list.invalidate(); utils.portfolio.counts.invalidate(); },
+    onError: (err) => toast.error(err.message),
+  });
+  const updatePortfolioStatus = trpc.portfolio.updateStatus.useMutation();
+
   // ── Duplicate mutations ─────────────────────────────
   const duplicatePost = trpc.cms.duplicate.useMutation({
     onSuccess: (data) => {
@@ -221,10 +254,19 @@ export function CmsListView({ contentType }: Props) {
     },
     onError: (err) => toast.error(err.message),
   });
+  const duplicatePortfolio = trpc.portfolio.duplicate.useMutation({
+    onSuccess: () => {
+      toast.success(__('Duplicated'));
+      utils.portfolio.list.invalidate();
+      utils.portfolio.counts.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   function handleDuplicate(id: string) {
     if (isPostType) duplicatePost.mutate({ id });
     else if (isCategoryType) duplicateCat.mutate({ id });
+    else if (isPortfolioType) duplicatePortfolio.mutate({ id });
   }
 
   // ── Export ──────────────────────────────────────────
@@ -259,6 +301,8 @@ export function CmsListView({ contentType }: Props) {
         result = await utils.cms.exportBulk.fetch({ ids, format });
       } else if (isCategoryType) {
         result = await utils.categories.exportBulk.fetch({ ids, format });
+      } else if (isPortfolioType) {
+        result = await utils.portfolio.exportBulk.fetch({ ids, format });
       } else {
         return; // Tags don't have export
       }
@@ -287,9 +331,9 @@ export function CmsListView({ contentType }: Props) {
   );
 
   // ── Unified data ──────────────────────────────────────
-  const data = isPostType ? postList.data : isTagType ? tagList.data : catList.data;
-  const counts = isPostType ? postCounts.data : isTagType ? tagCounts.data : catCounts.data;
-  const isLoading = isPostType ? postList.isLoading : isTagType ? tagList.isLoading : catList.isLoading;
+  const data = isPostType ? postList.data : isTagType ? tagList.data : isPortfolioType ? portfolioList.data : catList.data;
+  const counts = isPostType ? postCounts.data : isTagType ? tagCounts.data : isPortfolioType ? portfolioCounts.data : catCounts.data;
+  const isLoading = isPostType ? postList.isLoading : isTagType ? tagList.isLoading : isPortfolioType ? portfolioList.isLoading : catList.isLoading;
 
   const items: Array<{
     id: string;
@@ -327,40 +371,45 @@ export function CmsListView({ contentType }: Props) {
     async (input: { id: string }) => {
       if (isPostType) return deletePost.mutateAsync(input);
       if (isTagType) return deleteTag.mutateAsync(input);
+      if (isPortfolioType) return deletePortfolio.mutateAsync(input);
       return deleteCat.mutateAsync(input);
     },
-    [isPostType, isTagType, deletePost, deleteTag, deleteCat]
+    [isPostType, isTagType, isPortfolioType, deletePost, deleteTag, deletePortfolio, deleteCat]
   );
 
   const bulkRestoreAsync = useCallback(
     async (input: { id: string }) => {
       if (isPostType) return restorePost.mutateAsync(input);
       if (isTagType) return restoreTag.mutateAsync(input);
+      if (isPortfolioType) return restorePortfolio.mutateAsync(input);
       return restoreCat.mutateAsync(input);
     },
-    [isPostType, isTagType, restorePost, restoreTag, restoreCat]
+    [isPostType, isTagType, isPortfolioType, restorePost, restoreTag, restorePortfolio, restoreCat]
   );
 
   const bulkUpdateStatusAsync = useCallback(
     async (input: { id: string; status: number }) => {
       if (isPostType) return updatePostStatus.mutateAsync(input);
       if (isCategoryType) return updateCatStatus.mutateAsync(input);
+      if (isPortfolioType) return updatePortfolioStatus.mutateAsync(input);
       return updateTagStatus.mutateAsync(input);
     },
-    [isPostType, isCategoryType, updatePostStatus, updateCatStatus, updateTagStatus]
+    [isPostType, isCategoryType, isPortfolioType, updatePostStatus, updateCatStatus, updatePortfolioStatus, updateTagStatus]
   );
 
   const refetch = useCallback(() => {
     if (isPostType) postList.refetch();
     else if (isTagType) { tagList.refetch(); utils.tags.stats.invalidate(); }
+    else if (isPortfolioType) portfolioList.refetch();
     else catList.refetch();
-  }, [isPostType, isTagType, postList, tagList, catList, utils.tags.stats]);
+  }, [isPostType, isTagType, isPortfolioType, postList, tagList, portfolioList, catList, utils.tags.stats]);
 
   const invalidateCounts = useCallback(() => {
     if (isPostType) utils.cms.counts.invalidate();
     else if (isTagType) utils.tags.counts.invalidate();
+    else if (isPortfolioType) utils.portfolio.counts.invalidate();
     else utils.categories.counts.invalidate();
-  }, [isPostType, isTagType, utils]);
+  }, [isPostType, isTagType, isPortfolioType, utils]);
 
   const {
     isPending: isBulkPending,
@@ -409,10 +458,12 @@ export function CmsListView({ contentType }: Props) {
     if (deleteTarget.permanent) {
       if (isPostType) permanentDeletePost.mutate({ id: deleteTarget.id });
       else if (isTagType) permanentDeleteTag.mutate({ id: deleteTarget.id });
+      else if (isPortfolioType) permanentDeletePortfolio.mutate({ id: deleteTarget.id });
       else permanentDeleteCat.mutate({ id: deleteTarget.id });
     } else {
       if (isPostType) deletePost.mutate({ id: deleteTarget.id });
       else if (isTagType) deleteTag.mutate({ id: deleteTarget.id });
+      else if (isPortfolioType) deletePortfolio.mutate({ id: deleteTarget.id });
       else deleteCat.mutate({ id: deleteTarget.id });
     }
     setDeleteTarget(null);
@@ -421,6 +472,7 @@ export function CmsListView({ contentType }: Props) {
   function handleRestore(id: string) {
     if (isPostType) restorePost.mutate({ id });
     else if (isTagType) restoreTag.mutate({ id });
+    else if (isPortfolioType) restorePortfolio.mutate({ id });
     else restoreCat.mutate({ id });
   }
 
@@ -584,7 +636,7 @@ export function CmsListView({ contentType }: Props) {
         onBulkStatusChange={executeBulkStatusChange}
         onDeselectAll={deselectAll}
         isPending={isBulkPending}
-        onBulkExport={(isPostType || isCategoryType) ? handleBulkExport : undefined}
+        onBulkExport={(isPostType || isCategoryType || isPortfolioType) ? handleBulkExport : undefined}
       />
 
       {/* Table */}
@@ -769,7 +821,7 @@ export function CmsListView({ contentType }: Props) {
                           </>
                         ) : (
                           <>
-                            {(isPostType || isCategoryType) && (
+                            {(isPostType || isCategoryType || isPortfolioType) && (
                               <button
                                 onClick={() => handleDuplicate(item.id)}
                                 className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-green-600"

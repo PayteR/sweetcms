@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getContentTypeByAdminSlug } from '@/config/cms';
 import { PostForm } from '@/components/admin/PostForm';
 import { CategoryForm } from '@/components/admin/CategoryForm';
+import { PortfolioForm } from '@/components/admin/PortfolioForm';
 import { TermForm } from '@/components/admin/TermForm';
 
 interface Props {
@@ -19,6 +20,10 @@ export default async function NewCmsItemPage({ params }: Props) {
 
   if (contentType.id === 'category') {
     return <CategoryForm />;
+  }
+
+  if (contentType.id === 'portfolio') {
+    return <PortfolioForm />;
   }
 
   if (contentType.id === 'tag') {

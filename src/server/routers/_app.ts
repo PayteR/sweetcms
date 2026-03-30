@@ -12,6 +12,7 @@ import { jobQueueRouter } from './job-queue';
 import { mediaRouter } from './media';
 import { menusRouter } from './menus';
 import { optionsRouter } from './options';
+import { portfolioRouter } from './portfolio';
 import { redirectsRouter } from './redirects';
 import { revisionsRouter } from './revisions';
 import { tagsRouter } from './tags';
@@ -35,6 +36,7 @@ export const appRouter = createTRPCRouter({
   media: mediaRouter,
   menus: menusRouter,
   options: optionsRouter,
+  portfolio: portfolioRouter,
   redirects: redirectsRouter,
   revisions: revisionsRouter,
   tags: tagsRouter,

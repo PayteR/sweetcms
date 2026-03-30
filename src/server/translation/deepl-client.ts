@@ -42,6 +42,7 @@ export async function translateWithDeepL(
       text: [text],
       target_lang: targetLang.toUpperCase(),
       source_lang: sourceLang.toUpperCase(),
+      tag_handling: 'html',
     }),
     signal: AbortSignal.timeout(10_000),
   });

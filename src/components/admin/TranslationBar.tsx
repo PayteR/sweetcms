@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import Link from 'next/link';
-import { Loader2, Plus } from 'lucide-react';
+import { Copy, Languages, Loader2, Plus } from 'lucide-react';
 
 import { type Locale, LOCALES, LOCALE_LABELS } from '@/lib/constants';
 import { useBlankTranslations } from '@/lib/translations';
@@ -20,22 +20,37 @@ interface TranslationBarProps {
   currentLang: string;
   translations: Translation[];
   adminSlug: string;
-  onDuplicate: (targetLang: Locale) => Promise<void>;
+  translationAvailable?: boolean;
+  onDuplicate: (targetLang: Locale, autoTranslate: boolean) => Promise<void>;
 }
 
 export function TranslationBar({
-  currentLang, translations, adminSlug, onDuplicate,
+  currentLang, translations, adminSlug, translationAvailable, onDuplicate,
 }: TranslationBarProps) {
   const __ = useBlankTranslations();
   const [duplicating, setDuplicating] = useState<string | null>(null);
+  const [dropdownLang, setDropdownLang] = useState<string | null>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const existingLangs = new Set([currentLang, ...translations.map((t) => t.lang)]);
   const missingLangs = LOCALES.filter((l) => !existingLangs.has(l));
 
-  const handleDuplicate = async (lang: Locale) => {
+  useEffect(() => {
+    if (!dropdownLang) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownLang(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [dropdownLang]);
+
+  const handleDuplicate = async (lang: Locale, autoTranslate: boolean) => {
+    setDropdownLang(null);
     setDuplicating(lang);
     try {
-      await onDuplicate(lang);
+      await onDuplicate(lang, autoTranslate);
     } catch (error) {
       setDuplicating(null);
       const msg = error instanceof Error ? error.message : __('Failed to create translation');
@@ -64,25 +79,53 @@ export function TranslationBar({
         ))}
 
         {missingLangs.map((lang) => (
-          <button
-            key={lang}
-            type="button"
-            disabled={duplicating !== null}
-            onClick={() => handleDuplicate(lang)}
-            className={cn(
-              'flex items-center gap-1 rounded-md border border-dashed border-(--border-primary) px-3 py-1 text-sm text-(--text-muted) transition-colors',
-              duplicating === lang
-                ? 'cursor-wait'
-                : 'hover:border-blue-500 hover:text-(--text-secondary)'
+          <div key={lang} className="relative" ref={dropdownLang === lang ? dropdownRef : undefined}>
+            <button
+              type="button"
+              disabled={duplicating !== null}
+              onClick={() => {
+                if (translationAvailable) {
+                  setDropdownLang(dropdownLang === lang ? null : lang);
+                } else {
+                  handleDuplicate(lang, false);
+                }
+              }}
+              className={cn(
+                'flex items-center gap-1 rounded-md border border-dashed border-(--border-primary) px-3 py-1 text-sm text-(--text-muted) transition-colors',
+                duplicating === lang
+                  ? 'cursor-wait'
+                  : 'hover:border-blue-500 hover:text-(--text-secondary)'
+              )}
+            >
+              {duplicating === lang ? (
+                <Loader2 size={14} className="animate-spin" />
+              ) : (
+                <Plus size={14} />
+              )}
+              {LOCALE_LABELS[lang]}
+            </button>
+
+            {dropdownLang === lang && (
+              <div className="absolute left-0 top-full z-10 mt-1 min-w-40 rounded-md border border-(--border-primary) bg-(--bg-primary) py-1 shadow-lg">
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-(--text-secondary) hover:bg-(--bg-secondary)"
+                  onClick={() => handleDuplicate(lang, false)}
+                >
+                  <Copy size={14} />
+                  {__('Copy')}
+                </button>
+                <button
+                  type="button"
+                  className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-sm text-(--text-secondary) hover:bg-(--bg-secondary)"
+                  onClick={() => handleDuplicate(lang, true)}
+                >
+                  <Languages size={14} />
+                  {__('Copy & Translate')}
+                </button>
+              </div>
             )}
-          >
-            {duplicating === lang ? (
-              <Loader2 size={14} className="animate-spin" />
-            ) : (
-              <Plus size={14} />
-            )}
-            {LOCALE_LABELS[lang]}
-          </button>
+          </div>
         ))}
       </div>
     </div>

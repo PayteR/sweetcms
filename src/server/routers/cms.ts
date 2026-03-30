@@ -4,7 +4,9 @@ import { z } from 'zod';
 import crypto from 'crypto';
 
 import { getContentTypeByPostType } from '@/config/cms';
+import { env } from '@/lib/env';
 import { LOCALES } from '@/lib/constants';
+import { createLogger } from '@/lib/logger';
 import {
   SEO_OVERRIDE_ROUTES,
   SEO_OVERRIDE_SLUGS,
@@ -27,6 +29,7 @@ import {
   resolveTagsForPosts,
 } from '@/server/utils/taxonomy-helpers';
 import { logAudit } from '@/server/utils/audit';
+import { translate } from '@/server/translation/translation-service';
 import { dispatchWebhook } from '@/server/utils/webhooks';
 import { getStorage } from '@/server/storage';
 import {
@@ -34,6 +37,8 @@ import {
   publicProcedure,
   sectionProcedure,
 } from '../trpc';
+
+const logger = createLogger('cms-router');
 
 const contentProcedure = sectionProcedure('content');
 
@@ -607,6 +612,7 @@ export const cmsRouter = createTRPCRouter({
       z.object({
         id: z.string().uuid(),
         targetLang: z.string().min(2).max(5),
+        autoTranslate: z.boolean().default(false),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -617,6 +623,33 @@ export const cmsRouter = createTRPCRouter({
         .limit(1);
 
       if (!source) throw new TRPCError({ code: 'NOT_FOUND', message: 'Post not found' });
+
+      // Translate fields if requested and DeepL is configured
+      let title = source.title;
+      let content = source.content;
+      let metaDescription = source.metaDescription;
+      let seoTitle = source.seoTitle;
+      let featuredImageAlt = source.featuredImageAlt;
+
+      if (input.autoTranslate && env.DEEPL_API_KEY) {
+        const sl = source.lang ?? 'en';
+        const tl = input.targetLang;
+        async function safe(field: string, value: null): Promise<null>;
+        async function safe(field: string, value: string): Promise<string>;
+        async function safe(field: string, value: string | null): Promise<string | null>;
+        async function safe(field: string, value: string | null): Promise<string | null> {
+          if (!value) return value;
+          try { return await translate(value, tl, sl); }
+          catch (e) { logger.warn(`Translation failed for "${field}"`, { error: String(e) }); return value; }
+        }
+        [title, content, metaDescription, seoTitle, featuredImageAlt] = await Promise.all([
+          safe('title', title),
+          safe('content', content),
+          safe('metaDescription', metaDescription),
+          safe('seoTitle', seoTitle),
+          safe('featuredImageAlt', featuredImageAlt),
+        ]);
+      }
 
       // Create or reuse translation group
       const translationGroup = source.translationGroup ?? crypto.randomUUID();
@@ -652,15 +685,15 @@ export const cmsRouter = createTRPCRouter({
         .insert(cmsPosts)
         .values({
           type: source.type,
-          title: source.title,
+          title,
           slug,
           lang: input.targetLang,
-          content: source.content,
+          content,
           status: ContentStatus.DRAFT,
-          metaDescription: source.metaDescription,
-          seoTitle: source.seoTitle,
+          metaDescription,
+          seoTitle,
           featuredImage: source.featuredImage,
-          featuredImageAlt: source.featuredImageAlt,
+          featuredImageAlt,
           jsonLd: source.jsonLd,
           noindex: source.noindex,
           publishedAt: null,
@@ -679,7 +712,7 @@ export const cmsRouter = createTRPCRouter({
         entityType: 'post',
         entityId: newPost!.id,
         entityTitle: newPost!.title,
-        metadata: { originalId: input.id, targetLang: input.targetLang },
+        metadata: { originalId: input.id, targetLang: input.targetLang, autoTranslate: input.autoTranslate },
       });
 
       return { id: newPost!.id, slug: newPost!.slug };

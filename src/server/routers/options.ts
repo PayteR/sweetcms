@@ -1,6 +1,7 @@
 import { eq, like } from 'drizzle-orm';
 import { z } from 'zod';
 
+import { env } from '@/lib/env';
 import { cmsOptions } from '@/server/db/schema';
 import { OPTION_REGISTRY } from '@/config/options-registry';
 import { createTRPCRouter, sectionProcedure, staffProcedure } from '../trpc';
@@ -8,6 +9,11 @@ import { createTRPCRouter, sectionProcedure, staffProcedure } from '../trpc';
 const settingsProcedure = sectionProcedure('settings');
 
 export const optionsRouter = createTRPCRouter({
+  /** Check if DeepL translation is configured */
+  translationAvailable: staffProcedure.query(() => ({
+    available: !!env.DEEPL_API_KEY,
+  })),
+
   /** Get a single option by key */
   get: staffProcedure
     .input(z.object({ key: z.string().max(255) }))
