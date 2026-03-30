@@ -1,3 +1,8 @@
+import {
+  type TaxonomyDeclaration,
+  createTaxonomyHelpers,
+} from '@/engine/config/taxonomies';
+
 /**
  * Taxonomy Registry
  *
@@ -12,28 +17,7 @@
  * 4. Add TagInput/checkbox UI in PostForm
  */
 
-export interface TaxonomyDeclaration {
-  /** Unique taxonomy identifier */
-  id: string;
-  /** Singular label */
-  label: string;
-  /** Plural label */
-  labelPlural: string;
-  /** URL prefix for public pages */
-  urlPrefix: string;
-  /** Admin URL slug */
-  adminSlug: string;
-  /** true = own schema table, false = cms_terms */
-  customTable: boolean;
-  /** Which content type IDs this taxonomy applies to */
-  contentTypes: string[];
-  /** UI input type in PostForm sidebar */
-  inputType: 'checkbox' | 'tag-input';
-  /** Whether this taxonomy has a public detail page */
-  hasDetailPage: boolean;
-  /** Sitemap slug (if hasDetailPage) */
-  sitemapSlug?: string;
-}
+export type { TaxonomyDeclaration };
 
 const taxonomiesDef: readonly TaxonomyDeclaration[] = [
   {
@@ -64,23 +48,7 @@ const taxonomiesDef: readonly TaxonomyDeclaration[] = [
 
 export const TAXONOMIES: readonly TaxonomyDeclaration[] = taxonomiesDef;
 
-const taxonomyMap = new Map(TAXONOMIES.map((t) => [t.id, t]));
-const adminSlugMap = new Map(TAXONOMIES.map((t) => [t.adminSlug, t]));
-
-export function getTaxonomy(id: string): TaxonomyDeclaration {
-  const t = taxonomyMap.get(id);
-  if (!t) throw new Error(`Unknown taxonomy: ${id}`);
-  return t;
-}
-
-export function getTaxonomyByAdminSlug(
-  slug: string
-): TaxonomyDeclaration | undefined {
-  return adminSlugMap.get(slug);
-}
-
-export function getTaxonomiesForContentType(
-  contentTypeId: string
-): TaxonomyDeclaration[] {
-  return TAXONOMIES.filter((t) => t.contentTypes.includes(contentTypeId));
-}
+const helpers = createTaxonomyHelpers(TAXONOMIES);
+export const getTaxonomy = helpers.getTaxonomy;
+export const getTaxonomyByAdminSlug = helpers.getTaxonomyByAdminSlug;
+export const getTaxonomiesForContentType = helpers.getTaxonomiesForContentType;

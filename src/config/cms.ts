@@ -1,4 +1,8 @@
 import { PostType } from '@/engine/types/cms';
+import {
+  type ContentTypeDeclaration,
+  createContentTypeHelpers,
+} from '@/engine/config/content-types';
 
 /**
  * CMS Content Types Registry
@@ -13,43 +17,7 @@ import { PostType } from '@/engine/types/cms';
  * 5. Add sitemap route using createCmsSitemapHandler()
  */
 
-export interface ContentTypeDeclaration {
-  /** Unique id — used for cache invalidation and slug resolution */
-  id: string;
-  /** URL prefix where this content is served ('/' = root, '/blog/' = prefixed) */
-  urlPrefix: string;
-  /** Top-level URL segment for the list page */
-  listSegment: string;
-  /** Human-readable title for the list page */
-  listTitle: string;
-  /** Whether this type can override SEO of coded routes */
-  canOverrideCodedRouteSEO: boolean;
-  /** Whether missing-language pages should fall back to default locale */
-  fallbackToDefault: boolean;
-  /** Human-readable singular label */
-  label: string;
-  /** Human-readable plural label */
-  labelPlural: string;
-  /** PostType value — only for cms_posts-backed types */
-  postType?: number;
-  /** URL slug for the admin section (e.g. 'pages' → /dashboard/cms/pages) */
-  adminSlug: string;
-  /** Admin capability required to edit this content type */
-  adminCapability: 'section.content';
-  /** Title template for pages. Vars: {title}, {sitename}, {page}. [...] = conditional. */
-  titleTemplate: string;
-  /** Sitemap XML filename slug. Omit to exclude from sitemap index. */
-  sitemapSlug?: string;
-  /** Override sidebar label. Defaults to labelPlural. */
-  sidebarLabel?: string;
-  /** Which optional fields to show in PostForm */
-  postFormFields?: {
-    featuredImage?: boolean;
-    jsonLd?: boolean;
-  };
-  /** Fallback description for list page metadata */
-  listDescription?: string;
-}
+export type { ContentTypeDeclaration };
 
 const contentTypesDef = [
   {
@@ -141,33 +109,7 @@ export type PostContentTypeId = Extract<
 /** Admin URL slugs from the config. */
 export type AdminSlug = (typeof contentTypesDef)[number]['adminSlug'];
 
-const contentTypeMap = new Map(CONTENT_TYPES.map((ct) => [ct.id, ct]));
-
-export function getContentType(id: string): ContentTypeDeclaration {
-  const ct = contentTypeMap.get(id);
-  if (!ct) throw new Error(`Unknown content type: ${id}`);
-  return ct;
-}
-
-const postTypeMap = new Map(
-  CONTENT_TYPES.filter((ct) => ct.postType != null).map((ct) => [
-    ct.postType!,
-    ct,
-  ])
-);
-
-export function getContentTypeByPostType(
-  postType: number
-): ContentTypeDeclaration {
-  const ct = postTypeMap.get(postType);
-  if (!ct) throw new Error(`Unknown post type: ${postType}`);
-  return ct;
-}
-
-const adminSlugMap = new Map(CONTENT_TYPES.map((ct) => [ct.adminSlug, ct]));
-
-export function getContentTypeByAdminSlug(
-  slug: string
-): ContentTypeDeclaration | undefined {
-  return adminSlugMap.get(slug);
-}
+const helpers = createContentTypeHelpers(CONTENT_TYPES);
+export const getContentType = helpers.getContentType;
+export const getContentTypeByPostType = helpers.getContentTypeByPostType;
+export const getContentTypeByAdminSlug = helpers.getContentTypeByAdminSlug;
