@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Save, Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { Save, Loader2, CheckCircle2, XCircle, Globe } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
+import { SeoOverridesDialog } from '@/components/admin/SeoOverridesDialog';
 
 interface SiteSettings {
   'site.name': string;
@@ -57,6 +58,15 @@ export default function SettingsPage() {
 
   const testGA4 = trpc.analytics.testConnection.useMutation({
     onSuccess: () => toast.success(__('GA4 connection successful')),
+    onError: (err) => toast.error(err.message),
+  });
+
+  const [seoDialogOpen, setSeoDialogOpen] = useState(false);
+  const createSeoOverrides = trpc.cms.createMissingSeoOverrides.useMutation({
+    onSuccess: (data) => {
+      toast.success(__(`Created ${data.created} SEO override page(s)`));
+      setSeoDialogOpen(false);
+    },
     onError: (err) => toast.error(err.message),
   });
 
@@ -339,7 +349,31 @@ export default function SettingsPage() {
             </label>
           </div>
         </div>
+        {/* SEO Overrides */}
+        <div className="admin-card p-6">
+          <h2 className="admin-h2">{__('SEO Overrides')}</h2>
+          <p className="mt-1 text-sm text-(--text-muted)">
+            {__('Create CMS pages to override SEO metadata for coded routes (homepage, login, etc.).')}
+          </p>
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={() => setSeoDialogOpen(true)}
+              className="admin-btn admin-btn-secondary"
+            >
+              <Globe className="h-4 w-4" />
+              {__('Manage SEO Overrides')}
+            </button>
+          </div>
+        </div>
       </form>
+
+      <SeoOverridesDialog
+        open={seoDialogOpen}
+        onClose={() => setSeoDialogOpen(false)}
+        onConfirm={(selected) => createSeoOverrides.mutate({ routes: selected })}
+        isPending={createSeoOverrides.isPending}
+      />
     </div>
   );
 }

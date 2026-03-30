@@ -42,6 +42,11 @@ export function createWorker(
   return worker;
 }
 
+/** Get all registered queues (for monitoring) */
+export function getQueues(): Queue[] {
+  return queues;
+}
+
 /** Gracefully shutdown all workers and queues */
 export async function shutdownAllWorkers(): Promise<void> {
   await Promise.all(workers.map((w) => w.close()));

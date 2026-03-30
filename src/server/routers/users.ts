@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { user } from '@/server/db/schema';
 import { ROLES, Role, isSuperAdmin } from '@/lib/policy';
 import { parsePagination, paginatedResult } from '@/server/utils/admin-crud';
+import { anonymizeUser } from '@/server/utils/gdpr';
 import { createTRPCRouter, sectionProcedure, superadminProcedure } from '../trpc';
 
 const usersProcedure = sectionProcedure('users');
@@ -174,6 +175,21 @@ export const usersRouter = createTRPCRouter({
         .where(eq(user.id, input.id));
 
       return { success: true };
+    }),
+
+  /** GDPR: anonymize a user (delete PII, ban account) */
+  gdprAnonymize: usersProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        await anonymizeUser(ctx.db, input.id, ctx.session.user.id as string);
+        return { success: true };
+      } catch (err) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: err instanceof Error ? err.message : 'Anonymization failed',
+        });
+      }
     }),
 
   /** Count users by role */

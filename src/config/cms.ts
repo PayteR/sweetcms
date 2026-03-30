@@ -114,6 +114,22 @@ const contentTypesDef = [
     sitemapSlug: 'tag-pages',
     listDescription: 'Browse content by tag.',
   },
+  {
+    id: 'landing',
+    urlPrefix: '/landing/',
+    listSegment: 'landing',
+    listTitle: 'Landing Pages',
+    canOverrideCodedRouteSEO: false,
+    fallbackToDefault: true,
+    label: 'Landing Page',
+    labelPlural: 'Landing Pages',
+    postType: PostType.LANDING,
+    adminSlug: 'landingpages',
+    adminCapability: 'section.content',
+    titleTemplate: '{title} | {sitename}',
+    sitemapSlug: 'cms-landing',
+    postFormFields: { featuredImage: true, jsonLd: true },
+  },
 ] as const satisfies readonly ContentTypeDeclaration[];
 
 export const CONTENT_TYPES: readonly ContentTypeDeclaration[] = contentTypesDef;

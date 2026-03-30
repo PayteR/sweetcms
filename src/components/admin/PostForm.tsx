@@ -26,6 +26,7 @@ import { CustomFieldsEditor, type CustomFieldsEditorHandle } from './CustomField
 import { FallbackRadio } from './FallbackRadio';
 import InternalLinkDialog from './InternalLinkDialog';
 import { MediaPickerDialog } from './MediaPickerDialog';
+import { PostAttachments } from './PostAttachments';
 import { RevisionHistory } from './RevisionHistory';
 import { RichTextEditor } from './RichTextEditor';
 import { SEOFields } from './SEOFields';
@@ -489,6 +490,9 @@ export function PostForm({ contentType, postId }: Props) {
                 onRestored={() => existingPost.refetch()}
               />
             )}
+
+            {/* Attachments */}
+            <PostAttachments postId={postId} />
 
             {/* JSON-LD */}
             {contentType.postFormFields?.jsonLd && (

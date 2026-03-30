@@ -1,0 +1,101 @@
+import { eq } from 'drizzle-orm';
+
+import type { DbClient } from '@/server/db';
+import { user, session, account } from '@/server/db/schema/auth';
+import { cmsAuditLog } from '@/server/db/schema/audit';
+import { Policy } from '@/lib/policy';
+import { logAudit } from './audit';
+
+/**
+ * Anonymize a user's PII for GDPR compliance.
+ * Deletes sessions + accounts, overwrites user PII, bans the account.
+ */
+export async function anonymizeUser(
+  db: DbClient,
+  userId: string,
+  adminId: string
+): Promise<void> {
+  // 1. Validate: user exists and is not staff
+  const [target] = await db
+    .select({ id: user.id, role: user.role })
+    .from(user)
+    .where(eq(user.id, userId))
+    .limit(1);
+
+  if (!target) {
+    throw new Error('User not found');
+  }
+
+  if (Policy.for(target.role).canAccessAdmin()) {
+    throw new Error('Cannot anonymize a staff account');
+  }
+
+  // 2. Delete all sessions (FK cascades handle related data)
+  await db.delete(session).where(eq(session.userId, userId));
+
+  // 3. Delete all accounts (credentials, OAuth tokens)
+  await db.delete(account).where(eq(account.userId, userId));
+
+  // 4. Overwrite user PII
+  await db
+    .update(user)
+    .set({
+      name: 'deleted_user',
+      email: `deleted-${userId}@gdpr.invalid`,
+      image: null,
+      banned: true,
+      banReason: 'GDPR deletion',
+      emailVerified: false,
+      updatedAt: new Date(),
+    })
+    .where(eq(user.id, userId));
+
+  // 5. Audit log
+  logAudit({
+    db,
+    userId: adminId,
+    action: 'gdpr_anonymize',
+    entityType: 'user',
+    entityId: userId,
+  });
+}
+
+/**
+ * Export all user data as a JSON object for GDPR data portability.
+ */
+export async function exportUserData(
+  db: DbClient,
+  userId: string
+): Promise<Record<string, unknown>> {
+  const [userData] = await db
+    .select({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      lang: user.lang,
+      country: user.country,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    })
+    .from(user)
+    .where(eq(user.id, userId))
+    .limit(1);
+
+  if (!userData) {
+    throw new Error('User not found');
+  }
+
+  // Collect audit log entries for this user
+  const auditEntries = await db
+    .select()
+    .from(cmsAuditLog)
+    .where(eq(cmsAuditLog.userId, userId))
+    .limit(1000);
+
+  return {
+    user: userData,
+    auditLog: auditEntries,
+    exportedAt: new Date().toISOString(),
+  };
+}

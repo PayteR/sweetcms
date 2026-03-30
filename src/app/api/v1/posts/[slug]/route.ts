@@ -32,12 +32,20 @@ export async function GET(request: Request, { params }: RouteParams) {
 
   const url = new URL(request.url);
   const lang = url.searchParams.get('lang') ?? undefined;
+  const preview = url.searchParams.get('preview') ?? undefined;
 
   const conditions = [
     eq(cmsPosts.slug, slug),
-    eq(cmsPosts.status, ContentStatus.PUBLISHED),
     isNull(cmsPosts.deletedAt),
   ];
+
+  // Preview mode: bypass PUBLISHED check, validate token instead
+  if (preview) {
+    conditions.push(eq(cmsPosts.previewToken, preview));
+  } else {
+    conditions.push(eq(cmsPosts.status, ContentStatus.PUBLISHED));
+  }
+
   if (lang) conditions.push(eq(cmsPosts.lang, lang));
 
   const [post] = await db

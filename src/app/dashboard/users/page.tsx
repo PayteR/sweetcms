@@ -8,9 +8,11 @@ import {
   ShieldCheck,
   Ban,
   CheckCircle,
+  Download,
   Loader2,
   ChevronLeft,
   ChevronRight,
+  UserX,
   X,
 } from 'lucide-react';
 
@@ -56,6 +58,10 @@ export default function UsersPage() {
     name: string;
     banned: boolean;
   } | null>(null);
+  const [anonymizeTarget, setAnonymizeTarget] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   const userList = trpc.users.list.useQuery({
     search: search || undefined,
@@ -87,6 +93,16 @@ export default function UsersPage() {
     onSuccess: () => {
       toast.success(__('User unbanned'));
       utils.users.list.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const gdprAnonymize = trpc.users.gdprAnonymize.useMutation({
+    onSuccess: () => {
+      toast.success(__('User anonymized'));
+      utils.users.list.invalidate();
+      utils.users.counts.invalidate();
+      setAnonymizeTarget(null);
     },
     onError: (err) => toast.error(err.message),
   });
@@ -303,6 +319,27 @@ export default function UsersPage() {
                               <Ban className="h-4 w-4" />
                             )}
                           </button>
+                          <a
+                            href={`/api/gdpr-export/${u.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-blue-600"
+                            title={__('Export data (GDPR)')}
+                          >
+                            <Download className="h-4 w-4" />
+                          </a>
+                          <button
+                            onClick={() =>
+                              setAnonymizeTarget({
+                                id: u.id,
+                                name: u.name ?? u.email,
+                              })
+                            }
+                            className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-red-600"
+                            title={__('Anonymize (GDPR)')}
+                          >
+                            <UserX className="h-4 w-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -396,6 +433,21 @@ export default function UsersPage() {
         variant={banTarget?.banned ? 'default' : 'danger'}
         onConfirm={handleBanToggle}
         onCancel={() => setBanTarget(null)}
+      />
+
+      {/* GDPR Anonymize confirmation */}
+      <ConfirmDialog
+        open={!!anonymizeTarget}
+        title={__('Anonymize user? (GDPR)')}
+        message={__(
+          `Permanently anonymize ${anonymizeTarget?.name}? This will delete all sessions, credentials, and overwrite personal data. This action cannot be undone.`
+        )}
+        confirmLabel={__('Anonymize')}
+        variant="danger"
+        onConfirm={() => {
+          if (anonymizeTarget) gdprAnonymize.mutate({ id: anonymizeTarget.id });
+        }}
+        onCancel={() => setAnonymizeTarget(null)}
       />
     </div>
   );
