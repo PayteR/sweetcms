@@ -5,8 +5,8 @@ import crypto from 'crypto';
 
 import { env } from '@/lib/env';
 import { createLogger } from '@/lib/logger';
-import { cmsPortfolio } from '@/server/db/schema';
-import { translate } from '@/server/translation/translation-service';
+import { cmsPortfolio, cmsTermRelationships } from '@/server/db/schema';
+import { createFieldTranslator } from '@/server/translation/translate-fields';
 import { ContentStatus } from '@/engine/types/cms';
 import {
   buildAdminList,
@@ -334,14 +334,7 @@ export const portfolioRouter = createTRPCRouter({
       if (input.autoTranslate && env.DEEPL_API_KEY) {
         const sl = source.lang ?? 'en';
         const tl = input.targetLang;
-        async function safe(field: string, value: null): Promise<null>;
-        async function safe(field: string, value: string): Promise<string>;
-        async function safe(field: string, value: string | null): Promise<string | null>;
-        async function safe(field: string, value: string | null): Promise<string | null> {
-          if (!value) return value;
-          try { return await translate(value, tl, sl); }
-          catch (e) { logger.warn(`Translation failed for "${field}"`, { error: String(e) }); return value; }
-        }
+        const safe = createFieldTranslator(tl, sl, logger);
         [name, title, text, metaDescription, seoTitle, featuredImageAlt] = await Promise.all([
           safe('name', name),
           safe('title', title),
@@ -726,11 +719,12 @@ export const portfolioRouter = createTRPCRouter({
       return rest;
     }),
 
-  /** Public: list published portfolio items */
+  /** Public: list published portfolio items (optional tag filter) */
   listPublished: publicProcedure
     .input(
       z.object({
         lang: z.string().max(2).default('en'),
+        tagId: z.string().uuid().optional(),
         page: z.number().int().min(1).default(1),
         pageSize: z.number().int().min(1).max(100).default(100),
       })
@@ -738,30 +732,83 @@ export const portfolioRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const offset = (input.page - 1) * input.pageSize;
 
+      const baseConditions = and(
+        eq(cmsPortfolio.lang, input.lang),
+        eq(cmsPortfolio.status, ContentStatus.PUBLISHED),
+        isNull(cmsPortfolio.deletedAt)
+      );
+
+      // Filter by tag via term relationships join
+      if (input.tagId) {
+        const joinCondition = and(
+          eq(cmsPortfolio.id, cmsTermRelationships.objectId),
+          eq(cmsTermRelationships.taxonomyId, 'tag'),
+          eq(cmsTermRelationships.termId, input.tagId)
+        );
+
+        const allColumns = {
+          id: cmsPortfolio.id,
+          name: cmsPortfolio.name,
+          slug: cmsPortfolio.slug,
+          lang: cmsPortfolio.lang,
+          title: cmsPortfolio.title,
+          text: cmsPortfolio.text,
+          status: cmsPortfolio.status,
+          metaDescription: cmsPortfolio.metaDescription,
+          seoTitle: cmsPortfolio.seoTitle,
+          noindex: cmsPortfolio.noindex,
+          publishedAt: cmsPortfolio.publishedAt,
+          translationGroup: cmsPortfolio.translationGroup,
+          fallbackToDefault: cmsPortfolio.fallbackToDefault,
+          featuredImage: cmsPortfolio.featuredImage,
+          featuredImageAlt: cmsPortfolio.featuredImageAlt,
+          clientName: cmsPortfolio.clientName,
+          projectUrl: cmsPortfolio.projectUrl,
+          techStack: cmsPortfolio.techStack,
+          completedAt: cmsPortfolio.completedAt,
+          createdAt: cmsPortfolio.createdAt,
+          updatedAt: cmsPortfolio.updatedAt,
+          deletedAt: cmsPortfolio.deletedAt,
+        };
+
+        const [items, countResult] = await Promise.all([
+          ctx.db
+            .select(allColumns)
+            .from(cmsPortfolio)
+            .innerJoin(cmsTermRelationships, joinCondition)
+            .where(baseConditions)
+            .orderBy(desc(cmsPortfolio.completedAt))
+            .offset(offset)
+            .limit(input.pageSize),
+          ctx.db
+            .select({ count: sql<number>`count(*)` })
+            .from(cmsPortfolio)
+            .innerJoin(cmsTermRelationships, joinCondition)
+            .where(baseConditions),
+        ]);
+
+        const total = Number(countResult[0]?.count ?? 0);
+        return {
+          results: items,
+          total,
+          page: input.page,
+          pageSize: input.pageSize,
+          totalPages: Math.ceil(total / input.pageSize),
+        };
+      }
+
       const [items, countResult] = await Promise.all([
         ctx.db
           .select()
           .from(cmsPortfolio)
-          .where(
-            and(
-              eq(cmsPortfolio.lang, input.lang),
-              eq(cmsPortfolio.status, ContentStatus.PUBLISHED),
-              isNull(cmsPortfolio.deletedAt)
-            )
-          )
+          .where(baseConditions)
           .orderBy(desc(cmsPortfolio.completedAt))
           .offset(offset)
           .limit(input.pageSize),
         ctx.db
           .select({ count: sql<number>`count(*)` })
           .from(cmsPortfolio)
-          .where(
-            and(
-              eq(cmsPortfolio.lang, input.lang),
-              eq(cmsPortfolio.status, ContentStatus.PUBLISHED),
-              isNull(cmsPortfolio.deletedAt)
-            )
-          ),
+          .where(baseConditions),
       ]);
 
       const total = Number(countResult[0]?.count ?? 0);

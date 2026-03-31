@@ -6,7 +6,7 @@ import crypto from 'crypto';
 import { env } from '@/lib/env';
 import { createLogger } from '@/lib/logger';
 import { cmsCategories } from '@/server/db/schema';
-import { translate } from '@/server/translation/translation-service';
+import { createFieldTranslator } from '@/server/translation/translate-fields';
 import { ContentStatus } from '@/engine/types/cms';
 import {
   buildAdminList,
@@ -323,14 +323,7 @@ export const categoriesRouter = createTRPCRouter({
       if (input.autoTranslate && env.DEEPL_API_KEY) {
         const sl = source.lang ?? 'en';
         const tl = input.targetLang;
-        async function safe(field: string, value: null): Promise<null>;
-        async function safe(field: string, value: string): Promise<string>;
-        async function safe(field: string, value: string | null): Promise<string | null>;
-        async function safe(field: string, value: string | null): Promise<string | null> {
-          if (!value) return value;
-          try { return await translate(value, tl, sl); }
-          catch (e) { logger.warn(`Translation failed for "${field}"`, { error: String(e) }); return value; }
-        }
+        const safe = createFieldTranslator(tl, sl, logger);
         [name, title, text, metaDescription, seoTitle] = await Promise.all([
           safe('name', name),
           safe('title', title),

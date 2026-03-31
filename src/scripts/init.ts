@@ -505,7 +505,68 @@ async function seedContent() {
       ]);
     }
 
-    log('✅', '3 pages, 4 blog posts (1 draft), 3 categories, and 4 tags created.');
+    // ── Portfolio items ─────────────────────────────────────────
+    const { cmsPortfolio } = await import('../server/db/schema/portfolio');
+
+    const [portfolio1] = await db.insert(cmsPortfolio).values({
+      name: 'SweetCMS Website',
+      slug: 'sweetcms-website',
+      lang: 'en',
+      title: 'SweetCMS — Official Website',
+      text: `## Project Overview
+
+Built the official website and documentation for the SweetCMS open-source project. The site showcases the CMS features, provides getting-started guides, and hosts the project blog.
+
+## Highlights
+
+- Server-side rendered with Next.js App Router for optimal SEO
+- Full-text search across all documentation
+- Dynamic sitemap generation
+- Responsive design with dark mode support`,
+      status: 1,
+      publishedAt: new Date(now - 10 * 24 * 60 * 60 * 1000),
+      completedAt: new Date(now - 10 * 24 * 60 * 60 * 1000),
+      clientName: 'SweetAI',
+      projectUrl: 'https://github.com/sweetai/sweetcms',
+      techStack: ['Next.js', 'TypeScript', 'Tailwind CSS', 'PostgreSQL', 'tRPC'],
+      metaDescription: 'Official website for the SweetCMS open-source headless CMS, built with Next.js and TypeScript.',
+      previewToken: crypto.randomBytes(32).toString('hex'),
+    }).returning();
+
+    const [portfolio2] = await db.insert(cmsPortfolio).values({
+      name: 'E-Commerce Dashboard',
+      slug: 'ecommerce-dashboard',
+      lang: 'en',
+      title: 'E-Commerce Analytics Dashboard',
+      text: `## Project Overview
+
+Designed and built a real-time analytics dashboard for an e-commerce platform. The dashboard provides insights into sales, customer behavior, and inventory management.
+
+## Features
+
+- Real-time sales tracking with WebSocket updates
+- Interactive charts and data visualization
+- Inventory alerts and automated reporting
+- Role-based access for store managers and executives`,
+      status: 1,
+      publishedAt: new Date(now - 20 * 24 * 60 * 60 * 1000),
+      completedAt: new Date(now - 20 * 24 * 60 * 60 * 1000),
+      clientName: 'Acme Corp',
+      techStack: ['React', 'TypeScript', 'D3.js', 'Node.js', 'Redis'],
+      metaDescription: 'Real-time e-commerce analytics dashboard with interactive charts and automated reporting.',
+      previewToken: crypto.randomBytes(32).toString('hex'),
+    }).returning();
+
+    // Link portfolio items to tags
+    if (tagNextjs && tagTypescript && portfolio1 && portfolio2) {
+      await db.insert(cmsTermRelationships).values([
+        { objectId: portfolio1.id, termId: tagNextjs!.id, taxonomyId: 'tag' },
+        { objectId: portfolio1.id, termId: tagTypescript!.id, taxonomyId: 'tag' },
+        { objectId: portfolio2.id, termId: tagTypescript!.id, taxonomyId: 'tag' },
+      ]);
+    }
+
+    log('✅', '3 pages, 4 blog posts (1 draft), 3 categories, 4 tags, and 2 portfolio items created.');
   } finally {
     await sql.end();
   }

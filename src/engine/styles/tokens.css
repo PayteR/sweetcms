@@ -55,6 +55,9 @@
 }
 
 :root {
+  /* Brand hue — change this single value to rebrand the entire admin UI */
+  --brand-hue: 270;
+
   /* Surfaces */
   --surface-primary:   var(--color-gray-50);
   --surface-secondary: var(--color-white);

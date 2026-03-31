@@ -68,7 +68,7 @@
 
   .admin-sidebar-link.active {
     color: var(--color-brand-600);
-    background-color: oklch(from var(--color-brand-500) l c h / 0.08);
+    background-color: oklch(0.55 0.17 var(--brand-hue) / 0.08);
     font-weight: 500;
   }
 
@@ -156,7 +156,7 @@
 html.dark {
   .admin-sidebar-link.active {
     color: var(--color-brand-400);
-    background-color: oklch(from var(--color-brand-500) l c h / 0.12);
+    background-color: oklch(0.55 0.17 var(--brand-hue) / 0.12);
   }
 
   .admin-btn-secondary {

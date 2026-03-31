@@ -3,6 +3,10 @@
 /*
  * SweetCMS Admin — Table, Badge, Form, and Pagination Classes
  * Built on OKLCH tinted-neutral tokens.
+ *
+ * Brand-tinted alpha variants use decomposed oklch(L C var(--brand-hue) / alpha)
+ * so rebranding only requires changing --brand-hue in tokens.css.
+ * Success/danger are fixed-hue and use literal oklch values.
  */
 
 @layer components {
@@ -55,9 +59,9 @@
   }
 
   .admin-badge-published {
-    background-color: oklch(from var(--color-success-500) l c h / 0.1);
+    background-color: oklch(0.60 0.16 150 / 0.10);
     color: var(--color-success-600);
-    border-color: oklch(from var(--color-success-500) l c h / 0.2);
+    border-color: oklch(0.60 0.16 150 / 0.20);
   }
 
   .admin-badge-draft {
@@ -67,15 +71,15 @@
   }
 
   .admin-badge-scheduled {
-    background-color: oklch(from var(--color-brand-500) l c h / 0.1);
+    background-color: oklch(0.55 0.17 var(--brand-hue) / 0.10);
     color: var(--color-brand-600);
-    border-color: oklch(from var(--color-brand-500) l c h / 0.2);
+    border-color: oklch(0.55 0.17 var(--brand-hue) / 0.20);
   }
 
   .admin-badge-trashed {
-    background-color: oklch(from var(--color-danger-500) l c h / 0.1);
+    background-color: oklch(0.60 0.19 25 / 0.10);
     color: var(--color-danger-600);
-    border-color: oklch(from var(--color-danger-500) l c h / 0.2);
+    border-color: oklch(0.60 0.19 25 / 0.20);
   }
 
   /* ===================== Search & Filters ===================== */
@@ -97,7 +101,7 @@
   .admin-search-input:focus {
     outline: none;
     border-color: var(--color-brand-500);
-    box-shadow: 0 0 0 3px oklch(from var(--color-brand-500) l c h / 0.15);
+    box-shadow: 0 0 0 3px oklch(0.55 0.17 var(--brand-hue) / 0.15);
   }
 
   .admin-filter-select {
@@ -114,7 +118,7 @@
   .admin-filter-select:focus {
     outline: none;
     border-color: var(--color-brand-500);
-    box-shadow: 0 0 0 3px oklch(from var(--color-brand-500) l c h / 0.15);
+    box-shadow: 0 0 0 3px oklch(0.55 0.17 var(--brand-hue) / 0.15);
   }
 
   /* ===================== Empty State ===================== */
@@ -252,7 +256,7 @@
   }
 
   .admin-status-tab.active .admin-status-tab-count {
-    background-color: oklch(from var(--color-brand-500) l c h / 0.1);
+    background-color: oklch(0.55 0.17 var(--brand-hue) / 0.10);
     color: var(--color-brand-600);
   }
 
@@ -271,7 +275,7 @@
   .admin-input:focus {
     outline: none;
     border-color: var(--color-brand-500);
-    box-shadow: 0 0 0 3px oklch(from var(--color-brand-500) l c h / 0.15);
+    box-shadow: 0 0 0 3px oklch(0.55 0.17 var(--brand-hue) / 0.15);
   }
 
   .admin-input::placeholder {
@@ -306,15 +310,15 @@
   }
 
   .admin-role-admin {
-    background-color: oklch(from var(--color-brand-500) l c h / 0.1);
+    background-color: oklch(0.55 0.17 var(--brand-hue) / 0.10);
     color: var(--color-brand-600);
-    border-color: oklch(from var(--color-brand-500) l c h / 0.2);
+    border-color: oklch(0.55 0.17 var(--brand-hue) / 0.20);
   }
 
   .admin-role-editor {
-    background-color: oklch(from var(--color-success-500) l c h / 0.1);
+    background-color: oklch(0.60 0.16 150 / 0.10);
     color: var(--color-success-600);
-    border-color: oklch(from var(--color-success-500) l c h / 0.2);
+    border-color: oklch(0.60 0.16 150 / 0.20);
   }
 
   .admin-role-user {
@@ -327,21 +331,21 @@
 /* ===================== Dark mode overrides ===================== */
 html.dark {
   .admin-badge-published {
-    background-color: oklch(from var(--color-success-500) l c h / 0.15);
+    background-color: oklch(0.60 0.16 150 / 0.15);
     color: var(--color-success-500);
-    border-color: oklch(from var(--color-success-500) l c h / 0.25);
+    border-color: oklch(0.60 0.16 150 / 0.25);
   }
 
   .admin-badge-scheduled {
-    background-color: oklch(from var(--color-brand-400) l c h / 0.15);
+    background-color: oklch(0.65 0.14 var(--brand-hue) / 0.15);
     color: var(--color-brand-400);
-    border-color: oklch(from var(--color-brand-400) l c h / 0.25);
+    border-color: oklch(0.65 0.14 var(--brand-hue) / 0.25);
   }
 
   .admin-badge-trashed {
-    background-color: oklch(from var(--color-danger-500) l c h / 0.15);
+    background-color: oklch(0.60 0.19 25 / 0.15);
     color: var(--color-danger-500);
-    border-color: oklch(from var(--color-danger-500) l c h / 0.25);
+    border-color: oklch(0.60 0.19 25 / 0.25);
   }
 
   .admin-status-tab.active {
@@ -350,7 +354,7 @@ html.dark {
   }
 
   .admin-status-tab.active .admin-status-tab-count {
-    background-color: oklch(from var(--color-brand-400) l c h / 0.15);
+    background-color: oklch(0.65 0.14 var(--brand-hue) / 0.15);
     color: var(--color-brand-400);
   }
 
@@ -366,19 +370,19 @@ html.dark {
   }
 
   .admin-role-admin {
-    background-color: oklch(from var(--color-brand-400) l c h / 0.15);
+    background-color: oklch(0.65 0.14 var(--brand-hue) / 0.15);
     color: var(--color-brand-400);
-    border-color: oklch(from var(--color-brand-400) l c h / 0.25);
+    border-color: oklch(0.65 0.14 var(--brand-hue) / 0.25);
   }
 
   .admin-role-editor {
-    background-color: oklch(from var(--color-success-500) l c h / 0.15);
+    background-color: oklch(0.60 0.16 150 / 0.15);
     color: var(--color-success-500);
-    border-color: oklch(from var(--color-success-500) l c h / 0.25);
+    border-color: oklch(0.60 0.16 150 / 0.25);
   }
 
   .admin-action-btn-danger:hover {
-    background-color: oklch(from var(--color-danger-500) l c h / 0.15);
+    background-color: oklch(0.60 0.19 25 / 0.15);
   }
 
   .admin-search-input,

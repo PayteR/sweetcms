@@ -2,7 +2,7 @@
 @plugin "@tailwindcss/typography";
 @custom-variant dark (html.dark &);
 @import "../engine/styles/tokens.css";
-@import "./assets/content.css";
+@import "../engine/styles/content.css";
 
 @layer base {
   body {

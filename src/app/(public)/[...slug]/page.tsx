@@ -357,8 +357,8 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
         lang: 'en',
       });
 
-      // Fetch blog posts and pages with this tag in parallel
-      const [blogPosts, pagePosts] = await Promise.all([
+      // Fetch blog posts, pages, and portfolio items with this tag in parallel
+      const [blogPosts, pagePosts, portfolioItems] = await Promise.all([
         api.cms.listPublished({
           type: PostType.BLOG,
           lang: 'en',
@@ -372,9 +372,14 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
           tagId: tag.id,
           pageSize: 50,
         }),
+        api.portfolio.listPublished({
+          lang: 'en',
+          tagId: tag.id,
+          pageSize: 50,
+        }),
       ]);
 
-      // Merge: blog posts paginated, pages appended (usually few)
+      // Merge: blog posts paginated, pages and portfolio appended
       const allResults = [...blogPosts.results, ...pagePosts.results];
       const totalPages = blogPosts.totalPages;
       const basePath = `/tag/${resolved.slug}`;
@@ -394,7 +399,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
             </Link>
           </div>
 
-          {allResults.length > 0 ? (
+          {allResults.length > 0 || portfolioItems.results.length > 0 ? (
             <div className="mt-10 space-y-6">
               {allResults.map((post) => {
                 const isBlog = post.type === PostType.BLOG;
@@ -410,6 +415,17 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
                   />
                 );
               })}
+
+              {/* Portfolio items with this tag */}
+              {portfolioItems.results.map((item) => (
+                <PostCard
+                  key={item.id}
+                  title={item.title}
+                  href={`/portfolio/${item.slug}`}
+                  metaDescription={item.metaDescription}
+                  publishedAt={item.completedAt}
+                />
+              ))}
 
               {/* Pagination */}
               {totalPages > 1 && (
@@ -441,7 +457,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
               )}
             </div>
           ) : (
-            <p className="mt-6 text-(--text-muted)">No posts found with this tag.</p>
+            <p className="mt-6 text-(--text-muted)">No content found with this tag.</p>
           )}
 
           {/* Tag Cloud */}

@@ -108,7 +108,7 @@
 
 html.dark {
   .cms-preview-banner {
-    background-color: rgba(217, 119, 6, 0.15);
+    background-color: oklch(0.75 0.16 65 / 0.15);
     border-color: var(--color-warning-600);
     color: var(--color-warning-500);
   }
