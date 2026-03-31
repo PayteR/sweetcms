@@ -153,7 +153,7 @@ export function AdminSidebar() {
   return (
     <aside
       className={cn(
-        'fixed bottom-0 left-0 top-14 z-[60] w-60 overflow-y-auto border-r border-(--border-primary) bg-(--surface-primary) transition-transform duration-300 ease-in-out xl:translate-x-0',
+        'fixed bottom-0 left-0 top-14 z-[60] w-60 overflow-y-auto border-r border-(--border-primary) bg-(--surface-sidebar) transition-transform duration-300 ease-in-out xl:translate-x-0',
         isOpen ? 'translate-x-0' : '-translate-x-full'
       )}
     >

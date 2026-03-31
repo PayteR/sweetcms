@@ -53,7 +53,7 @@ export function AdminHeader() {
   const ThemeIcon = themeIcons[theme];
 
   return (
-    <header className="fixed left-0 right-0 top-0 z-40 flex h-14 items-center justify-between border-b border-(--border-primary) bg-(--surface-primary) px-4">
+    <header className="fixed left-0 right-0 top-0 z-40 flex h-14 items-center justify-between border-b border-(--border-primary) bg-(--surface-sidebar) px-4">
       <div className="flex items-center gap-3">
         <button
           onClick={toggleSidebar}

@@ -68,7 +68,7 @@
 
   .admin-sidebar-link.active {
     color: var(--color-brand-600);
-    background-color: oklch(0.55 0.17 var(--brand-hue) / 0.08);
+    background-color: oklch(0.55 0.20 var(--brand-hue) / 0.10);
     font-weight: 500;
   }
 
@@ -114,7 +114,7 @@
   }
 
   .admin-btn-primary:hover:not(:disabled) {
-    background-color: var(--color-brand-700);
+    background-color: var(--color-brand-500);
   }
 
   .admin-btn-secondary {
@@ -154,9 +154,19 @@
 
 /* ===================== Dark mode overrides ===================== */
 html.dark {
+  /* Cards get more visible lift via shadow + lighter surface */
+  .admin-card {
+    border-color: var(--border-secondary);
+    box-shadow: var(--shadow-md);
+  }
+
   .admin-sidebar-link.active {
     color: var(--color-brand-400);
-    background-color: oklch(0.55 0.17 var(--brand-hue) / 0.12);
+    background-color: oklch(0.55 0.20 var(--brand-hue) / 0.15);
+  }
+
+  .admin-btn-primary:hover:not(:disabled) {
+    background-color: var(--color-brand-400);
   }
 
   .admin-btn-secondary {
@@ -166,6 +176,6 @@ html.dark {
 
   .admin-btn-secondary:hover:not(:disabled) {
     background-color: var(--surface-elevated);
-    border-color: var(--color-gray-700);
+    border-color: var(--color-gray-600);
   }
 }

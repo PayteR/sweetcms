@@ -12,30 +12,30 @@
  */
 
 @theme {
-  /* Brand accent scale */
-  --color-brand-50:  oklch(0.97 0.02 270);
-  --color-brand-100: oklch(0.93 0.04 270);
-  --color-brand-200: oklch(0.87 0.07 270);
-  --color-brand-300: oklch(0.76 0.10 270);
-  --color-brand-400: oklch(0.65 0.14 270);
-  --color-brand-500: oklch(0.55 0.17 270);
-  --color-brand-600: oklch(0.48 0.17 270);
-  --color-brand-700: oklch(0.40 0.15 270);
-  --color-brand-800: oklch(0.33 0.12 270);
-  --color-brand-900: oklch(0.27 0.10 270);
+  /* Brand accent scale — vibrant, saturated */
+  --color-brand-50:  oklch(0.97 0.025 270);
+  --color-brand-100: oklch(0.93 0.05 270);
+  --color-brand-200: oklch(0.87 0.08 270);
+  --color-brand-300: oklch(0.76 0.12 270);
+  --color-brand-400: oklch(0.65 0.17 270);
+  --color-brand-500: oklch(0.55 0.20 270);
+  --color-brand-600: oklch(0.48 0.20 270);
+  --color-brand-700: oklch(0.40 0.18 270);
+  --color-brand-800: oklch(0.33 0.14 270);
+  --color-brand-900: oklch(0.27 0.12 270);
 
   /* Tinted gray scale — carries subtle brand hue */
-  --color-gray-50:  oklch(0.985 0.004 270);
-  --color-gray-100: oklch(0.96 0.005 270);
-  --color-gray-200: oklch(0.90 0.008 270);
-  --color-gray-300: oklch(0.83 0.008 270);
-  --color-gray-400: oklch(0.65 0.01  270);
-  --color-gray-500: oklch(0.55 0.01  270);
-  --color-gray-600: oklch(0.45 0.01  270);
-  --color-gray-700: oklch(0.37 0.012 270);
-  --color-gray-800: oklch(0.27 0.015 270);
-  --color-gray-900: oklch(0.20 0.015 270);
-  --color-gray-950: oklch(0.14 0.02  270);
+  --color-gray-50:  oklch(0.985 0.005 270);
+  --color-gray-100: oklch(0.96 0.006 270);
+  --color-gray-200: oklch(0.91 0.008 270);
+  --color-gray-300: oklch(0.84 0.008 270);
+  --color-gray-400: oklch(0.66 0.01  270);
+  --color-gray-500: oklch(0.55 0.012 270);
+  --color-gray-600: oklch(0.45 0.012 270);
+  --color-gray-700: oklch(0.37 0.015 270);
+  --color-gray-800: oklch(0.30 0.018 270);
+  --color-gray-900: oklch(0.23 0.018 270);
+  --color-gray-950: oklch(0.17 0.02  270);
 
   /* Semantic colors (fixed, not brand-derived) */
   --color-success-50:  oklch(0.96 0.03 150);
@@ -65,6 +65,7 @@
   --surface-secondary: var(--color-white);
   --surface-elevated:  var(--color-white);
   --surface-inset:     var(--color-gray-100);
+  --surface-sidebar:   var(--color-white);
   --surface-overlay:   oklch(0 0 0 / 0.5);
 
   /* Text */
@@ -97,11 +98,14 @@
 html.dark {
   color-scheme: dark;
 
-  /* Surfaces — tinted dark with brand undertone */
-  --surface-primary:   var(--color-gray-950);
-  --surface-secondary: var(--color-gray-900);
-  --surface-elevated:  var(--color-gray-800);
-  --surface-inset:     oklch(0.17 0.018 270);
+  /* Surfaces — layered dark with brand undertone
+   * sidebar (0.14) < inset (0.16) < primary (0.19) < secondary (0.25) < elevated (0.31)
+   * Clear 0.06 lightness steps between each level for visible separation */
+  --surface-sidebar:   oklch(0.14 0.025 270);
+  --surface-inset:     oklch(0.16 0.02 270);
+  --surface-primary:   oklch(0.19 0.018 270);
+  --surface-secondary: oklch(0.25 0.018 270);
+  --surface-elevated:  oklch(0.31 0.018 270);
   --surface-overlay:   oklch(0 0 0 / 0.7);
 
   /* Text */
@@ -110,12 +114,12 @@ html.dark {
   --text-muted:     var(--color-gray-500);
   --text-inverse:   var(--color-gray-900);
 
-  /* Borders */
-  --border-primary:   var(--color-gray-800);
-  --border-secondary: oklch(0.17 0.015 270);
+  /* Borders — subtler in dark mode, let surface contrast do the work */
+  --border-primary:   oklch(0.30 0.015 270);
+  --border-secondary: oklch(0.22 0.015 270);
 
   /* Shadows — dark mode: deeper, brand-tinted */
-  --shadow-sm: 0 1px 3px oklch(0 0 0 / 0.25);
-  --shadow-md: 0 3px 10px oklch(0 0 0 / 0.35), 0 1px 3px oklch(0 0 0 / 0.2);
-  --shadow-lg: 0 8px 30px oklch(0 0 0 / 0.45), 0 3px 10px oklch(0 0 0 / 0.25);
+  --shadow-sm: 0 1px 3px oklch(0 0 0 / 0.3), 0 0 0 1px oklch(1 0 0 / 0.03);
+  --shadow-md: 0 3px 10px oklch(0 0 0 / 0.4), 0 0 0 1px oklch(1 0 0 / 0.03);
+  --shadow-lg: 0 8px 30px oklch(0 0 0 / 0.5), 0 0 0 1px oklch(1 0 0 / 0.03);
 }
