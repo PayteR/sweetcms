@@ -34,7 +34,7 @@ SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack: Nex
 
 **Import rule:** project imports from `@/engine/*`. Engine accepts cross-boundary imports from `@/server/db`, `@/lib/trpc/client`, `@/lib/translations`, `@/lib/utils`, `@/store/toast-store`.
 
-**To rebrand:** find-replace `310` with your hue in `src/engine/styles/tokens.css` (default: 310 = fuchsia) — all brand colors, tinted grays, and dark surfaces adapt. The `--brand-hue` variable in `:root` must match (powers alpha tints in admin CSS).
+**To rebrand:** find-replace `330` with your hue in `src/engine/styles/tokens.css` (default: 330 = magenta) — all brand colors, tinted grays, and dark surfaces adapt. The `--brand-hue` variable in `:root` must match (powers alpha tints in admin CSS).
 
 ### tRPC Procedures & Usage
 

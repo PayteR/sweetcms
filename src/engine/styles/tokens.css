@@ -3,7 +3,7 @@
 /*
  * SweetCMS Design Tokens — OKLCH Tinted-Neutral System
  *
- * TO REBRAND: find-replace "310" with your hue in this file (all occurrences).
+ * TO REBRAND: find-replace "330" with your hue in this file (all occurrences).
  * Every brand color, tinted gray, and dark-mode surface adapts automatically.
  * The --brand-hue variable (in :root) powers semi-transparent alpha tints
  * in admin.css — it MUST match the hue used in @theme.
@@ -13,29 +13,29 @@
 
 @theme {
   /* Brand accent scale — vibrant, saturated */
-  --color-brand-50:  oklch(0.97 0.025 310);
-  --color-brand-100: oklch(0.93 0.05 310);
-  --color-brand-200: oklch(0.87 0.08 310);
-  --color-brand-300: oklch(0.76 0.12 310);
-  --color-brand-400: oklch(0.65 0.17 310);
-  --color-brand-500: oklch(0.55 0.20 310);
-  --color-brand-600: oklch(0.48 0.20 310);
-  --color-brand-700: oklch(0.40 0.18 310);
-  --color-brand-800: oklch(0.33 0.14 310);
-  --color-brand-900: oklch(0.27 0.12 310);
+  --color-brand-50:  oklch(0.97 0.025 330);
+  --color-brand-100: oklch(0.93 0.05 330);
+  --color-brand-200: oklch(0.87 0.08 330);
+  --color-brand-300: oklch(0.76 0.12 330);
+  --color-brand-400: oklch(0.65 0.17 330);
+  --color-brand-500: oklch(0.55 0.20 330);
+  --color-brand-600: oklch(0.48 0.20 330);
+  --color-brand-700: oklch(0.40 0.18 330);
+  --color-brand-800: oklch(0.33 0.14 330);
+  --color-brand-900: oklch(0.27 0.12 330);
 
-  /* Tinted gray scale — carries subtle brand hue */
-  --color-gray-50:  oklch(0.985 0.005 310);
-  --color-gray-100: oklch(0.96 0.006 310);
-  --color-gray-200: oklch(0.91 0.008 310);
-  --color-gray-300: oklch(0.84 0.008 310);
-  --color-gray-400: oklch(0.66 0.01  310);
-  --color-gray-500: oklch(0.55 0.012 310);
-  --color-gray-600: oklch(0.45 0.012 310);
-  --color-gray-700: oklch(0.37 0.015 310);
-  --color-gray-800: oklch(0.30 0.018 310);
-  --color-gray-900: oklch(0.23 0.018 310);
-  --color-gray-950: oklch(0.17 0.02  310);
+  /* Tinted gray scale — very subtle brand hue so neutrals stay neutral */
+  --color-gray-50:  oklch(0.985 0.003 330);
+  --color-gray-100: oklch(0.96 0.003 330);
+  --color-gray-200: oklch(0.91 0.004 330);
+  --color-gray-300: oklch(0.84 0.004 330);
+  --color-gray-400: oklch(0.66 0.005 330);
+  --color-gray-500: oklch(0.55 0.006 330);
+  --color-gray-600: oklch(0.45 0.006 330);
+  --color-gray-700: oklch(0.37 0.008 330);
+  --color-gray-800: oklch(0.30 0.009 330);
+  --color-gray-900: oklch(0.23 0.009 330);
+  --color-gray-950: oklch(0.17 0.01  330);
 
   /* Semantic colors (fixed, not brand-derived) */
   --color-success-50:  oklch(0.96 0.03 150);
@@ -58,7 +58,7 @@
 
 :root {
   /* Brand hue — must match the hue in @theme above (used by admin.css alpha tints) */
-  --brand-hue: 310;
+  --brand-hue: 330;
 
   /* Surfaces */
   --surface-primary:   var(--color-gray-50);
@@ -75,8 +75,8 @@
   --text-inverse:   var(--color-white);
 
   /* Borders — soft, low-chroma for elevation-first design */
-  --border-primary:   oklch(0.91 0.004 310 / 0.7);
-  --border-secondary: oklch(0.95 0.003 310 / 0.5);
+  --border-primary:   oklch(0.91 0.004 330 / 0.7);
+  --border-secondary: oklch(0.95 0.003 330 / 0.5);
 
   /* Shadows — light mode: slightly lifted for border-free cards */
   --shadow-sm: 0 1px 3px oklch(0 0 0 / 0.05), 0 1px 2px oklch(0 0 0 / 0.03);
@@ -106,11 +106,11 @@ html.dark {
   /* Surfaces — layered dark with brand undertone
    * inset (0.19) < sidebar (0.23) < primary (0.25) < secondary (0.30) < elevated (0.35)
    * Sidebar is slightly darker than content for subtle distinction */
-  --surface-inset:     oklch(0.19 0.02 310);
-  --surface-sidebar:   oklch(0.23 0.022 310);
-  --surface-primary:   oklch(0.25 0.018 310);
-  --surface-secondary: oklch(0.30 0.018 310);
-  --surface-elevated:  oklch(0.35 0.018 310);
+  --surface-inset:     oklch(0.19 0.01 330);
+  --surface-sidebar:   oklch(0.23 0.012 330);
+  --surface-primary:   oklch(0.25 0.01 330);
+  --surface-secondary: oklch(0.30 0.01 330);
+  --surface-elevated:  oklch(0.35 0.01 330);
   --surface-overlay:   oklch(0 0 0 / 0.7);
 
   /* Text */
@@ -120,8 +120,8 @@ html.dark {
   --text-inverse:   var(--color-gray-900);
 
   /* Borders — subtler in dark mode, let surface contrast do the work */
-  --border-primary:   oklch(0.33 0.012 310 / 0.8);
-  --border-secondary: oklch(0.28 0.012 310 / 0.5);
+  --border-primary:   oklch(0.33 0.006 330 / 0.8);
+  --border-secondary: oklch(0.28 0.006 330 / 0.5);
 
   /* Shadows — dark mode: softer for glass aesthetic */
   --shadow-sm: 0 1px 3px oklch(0 0 0 / 0.2), 0 0 0 1px oklch(1 0 0 / 0.03);

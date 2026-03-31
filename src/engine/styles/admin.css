@@ -430,52 +430,49 @@
 
 /* ===================== Dark mode overrides ===================== */
 html.dark {
-  /* Cards: glass effect with frosted border */
+  /* Cards: semi-transparent with frosted border (no backdrop-filter — cards sit on flat bg) */
   .admin-card {
-    background-color: oklch(0.30 0.018 var(--brand-hue) / 0.7);
+    background-color: oklch(0.30 0.01 var(--brand-hue) / 0.7);
     border: 1px solid var(--glass-border);
     box-shadow: var(--shadow-md);
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   }
 
-  /* Rail: high opacity glass (edge-anchored) */
+  /* Rail: semi-transparent with frosted border (edge-anchored, no backdrop-filter — nothing behind it) */
   .admin-rail {
-    background-color: oklch(0.19 0.02 var(--brand-hue) / 0.85);
+    background-color: oklch(0.19 0.01 var(--brand-hue) / 0.85);
     border-right-color: var(--glass-border);
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   }
 
-  /* L2 panel: mid-opacity glass */
+  /* L2 panel: semi-transparent with frosted border (edge-anchored, no backdrop-filter) */
   .admin-l2-panel {
-    background-color: oklch(0.23 0.022 var(--brand-hue) / 0.75);
+    background-color: oklch(0.23 0.012 var(--brand-hue) / 0.75);
     border-right-color: var(--glass-border);
-    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   }
 
   /* Command palette: floating glass */
   .admin-command-panel {
-    background-color: oklch(0.30 0.018 var(--brand-hue) / 0.75);
+    background-color: oklch(0.30 0.01 var(--brand-hue) / 0.75);
     border-color: var(--glass-border);
     backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   }
 
   /* Slide-over: floating glass */
   .admin-slide-over-panel {
-    background-color: oklch(0.30 0.018 var(--brand-hue) / 0.75);
+    background-color: oklch(0.30 0.01 var(--brand-hue) / 0.75);
     border-left-color: var(--glass-border);
     backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   }
 
   /* User popover: floating glass */
   .admin-user-popover {
-    background-color: oklch(0.35 0.018 var(--brand-hue) / 0.75);
+    background-color: oklch(0.35 0.01 var(--brand-hue) / 0.75);
     border-color: var(--glass-border);
     backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   }
 
   /* Mobile topbar: high opacity glass (edge-anchored) */
   .admin-mobile-topbar {
-    background-color: oklch(0.23 0.022 var(--brand-hue) / 0.85);
+    background-color: oklch(0.23 0.012 var(--brand-hue) / 0.85);
     border-bottom-color: var(--glass-border);
     backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
   }
