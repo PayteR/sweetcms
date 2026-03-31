@@ -50,11 +50,11 @@
   }
 
   .admin-tr-translation .admin-td-actions {
-    background-color: var(--surface-secondary);
+    background-color: var(--color-gray-50);
   }
 
   .admin-tr-translation:hover .admin-td-actions {
-    background-color: oklch(0 0 0 / 0.05);
+    background-color: var(--color-gray-100);
   }
 
   /* ===================== Primary Table Cell ===================== */
@@ -596,11 +596,11 @@ html.dark {
   }
 
   .admin-tr-translation .admin-td-actions {
-    background-color: oklch(1 0 0 / 0.02);
+    background-color: oklch(0.22 0.02 260);
   }
 
   .admin-tr-translation:hover .admin-td-actions {
-    background-color: oklch(1 0 0 / 0.05);
+    background-color: oklch(0.25 0.02 260);
   }
 
   .admin-pagination-btn.active {

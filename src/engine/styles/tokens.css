@@ -106,6 +106,15 @@
   --duration-fast: 150ms;
   --duration-normal: 200ms;
   --duration-slow: 300ms;
+  --duration-slower: 500ms;
+
+  /* Blur scale */
+  --blur-xs: 4px;
+  --blur-sm: 8px;
+  --blur-md: 12px;
+  --blur-lg: 16px;
+  --blur-xl: 20px;
+  --blur-2xl: 24px;
 
   /* Glass */
   --glass-blur: 20px;
@@ -152,4 +161,24 @@ html.dark {
 
   /* Glass */
   --glass-border: oklch(1 0 0 / 0.12);
+}
+
+/* Animations */
+:root {
+  --animate-slide-down: slide-down 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-fade-in: fade-in 0.15s ease-out;
+  --animate-fade-out: fade-out 0.1s ease-in;
+}
+
+@keyframes slide-down {
+  from { transform: translate(-50%, -20px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fade-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
