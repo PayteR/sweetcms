@@ -11,20 +11,19 @@ interface SEOFieldsProps {
   onMetaDescriptionChange: (value: string) => void;
   onNoindexChange: (value: boolean) => void;
   fieldErrors?: Record<string, string[]>;
-  focusBorderClass?: string;
 }
 
 export function SEOFields({
   seoTitle, metaDescription, noindex,
   onSeoTitleChange, onMetaDescriptionChange, onNoindexChange,
-  fieldErrors, focusBorderClass = 'focus:border-(--color-accent-500)',
+  fieldErrors,
 }: SEOFieldsProps) {
   const __ = useBlankTranslations();
 
   return (
     <>
       <div>
-        <label className="mb-2 block text-sm font-medium text-(--text-secondary)">
+        <label className="admin-label">
           {__('SEO Title')}
         </label>
         <input
@@ -33,12 +32,7 @@ export function SEOFields({
           onChange={(e) => onSeoTitleChange(e.target.value)}
           placeholder={__('Optional SEO title for <title> tag')}
           maxLength={255}
-          className={cn(
-            'w-full rounded-lg border bg-(--surface-primary) px-4 py-2 text-(--text-primary) placeholder:text-(--text-muted) focus:outline-none',
-            fieldErrors?.seoTitle
-              ? 'border-red-500 focus:border-red-500'
-              : ['border-(--border-primary)', focusBorderClass]
-          )}
+          className={cn('admin-input', fieldErrors?.seoTitle && '!border-red-500 focus:!border-red-500')}
         />
         {fieldErrors?.seoTitle ? (
           <p className="mt-1 text-sm text-red-400">{fieldErrors.seoTitle[0]}</p>
@@ -48,7 +42,7 @@ export function SEOFields({
       </div>
 
       <div>
-        <label className="mb-2 block text-sm font-medium text-(--text-secondary)">
+        <label className="admin-label">
           {__('Meta Description')}
         </label>
         <textarea
@@ -57,12 +51,7 @@ export function SEOFields({
           placeholder={__('SEO meta description (max 160 chars)')}
           maxLength={160}
           rows={3}
-          className={cn(
-            'w-full rounded-lg border bg-(--surface-primary) px-4 py-2 text-(--text-primary) placeholder:text-(--text-muted) focus:outline-none',
-            fieldErrors?.metaDescription
-              ? 'border-red-500 focus:border-red-500'
-              : ['border-(--border-primary)', focusBorderClass]
-          )}
+          className={cn('admin-textarea', fieldErrors?.metaDescription && '!border-red-500 focus:!border-red-500')}
         />
         {fieldErrors?.metaDescription ? (
           <p className="mt-1 text-sm text-red-400">{fieldErrors.metaDescription[0]}</p>

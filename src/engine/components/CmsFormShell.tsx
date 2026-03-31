@@ -32,7 +32,7 @@ export default function CmsFormShell({ toolbar, children }: CmsFormShellProps) {
         className={cn(
           'sticky top-12 xl:top-0 z-30 transition-[background-color,border-color] duration-200',
           isStuck
-            ? 'bg-(--surface-primary) border-b border-b-(--border-primary)'
+            ? 'bg-(--surface-primary)/80 backdrop-blur-xl border-b border-b-(--border-primary)'
             : 'border-b border-transparent'
         )}
       >

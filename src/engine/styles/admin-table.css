@@ -441,7 +441,7 @@ html.dark {
   .admin-input,
   .admin-select,
   .admin-textarea {
-    background-color: var(--surface-inset);
+    background-color: var(--surface-primary);
   }
 
   .admin-highlight {

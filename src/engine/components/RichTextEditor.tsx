@@ -336,11 +336,11 @@ export function RichTextEditor({
     <div
       ref={wrapperRef}
       style={{ height: height ?? '400px', resize: 'vertical', overflow: 'hidden' }}
-      className="flex flex-col overflow-hidden rounded-md border border-(--border-primary) focus-within:border-(--color-accent-500) focus-within:ring-1 focus-within:ring-(--color-accent-500)"
+      className="flex flex-col overflow-hidden rounded-md border border-(--border-primary) bg-(--surface-secondary) focus-within:border-(--color-accent-500) focus-within:ring-1 focus-within:ring-(--color-accent-500)"
     >
       {/* Toolbar — disabled in source mode to prevent modifying the hidden editor */}
       <div className={cn(
-        'flex flex-wrap items-center gap-0.5 border-b border-(--border-primary) bg-(--surface-secondary) px-2 py-1.5 shrink-0',
+        'flex flex-wrap items-center gap-0.5 border-b border-(--border-primary) bg-(--surface-primary) px-2 py-1.5 shrink-0',
         mode === 'source' && 'pointer-events-none opacity-40',
       )}>
         <ToolbarButton
