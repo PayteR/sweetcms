@@ -1,57 +1,17 @@
 @layer theme, base, components, utilities;
 
 /*
- * Admin Semantic Tokens — rarely needs editing
+ * Admin Semantic Overrides — rarely needs editing
  *
- * Scoped under [data-admin] so they override the public :root tokens
- * inside the dashboard. Values are identical to tokens-public.css initially;
- * diverge freely — changes here only affect the admin panel.
+ * Base defaults live in tokens.css (loaded globally via globals.css).
+ * Anything not listed here inherits from those defaults.
+ * Use plain :root / html.dark selectors for any overrides.
+ *
+ * Example:
+ *   :root {
+ *     --surface-sidebar: oklch(0.95 0.01 260);
+ *   }
+ *   html.dark {
+ *     --surface-sidebar: oklch(0.18 0.02 260);
+ *   }
  */
-
-[data-admin] {
-  /* Surfaces */
-  --surface-primary:   var(--color-gray-50);
-  --surface-secondary: var(--color-white);
-  --surface-elevated:  var(--color-white);
-  --surface-inset:     var(--color-gray-100);
-  --surface-sidebar:   var(--color-white);
-
-  /* Text */
-  --text-primary:   var(--color-gray-900);
-  --text-secondary: var(--color-gray-600);
-  --text-muted:     var(--color-gray-400);
-  --text-inverse:   var(--color-white);
-
-  /* Borders */
-  --border-primary:   oklch(0.93 0.005 265 / 0.7);
-  --border-secondary: oklch(0.96 0.003 265 / 0.5);
-
-  /* Shadows */
-  --shadow-sm: 0 1px 3px oklch(0 0 0 / 0.05), 0 1px 2px oklch(0 0 0 / 0.03);
-  --shadow-md: 0 3px 10px oklch(0 0 0 / 0.07), 0 1px 3px oklch(0 0 0 / 0.04);
-  --shadow-lg: 0 8px 24px oklch(0 0 0 / 0.08), 0 2px 8px oklch(0 0 0 / 0.04);
-}
-
-html.dark [data-admin] {
-  /* Surfaces — layered dark (hue 260) */
-  --surface-inset:     oklch(0.20 0.02 260);
-  --surface-sidebar:   oklch(0.20 0.02 260);
-  --surface-primary:   oklch(0.21 0.02 260);
-  --surface-secondary: oklch(0.27 0.02 260);
-  --surface-elevated:  oklch(0.32 0.015 260);
-
-  /* Text */
-  --text-primary:   var(--color-gray-50);
-  --text-secondary: var(--color-gray-400);
-  --text-muted:     var(--color-gray-500);
-  --text-inverse:   var(--color-gray-900);
-
-  /* Borders */
-  --border-primary:   oklch(0.35 0.01 260 / 0.8);
-  --border-secondary: oklch(0.30 0.01 260 / 0.5);
-
-  /* Shadows */
-  --shadow-sm: 0 1px 3px oklch(0 0 0 / 0.2), 0 0 0 1px oklch(1 0 0 / 0.03);
-  --shadow-md: 0 3px 10px oklch(0 0 0 / 0.3), 0 0 0 1px oklch(1 0 0 / 0.03);
-  --shadow-lg: 0 8px 30px oklch(0 0 0 / 0.35), 0 0 0 1px oklch(1 0 0 / 0.03);
-}

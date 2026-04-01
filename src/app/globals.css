@@ -2,7 +2,6 @@
 @plugin "@tailwindcss/typography";
 @custom-variant dark (html.dark &);
 @import "../engine/styles/tokens.css";
-@import "../engine/styles/tokens-public.css";
 @import "../engine/styles/overlay.css";
 
 @layer base {

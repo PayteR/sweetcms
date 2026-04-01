@@ -37,7 +37,7 @@ SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack: Nex
 
 **Engine stores:** `src/engine/store/preferences-store.ts` (Zustand preferences with typed keys from `@/engine/types/preferences`).
 
-**To rebrand:** (1) In `tokens.css`: find-replace `350` with your brand hue and `303` with your accent hue in the brand/accent scales; update `--brand-hue` and `--accent-hue` in `:root`; optionally change gray hue `260`/`265`; update `--gradient-brand` L/C values. (2) In `tokens-public.css`: edit semantic tokens (surfaces, text, borders, shadows) for the public frontend. (3) `tokens-admin.css` can diverge independently for the admin panel. (4) Update hardcoded `260` in dark surface tokens and in `admin.css` (rail, L2 panel backgrounds).
+**To rebrand:** (1) In `tokens.css`: find-replace `350` with your brand hue and `303` with your accent hue in the brand/accent scales; update `--brand-hue` and `--accent-hue` in `:root`; optionally change gray hue `260`/`265`; update `--gradient-brand` L/C values; edit the semantic defaults (surfaces, text, borders, shadows) in `:root` and `html.dark`. (2) To diverge the public frontend: add overrides in `tokens-public.css`. (3) To diverge the admin panel: add overrides in `tokens-admin.css`. (4) Update hardcoded `260` in dark surface tokens and in `admin.css` (rail, L2 panel backgrounds).
 
 ### tRPC Procedures & Usage
 
@@ -306,14 +306,14 @@ Tailwind CSS v4 with `@tailwindcss/typography` for `prose` classes. CSS-first co
 
 **Design token system:** OKLCH tinted-neutral palette split into 3 files. Three independent hues: brand `350` (pink/coral), accent `303` (purple), gray `260`/`265` (cool blue-violet). Semi-transparent brand tints use decomposed `oklch(L C var(--brand-hue) / alpha)` — NOT `color-mix()` or `oklch(from ...)`, which don't work with CSS variables in Lightning CSS.
 
-**File structure:**
-- `src/engine/styles/tokens.css` — `@theme` color scales + `:root` primitives (hues, radius, motion, gradient, overlay)
-- `src/engine/styles/tokens-public.css` — `:root` semantic tokens (surfaces, text, borders, shadows) + `html.dark` overrides — edit per project for frontend look
-- `src/engine/styles/tokens-admin.css` — `[data-admin]` semantic tokens + `html.dark [data-admin]` overrides — rarely needs editing
+**File structure (base + override inheritance):**
+- `src/engine/styles/tokens.css` — `@theme` color scales + `:root` ALL defaults (hues, radius, motion, gradient, overlay, surfaces, text, borders, shadows) + `html.dark` overrides. Loaded globally via `globals.css`.
+- `src/engine/styles/tokens-public.css` — `:root` overrides for public pages. Initially empty (inherits all defaults from tokens.css). Loaded in `(public)/layout.tsx` and `(auth)/layout.tsx`.
+- `src/engine/styles/tokens-admin.css` — `:root` overrides for admin. Initially empty (inherits all defaults from tokens.css). No `[data-admin]` scoping. Loaded via `admin.css`.
 - `src/engine/styles/admin.css` — admin panel core classes (cards, buttons, sidebar, typography); imports tokens-admin.css
 - `src/engine/styles/admin-table.css` — table, badge, form, pagination, role badge classes + admin autofill
 - `src/engine/styles/content.css` — public component classes (header, footer, buttons, forms, content) + public autofill; loaded in `(public)/layout.tsx` and `(auth)/layout.tsx`, NOT globally
-- `src/app/globals.css` — imports Tailwind, typography, tokens.css, tokens-public.css, overlay.css
+- `src/app/globals.css` — imports Tailwind, typography, tokens.css, overlay.css (NOT tokens-public.css)
 
 **Layer order:** `@layer theme, base, components, utilities;` — every CSS file must declare this.
 

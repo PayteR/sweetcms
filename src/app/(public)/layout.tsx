@@ -1,3 +1,4 @@
+import '@/engine/styles/tokens-public.css';
 import '@/engine/styles/content.css';
 
 import Link from 'next/link';
