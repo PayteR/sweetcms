@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -29,66 +29,43 @@ export function SlideOver({
   children,
 }: SlideOverProps) {
   const __ = useBlankTranslations();
-  const panelRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
+  useLayoutEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) {
+      dialog.showModal();
+    } else if (!open && dialog.open) {
+      dialog.close();
+    }
+  }, [open]);
+
+  // Scroll lock with scrollbar compensation
   useEffect(() => {
     if (!open) return;
-
-    // Focus trap + Escape
-    const panel = panelRef.current;
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-        return;
-      }
-      if (e.key === 'Tab' && panel) {
-        const focusable = panel.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
-        if (focusable.length === 0) return;
-        const first = focusable[0];
-        const last = focusable[focusable.length - 1];
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    };
-
-    document.addEventListener('keydown', onKeyDown);
-
-    // Lock scroll, compensate for scrollbar width to prevent content shift
     const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
     document.body.style.paddingRight = `${scrollbarWidth}px`;
     document.body.style.overflow = 'hidden';
-
-    // Auto-focus the close button
-    const closeBtn = panel?.querySelector<HTMLElement>('button');
-    closeBtn?.focus();
-
     return () => {
-      document.removeEventListener('keydown', onKeyDown);
       document.body.style.paddingRight = '';
       document.body.style.overflow = '';
     };
-  }, [open, onClose]);
+  }, [open]);
 
   return (
-    <div
-      className={cn('admin-slide-over', open && 'admin-slide-over-open')}
-      role="dialog"
-      aria-modal={open ? 'true' : undefined}
-      inert={!open ? true : undefined}
+    <dialog
+      ref={dialogRef}
+      className="admin-slide-over"
+      onClick={(e) => {
+        if (e.target === dialogRef.current) onClose();
+      }}
+      onCancel={(e) => {
+        e.preventDefault();
+        onClose();
+      }}
     >
-      <div
-        className="admin-slide-over-backdrop"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      <div ref={panelRef} className={cn('admin-slide-over-panel', widthClasses[width])}>
+      <div className={cn('admin-slide-over-panel', widthClasses[width])}>
         {/* Header */}
         <div className="admin-slide-over-header flex items-center justify-between border-b border-(--border-secondary) px-5 py-4">
           <h2 className="admin-h2">{title}</h2>
@@ -107,6 +84,6 @@ export function SlideOver({
           {children}
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }
