@@ -185,7 +185,7 @@ export function DashboardConfig() {
       </button>
 
       <SlideOver open={open} onClose={() => setOpen(false)} title={__('Dashboard Layout')} width="sm">
-        <DashboardConfigPanel __={__} />
+        {open && <DashboardConfigPanel __={__} />}
       </SlideOver>
     </>
   );

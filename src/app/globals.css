@@ -78,6 +78,17 @@ html.dark input.admin-search-input[data-com-onepassword-filled] {
   filter: none !important;
 }
 
+/* ═══ Public input autofill override ═══ */
+html.dark .cms-input:-webkit-autofill,
+html.dark .cms-input:-webkit-autofill:hover,
+html.dark .cms-input:-webkit-autofill:focus,
+html.dark input.cms-input[data-com-onepassword-filled] {
+  box-shadow: inset 0 0 0 9999px var(--color-gray-800) !important;
+  -webkit-text-fill-color: var(--color-white) !important;
+  caret-color: var(--color-white);
+  filter: none !important;
+}
+
 /* ═══ Reduced motion ═══ */
 @media (prefers-reduced-motion: reduce) {
   *,

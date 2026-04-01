@@ -48,10 +48,7 @@ export function PostCard({
         {tags && tags.length > 0 && (
           <div className="cms-post-card-tags mt-3 flex flex-wrap gap-1">
             {tags.map((tag) => (
-              <span
-                key={tag.slug}
-                className="inline-block rounded-full bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2 py-0.5 text-xs font-medium text-(--color-brand-600) dark:text-(--color-brand-400)"
-              >
+              <span key={tag.slug} className="cms-tag">
                 {tag.name}
               </span>
             ))}
@@ -78,11 +75,7 @@ export function PostCard({
       {tags && tags.length > 0 && (
         <div className="cms-post-card-tags mt-2 flex flex-wrap gap-1.5">
           {tags.map((tag) => (
-            <Link
-              key={tag.slug}
-              href={`/tag/${tag.slug}`}
-              className="inline-block rounded-full bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2 py-0.5 text-xs font-medium text-(--color-brand-600) dark:text-(--color-brand-400) hover:bg-(--color-brand-100) dark:hover:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)]"
-            >
+            <Link key={tag.slug} href={`/tag/${tag.slug}`} className="cms-tag">
               {tag.name}
             </Link>
           ))}

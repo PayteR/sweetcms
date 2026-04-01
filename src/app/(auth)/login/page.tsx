@@ -64,7 +64,7 @@ export default function LoginPage() {
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="admin-input mt-1"
+            className="cms-input mt-1"
             placeholder="you@example.com"
           />
         </div>
@@ -83,7 +83,7 @@ export default function LoginPage() {
             minLength={6}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="admin-input mt-1"
+            className="cms-input mt-1"
             placeholder="••••••••"
           />
         </div>
@@ -91,7 +91,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="admin-btn admin-btn-primary w-full rounded-md px-4 py-2.5 text-sm font-medium disabled:opacity-50"
+          className="cms-btn cms-btn-primary w-full rounded-md px-4 py-2.5 text-sm font-medium disabled:opacity-50"
         >
           {loading ? 'Signing in...' : 'Sign In'}
         </button>

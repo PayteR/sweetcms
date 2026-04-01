@@ -72,7 +72,7 @@ function ResetPasswordForm() {
         </p>
         <Link
           href="/login"
-          className="admin-btn admin-btn-primary mt-4 inline-block rounded-md px-4 py-2 text-sm font-medium"
+          className="cms-btn cms-btn-primary mt-4 inline-block rounded-md px-4 py-2 text-sm font-medium"
         >
           Sign In
         </Link>
@@ -108,7 +108,7 @@ function ResetPasswordForm() {
             minLength={6}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="admin-input mt-1"
+            className="cms-input mt-1"
             placeholder="••••••••"
           />
         </div>
@@ -127,7 +127,7 @@ function ResetPasswordForm() {
             minLength={6}
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
-            className="admin-input mt-1"
+            className="cms-input mt-1"
             placeholder="••••••••"
           />
         </div>
@@ -135,7 +135,7 @@ function ResetPasswordForm() {
         <button
           type="submit"
           disabled={loading}
-          className="admin-btn admin-btn-primary w-full rounded-md px-4 py-2.5 text-sm font-medium disabled:opacity-50"
+          className="cms-btn cms-btn-primary w-full rounded-md px-4 py-2.5 text-sm font-medium disabled:opacity-50"
         >
           {loading ? 'Resetting...' : 'Reset Password'}
         </button>

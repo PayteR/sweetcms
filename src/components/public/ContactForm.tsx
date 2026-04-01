@@ -125,14 +125,14 @@ export function ContactForm({ formSlug, className }: ContactFormProps) {
               placeholder={field.placeholder}
               required={field.required}
               rows={4}
-              className="admin-textarea"
+              className="cms-textarea"
             />
           ) : field.type === 'select' ? (
             <select
               value={values[field.id] ?? ''}
               onChange={(e) => handleChange(field.id, e.target.value)}
               required={field.required}
-              className="admin-select w-full"
+              className="cms-select w-full"
             >
               <option value="">
                 {field.placeholder ?? 'Select...'}
@@ -177,7 +177,7 @@ export function ContactForm({ formSlug, className }: ContactFormProps) {
               onChange={(e) => handleChange(field.id, e.target.value)}
               placeholder={field.placeholder}
               required={field.required}
-              className="admin-input"
+              className="cms-input"
             />
           )}
         </div>
@@ -207,7 +207,7 @@ export function ContactForm({ formSlug, className }: ContactFormProps) {
       <button
         type="submit"
         disabled={submitting}
-        className="admin-btn admin-btn-primary rounded-md px-6 py-2 text-sm font-medium transition-opacity disabled:opacity-50"
+        className="cms-btn cms-btn-primary rounded-md px-6 py-2 text-sm font-medium transition-opacity disabled:opacity-50"
       >
         {submitting ? (
           <span className="flex items-center gap-2">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -29,31 +29,32 @@ export function SlideOver({
   children,
 }: SlideOverProps) {
   const __ = useBlankTranslations();
-  const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (open && !dialog.open) {
-      dialog.showModal();
-    } else if (!open && dialog.open) {
-      dialog.close();
-    }
-  }, [open]);
-
-  function handleDialogClick(e: React.MouseEvent<HTMLDialogElement>) {
-    if (e.target === dialogRef.current) {
-      onClose();
-    }
-  }
+    if (!open) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKeyDown);
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.style.overflow = '';
+    };
+  }, [open, onClose]);
 
   return (
-    <dialog
-      ref={dialogRef}
-      className="admin-slide-over"
-      onClick={handleDialogClick}
-      onClose={onClose}
+    <div
+      className={cn('admin-slide-over', open && 'admin-slide-over-open')}
+      role="dialog"
+      aria-modal={open ? 'true' : undefined}
+      inert={!open ? true : undefined}
     >
+      <div
+        className="admin-slide-over-backdrop"
+        onClick={onClose}
+        aria-hidden="true"
+      />
       <div className={cn('admin-slide-over-panel', widthClasses[width])}>
         {/* Header */}
         <div className="admin-slide-over-header flex items-center justify-between border-b border-(--border-secondary) px-5 py-4">
@@ -73,6 +74,6 @@ export function SlideOver({
           {children}
         </div>
       </div>
-    </dialog>
+    </div>
   );
 }

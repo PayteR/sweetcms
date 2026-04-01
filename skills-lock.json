@@ -11,6 +11,11 @@
       "sourceType": "github",
       "computedHash": "88edc0446783b83d8c4462494ad3cb58ec0fff1eb6ba26f709c5e74313f1c9f2"
     },
+    "modals-dialogs": {
+      "source": "dylantarre/animation-principles",
+      "sourceType": "github",
+      "computedHash": "b71e97321bb13557f330e8987879812bb5a5bf99eed1aa1e907f14be88270131"
+    },
     "next-best-practices": {
       "source": "vercel-labs/next-skills",
       "sourceType": "github",

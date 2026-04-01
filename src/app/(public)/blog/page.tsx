@@ -5,7 +5,7 @@ import { siteConfig } from '@/config/site';
 import { serverTRPC } from '@/lib/trpc/server';
 import { PostType } from '@/engine/types/cms';
 import { PostCard } from '@/components/public/PostCard';
-import { TagCloud } from '@/components/public/TagCloud';
+import { BlogSidebar } from '@/components/public/BlogSidebar';
 import { db } from '@/server/db';
 import { getCodedRouteSEO } from '@/server/utils/page-seo';
 
@@ -41,54 +41,60 @@ export default async function BlogListPage({ searchParams }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-12">
-      <h1 className="text-3xl font-bold text-(--text-primary)">Blog</h1>
+    <div className="cms-container py-12">
+      <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_280px]">
+        {/* Main column */}
+        <div>
+          <h1 className="text-3xl font-bold text-(--text-primary)">Blog</h1>
 
-      <div className="mt-6">
-        <TagCloud />
-      </div>
+          {data && data.results.length > 0 ? (
+            <div className="mt-8 space-y-8">
+              {data.results.map((post) => (
+                <PostCard
+                  key={post.id}
+                  title={post.title}
+                  href={`/blog/${post.slug}`}
+                  metaDescription={post.metaDescription}
+                  publishedAt={post.publishedAt}
+                  tags={post.tags}
+                />
+              ))}
 
-      {data && data.results.length > 0 ? (
-        <div className="mt-8 space-y-8">
-          {data.results.map((post) => (
-            <PostCard
-              key={post.id}
-              title={post.title}
-              href={`/blog/${post.slug}`}
-              metaDescription={post.metaDescription}
-              publishedAt={post.publishedAt}
-              tags={post.tags}
-            />
-          ))}
-
-          {/* Pagination */}
-          {data.totalPages > 1 && (
-            <div className="flex gap-2 pt-4">
-              {page > 1 && (
-                <Link
-                  href={`/blog?page=${page - 1}`}
-                  className="rounded bg-(--surface-secondary) px-3 py-1 text-sm"
-                >
-                  Previous
-                </Link>
-              )}
-              <span className="px-3 py-1 text-sm text-(--text-muted)">
-                Page {page} of {data.totalPages}
-              </span>
-              {page < data.totalPages && (
-                <Link
-                  href={`/blog?page=${page + 1}`}
-                  className="rounded bg-(--surface-secondary) px-3 py-1 text-sm"
-                >
-                  Next
-                </Link>
+              {/* Pagination */}
+              {data.totalPages > 1 && (
+                <div className="cms-pagination">
+                  {page > 1 && (
+                    <Link
+                      href={`/blog?page=${page - 1}`}
+                      className="cms-pagination-btn"
+                    >
+                      Previous
+                    </Link>
+                  )}
+                  <span className="cms-pagination-info">
+                    Page {page} of {data.totalPages}
+                  </span>
+                  {page < data.totalPages && (
+                    <Link
+                      href={`/blog?page=${page + 1}`}
+                      className="cms-pagination-btn"
+                    >
+                      Next
+                    </Link>
+                  )}
+                </div>
               )}
             </div>
+          ) : (
+            <p className="mt-8 text-(--text-muted)">No blog posts yet.</p>
           )}
         </div>
-      ) : (
-        <p className="mt-8 text-(--text-muted)">No blog posts yet.</p>
-      )}
+
+        {/* Sidebar — hidden on mobile */}
+        <div className="hidden lg:block">
+          <BlogSidebar />
+        </div>
+      </div>
     </div>
   );
 }

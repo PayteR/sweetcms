@@ -17,7 +17,7 @@ export default async function PortfolioListPage() {
   });
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-12">
+    <div className="cms-container py-12">
       <h1 className="text-3xl font-bold text-(--text-primary) sm:text-4xl">
         Portfolio
       </h1>
@@ -50,10 +50,7 @@ export default async function PortfolioListPage() {
                 {item.techStack && item.techStack.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1">
                     {item.techStack.slice(0, 4).map((tech) => (
-                      <span
-                        key={tech}
-                        className="inline-block rounded-full bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2 py-0.5 text-[11px] font-medium text-(--color-brand-600) dark:text-(--color-brand-400)"
-                      >
+                      <span key={tech} className="cms-tag text-[11px]">
                         {tech}
                       </span>
                     ))}

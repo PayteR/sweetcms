@@ -54,6 +54,7 @@ const spanMap = Object.fromEntries(DASHBOARD_WIDGETS.map((w) => [w.id, w.span]))
 
 export default function DashboardPage() {
   const __ = useBlankTranslations();
+  const hydrated = usePreferencesStore((s) => s.hydrated);
   const prefs = usePreferencesStore();
   const pageCounts = trpc.cms.counts.useQuery({ type: PostType.PAGE });
   const blogCounts = trpc.cms.counts.useQuery({ type: PostType.BLOG });
@@ -61,8 +62,9 @@ export default function DashboardPage() {
   const userCounts = trpc.users.counts.useQuery();
   const mediaCounts = trpc.media.count.useQuery();
 
-  const widgetOrder = prefs.get('dashboard.widgetOrder', DEFAULT_WIDGET_ORDER);
-  const hiddenWidgets = prefs.get('dashboard.hiddenWidgets', DEFAULT_HIDDEN_WIDGETS);
+  // Use defaults until preferences have hydrated from DB to avoid SSR mismatch
+  const widgetOrder = hydrated ? prefs.get('dashboard.widgetOrder', DEFAULT_WIDGET_ORDER) : DEFAULT_WIDGET_ORDER;
+  const hiddenWidgets = hydrated ? prefs.get('dashboard.hiddenWidgets', DEFAULT_HIDDEN_WIDGETS) : DEFAULT_HIDDEN_WIDGETS;
 
   // Build visible ordered list
   const allIds = DASHBOARD_WIDGETS.map((w) => w.id);

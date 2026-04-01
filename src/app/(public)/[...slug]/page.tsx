@@ -296,11 +296,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
           {postTags.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-1.5">
               {postTags.map((tag) => (
-                <Link
-                  key={tag.slug}
-                  href={`/tag/${tag.slug}`}
-                  className="inline-block rounded-full bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2.5 py-0.5 text-xs font-medium text-(--color-brand-600) dark:text-(--color-brand-400) hover:bg-(--color-brand-100) dark:hover:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)]"
-                >
+                <Link key={tag.slug} href={`/tag/${tag.slug}`} className="cms-tag">
                   {tag.name}
                 </Link>
               ))}
@@ -529,10 +525,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
           {item.techStack && item.techStack.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-1.5">
               {item.techStack.map((tech) => (
-                <span
-                  key={tech}
-                  className="inline-block rounded-full bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2.5 py-0.5 text-xs font-medium text-(--color-brand-600) dark:text-(--color-brand-400)"
-                >
+                <span key={tech} className="cms-tag">
                   {tech}
                 </span>
               ))}
