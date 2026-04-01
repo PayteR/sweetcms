@@ -2,11 +2,11 @@ import { TRPCError } from '@trpc/server';
 import { and, count, desc, eq, ilike, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { user, session } from '@/server/db/schema';
+import { user, session, cmsUserPreferences } from '@/server/db/schema';
 import { ROLES, Role, isSuperAdmin } from '@/engine/policy';
 import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
 import { anonymizeUser } from '@/server/utils/gdpr';
-import { createTRPCRouter, sectionProcedure, superadminProcedure } from '../trpc';
+import { createTRPCRouter, protectedProcedure, sectionProcedure, superadminProcedure } from '../trpc';
 
 const usersProcedure = sectionProcedure('users');
 
@@ -292,4 +292,88 @@ export const usersRouter = createTRPCRouter({
     }
     return result;
   }),
+
+  // ─── User Preferences ──────────────────────────────────────────────────────
+  // Every authenticated user can read/write their own preferences (not section-gated).
+
+  /** Get current user's preferences */
+  getPreferences: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id as string;
+    const [row] = await ctx.db
+      .select({ data: cmsUserPreferences.data })
+      .from(cmsUserPreferences)
+      .where(eq(cmsUserPreferences.userId, userId))
+      .limit(1);
+
+    return (row?.data ?? {}) as Record<string, unknown>;
+  }),
+
+  /** Set a single preference key */
+  setPreference: protectedProcedure
+    .input(
+      z.object({
+        key: z.string().min(1).max(200),
+        value: z.unknown(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id as string;
+
+      // Read existing, merge, upsert
+      const [existing] = await ctx.db
+        .select({ data: cmsUserPreferences.data })
+        .from(cmsUserPreferences)
+        .where(eq(cmsUserPreferences.userId, userId))
+        .limit(1);
+
+      const merged = {
+        ...((existing?.data as Record<string, unknown>) ?? {}),
+        [input.key]: input.value,
+      };
+
+      await ctx.db
+        .insert(cmsUserPreferences)
+        .values({ userId, data: merged, updatedAt: new Date() })
+        .onConflictDoUpdate({
+          target: cmsUserPreferences.userId,
+          set: { data: merged, updatedAt: new Date() },
+        });
+
+      return { success: true };
+    }),
+
+  /** Batch update multiple preference keys */
+  updatePreferences: protectedProcedure
+    .input(
+      z.object({
+        preferences: z.record(z.string().max(200), z.unknown()).refine(
+          (obj) => Object.keys(obj).length <= 30,
+          { message: 'Max 30 keys per batch' }
+        ),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id as string;
+
+      const [existing] = await ctx.db
+        .select({ data: cmsUserPreferences.data })
+        .from(cmsUserPreferences)
+        .where(eq(cmsUserPreferences.userId, userId))
+        .limit(1);
+
+      const merged = {
+        ...((existing?.data as Record<string, unknown>) ?? {}),
+        ...input.preferences,
+      };
+
+      await ctx.db
+        .insert(cmsUserPreferences)
+        .values({ userId, data: merged, updatedAt: new Date() })
+        .onConflictDoUpdate({
+          target: cmsUserPreferences.userId,
+          set: { data: merged, updatedAt: new Date() },
+        });
+
+      return { success: true };
+    }),
 });

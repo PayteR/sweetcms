@@ -1,32 +1,87 @@
 'use client';
 
+import type { ComponentType } from 'react';
 import Link from 'next/link';
 import {
   FileText, Layers, FolderOpen, Users, Image, Clock,
-  Briefcase, ExternalLink,
 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
+import { cn } from '@/lib/utils';
 import { PostType } from '@/engine/types/cms';
+import { usePreferencesStore } from '@/store/preferences-store';
+import { DEFAULT_WIDGET_ORDER, DEFAULT_HIDDEN_WIDGETS, DASHBOARD_WIDGETS } from '@/config/dashboard-widgets';
 import GA4Widget from '@/components/admin/GA4Widget';
 import StatCard from '@/components/admin/StatCard';
 import RecentActivity from '@/components/admin/RecentActivity';
+import ContentStatusWidget from '@/components/admin/ContentStatusWidget';
+import QuickActionsWidget from '@/components/admin/QuickActionsWidget';
+import { DashboardConfig } from '@/components/admin/DashboardConfig';
+
+// ── Widget component lookup ─────────────────────────────────
+const WIDGET_MAP: Record<string, ComponentType> = {
+  'content-status': ContentStatusWidget,
+  'quick-actions': QuickActionsWidget,
+  'ga4': GA4Widget,
+  'recent-activity': RecentActivityWidget,
+};
+
+function RecentActivityWidget() {
+  const __ = useBlankTranslations();
+
+  return (
+    <div className="admin-card flex flex-col overflow-hidden">
+      <div className="admin-widget-header">
+        <h2 className="admin-h2 flex items-center gap-2">
+          <Clock className="h-4 w-4 text-(--text-muted)" />
+          {__('Recent Activity')}
+        </h2>
+        <Link
+          href="/dashboard/cms/activity"
+          className="text-xs font-medium text-(--text-muted) hover:text-(--text-primary) transition-colors"
+        >
+          {__('View all')}
+        </Link>
+      </div>
+      <RecentActivity />
+    </div>
+  );
+}
+
+// ── Span lookup ─────────────────────────────────────────────
+const spanMap = Object.fromEntries(DASHBOARD_WIDGETS.map((w) => [w.id, w.span]));
 
 export default function DashboardPage() {
   const __ = useBlankTranslations();
+  const prefs = usePreferencesStore();
   const pageCounts = trpc.cms.counts.useQuery({ type: PostType.PAGE });
   const blogCounts = trpc.cms.counts.useQuery({ type: PostType.BLOG });
   const catCounts = trpc.categories.counts.useQuery();
   const userCounts = trpc.users.counts.useQuery();
   const mediaCounts = trpc.media.count.useQuery();
 
+  const widgetOrder = prefs.get('dashboard.widgetOrder', DEFAULT_WIDGET_ORDER);
+  const hiddenWidgets = prefs.get('dashboard.hiddenWidgets', DEFAULT_HIDDEN_WIDGETS);
+
+  // Build visible ordered list
+  const allIds = DASHBOARD_WIDGETS.map((w) => w.id);
+  const orderedIds = [
+    ...widgetOrder.filter((id) => allIds.includes(id)),
+    ...allIds.filter((id) => !widgetOrder.includes(id)),
+  ].filter((id) => !hiddenWidgets.includes(id));
+
   return (
     <div className="mx-auto max-w-320">
-      <h1 className="text-2xl font-bold text-(--text-primary)">{__('Dashboard')}</h1>
-      <p className="mt-2 text-(--text-secondary)">{__('Welcome to SweetCMS admin panel.')}</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-(--text-primary)">{__('Dashboard')}</h1>
+          <p className="mt-2 text-(--text-secondary)">{__('Welcome to SweetCMS admin panel.')}</p>
+        </div>
+        <DashboardConfig />
+      </div>
 
-      {/* Content stats */}
+      {/* Stat cards — always visible, not reorderable */}
       <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard
           label={__('Pages')}
@@ -65,80 +120,18 @@ export default function DashboardPage() {
         />
       </div>
 
+      {/* Configurable widgets */}
       <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="admin-card flex flex-col overflow-hidden">
-          <div className="admin-widget-header">
-            <h2 className="admin-h2">{__('Content Status')}</h2>
-          </div>
-          <div className="admin-stat-grid px-4">
-            {[
-              { label: __('Published pages'), count: pageCounts.data?.published },
-              { label: __('Draft pages'), count: pageCounts.data?.draft },
-              { label: __('Published posts'), count: blogCounts.data?.published },
-              { label: __('Draft posts'), count: blogCounts.data?.draft },
-              { label: __('Scheduled'), count: (pageCounts.data?.scheduled ?? 0) + (blogCounts.data?.scheduled ?? 0) },
-            ].map((row) => (
-              <div key={row.label} className="admin-stat-row">
-                <span className="admin-stat-label">{row.label}</span>
-                <span className="admin-stat-value">{row.count ?? '—'}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="admin-card flex flex-col overflow-hidden">
-          <div className="admin-widget-header">
-            <h2 className="admin-h2">{__('Quick Actions')}</h2>
-          </div>
-          <div className="admin-quick-actions-grid p-4 grid grid-cols-2 gap-2">
-            <Link href="/dashboard/cms/pages/new" className="admin-btn admin-btn-secondary justify-center">
-              <FileText className="h-4 w-4" />
-              {__('New Page')}
-            </Link>
-            <Link href="/dashboard/cms/blog/new" className="admin-btn admin-btn-secondary justify-center">
-              <Layers className="h-4 w-4" />
-              {__('New Post')}
-            </Link>
-            <Link href="/dashboard/cms/categories/new" className="admin-btn admin-btn-secondary justify-center">
-              <FolderOpen className="h-4 w-4" />
-              {__('New Category')}
-            </Link>
-            <Link href="/dashboard/cms/portfolio/new" className="admin-btn admin-btn-secondary justify-center">
-              <Briefcase className="h-4 w-4" />
-              {__('New Project')}
-            </Link>
-            <Link href="/dashboard/media" className="admin-btn admin-btn-secondary justify-center">
-              <Image className="h-4 w-4" />
-              {__('Media Library')}
-            </Link>
-            <a href="/" target="_blank" rel="noopener noreferrer" className="admin-btn admin-btn-secondary justify-center">
-              <ExternalLink className="h-4 w-4" />
-              {__('View Site')}
-            </a>
-          </div>
-        </div>
-      </div>
-
-      {/* Google Analytics */}
-      <div className="mt-6">
-        <GA4Widget />
-      </div>
-
-      {/* Recent activity */}
-      <div className="mt-6 admin-card flex flex-col overflow-hidden">
-        <div className="admin-widget-header">
-          <h2 className="admin-h2 flex items-center gap-2">
-            <Clock className="h-4 w-4 text-(--text-muted)" />
-            {__('Recent Activity')}
-          </h2>
-          <Link
-            href="/dashboard/cms/activity"
-            className="text-xs font-medium text-(--text-muted) hover:text-(--text-primary) transition-colors"
-          >
-            {__('View all')}
-          </Link>
-        </div>
-        <RecentActivity />
+        {orderedIds.map((id) => {
+          const Component = WIDGET_MAP[id];
+          if (!Component) return null;
+          const span = spanMap[id] ?? 'full';
+          return (
+            <div key={id} className={cn(span === 'full' && 'sm:col-span-2')}>
+              <Component />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -325,10 +325,10 @@ export function CategoryForm({ categoryId }: Props) {
       <BrokenLinksBanner urls={brokenLinks} onDismiss={dismissBrokenLinks} />
 
       <form id="category-form" onSubmit={handleSubmit}>
-        <div className="admin-form-layout grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="admin-form-main space-y-6 lg:col-span-2">
+        <div className="admin-category-form-layout grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="admin-category-form-main space-y-6 lg:col-span-2">
             <div className="admin-card p-6">
-              <div className="admin-field-stack space-y-4">
+              <div className="admin-category-form-fields space-y-4">
                 <div className="admin-field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Name')}
@@ -444,7 +444,7 @@ export function CategoryForm({ categoryId }: Props) {
             )}
           </div>
 
-          <div className="admin-form-sidebar space-y-6">
+          <div className="admin-category-form-sidebar space-y-6">
             {/* Tags */}
             <div className="admin-card p-6">
               <h3 className="admin-h2">{__('Tags')}</h3>

@@ -162,9 +162,9 @@ export default function MediaPage() {
 
   return (
     <div className="admin-media-page">
-      <div className="admin-page-header flex items-center justify-between">
+      <div className="admin-media-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">{__('Media Library')}</h1>
-        <div className="admin-upload-action">
+        <div className="admin-media-upload">
           <input
             ref={fileInputRef}
             type="file"
@@ -306,12 +306,12 @@ export default function MediaPage() {
 
       {/* Pagination */}
       {data && data.totalPages > 1 && (
-        <div className="admin-pagination-bar mt-4 flex items-center justify-between">
+        <div className="admin-media-pagination mt-4 flex items-center justify-between">
           <p className="admin-pagination-info text-sm text-(--text-muted)">
             {__('Page')} {data.page} {__('of')} {data.totalPages} ({data.total}{' '}
             {__('total')})
           </p>
-          <div className="admin-pagination-buttons flex gap-1">
+          <div className="admin-media-pagination-buttons flex gap-1">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}

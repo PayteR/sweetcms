@@ -95,9 +95,9 @@ export const CustomFieldsEditor = forwardRef<
   if (definitions.isLoading) {
     return (
       <div className="admin-card p-6">
-        <div className="admin-loading-row flex items-center gap-2 text-(--text-muted)">
+        <div className="admin-custom-fields-loading flex items-center gap-2 text-(--text-muted)">
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span className="admin-loading-label text-sm">{__('Loading custom fields...')}</span>
+          <span className="admin-custom-fields-loading-label text-sm">{__('Loading custom fields...')}</span>
         </div>
       </div>
     );
@@ -117,7 +117,7 @@ export const CustomFieldsEditor = forwardRef<
           const opts = def.options as Record<string, unknown> | null;
 
           return (
-            <div key={def.id} className="admin-field-group">
+            <div key={def.id} className="admin-custom-fields-group">
               <label className="block text-sm font-medium text-(--text-secondary)">
                 {def.name}
               </label>
@@ -128,7 +128,7 @@ export const CustomFieldsEditor = forwardRef<
       </div>
 
       {saveValues.isPending && (
-        <div className="admin-saving-indicator mt-3 flex items-center gap-2 text-xs text-(--text-muted)">
+        <div className="admin-custom-fields-saving mt-3 flex items-center gap-2 text-xs text-(--text-muted)">
           <Loader2 className="h-3 w-3 animate-spin" />
           {__('Saving custom fields...')}
         </div>
@@ -236,7 +236,7 @@ function renderInput(
 
     case 'color':
       return (
-        <div className="admin-color-picker-row mt-1 flex items-center gap-2">
+        <div className="admin-custom-fields-color-picker mt-1 flex items-center gap-2">
           <input
             type="color"
             value={(value as string) || '#000000'}

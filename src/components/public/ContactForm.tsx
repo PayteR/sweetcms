@@ -95,7 +95,7 @@ export function ContactForm({ formSlug, className }: ContactFormProps) {
   // Success state
   if (submitted) {
     return (
-      <div className={cn('cms-form-success rounded-lg border p-8 text-center', className)}>
+      <div className={cn('cms-contact-form-success rounded-lg border p-8 text-center', className)}>
         <p className="text-lg font-medium">{form.successMessage}</p>
       </div>
     );
@@ -112,7 +112,7 @@ export function ContactForm({ formSlug, className }: ContactFormProps) {
       noValidate
     >
       {fields.map((field) => (
-        <div key={field.id} className="cms-form-field">
+        <div key={field.id} className="cms-contact-form-field">
           <label className="mb-1 block text-sm font-medium">
             {field.label}
             {field.required && <span className="ml-1 text-red-500">*</span>}

@@ -45,7 +45,7 @@ export default function MenusPage() {
 
   return (
     <div className="admin-menus-page">
-      <div className="admin-page-header flex items-center justify-between">
+      <div className="admin-menus-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">{__('Menus')}</h1>
         <button
           onClick={() => setShowCreate(true)}
@@ -57,7 +57,7 @@ export default function MenusPage() {
       </div>
 
       {showCreate && (
-        <form onSubmit={handleCreate} className="admin-create-menu-form mt-4 admin-card flex items-center gap-3 p-4">
+        <form onSubmit={handleCreate} className="admin-menus-create-form mt-4 admin-card flex items-center gap-3 p-4">
           <input
             type="text"
             value={newName}
@@ -108,7 +108,7 @@ export default function MenusPage() {
                   <td className="admin-td font-medium text-(--text-primary)">{menu.name}</td>
                   <td className="admin-td text-sm font-mono text-(--text-muted)">{menu.slug}</td>
                   <td className="admin-td">
-                    <div className="admin-row-actions flex items-center justify-end gap-1">
+                    <div className="admin-menus-row-actions flex items-center justify-end gap-1">
                       <Link
                         href={`/dashboard/cms/menus/${menu.id}`}
                         className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"

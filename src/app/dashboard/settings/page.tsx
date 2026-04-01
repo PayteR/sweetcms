@@ -189,7 +189,7 @@ export default function SettingsPage() {
 
   return (
     <div className="admin-settings-page">
-      <div className="admin-page-header flex items-center justify-between">
+      <div className="admin-settings-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">{__('Settings')}</h1>
         <button
           type="submit"
@@ -223,7 +223,7 @@ export default function SettingsPage() {
                 {groupItems.map((item) => {
                   if (item.type === 'boolean') {
                     return (
-                      <div key={item.key} className="admin-field-row flex items-center justify-between">
+                      <div key={item.key} className="admin-settings-field-row flex items-center justify-between">
                         {renderField(item)}
                         {item.isCustom && (
                           <button
@@ -241,7 +241,7 @@ export default function SettingsPage() {
 
                   return (
                     <div key={item.key}>
-                      <div className="admin-field-header flex items-center gap-2">
+                      <div className="admin-settings-field-header flex items-center gap-2">
                         <label className="block text-sm font-medium text-(--text-secondary)">
                           {__(item.label)}
                         </label>

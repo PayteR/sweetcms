@@ -38,19 +38,19 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="auth-card rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm">
+    <div className="auth-login-card rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm">
       <h1 className="text-2xl font-bold text-(--text-primary)">Sign In</h1>
       <p className="mt-1 text-sm text-(--text-muted)">
         Sign in to your SweetCMS account
       </p>
 
       {error && (
-        <div className="auth-error mt-4 rounded-md bg-red-50 dark:bg-red-500/15 p-3 text-sm text-red-700 dark:text-red-400">
+        <div className="auth-login-error mt-4 rounded-md bg-red-50 dark:bg-red-500/15 p-3 text-sm text-red-700 dark:text-red-400">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="auth-form mt-6 space-y-4">
+      <form onSubmit={handleSubmit} className="auth-login-form mt-6 space-y-4">
         <div>
           <label
             htmlFor="email"
@@ -97,13 +97,13 @@ export default function LoginPage() {
         </button>
       </form>
 
-      <div className="auth-forgot-link mt-4 text-center">
+      <div className="auth-login-forgot-link mt-4 text-center">
         <Link href="/forgot-password" className="text-sm text-(--text-muted) hover:text-(--color-brand-600)">
           Forgot your password?
         </Link>
       </div>
 
-      <p className="auth-alt-action mt-4 text-center text-sm text-(--text-muted)">
+      <p className="auth-login-alt-action mt-4 text-center text-sm text-(--text-muted)">
         Don&apos;t have an account?{' '}
         <Link href="/register" className="font-medium text-(--color-brand-600) hover:text-(--color-brand-500)">
           Sign up

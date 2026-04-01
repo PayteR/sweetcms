@@ -152,11 +152,11 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
     <div ref={containerRef} className="relative">
       {/* Selected tags */}
       {selectedTags.length > 0 && (
-        <div className="admin-tag-chips mb-2 flex flex-wrap gap-1.5">
+        <div className="admin-tag-input-chips mb-2 flex flex-wrap gap-1.5">
           {selectedTags.map((tag) => (
             <span
               key={tag.id}
-              className="admin-tag-chip inline-flex items-center gap-1 rounded-full bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2.5 py-0.5 text-xs font-medium text-(--color-brand-700) dark:text-(--color-brand-400)"
+              className="admin-tag-input-chip inline-flex items-center gap-1 rounded-full bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2.5 py-0.5 text-xs font-medium text-(--color-brand-700) dark:text-(--color-brand-400)"
             >
               {tag.name}
               <button
@@ -195,7 +195,7 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
       {showDropdown && inputValue.length >= 1 && (
         <div
           ref={dropdownRef}
-          className="admin-tag-dropdown absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border border-(--border-primary) bg-(--surface-primary) shadow-lg"
+          className="admin-tag-input-dropdown absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md border border-(--border-primary) bg-(--surface-primary) shadow-lg"
         >
           {searchQuery.isLoading ? (
             <div className="flex items-center justify-center py-3">
@@ -217,13 +217,13 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
                 }`}
               >
                 <span>{tag.name}</span>
-                <span className="admin-tag-count-badge ml-2 rounded-full bg-(--surface-secondary) px-1.5 py-0.5 text-xs text-(--text-muted)">
+                <span className="admin-tag-input-count ml-2 rounded-full bg-(--surface-secondary) px-1.5 py-0.5 text-xs text-(--text-muted)">
                   {Number(tag.count)}
                 </span>
               </button>
             ))
           ) : (
-            <div className="admin-tag-create-hint px-3 py-2 text-xs text-(--text-muted)">
+            <div className="admin-tag-input-hint px-3 py-2 text-xs text-(--text-muted)">
               {__('Press Enter to create "')}
               {inputValue}
               {__('"')}

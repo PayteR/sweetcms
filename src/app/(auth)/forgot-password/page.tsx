@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
 
   if (sent) {
     return (
-      <div className="auth-card rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm">
+      <div className="auth-forgot-card rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm">
         <h1 className="text-2xl font-bold text-(--text-primary)">Check your email</h1>
         <p className="mt-3 text-sm text-(--text-secondary)">
           If an account exists for <strong>{email}</strong>, we&apos;ve sent a password reset link.
@@ -49,19 +49,19 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="auth-card rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm">
+    <div className="auth-forgot-card rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm">
       <h1 className="text-2xl font-bold text-(--text-primary)">Forgot Password</h1>
       <p className="mt-1 text-sm text-(--text-muted)">
         Enter your email and we&apos;ll send you a reset link.
       </p>
 
       {error && (
-        <div className="auth-error mt-4 rounded-md bg-red-50 dark:bg-red-500/15 p-3 text-sm text-red-700 dark:text-red-400">
+        <div className="auth-forgot-error mt-4 rounded-md bg-red-50 dark:bg-red-500/15 p-3 text-sm text-red-700 dark:text-red-400">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="auth-form mt-6 space-y-4">
+      <form onSubmit={handleSubmit} className="auth-forgot-form mt-6 space-y-4">
         <div>
           <label
             htmlFor="email"
@@ -89,7 +89,7 @@ export default function ForgotPasswordPage() {
         </button>
       </form>
 
-      <p className="auth-alt-action mt-6 text-center text-sm text-(--text-muted)">
+      <p className="auth-forgot-alt-action mt-6 text-center text-sm text-(--text-muted)">
         Remember your password?{' '}
         <Link href="/login" className="font-medium text-(--color-brand-600) hover:text-(--color-brand-500)">
           Sign in

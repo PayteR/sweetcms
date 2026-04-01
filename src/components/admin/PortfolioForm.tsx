@@ -353,10 +353,10 @@ export function PortfolioForm({ portfolioId }: Props) {
       <BrokenLinksBanner urls={brokenLinks} onDismiss={dismissBrokenLinks} />
 
       <form id="portfolio-form" onSubmit={handleSubmit}>
-        <div className="admin-form-layout grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="admin-form-main space-y-6 lg:col-span-2">
+        <div className="admin-portfolio-form-layout grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="admin-portfolio-form-main space-y-6 lg:col-span-2">
             <div className="admin-card p-6">
-              <div className="admin-field-stack space-y-4">
+              <div className="admin-portfolio-form-fields space-y-4">
                 <div className="admin-field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Name')}
@@ -535,7 +535,7 @@ export function PortfolioForm({ portfolioId }: Props) {
             )}
           </div>
 
-          <div className="admin-form-sidebar space-y-6">
+          <div className="admin-portfolio-form-sidebar space-y-6">
             {/* Featured Image */}
             <div className="admin-card p-6">
               <h3 className="admin-h2">{__('Featured Image')}</h3>

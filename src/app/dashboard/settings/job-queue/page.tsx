@@ -67,7 +67,7 @@ export default function JobQueuePage() {
 
   return (
     <div className="admin-job-queue-page">
-      <div className="admin-page-header flex items-center justify-between">
+      <div className="admin-job-queue-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">{__('Job Queue')}</h1>
         <button
           onClick={() => {
@@ -92,7 +92,7 @@ export default function JobQueuePage() {
       ) : (
         <>
           {/* Queue stats cards */}
-          <div className="admin-queue-stats-grid mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="admin-job-queue-stats mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {queueNames.map((name) => {
               const q = stats.data![name];
               const isSelected = selectedQueue === name;
@@ -191,7 +191,7 @@ export default function JobQueuePage() {
                               </td>
                             )}
                             <td className="admin-td">
-                              <div className="admin-row-actions flex items-center justify-end gap-1">
+                              <div className="admin-job-queue-row-actions flex items-center justify-end gap-1">
                                 {selectedStatus === 'failed' && (
                                   <button
                                     onClick={() =>

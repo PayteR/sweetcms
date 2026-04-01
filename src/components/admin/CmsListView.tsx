@@ -489,11 +489,11 @@ export function CmsListView({ contentType }: Props) {
 
   return (
     <div className="admin-list-view">
-      <div className="admin-list-header flex flex-wrap items-center justify-between gap-3">
+      <div className="admin-list-view-header flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-(--text-primary)">
           {__(contentType.labelPlural)}
         </h1>
-        <div className="admin-list-actions flex flex-wrap items-center gap-2">
+        <div className="admin-list-view-actions flex flex-wrap items-center gap-2">
           {/* Column visibility dropdown */}
           <div className="relative">
             <button
@@ -596,8 +596,8 @@ export function CmsListView({ contentType }: Props) {
       </div>
 
       {/* Search + language filter */}
-      <div className="admin-list-filters mt-4 flex gap-2">
-        <div className="admin-search-wrapper relative min-w-0 flex-1">
+      <div className="admin-list-view-filters mt-4 flex gap-2">
+        <div className="admin-list-view-search relative min-w-0 flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--text-muted)" />
           <input
             type="text"
@@ -812,7 +812,7 @@ export function CmsListView({ contentType }: Props) {
                       </td>
                     )}
                     <td className="admin-td-actions">
-                      <div className="admin-row-actions flex items-center justify-end gap-1">
+                      <div className="admin-list-view-row-actions flex items-center justify-end gap-1">
                         {tab === 'trash' ? (
                           <>
                             <button
@@ -869,12 +869,12 @@ export function CmsListView({ contentType }: Props) {
 
       {/* Pagination */}
       {data && data.totalPages > 1 && (
-        <div className="admin-pagination-bar mt-4 flex items-center justify-between">
+        <div className="admin-list-view-pagination mt-4 flex items-center justify-between">
           <p className="admin-pagination-info text-sm text-(--text-muted)">
             {__('Page')} {data.page} {__('of')} {data.totalPages} ({data.total}{' '}
             {__('total')})
           </p>
-          <div className="admin-pagination-buttons flex gap-1">
+          <div className="admin-list-view-pagination-buttons flex gap-1">
             <button
               onClick={() => handlePageChange(Math.max(1, page - 1))}
               disabled={page <= 1}

@@ -46,7 +46,7 @@ export function PostCard({
           </p>
         )}
         {tags && tags.length > 0 && (
-          <div className="cms-post-tags mt-3 flex flex-wrap gap-1">
+          <div className="cms-post-card-tags mt-3 flex flex-wrap gap-1">
             {tags.map((tag) => (
               <span
                 key={tag.slug}
@@ -65,7 +65,7 @@ export function PostCard({
   }
 
   return (
-    <article className="cms-post-article border-b border-(--border-secondary) pb-6">
+    <article className="cms-post-card-article border-b border-(--border-secondary) pb-6">
       <Link
         href={href}
         className="text-xl font-semibold text-(--text-primary) hover:text-(--color-brand-600)"
@@ -76,7 +76,7 @@ export function PostCard({
         <p className="mt-2 text-(--text-secondary)">{metaDescription}</p>
       )}
       {tags && tags.length > 0 && (
-        <div className="cms-post-tags mt-2 flex flex-wrap gap-1.5">
+        <div className="cms-post-card-tags mt-2 flex flex-wrap gap-1.5">
           {tags.map((tag) => (
             <Link
               key={tag.slug}

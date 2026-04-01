@@ -99,7 +99,7 @@ export default function RedirectsPage() {
   return (
     <div className="admin-redirects-page">
       {/* Header */}
-      <div className="admin-page-header flex items-center justify-between">
+      <div className="admin-redirects-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">
           {__('Redirects')}
         </h1>
@@ -125,7 +125,7 @@ export default function RedirectsPage() {
       {showCreateForm && (
         <form
           onSubmit={handleCreate}
-          className="admin-create-redirect-form admin-card mt-4 p-4"
+          className="admin-redirects-create-form admin-card mt-4 p-4"
         >
           <h2 className="text-lg font-semibold text-(--text-primary)">
             {__('Create Redirect')}
@@ -214,7 +214,7 @@ export default function RedirectsPage() {
 
       {/* Search */}
       <form onSubmit={handleSearch} className="mt-4 flex gap-2">
-        <div className="admin-search-wrapper relative flex-1">
+        <div className="admin-redirects-search relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--text-muted)" />
           <input
             type="text"
@@ -317,12 +317,12 @@ export default function RedirectsPage() {
 
       {/* Pagination */}
       {data && data.totalPages > 1 && (
-        <div className="admin-pagination-bar mt-4 flex items-center justify-between">
+        <div className="admin-redirects-pagination mt-4 flex items-center justify-between">
           <p className="admin-pagination-info text-sm text-(--text-muted)">
             {__('Page')} {data.page} {__('of')} {data.totalPages} ({data.total}{' '}
             {__('total')})
           </p>
-          <div className="admin-pagination-buttons flex gap-1">
+          <div className="admin-redirects-pagination-buttons flex gap-1">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}

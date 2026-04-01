@@ -48,7 +48,7 @@ function ResetPasswordForm() {
 
   if (!token) {
     return (
-      <div className="auth-card rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm">
+      <div className="auth-reset-card rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm">
         <h1 className="text-2xl font-bold text-(--text-primary)">Invalid Link</h1>
         <p className="mt-3 text-sm text-(--text-secondary)">
           This password reset link is invalid or has expired.
@@ -65,7 +65,7 @@ function ResetPasswordForm() {
 
   if (done) {
     return (
-      <div className="auth-card rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm">
+      <div className="auth-reset-card rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm">
         <h1 className="text-2xl font-bold text-(--text-primary)">Password Reset</h1>
         <p className="mt-3 text-sm text-(--text-secondary)">
           Your password has been reset successfully. You can now sign in with your new password.
@@ -81,19 +81,19 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="auth-card rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm">
+    <div className="auth-reset-card rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm">
       <h1 className="text-2xl font-bold text-(--text-primary)">Set New Password</h1>
       <p className="mt-1 text-sm text-(--text-muted)">
         Choose a new password for your account.
       </p>
 
       {error && (
-        <div className="auth-error mt-4 rounded-md bg-red-50 dark:bg-red-500/15 p-3 text-sm text-red-700 dark:text-red-400">
+        <div className="auth-reset-error mt-4 rounded-md bg-red-50 dark:bg-red-500/15 p-3 text-sm text-red-700 dark:text-red-400">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="auth-form mt-6 space-y-4">
+      <form onSubmit={handleSubmit} className="auth-reset-form mt-6 space-y-4">
         <div>
           <label
             htmlFor="password"

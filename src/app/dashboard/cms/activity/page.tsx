@@ -71,7 +71,7 @@ export default function ActivityPage() {
 
         {/* User search */}
         <form onSubmit={handleUserSearch} className="flex gap-1">
-          <div className="admin-search-wrapper relative">
+          <div className="admin-activity-search relative">
             <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-(--text-muted)" />
             <input
               type="text"
@@ -148,11 +148,11 @@ export default function ActivityPage() {
 
       {/* Pagination */}
       {data && data.totalPages > 1 && (
-        <div className="admin-pagination-bar mt-4 flex items-center justify-between">
+        <div className="admin-activity-pagination mt-4 flex items-center justify-between">
           <p className="admin-pagination-info text-sm text-(--text-muted)">
             {__('Page')} {data.page} {__('of')} {data.totalPages}
           </p>
-          <div className="admin-pagination-buttons flex gap-1">
+          <div className="admin-activity-pagination-buttons flex gap-1">
             <button
               onClick={() => setPage(Math.max(1, page - 1))}
               disabled={page <= 1}

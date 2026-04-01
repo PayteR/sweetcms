@@ -213,8 +213,8 @@ export default function FormBuilderPage() {
   return (
     <div className="admin-form-builder-page">
       {/* Header */}
-      <div className="admin-page-header flex items-center justify-between">
-        <div className="admin-page-header-left flex items-center gap-3">
+      <div className="admin-form-builder-header flex items-center justify-between">
+        <div className="admin-form-builder-header-left flex items-center gap-3">
           <button
             onClick={() => router.push('/dashboard/forms')}
             className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-primary)"
@@ -240,7 +240,7 @@ export default function FormBuilderPage() {
       </div>
 
       {/* Form settings */}
-      <div className="admin-form-settings admin-card mt-4 p-6">
+      <div className="admin-form-builder-settings admin-card mt-4 p-6">
         <h2 className="admin-h2">{__('Form Settings')}</h2>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
@@ -324,7 +324,7 @@ export default function FormBuilderPage() {
       </div>
 
       {/* Form fields builder */}
-      <div className="admin-form-fields-builder admin-card mt-4 p-6">
+      <div className="admin-form-builder-fields admin-card mt-4 p-6">
         <div className="flex items-center justify-between">
           <h2 className="admin-h2">{__('Fields')}</h2>
           <button
@@ -341,11 +341,11 @@ export default function FormBuilderPage() {
           {fields.map((field, index) => (
             <div
               key={field.id}
-              className="admin-form-field-card rounded-lg border border-(--border-primary) bg-(--surface-primary) p-4"
+              className="admin-form-builder-field-card rounded-lg border border-(--border-primary) bg-(--surface-primary) p-4"
             >
-              <div className="admin-form-field-row flex items-start gap-3">
+              <div className="admin-form-builder-field-row flex items-start gap-3">
                 {/* Grip + ordering */}
-                <div className="admin-form-field-grip flex flex-col items-center gap-1 pt-1">
+                <div className="admin-form-builder-field-grip flex flex-col items-center gap-1 pt-1">
                   <GripVertical className="h-4 w-4 text-(--text-muted)" />
                   <button
                     type="button"
@@ -374,7 +374,7 @@ export default function FormBuilderPage() {
                 </div>
 
                 {/* Field config */}
-                <div className="admin-form-field-config flex-1">
+                <div className="admin-form-builder-field-config flex-1">
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <div>
                       <label className="mb-1 block text-xs font-medium text-(--text-muted)">
@@ -485,7 +485,7 @@ export default function FormBuilderPage() {
 
       {/* Embed info (only for existing forms) */}
       {!isNew && (
-        <div className="admin-form-embed-info admin-card mt-4 p-6">
+        <div className="admin-form-builder-embed admin-card mt-4 p-6">
           <h2 className="admin-h2">{__('Embed')}</h2>
           <p className="mt-2 text-sm text-(--text-secondary)">
             {__('Use this component to embed the form on any page:')}

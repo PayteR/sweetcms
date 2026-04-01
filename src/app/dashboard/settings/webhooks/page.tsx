@@ -101,8 +101,8 @@ export default function WebhooksPage() {
 
   return (
     <div className="admin-webhooks-page">
-      <div className="admin-page-header flex items-center justify-between">
-        <div className="admin-page-header-left flex items-center gap-3">
+      <div className="admin-webhooks-header flex items-center justify-between">
+        <div className="admin-webhooks-header-left flex items-center gap-3">
           <Link
             href="/dashboard/settings"
             className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary)"
@@ -212,7 +212,7 @@ export default function WebhooksPage() {
                     </span>
                   </td>
                   <td className="admin-td">
-                    <div className="admin-row-actions flex items-center justify-end gap-1">
+                    <div className="admin-webhooks-row-actions flex items-center justify-end gap-1">
                       <button
                         onClick={() => testWebhook.mutate({ id: hook.id })}
                         className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"

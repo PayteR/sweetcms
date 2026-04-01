@@ -74,9 +74,9 @@ export function ContentCalendar() {
     day === now.getDate() && month === now.getMonth() + 1 && year === now.getFullYear();
 
   return (
-    <div className="admin-calendar-page">
+    <div className="admin-calendar">
       {/* Month navigation */}
-      <div className="admin-page-header flex items-center justify-between">
+      <div className="admin-calendar-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">{__('Calendar')}</h1>
         <div className="admin-calendar-nav flex items-center gap-3">
           <button onClick={prevMonth} className="admin-btn admin-btn-secondary">

@@ -78,7 +78,7 @@ function SortableItem({
     <div
       ref={setNodeRef}
       style={style}
-      className="admin-menu-item admin-card flex items-center gap-2 p-3"
+      className="admin-menu-builder-item admin-card flex items-center gap-2 p-3"
     >
       <button
         type="button"
@@ -303,7 +303,7 @@ export function MenuBuilder({ menuId }: Props) {
         onDragEnd={handleDragEnd}
       >
         <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
-          <div className="admin-menu-items-list space-y-2">
+          <div className="admin-menu-builder-items space-y-2">
             {items.map((item) => (
               <SortableItem
                 key={item.id}

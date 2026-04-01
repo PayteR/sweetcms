@@ -134,7 +134,7 @@ export function SeoOverridesDialog({
       onClose={handleClose}
       className="fixed inset-0 z-50 m-auto w-full max-w-2xl rounded-lg border border-(--border-primary) bg-(--surface-primary) p-0 shadow-xl backdrop:bg-black/30"
     >
-      <div className="admin-dialog-body p-6">
+      <div className="admin-seo-overrides-body p-6">
         <h3 className="text-lg font-semibold text-(--text-primary)">
           {__('Create SEO Override Pages')}
         </h3>
@@ -208,7 +208,7 @@ export function SeoOverridesDialog({
           </div>
         )}
 
-        <div className="admin-dialog-actions mt-6 flex justify-end gap-3">
+        <div className="admin-seo-overrides-actions mt-6 flex justify-end gap-3">
           <button
             onClick={handleClose}
             disabled={isPending}

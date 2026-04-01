@@ -24,7 +24,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           : 'xl:ml-[48px]'
       )}
     >
-      <div className="admin-page-content p-6">{children}</div>
+      <div className="admin-dashboard-shell-content p-6">{children}</div>
     </main>
   );
 }

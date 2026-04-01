@@ -67,7 +67,7 @@ export default function FormsPage() {
   return (
     <div className="admin-forms-page">
       {/* Header */}
-      <div className="admin-page-header flex items-center justify-between">
+      <div className="admin-forms-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">
           {__('Forms')}
         </h1>
@@ -79,7 +79,7 @@ export default function FormsPage() {
 
       {/* Search */}
       <form onSubmit={handleSearch} className="mt-4 flex gap-2">
-        <div className="admin-search-wrapper relative flex-1">
+        <div className="admin-forms-search relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--text-muted)" />
           <input
             type="text"
@@ -178,7 +178,7 @@ export default function FormsPage() {
                       {formatDate(form.createdAt)}
                     </td>
                     <td className="admin-td">
-                      <div className="admin-row-actions flex items-center justify-end gap-1">
+                      <div className="admin-forms-row-actions flex items-center justify-end gap-1">
                         <Link
                           href={`/dashboard/forms/${form.id}`}
                           className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"
@@ -207,12 +207,12 @@ export default function FormsPage() {
 
       {/* Pagination */}
       {data && data.totalPages > 1 && (
-        <div className="admin-pagination-bar mt-4 flex items-center justify-between">
+        <div className="admin-forms-pagination mt-4 flex items-center justify-between">
           <p className="admin-pagination-info text-sm text-(--text-muted)">
             {__('Page')} {data.page} {__('of')} {data.totalPages} ({data.total}{' '}
             {__('total')})
           </p>
-          <div className="admin-pagination-buttons flex gap-1">
+          <div className="admin-forms-pagination-buttons flex gap-1">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}

@@ -45,8 +45,8 @@ export default function MenuEditPage({ params }: Props) {
 
   return (
     <div className="admin-menu-edit-page">
-      <div className="admin-page-header flex items-center justify-between">
-        <div className="admin-page-header-left flex items-center gap-3">
+      <div className="admin-menu-edit-header flex items-center justify-between">
+        <div className="admin-menu-edit-header-left flex items-center gap-3">
           <Link
             href="/dashboard/cms/menus"
             className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
@@ -60,8 +60,8 @@ export default function MenuEditPage({ params }: Props) {
       </div>
 
       {/* Menu name */}
-      <div className="admin-menu-name-card mt-4 admin-card p-4">
-        <div className="admin-menu-name-row flex items-center gap-3">
+      <div className="admin-menu-edit-name-card mt-4 admin-card p-4">
+        <div className="admin-menu-edit-name-row flex items-center gap-3">
           <input
             type="text"
             value={name}

@@ -83,7 +83,7 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
   if (!open) return null;
 
   return (
-    <div className="admin-dialog-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    <div className="admin-media-picker-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/50">
       <div className="admin-media-picker-panel mx-4 flex max-h-[80vh] w-full max-w-3xl flex-col rounded-lg bg-(--surface-primary) shadow-xl">
         {/* Header */}
         <div className="admin-media-picker-header flex items-center justify-between border-b border-(--border-primary) px-6 py-4">
@@ -132,7 +132,7 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
           ) : (data?.results ?? []).length === 0 ? (
             <div className="admin-media-picker-empty flex flex-col items-center justify-center py-12">
               <ImageIcon className="h-12 w-12 text-(--text-muted)" />
-              <p className="admin-empty-message mt-4 text-sm text-(--text-muted)">
+              <p className="admin-media-picker-empty-text mt-4 text-sm text-(--text-muted)">
                 {__('No images yet. Upload one above.')}
               </p>
             </div>
@@ -176,7 +176,7 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
                   >
                     {__('Previous')}
                   </button>
-                  <span className="admin-pagination-page-indicator px-3 py-1 text-xs text-(--text-muted)">
+                  <span className="admin-media-picker-page-indicator px-3 py-1 text-xs text-(--text-muted)">
                     {page} / {data.totalPages}
                   </span>
                   <button

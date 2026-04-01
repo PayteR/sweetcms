@@ -1,34 +1,54 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo } from 'react';
+
+import { usePreferencesStore } from '@/store/preferences-store';
+import type { PreferenceKey } from '@/engine/types/preferences';
 
 const STORAGE_PREFIX = 'cms-col-vis:';
+const DEFAULT_VISIBLE = ['title', 'status', 'lang', 'date'];
 
-const DEFAULT_VISIBLE = new Set(['title', 'status', 'lang', 'date']);
+/** Read from localStorage as fallback */
+function readLocalStorage(fullKey: string): string[] | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const stored = localStorage.getItem(fullKey);
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  return null;
+}
 
 export function useColumnVisibility(storageKey: string) {
-  const fullKey = `${STORAGE_PREFIX}${storageKey}`;
+  const localKey = `${STORAGE_PREFIX}${storageKey}`;
+  const prefKey: PreferenceKey = `listView.columns.${storageKey}`;
+  const hydrated = usePreferencesStore((s) => s.hydrated);
+  const prefValue = usePreferencesStore((s) => s.data[prefKey]);
+  const setPreference = usePreferencesStore((s) => s.set);
 
-  const [visible, setVisible] = useState<Set<string>>(() => {
-    if (typeof window === 'undefined') return DEFAULT_VISIBLE;
-    try {
-      const stored = localStorage.getItem(fullKey);
-      if (stored) return new Set(JSON.parse(stored));
-    } catch {}
-    return new Set(DEFAULT_VISIBLE);
-  });
+  // Resolve: DB (if hydrated + exists) → localStorage fallback → defaults
+  const columns = useMemo(() => {
+    if (hydrated && Array.isArray(prefValue)) return prefValue as string[];
+    return readLocalStorage(localKey) ?? DEFAULT_VISIBLE;
+  }, [hydrated, prefValue, localKey]);
+
+  const visible = useMemo(() => new Set(columns), [columns]);
 
   const toggle = useCallback(
     (col: string) => {
-      setVisible((prev) => {
-        const next = new Set(prev);
-        if (next.has(col)) next.delete(col);
-        else next.add(col);
-        localStorage.setItem(fullKey, JSON.stringify([...next]));
-        return next;
-      });
+      const next = new Set(visible);
+      if (next.has(col)) next.delete(col);
+      else next.add(col);
+      const arr = [...next];
+
+      // Write to preferences store (persists to DB)
+      setPreference(prefKey, arr);
+
+      // Also write to localStorage as backup
+      try {
+        localStorage.setItem(localKey, JSON.stringify(arr));
+      } catch {}
     },
-    [fullKey]
+    [visible, setPreference, prefKey, localKey]
   );
 
   const isVisible = useCallback((col: string) => visible.has(col), [visible]);

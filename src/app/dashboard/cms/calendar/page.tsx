@@ -7,7 +7,7 @@ export default function CalendarPage() {
   return (
     <Suspense
       fallback={
-        <div className="admin-loading-state flex items-center justify-center py-20">
+        <div className="admin-calendar-loading flex items-center justify-center py-20">
           <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
         </div>
       }

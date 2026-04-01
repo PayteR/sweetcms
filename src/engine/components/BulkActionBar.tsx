@@ -34,7 +34,7 @@ export default function BulkActionBar({
 
   return (
     <div className="admin-bulk-action-bar mt-3 flex items-center justify-between rounded-lg border border-(--border-primary) bg-(--surface-secondary) px-4 py-3">
-      <div className="admin-bulk-selection-info flex items-center gap-3">
+      <div className="admin-bulk-actions-info flex items-center gap-3">
         {isPending && (
           <Loader2 size={16} className="animate-spin text-(--text-muted)" />
         )}
@@ -50,7 +50,7 @@ export default function BulkActionBar({
           {__('Deselect all')}
         </button>
       </div>
-      <div className="admin-bulk-action-buttons flex items-center gap-2">
+      <div className="admin-bulk-actions-buttons flex items-center gap-2">
         {trashed ? (
           <button
             type="button"

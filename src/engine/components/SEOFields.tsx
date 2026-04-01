@@ -22,7 +22,7 @@ export function SEOFields({
 
   return (
     <>
-      <div className="admin-seo-title-field">
+      <div className="admin-seo-fields-title">
         <label className="admin-label">
           {__('SEO Title')}
         </label>
@@ -41,7 +41,7 @@ export function SEOFields({
         )}
       </div>
 
-      <div className="admin-seo-description-field">
+      <div className="admin-seo-fields-description">
         <label className="admin-label">
           {__('Meta Description')}
         </label>
@@ -60,7 +60,7 @@ export function SEOFields({
         )}
       </div>
 
-      <div className="admin-seo-noindex-field">
+      <div className="admin-seo-fields-noindex">
         <label className="flex items-center gap-2 text-sm font-medium text-(--text-secondary)">
           <input
             type="checkbox"

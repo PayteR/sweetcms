@@ -119,8 +119,8 @@ export default function SubmissionsPage() {
   return (
     <div className="admin-submissions-page">
       {/* Header */}
-      <div className="admin-page-header flex items-center justify-between">
-        <div className="admin-page-header-left flex items-center gap-3">
+      <div className="admin-submissions-header flex items-center justify-between">
+        <div className="admin-submissions-header-left flex items-center gap-3">
           <button
             onClick={() => router.push(`/dashboard/forms/${params.id}`)}
             className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-primary)"
@@ -134,7 +134,7 @@ export default function SubmissionsPage() {
             <p className="text-sm text-(--text-muted)">{form.name}</p>
           </div>
         </div>
-        <div className="admin-export-actions flex items-center gap-2">
+        <div className="admin-submissions-export flex items-center gap-2">
           <button
             onClick={() => handleExport('csv')}
             className="admin-btn admin-btn-secondary"
@@ -225,12 +225,12 @@ export default function SubmissionsPage() {
 
       {/* Pagination */}
       {data && data.totalPages > 1 && (
-        <div className="admin-pagination-bar mt-4 flex items-center justify-between">
+        <div className="admin-submissions-pagination mt-4 flex items-center justify-between">
           <p className="admin-pagination-info text-sm text-(--text-muted)">
             {__('Page')} {data.page} {__('of')} {data.totalPages} ({data.total}{' '}
             {__('total')})
           </p>
-          <div className="admin-pagination-buttons flex gap-1">
+          <div className="admin-submissions-pagination-buttons flex gap-1">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}

@@ -11,3 +11,4 @@ export * from './custom-fields';
 export * from './forms';
 export * from './portfolio';
 export * from './translations';
+export * from './user-preferences';

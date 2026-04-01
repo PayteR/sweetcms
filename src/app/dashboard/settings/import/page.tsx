@@ -299,7 +299,7 @@ export default function ImportPage() {
       </h1>
 
       {/* Step indicator */}
-      <div className="admin-step-indicator mt-4 flex items-center gap-2">
+      <div className="admin-import-steps mt-4 flex items-center gap-2">
         {steps.map((s, i) => (
           <div key={s.key} className="flex items-center gap-2">
             {i > 0 && (
@@ -327,7 +327,7 @@ export default function ImportPage() {
           {/* Format selection */}
           <div className="admin-card p-6">
             <h2 className="admin-h2">{__('Import Format')}</h2>
-            <div className="admin-format-options mt-4 grid gap-3 sm:grid-cols-3">
+            <div className="admin-import-formats mt-4 grid gap-3 sm:grid-cols-3">
               {FORMAT_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
@@ -376,7 +376,7 @@ export default function ImportPage() {
               />
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="admin-dropzone flex cursor-pointer flex-col items-center rounded-lg border-2 border-dashed border-(--border-primary) px-6 py-10 transition-colors hover:border-(--color-brand-400) hover:bg-(--surface-secondary)"
+                className="admin-import-dropzone flex cursor-pointer flex-col items-center rounded-lg border-2 border-dashed border-(--border-primary) px-6 py-10 transition-colors hover:border-(--color-brand-400) hover:bg-(--surface-secondary)"
               >
                 {fileName ? (
                   <>

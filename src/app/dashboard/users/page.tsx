@@ -181,7 +181,7 @@ export default function UsersPage() {
 
       {/* Search */}
       <form onSubmit={handleSearch} className="mt-4 flex gap-2">
-        <div className="admin-search-wrapper relative flex-1">
+        <div className="admin-users-search relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--text-muted)" />
           <input
             type="text"
@@ -239,7 +239,7 @@ export default function UsersPage() {
                   return (
                     <tr key={u.id} className="hover:bg-(--surface-secondary)">
                       <td className="admin-td">
-                        <div className="admin-user-cell flex items-center gap-3">
+                        <div className="admin-users-cell flex items-center gap-3">
                           {u.image ? (
                             <img
                               src={u.image}
@@ -251,14 +251,14 @@ export default function UsersPage() {
                               {(u.name ?? '?').charAt(0).toUpperCase()}
                             </div>
                           )}
-                          <div className="admin-user-info">
+                          <div className="admin-users-info">
                             <Link
                               href={`/dashboard/users/${u.id}`}
                               className="font-medium text-(--text-primary) hover:text-(--color-brand-600) hover:underline"
                             >
                               {u.name}
                             </Link>
-                            <p className="admin-user-email text-xs text-(--text-muted)">{u.email}</p>
+                            <p className="admin-users-email text-xs text-(--text-muted)">{u.email}</p>
                           </div>
                         </div>
                       </td>
@@ -288,7 +288,7 @@ export default function UsersPage() {
                         {formatDate(u.createdAt)}
                       </td>
                       <td className="admin-td">
-                        <div className="admin-row-actions flex items-center justify-end gap-1">
+                        <div className="admin-users-row-actions flex items-center justify-end gap-1">
                           <button
                             onClick={() => {
                               setEditingRole({
@@ -359,12 +359,12 @@ export default function UsersPage() {
 
       {/* Pagination */}
       {data && data.totalPages > 1 && (
-        <div className="admin-pagination-bar mt-4 flex items-center justify-between">
+        <div className="admin-users-pagination mt-4 flex items-center justify-between">
           <p className="admin-pagination-info text-sm text-(--text-muted)">
             {__('Page')} {data.page} {__('of')} {data.totalPages} ({data.total}{' '}
             {__('total')})
           </p>
-          <div className="admin-pagination-buttons flex gap-1">
+          <div className="admin-users-pagination-buttons flex gap-1">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}
@@ -389,7 +389,7 @@ export default function UsersPage() {
           open
           className="fixed inset-0 z-50 m-auto w-full max-w-md rounded-lg border border-(--border-primary) bg-(--surface-primary) p-0 shadow-xl backdrop:bg-black/30"
         >
-          <div className="admin-dialog-body p-6">
+          <div className="admin-users-role-dialog-body p-6">
             <h3 className="text-lg font-semibold text-(--text-primary)">
               {__('Change Role')}
             </h3>
@@ -407,7 +407,7 @@ export default function UsersPage() {
                 </option>
               ))}
             </select>
-            <div className="admin-dialog-actions mt-6 flex justify-end gap-3">
+            <div className="admin-users-role-dialog-actions mt-6 flex justify-end gap-3">
               <button
                 onClick={() => setEditingRole(null)}
                 className="admin-btn admin-btn-secondary"

@@ -222,8 +222,8 @@ export function PostAttachments({ postId }: Props) {
           open
           className="fixed inset-0 z-50 m-auto w-full max-w-sm rounded-lg border border-(--border-primary) bg-(--surface-primary) p-0 shadow-xl backdrop:bg-black/30"
         >
-          <div className="admin-dialog-body p-4">
-            <div className="admin-dialog-header flex items-center justify-between">
+          <div className="admin-attachments-dialog-body p-4">
+            <div className="admin-attachments-dialog-header flex items-center justify-between">
               <h4 className="text-sm font-semibold text-(--text-primary)">
                 {__('Edit Alt Text')}
               </h4>
@@ -243,7 +243,7 @@ export function PostAttachments({ postId }: Props) {
               placeholder={__('Describe this file...')}
               className="admin-input mt-3"
             />
-            <div className="admin-dialog-actions mt-4 flex justify-end gap-2">
+            <div className="admin-attachments-dialog-actions mt-4 flex justify-end gap-2">
               <button
                 onClick={() => setEditingAlt(null)}
                 className="admin-btn admin-btn-secondary text-xs"
