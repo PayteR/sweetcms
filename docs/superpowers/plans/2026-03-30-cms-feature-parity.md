@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Port all missing CMS admin features from sai_flirtcam to sai_sweetcms — editor image upload, height persistence, internal link picker, translation UI, SEO fields extraction, broken link validation, and centralized form state management.
+**Goal:** Port all missing CMS admin features from sai_flirtcam to sweetcms — editor image upload, height persistence, internal link picker, translation UI, SEO fields extraction, broken link validation, and centralized form state management.
 
 **Architecture:** Additive changes to existing sweetcms structure. New hooks/components in existing directories. Backend additions to existing tRPC routers. Form refactors replace individual useState with centralized hook while preserving all existing functionality. Design tokens (not hardcoded colors) throughout.
 
@@ -62,7 +62,7 @@ export const LOCALE_LABELS: Record<Locale, string> = {
 
 - [ ] **Step 2: Verify typecheck**
 
-Run: `cd E:/projects/sweetai/sai_sweetcms && bunx tsc --noEmit --pretty 2>&1 | head -20`
+Run: `cd E:/projects/sweetai/sweetcms && bunx tsc --noEmit --pretty 2>&1 | head -20`
 
 - [ ] **Step 3: Commit**
 
@@ -237,7 +237,7 @@ export function useCmsFormState<T extends Record<string, unknown>>(
 
 - [ ] **Step 2: Verify typecheck**
 
-Run: `cd E:/projects/sweetai/sai_sweetcms && bunx tsc --noEmit --pretty 2>&1 | head -20`
+Run: `cd E:/projects/sweetai/sweetcms && bunx tsc --noEmit --pretty 2>&1 | head -20`
 
 - [ ] **Step 3: Commit**
 
@@ -454,7 +454,7 @@ Add this procedure to the `cmsRouter` (before the closing `})`):
 
 - [ ] **Step 3: Verify typecheck**
 
-Run: `cd E:/projects/sweetai/sai_sweetcms && bunx tsc --noEmit --pretty 2>&1 | head -20`
+Run: `cd E:/projects/sweetai/sweetcms && bunx tsc --noEmit --pretty 2>&1 | head -20`
 
 - [ ] **Step 4: Commit**
 
@@ -613,7 +613,7 @@ Same pattern but for categories table. Add after existing `duplicate`:
 
 - [ ] **Step 4: Verify typecheck**
 
-Run: `cd E:/projects/sweetai/sai_sweetcms && bunx tsc --noEmit --pretty 2>&1 | head -20`
+Run: `cd E:/projects/sweetai/sweetcms && bunx tsc --noEmit --pretty 2>&1 | head -20`
 
 - [ ] **Step 5: Commit**
 
@@ -1499,7 +1499,7 @@ Add `ref={wrapperRef}` to the editor wrapper div and ensure it has `style={{ hei
 
 - [ ] **Step 9: Verify typecheck**
 
-Run: `cd E:/projects/sweetai/sai_sweetcms && bunx tsc --noEmit --pretty 2>&1 | head -30`
+Run: `cd E:/projects/sweetai/sweetcms && bunx tsc --noEmit --pretty 2>&1 | head -30`
 
 - [ ] **Step 10: Commit**
 
@@ -1730,7 +1730,7 @@ publishedAt: formData.publishedAt ? convertLocalToUTC(formData.publishedAt) : un
 
 - [ ] **Step 11: Verify typecheck**
 
-Run: `cd E:/projects/sweetai/sai_sweetcms && bunx tsc --noEmit --pretty 2>&1 | head -30`
+Run: `cd E:/projects/sweetai/sweetcms && bunx tsc --noEmit --pretty 2>&1 | head -30`
 
 - [ ] **Step 12: Commit**
 
@@ -1795,7 +1795,7 @@ Include `fallbackToDefault` field in create/update calls.
 
 - [ ] **Step 7: Verify typecheck**
 
-Run: `cd E:/projects/sweetai/sai_sweetcms && bunx tsc --noEmit --pretty 2>&1 | head -30`
+Run: `cd E:/projects/sweetai/sweetcms && bunx tsc --noEmit --pretty 2>&1 | head -30`
 
 - [ ] **Step 8: Commit**
 
@@ -1810,13 +1810,13 @@ git commit -m "refactor: CategoryForm to useCmsFormState + integrate translation
 
 - [ ] **Step 1: Full typecheck**
 
-Run: `cd E:/projects/sweetai/sai_sweetcms && bunx tsc --noEmit --pretty`
+Run: `cd E:/projects/sweetai/sweetcms && bunx tsc --noEmit --pretty`
 
 Fix any remaining type errors.
 
 - [ ] **Step 2: Verify no broken imports**
 
-Run: `cd E:/projects/sweetai/sai_sweetcms && grep -r "ToastUIEditor\|toast-ui" src/ --include="*.tsx" --include="*.ts"`
+Run: `cd E:/projects/sweetai/sweetcms && grep -r "ToastUIEditor\|toast-ui" src/ --include="*.tsx" --include="*.ts"`
 
 Should return nothing (no stale Toast UI references).
 

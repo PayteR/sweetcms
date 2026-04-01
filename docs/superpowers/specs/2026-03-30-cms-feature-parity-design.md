@@ -1,6 +1,6 @@
 # SweetCMS Feature Parity with Flirtcam CMS
 
-Port all missing CMS admin features from sai_flirtcam to sai_sweetcms. Goal: make sweetcms a complete skeleton CMS ready for custom functionality.
+Port all missing CMS admin features from sai_flirtcam to sweetcms. Goal: make sweetcms a complete skeleton CMS ready for custom functionality.
 
 ## Scope
 
