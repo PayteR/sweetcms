@@ -17,7 +17,7 @@ export function CalloutBlock({ attrs, content }: Props) {
   const style = STYLES[type] ?? STYLES.info;
 
   return (
-    <div className={cn('cms-callout my-4 rounded-md border-l-4 p-4', style)}>
+    <div className={cn('callout my-4 rounded-md border-l-4 p-4', style)}>
       {content && (
         <div dangerouslySetInnerHTML={{ __html: content }} />
       )}

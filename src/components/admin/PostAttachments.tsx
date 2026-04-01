@@ -128,8 +128,8 @@ export function PostAttachments({ postId }: Props) {
 
   if (!postId) {
     return (
-      <div className="admin-card p-4">
-        <h3 className="admin-h2 text-sm">{__('Attachments')}</h3>
+      <div className="card p-4">
+        <h3 className="h2 text-sm">{__('Attachments')}</h3>
         <p className="mt-2 text-xs text-(--text-muted)">
           {__('Save the post first to add attachments.')}
         </p>
@@ -140,10 +140,10 @@ export function PostAttachments({ postId }: Props) {
   const items = attachments.data ?? [];
 
   return (
-    <div className="admin-card p-4">
+    <div className="card p-4">
       <div className="flex items-center justify-between">
-        <h3 className="admin-h2 text-sm">{__('Attachments')}</h3>
-        <label className="admin-btn admin-btn-secondary cursor-pointer text-xs">
+        <h3 className="h2 text-sm">{__('Attachments')}</h3>
+        <label className="btn btn-secondary cursor-pointer text-xs">
           {uploading ? (
             <Loader2 className="h-3.5 w-3.5 animate-spin" />
           ) : (
@@ -167,16 +167,16 @@ export function PostAttachments({ postId }: Props) {
       ) : items.length === 0 ? (
         <p className="mt-3 text-xs text-(--text-muted)">{__('No attachments yet.')}</p>
       ) : (
-        <ul className="admin-attachment-list mt-3 space-y-2">
+        <ul className="attachment-list mt-3 space-y-2">
           {items.map((att) => {
             const Icon = FILE_TYPE_ICONS[att.fileType] ?? File;
             return (
               <li
                 key={att.id}
-                className="admin-attachment-item flex items-center gap-2 rounded border border-(--border-primary) p-2 text-xs"
+                className="attachment-item flex items-center gap-2 rounded border border-(--border-primary) p-2 text-xs"
               >
                 <Icon className="h-4 w-4 shrink-0 text-(--text-muted)" />
-                <div className="admin-attachment-info min-w-0 flex-1">
+                <div className="attachment-info min-w-0 flex-1">
                   <a
                     href={att.url}
                     target="_blank"
@@ -185,14 +185,14 @@ export function PostAttachments({ postId }: Props) {
                   >
                     {att.filename}
                   </a>
-                  <span className="admin-attachment-meta text-(--text-muted)">
+                  <span className="attachment-meta text-(--text-muted)">
                     {formatFileSize(att.fileSize)}
                     {att.altText && (
                       <span className="ml-2">alt: {att.altText}</span>
                     )}
                   </span>
                 </div>
-                <div className="admin-attachment-actions flex shrink-0 gap-1">
+                <div className="attachment-actions flex shrink-0 gap-1">
                   <button
                     onClick={() =>
                       setEditingAlt({ id: att.id, altText: att.altText ?? '' })
@@ -222,8 +222,8 @@ export function PostAttachments({ postId }: Props) {
           open
           className="fixed inset-0 z-50 m-auto w-full max-w-sm rounded-lg border border-(--border-primary) bg-(--surface-primary) p-0 shadow-xl backdrop:bg-black/30"
         >
-          <div className="admin-attachments-dialog-body p-4">
-            <div className="admin-attachments-dialog-header flex items-center justify-between">
+          <div className="attachments-dialog-body p-4">
+            <div className="attachments-dialog-header flex items-center justify-between">
               <h4 className="text-sm font-semibold text-(--text-primary)">
                 {__('Edit Alt Text')}
               </h4>
@@ -241,12 +241,12 @@ export function PostAttachments({ postId }: Props) {
                 setEditingAlt({ ...editingAlt, altText: e.target.value })
               }
               placeholder={__('Describe this file...')}
-              className="admin-input mt-3"
+              className="input mt-3"
             />
-            <div className="admin-attachments-dialog-actions mt-4 flex justify-end gap-2">
+            <div className="attachments-dialog-actions mt-4 flex justify-end gap-2">
               <button
                 onClick={() => setEditingAlt(null)}
-                className="admin-btn admin-btn-secondary text-xs"
+                className="btn btn-secondary text-xs"
               >
                 {__('Cancel')}
               </button>
@@ -258,7 +258,7 @@ export function PostAttachments({ postId }: Props) {
                   })
                 }
                 disabled={updateAttachment.isPending}
-                className="admin-btn admin-btn-primary text-xs disabled:opacity-50"
+                className="btn btn-primary text-xs disabled:opacity-50"
               >
                 {__('Save')}
               </button>

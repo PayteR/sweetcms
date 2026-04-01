@@ -66,15 +66,15 @@ export default function JobQueuePage() {
   }
 
   return (
-    <div className="admin-job-queue-page">
-      <div className="admin-job-queue-header flex items-center justify-between">
+    <div className="job-queue-page">
+      <div className="job-queue-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">{__('Job Queue')}</h1>
         <button
           onClick={() => {
             utils.jobQueue.stats.invalidate();
             if (selectedQueue) utils.jobQueue.list.invalidate();
           }}
-          className="admin-btn admin-btn-secondary"
+          className="btn btn-secondary"
         >
           <RefreshCw className="h-4 w-4" />
           {__('Refresh')}
@@ -86,13 +86,13 @@ export default function JobQueuePage() {
           <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
         </div>
       ) : queueNames.length === 0 ? (
-        <div className="admin-card mt-6 p-8 text-center">
+        <div className="card mt-6 p-8 text-center">
           <p className="text-(--text-muted)">{__('No queues registered. Redis may not be configured.')}</p>
         </div>
       ) : (
         <>
           {/* Queue stats cards */}
-          <div className="admin-job-queue-stats mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="job-queue-stats mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {queueNames.map((name) => {
               const q = stats.data![name];
               const isSelected = selectedQueue === name;
@@ -101,7 +101,7 @@ export default function JobQueuePage() {
                   key={name}
                   onClick={() => setSelectedQueue(name)}
                   className={cn(
-                    'admin-card p-4 text-left transition-shadow',
+                    'card p-4 text-left transition-shadow',
                     isSelected && 'ring-2 ring-(--color-brand-500)'
                   )}
                 >
@@ -152,7 +152,7 @@ export default function JobQueuePage() {
                 ))}
               </div>
 
-              <div className="admin-card mt-4 overflow-hidden">
+              <div className="card mt-4 overflow-hidden">
                 {jobList.isLoading ? (
                   <div className="flex items-center justify-center py-8">
                     <Loader2 className="h-5 w-5 animate-spin text-(--text-muted)" />
@@ -163,35 +163,35 @@ export default function JobQueuePage() {
                   </p>
                 ) : (
                   <table className="w-full">
-                    <thead className="admin-thead">
+                    <thead className="thead">
                       <tr>
-                        <th className="admin-th">{__('ID')}</th>
-                        <th className="admin-th">{__('Name')}</th>
-                        <th className="admin-th">{__('Created')}</th>
-                        <th className="admin-th">{__('Attempts')}</th>
+                        <th className="th">{__('ID')}</th>
+                        <th className="th">{__('Name')}</th>
+                        <th className="th">{__('Created')}</th>
+                        <th className="th">{__('Attempts')}</th>
                         {selectedStatus === 'failed' && (
-                          <th className="admin-th">{__('Error')}</th>
+                          <th className="th">{__('Error')}</th>
                         )}
-                        <th className="admin-th w-24" />
+                        <th className="th w-24" />
                       </tr>
                     </thead>
                     <tbody>
                       {(jobList.data ?? []).map((job) => {
                         return (
                           <tr key={job.id} className="hover:bg-(--surface-secondary)">
-                            <td className="admin-td font-mono text-xs">{job.id}</td>
-                            <td className="admin-td text-sm">{job.name}</td>
-                            <td className="admin-td text-xs text-(--text-muted)">
+                            <td className="td font-mono text-xs">{job.id}</td>
+                            <td className="td text-sm">{job.name}</td>
+                            <td className="td text-xs text-(--text-muted)">
                               {formatTimestamp(job.timestamp)}
                             </td>
-                            <td className="admin-td text-xs">{job.attemptsMade}</td>
+                            <td className="td text-xs">{job.attemptsMade}</td>
                             {selectedStatus === 'failed' && (
-                              <td className="admin-td max-w-xs truncate text-xs text-red-600 dark:text-red-400">
+                              <td className="td max-w-xs truncate text-xs text-red-600 dark:text-red-400">
                                 {job.failedReason}
                               </td>
                             )}
-                            <td className="admin-td">
-                              <div className="admin-job-queue-row-actions flex items-center justify-end gap-1">
+                            <td className="td">
+                              <div className="job-queue-row-actions flex items-center justify-end gap-1">
                                 {selectedStatus === 'failed' && (
                                   <button
                                     onClick={() =>

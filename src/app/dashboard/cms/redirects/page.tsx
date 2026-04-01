@@ -97,15 +97,15 @@ export default function RedirectsPage() {
   }
 
   return (
-    <div className="admin-redirects-page">
+    <div className="redirects-page">
       {/* Header */}
-      <div className="admin-redirects-header flex items-center justify-between">
+      <div className="redirects-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">
           {__('Redirects')}
         </h1>
         <button
           onClick={() => setShowCreateForm(!showCreateForm)}
-          className="admin-btn admin-btn-primary"
+          className="btn btn-primary"
         >
           {showCreateForm ? (
             <>
@@ -125,7 +125,7 @@ export default function RedirectsPage() {
       {showCreateForm && (
         <form
           onSubmit={handleCreate}
-          className="admin-redirects-create-form admin-card mt-4 p-4"
+          className="redirects-create-form card mt-4 p-4"
         >
           <h2 className="text-lg font-semibold text-(--text-primary)">
             {__('Create Redirect')}
@@ -143,7 +143,7 @@ export default function RedirectsPage() {
                 }
                 placeholder={__('e.g. old-page-slug')}
                 required
-                className="admin-input"
+                className="input"
               />
             </div>
             <div>
@@ -158,7 +158,7 @@ export default function RedirectsPage() {
                     contentType: e.target.value,
                   }))
                 }
-                className="admin-select w-full"
+                className="select w-full"
               >
                 {CONTENT_TYPES.map((t) => (
                   <option key={t} value={t}>
@@ -179,7 +179,7 @@ export default function RedirectsPage() {
                 }
                 placeholder={__('UUID of target content')}
                 required
-                className="admin-input"
+                className="input"
               />
             </div>
             <div>
@@ -193,7 +193,7 @@ export default function RedirectsPage() {
                   setNewRedirect((r) => ({ ...r, urlPrefix: e.target.value }))
                 }
                 placeholder={__('e.g. / or /blog')}
-                className="admin-input"
+                className="input"
               />
             </div>
           </div>
@@ -201,7 +201,7 @@ export default function RedirectsPage() {
             <button
               type="submit"
               disabled={createRedirect.isPending}
-              className="admin-btn admin-btn-primary disabled:opacity-50"
+              className="btn btn-primary disabled:opacity-50"
             >
               {createRedirect.isPending && (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -214,14 +214,14 @@ export default function RedirectsPage() {
 
       {/* Search */}
       <form onSubmit={handleSearch} className="mt-4 flex gap-2">
-        <div className="admin-redirects-search relative flex-1">
+        <div className="redirects-search relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--text-muted)" />
           <input
             type="text"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder={__('Search by slug or content type...')}
-            className="admin-input pl-9 pr-3"
+            className="input pl-9 pr-3"
           />
           {search && (
             <button
@@ -237,13 +237,13 @@ export default function RedirectsPage() {
             </button>
           )}
         </div>
-        <button type="submit" className="admin-btn admin-btn-secondary">
+        <button type="submit" className="btn btn-secondary">
           {__('Search')}
         </button>
       </form>
 
       {/* Table */}
-      <div className="admin-card mt-4 overflow-hidden">
+      <div className="card mt-4 overflow-hidden">
         {list.isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
@@ -256,25 +256,25 @@ export default function RedirectsPage() {
           </p>
         ) : (
           <table className="w-full">
-            <thead className="admin-thead">
+            <thead className="thead">
               <tr>
-                <th className="admin-th">{__('Old Slug')}</th>
-                <th className="admin-th">{__('Target')}</th>
-                <th className="admin-th w-28">{__('Type')}</th>
-                <th className="admin-th w-24">{__('Prefix')}</th>
-                <th className="admin-th w-40">{__('Created')}</th>
-                <th className="admin-th w-16" />
+                <th className="th">{__('Old Slug')}</th>
+                <th className="th">{__('Target')}</th>
+                <th className="th w-28">{__('Type')}</th>
+                <th className="th w-24">{__('Prefix')}</th>
+                <th className="th w-40">{__('Created')}</th>
+                <th className="th w-16" />
               </tr>
             </thead>
             <tbody>
               {(data?.results ?? []).map((r) => (
                 <tr key={r.id} className="hover:bg-(--surface-secondary)">
-                  <td className="admin-td">
+                  <td className="td">
                     <code className="rounded bg-(--surface-secondary) px-1.5 py-0.5 text-xs text-(--text-primary)">
                       {r.oldSlug}
                     </code>
                   </td>
-                  <td className="admin-td">
+                  <td className="td">
                     <div>
                       <p className="text-sm font-medium text-(--text-primary)">
                         {r.targetTitle}
@@ -286,18 +286,18 @@ export default function RedirectsPage() {
                       )}
                     </div>
                   </td>
-                  <td className="admin-td">
+                  <td className="td">
                     <span className="inline-block rounded-full bg-(--surface-secondary) px-2 py-0.5 text-xs font-medium text-(--text-secondary)">
                       {r.contentType}
                     </span>
                   </td>
-                  <td className="admin-td text-xs text-(--text-muted)">
+                  <td className="td text-xs text-(--text-muted)">
                     {r.urlPrefix}
                   </td>
-                  <td className="admin-td text-xs text-(--text-muted)">
+                  <td className="td text-xs text-(--text-muted)">
                     {formatDate(r.createdAt)}
                   </td>
-                  <td className="admin-td">
+                  <td className="td">
                     <button
                       onClick={() =>
                         setDeleteTarget({ id: r.id, slug: r.oldSlug })
@@ -317,16 +317,16 @@ export default function RedirectsPage() {
 
       {/* Pagination */}
       {data && data.totalPages > 1 && (
-        <div className="admin-redirects-pagination mt-4 flex items-center justify-between">
-          <p className="admin-pagination-info text-sm text-(--text-muted)">
+        <div className="redirects-pagination mt-4 flex items-center justify-between">
+          <p className="pagination-info text-sm text-(--text-muted)">
             {__('Page')} {data.page} {__('of')} {data.totalPages} ({data.total}{' '}
             {__('total')})
           </p>
-          <div className="admin-redirects-pagination-buttons flex gap-1">
+          <div className="redirects-pagination-buttons flex gap-1">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}
-              className="admin-btn admin-btn-secondary disabled:opacity-40"
+              className="btn btn-secondary disabled:opacity-40"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -335,7 +335,7 @@ export default function RedirectsPage() {
                 setPage((p) => Math.min(data.totalPages, p + 1))
               }
               disabled={page >= data.totalPages}
-              className="admin-btn admin-btn-secondary disabled:opacity-40"
+              className="btn btn-secondary disabled:opacity-40"
             >
               <ChevronRight className="h-4 w-4" />
             </button>

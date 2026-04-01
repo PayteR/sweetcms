@@ -44,9 +44,9 @@ export default function MenuEditPage({ params }: Props) {
   }
 
   return (
-    <div className="admin-menu-edit-page">
-      <div className="admin-menu-edit-header flex items-center justify-between">
-        <div className="admin-menu-edit-header-left flex items-center gap-3">
+    <div className="menu-edit-page">
+      <div className="menu-edit-header flex items-center justify-between">
+        <div className="menu-edit-header-left flex items-center gap-3">
           <Link
             href="/dashboard/cms/menus"
             className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
@@ -60,8 +60,8 @@ export default function MenuEditPage({ params }: Props) {
       </div>
 
       {/* Menu name */}
-      <div className="admin-menu-edit-name-card mt-4 admin-card p-4">
-        <div className="admin-menu-edit-name-row flex items-center gap-3">
+      <div className="menu-edit-name-card mt-4 card p-4">
+        <div className="menu-edit-name-row flex items-center gap-3">
           <input
             type="text"
             value={name}
@@ -72,7 +72,7 @@ export default function MenuEditPage({ params }: Props) {
           <button
             onClick={() => updateMenu.mutate({ id, name })}
             disabled={updateMenu.isPending}
-            className="admin-btn admin-btn-secondary disabled:opacity-50"
+            className="btn btn-secondary disabled:opacity-50"
           >
             {updateMenu.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             {__('Update Name')}

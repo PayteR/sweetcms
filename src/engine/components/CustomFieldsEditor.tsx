@@ -94,10 +94,10 @@ export const CustomFieldsEditor = forwardRef<
 
   if (definitions.isLoading) {
     return (
-      <div className="admin-card p-6">
-        <div className="admin-custom-fields-loading flex items-center gap-2 text-(--text-muted)">
+      <div className="card p-6">
+        <div className="custom-fields-loading flex items-center gap-2 text-(--text-muted)">
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span className="admin-custom-fields-loading-label text-sm">{__('Loading custom fields...')}</span>
+          <span className="custom-fields-loading-label text-sm">{__('Loading custom fields...')}</span>
         </div>
       </div>
     );
@@ -108,8 +108,8 @@ export const CustomFieldsEditor = forwardRef<
   }
 
   return (
-    <div className="admin-card p-6">
-      <h3 className="admin-h2">{__('Custom Fields')}</h3>
+    <div className="card p-6">
+      <h3 className="h2">{__('Custom Fields')}</h3>
       <div className="mt-4 space-y-4">
         {definitions.data.map((def) => {
           const slug = def.slug;
@@ -117,7 +117,7 @@ export const CustomFieldsEditor = forwardRef<
           const opts = def.options as Record<string, unknown> | null;
 
           return (
-            <div key={def.id} className="admin-custom-fields-group">
+            <div key={def.id} className="custom-fields-group">
               <label className="block text-sm font-medium text-(--text-secondary)">
                 {def.name}
               </label>
@@ -128,7 +128,7 @@ export const CustomFieldsEditor = forwardRef<
       </div>
 
       {saveValues.isPending && (
-        <div className="admin-custom-fields-saving mt-3 flex items-center gap-2 text-xs text-(--text-muted)">
+        <div className="custom-fields-saving mt-3 flex items-center gap-2 text-xs text-(--text-muted)">
           <Loader2 className="h-3 w-3 animate-spin" />
           {__('Saving custom fields...')}
         </div>
@@ -137,9 +137,9 @@ export const CustomFieldsEditor = forwardRef<
   );
 });
 
-const INPUT_CLASS = 'admin-input mt-1';
-const TEXTAREA_CLASS = 'admin-textarea mt-1';
-const SELECT_CLASS = 'admin-select mt-1 w-full';
+const INPUT_CLASS = 'input mt-1';
+const TEXTAREA_CLASS = 'textarea mt-1';
+const SELECT_CLASS = 'select mt-1 w-full';
 
 function renderInput(
   fieldType: string,
@@ -236,7 +236,7 @@ function renderInput(
 
     case 'color':
       return (
-        <div className="admin-custom-fields-color-picker mt-1 flex items-center gap-2">
+        <div className="custom-fields-color-picker mt-1 flex items-center gap-2">
           <input
             type="color"
             value={(value as string) || '#000000'}

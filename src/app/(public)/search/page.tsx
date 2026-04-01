@@ -123,12 +123,12 @@ export default async function SearchPage({ searchParams }: Props) {
             name="q"
             defaultValue={query}
             placeholder="Search content..."
-            className="cms-input flex-1 px-4 py-2.5"
+            className="input flex-1 px-4 py-2.5"
             autoFocus
           />
           <button
             type="submit"
-            className="cms-btn cms-btn-primary rounded-md px-4 py-2.5 text-sm font-medium"
+            className="btn btn-primary rounded-md px-4 py-2.5 text-sm font-medium"
           >
             Search
           </button>

@@ -300,7 +300,7 @@ export function CategoryForm({ categoryId }: Props) {
           type="submit"
           form="category-form"
           disabled={isSaving || !formData.name}
-          className="admin-btn admin-btn-primary disabled:opacity-50"
+          className="btn btn-primary disabled:opacity-50"
         >
           {isSaving ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -326,11 +326,11 @@ export function CategoryForm({ categoryId }: Props) {
       <BrokenLinksBanner urls={brokenLinks} onDismiss={dismissBrokenLinks} />
 
       <form id="category-form" onSubmit={handleSubmit}>
-        <div className="admin-category-form-layout grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="admin-category-form-main space-y-6 lg:col-span-2">
-            <div className="admin-card p-6">
-              <div className="admin-category-form-fields space-y-4">
-                <div className="admin-field-group">
+        <div className="category-form-layout grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="category-form-main space-y-6 lg:col-span-2">
+            <div className="card p-6">
+              <div className="category-form-fields space-y-4">
+                <div className="field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Name')}
                   </label>
@@ -339,11 +339,11 @@ export function CategoryForm({ categoryId }: Props) {
                     required
                     value={formData.name}
                     onChange={(e) => handleChange('name', e.target.value)}
-                    className="admin-input mt-1"
+                    className="input mt-1"
                     placeholder={__('Category name')}
                   />
                 </div>
-                <div className="admin-field-group">
+                <div className="field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Slug')}
                   </label>
@@ -355,10 +355,10 @@ export function CategoryForm({ categoryId }: Props) {
                       handleChange('slug', e.target.value);
                       setSlugManual(true);
                     }}
-                    className="admin-input mt-1 font-mono"
+                    className="input mt-1 font-mono"
                   />
                 </div>
-                <div className="admin-field-group">
+                <div className="field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Title')}
                   </label>
@@ -370,11 +370,11 @@ export function CategoryForm({ categoryId }: Props) {
                       handleChange('title', e.target.value);
                       setTitleManual(true);
                     }}
-                    className="admin-input mt-1"
+                    className="input mt-1"
                     placeholder={__('Display title (can differ from name)')}
                   />
                 </div>
-                <div className="admin-field-group">
+                <div className="field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Icon')}
                   </label>
@@ -382,14 +382,14 @@ export function CategoryForm({ categoryId }: Props) {
                     type="text"
                     value={formData.icon}
                     onChange={(e) => handleChange('icon', e.target.value)}
-                    className="admin-input mt-1"
+                    className="input mt-1"
                     placeholder={__('Icon name or URL')}
                   />
                 </div>
               </div>
             </div>
 
-            <div className="admin-card p-6">
+            <div className="card p-6">
               <label className="mb-2 block text-sm font-medium text-(--text-secondary)">
                 {__('Description')}
               </label>
@@ -405,8 +405,8 @@ export function CategoryForm({ categoryId }: Props) {
             </div>
 
             {/* SEO */}
-            <div className="admin-card p-6">
-              <h3 className="admin-h2">{__('SEO')}</h3>
+            <div className="card p-6">
+              <h3 className="h2">{__('SEO')}</h3>
               <div className="mt-4 space-y-4">
                 <SEOFields
                   seoTitle={formData.seoTitle}
@@ -447,10 +447,10 @@ export function CategoryForm({ categoryId }: Props) {
             )}
           </div>
 
-          <div className="admin-category-form-sidebar space-y-6">
+          <div className="category-form-sidebar space-y-6">
             {/* Tags */}
-            <div className="admin-card p-6">
-              <h3 className="admin-h2">{__('Tags')}</h3>
+            <div className="card p-6">
+              <h3 className="h2">{__('Tags')}</h3>
               <div className="mt-4">
                 <TagInput
                   selectedTagIds={formData.tagIds}
@@ -460,14 +460,14 @@ export function CategoryForm({ categoryId }: Props) {
               </div>
             </div>
 
-            <div className="admin-card p-6">
-              <h3 className="admin-h2">{__('Status')}</h3>
+            <div className="card p-6">
+              <h3 className="h2">{__('Status')}</h3>
               <div className="mt-4 space-y-4">
-                <div className="admin-field-group">
+                <div className="field-group">
                   <select
                     value={formData.status}
                     onChange={(e) => handleChange('status', Number(e.target.value))}
-                    className="admin-select w-full"
+                    className="select w-full"
                   >
                     <option value={ContentStatus.DRAFT}>{__('Draft')}</option>
                     <option value={ContentStatus.PUBLISHED}>
@@ -475,7 +475,7 @@ export function CategoryForm({ categoryId }: Props) {
                     </option>
                   </select>
                 </div>
-                <div className="admin-field-group">
+                <div className="field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Order')}
                   </label>
@@ -483,10 +483,10 @@ export function CategoryForm({ categoryId }: Props) {
                     type="number"
                     value={formData.order}
                     onChange={(e) => handleChange('order', Number(e.target.value))}
-                    className="admin-input mt-1"
+                    className="input mt-1"
                   />
                 </div>
-                <div className="admin-field-group">
+                <div className="field-group">
                   {cat && translationSiblings.data ? (
                     <TranslationBar
                       currentLang={formData.lang}
@@ -511,7 +511,7 @@ export function CategoryForm({ categoryId }: Props) {
                         value={formData.lang}
                         disabled={!isNew}
                         onChange={(e) => handleChange('lang', e.target.value)}
-                        className="admin-select mt-1 w-full disabled:bg-(--surface-secondary)"
+                        className="select mt-1 w-full disabled:bg-(--surface-secondary)"
                       >
                         <option value="en">English</option>
                       </select>
@@ -527,7 +527,7 @@ export function CategoryForm({ categoryId }: Props) {
                   />
                 )}
 
-                <div className="admin-field-group">
+                <div className="field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Publish Date')}
                   </label>
@@ -535,7 +535,7 @@ export function CategoryForm({ categoryId }: Props) {
                     type="datetime-local"
                     value={formData.publishedAt}
                     onChange={(e) => handleChange('publishedAt', e.target.value)}
-                    className="admin-input mt-1"
+                    className="input mt-1"
                   />
                 </div>
               </div>

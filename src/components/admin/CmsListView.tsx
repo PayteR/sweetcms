@@ -489,17 +489,17 @@ export function CmsListView({ contentType }: Props) {
   }
 
   return (
-    <div className="admin-list-view">
-      <div className="admin-list-view-header flex flex-wrap items-center justify-between gap-3">
+    <div className="list-view">
+      <div className="list-view-header flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-(--text-primary)">
           {__(contentType.labelPlural)}
         </h1>
-        <div className="admin-list-view-actions flex flex-wrap items-center gap-2">
+        <div className="list-view-actions flex flex-wrap items-center gap-2">
           {/* Column visibility dropdown */}
           <div className="relative">
             <button
               onClick={() => setColMenuOpen(!colMenuOpen)}
-              className="admin-btn admin-btn-secondary"
+              className="btn btn-secondary"
               title={__('Toggle columns')}
             >
               <Settings2 className="h-4 w-4" />
@@ -529,7 +529,7 @@ export function CmsListView({ contentType }: Props) {
             <div className="relative">
               <button
                 onClick={() => setExportMenuOpen(!exportMenuOpen)}
-                className="admin-btn admin-btn-secondary"
+                className="btn btn-secondary"
               >
                 <Download className="h-4 w-4" />
                 <span className="hidden sm:inline">{__('Export')}</span>
@@ -555,7 +555,7 @@ export function CmsListView({ contentType }: Props) {
           {contentType.canOverrideCodedRouteSEO && (
             <button
               onClick={() => setSeoDialogOpen(true)}
-              className="admin-btn admin-btn-secondary"
+              className="btn btn-secondary"
               title={__('SEO Overrides')}
             >
               <Plus className="h-4 w-4" />
@@ -564,7 +564,7 @@ export function CmsListView({ contentType }: Props) {
           )}
           <Link
             href={`/dashboard/cms/${contentType.adminSlug}/new`}
-            className="admin-btn admin-btn-primary"
+            className="btn btn-primary"
           >
             <Plus className="h-4 w-4" />
             {__(`New ${contentType.label}`)}
@@ -597,15 +597,15 @@ export function CmsListView({ contentType }: Props) {
       </div>
 
       {/* Search + language filter */}
-      <div className="admin-list-view-filters mt-4 flex gap-2">
-        <div className="admin-list-view-search relative min-w-0 flex-1">
+      <div className="list-view-filters mt-4 flex gap-2">
+        <div className="list-view-search relative min-w-0 flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--text-muted)" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
             placeholder={__(`Search ${contentType.labelPlural.toLowerCase()}...`)}
-            className="admin-search-input py-2 pl-9 pr-8"
+            className="search-input py-2 pl-9 pr-8"
           />
           {searchQuery && (
             <button
@@ -620,7 +620,7 @@ export function CmsListView({ contentType }: Props) {
         <select
           value={selectedLang}
           onChange={(e) => handleLangChange(e.target.value)}
-          className="admin-filter-select w-auto shrink-0"
+          className="filter-select w-auto shrink-0"
         >
           <option value="all">{__('All langs')}</option>
           {LOCALES.map((loc) => (
@@ -644,16 +644,16 @@ export function CmsListView({ contentType }: Props) {
       />
 
       {/* Table */}
-      <div className="admin-card mt-4 overflow-x-auto">
+      <div className="card mt-4 overflow-x-auto">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
           </div>
         ) : (
           <table className="w-full min-w-[640px]">
-            <thead className="admin-thead">
+            <thead className="thead">
               <tr>
-                <th className="admin-th w-10">
+                <th className="th w-10">
                   <input
                     type="checkbox"
                     checked={items.length > 0 && selectedIds.size === items.length}
@@ -663,7 +663,7 @@ export function CmsListView({ contentType }: Props) {
                 </th>
                 {isColVisible('title') && (
                   <th
-                    className="admin-th cursor-pointer select-none"
+                    className="th cursor-pointer select-none"
                     onClick={() => toggleSort('title')}
                   >
                     <span className="inline-flex items-center gap-1">
@@ -673,14 +673,14 @@ export function CmsListView({ contentType }: Props) {
                   </th>
                 )}
                 {isColVisible('status') && (
-                  <th className="admin-th w-24">{__('Status')}</th>
+                  <th className="th w-24">{__('Status')}</th>
                 )}
                 {isColVisible('lang') && (
-                  <th className="admin-th w-20">{__('Lang')}</th>
+                  <th className="th w-20">{__('Lang')}</th>
                 )}
                 {isColVisible('date') && (
                   <th
-                    className="admin-th w-32 cursor-pointer select-none"
+                    className="th w-32 cursor-pointer select-none"
                     onClick={() => toggleSort('updated_at')}
                   >
                     <span className="inline-flex items-center gap-1">
@@ -690,14 +690,14 @@ export function CmsListView({ contentType }: Props) {
                   </th>
                 )}
                 {isColVisible('author') && (
-                  <th className="admin-th w-28">{__('Author')}</th>
+                  <th className="th w-28">{__('Author')}</th>
                 )}
                 {isColVisible('slug') && (
-                  <th className="admin-th w-40">{__('Slug')}</th>
+                  <th className="th w-40">{__('Slug')}</th>
                 )}
                 {isColVisible('publishedAt') && (
                   <th
-                    className="admin-th w-32 cursor-pointer select-none"
+                    className="th w-32 cursor-pointer select-none"
                     onClick={() => toggleSort('published_at')}
                   >
                     <span className="inline-flex items-center gap-1">
@@ -708,7 +708,7 @@ export function CmsListView({ contentType }: Props) {
                 )}
                 {isColVisible('createdAt') && (
                   <th
-                    className="admin-th w-32 cursor-pointer select-none"
+                    className="th w-32 cursor-pointer select-none"
                     onClick={() => toggleSort('created_at')}
                   >
                     <span className="inline-flex items-center gap-1">
@@ -717,14 +717,14 @@ export function CmsListView({ contentType }: Props) {
                     </span>
                   </th>
                 )}
-                <th className="admin-th-actions w-28" />
+                <th className="th-actions w-28" />
               </tr>
             </thead>
             <tbody>
               {items.length === 0 ? (
                 <tr>
                   <td
-                    className="admin-td py-12 text-center text-(--text-muted)"
+                    className="td py-12 text-center text-(--text-muted)"
                     colSpan={COLUMNS.filter((c) => isColVisible(c.key)).length + 2}
                   >
                     {search
@@ -736,14 +736,14 @@ export function CmsListView({ contentType }: Props) {
                 items.map((item) => (
                   <tr
                     key={item.id}
-                    className="admin-tr cursor-pointer"
+                    className="tr cursor-pointer"
                     onClick={(e) => {
                       const target = e.target as HTMLElement;
                       if (target.closest('a, button, input')) return;
                       router.push(`/dashboard/cms/${contentType.adminSlug}/${item.id}`);
                     }}
                   >
-                    <td className="admin-td">
+                    <td className="td">
                       <input
                         type="checkbox"
                         checked={selectedIds.has(item.id)}
@@ -752,7 +752,7 @@ export function CmsListView({ contentType }: Props) {
                       />
                     </td>
                     {isColVisible('title') && (
-                      <td className="admin-td">
+                      <td className="td">
                         <Link
                           href={`/dashboard/cms/${contentType.adminSlug}/${item.id}`}
                           className="font-medium text-(--text-primary) hover:text-(--color-brand-600)"
@@ -773,7 +773,7 @@ export function CmsListView({ contentType }: Props) {
                       </td>
                     )}
                     {isColVisible('status') && (
-                      <td className="admin-td">
+                      <td className="td">
                         <span
                           className={cn(
                             'inline-block rounded-full px-2 py-0.5 text-xs font-medium',
@@ -785,35 +785,35 @@ export function CmsListView({ contentType }: Props) {
                       </td>
                     )}
                     {isColVisible('lang') && (
-                      <td className="admin-td text-xs uppercase">{item.lang}</td>
+                      <td className="td text-xs uppercase">{item.lang}</td>
                     )}
                     {isColVisible('date') && (
-                      <td className="admin-td text-xs text-(--text-muted)">
+                      <td className="td text-xs text-(--text-muted)">
                         {formatDate(item.publishedAt ?? item.updatedAt)}
                       </td>
                     )}
                     {isColVisible('author') && (
-                      <td className="admin-td text-xs text-(--text-muted)">
+                      <td className="td text-xs text-(--text-muted)">
                         {item.author ?? '—'}
                       </td>
                     )}
                     {isColVisible('slug') && (
-                      <td className="admin-td text-xs text-(--text-muted)">
+                      <td className="td text-xs text-(--text-muted)">
                         {item.slug || '—'}
                       </td>
                     )}
                     {isColVisible('publishedAt') && (
-                      <td className="admin-td text-xs text-(--text-muted)">
+                      <td className="td text-xs text-(--text-muted)">
                         {formatDate(item.publishedAt)}
                       </td>
                     )}
                     {isColVisible('createdAt') && (
-                      <td className="admin-td text-xs text-(--text-muted)">
+                      <td className="td text-xs text-(--text-muted)">
                         {formatDate(item.createdAt)}
                       </td>
                     )}
-                    <td className="admin-td-actions">
-                      <div className="admin-list-view-row-actions flex items-center justify-end gap-1">
+                    <td className="td-actions">
+                      <div className="list-view-row-actions flex items-center justify-end gap-1">
                         {tab === 'trash' ? (
                           <>
                             <button
@@ -870,23 +870,23 @@ export function CmsListView({ contentType }: Props) {
 
       {/* Pagination */}
       {data && data.totalPages > 1 && (
-        <div className="admin-list-view-pagination mt-4 flex items-center justify-between">
-          <p className="admin-pagination-info text-sm text-(--text-muted)">
+        <div className="list-view-pagination mt-4 flex items-center justify-between">
+          <p className="pagination-info text-sm text-(--text-muted)">
             {__('Page')} {data.page} {__('of')} {data.totalPages} ({data.total}{' '}
             {__('total')})
           </p>
-          <div className="admin-list-view-pagination-buttons flex gap-1">
+          <div className="list-view-pagination-buttons flex gap-1">
             <button
               onClick={() => handlePageChange(Math.max(1, page - 1))}
               disabled={page <= 1}
-              className="admin-btn admin-btn-secondary disabled:opacity-40"
+              className="btn btn-secondary disabled:opacity-40"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               onClick={() => handlePageChange(Math.min(data.totalPages, page + 1))}
               disabled={page >= data.totalPages}
-              className="admin-btn admin-btn-secondary disabled:opacity-40"
+              className="btn btn-secondary disabled:opacity-40"
             >
               <ChevronRight className="h-4 w-4" />
             </button>

@@ -30,10 +30,10 @@ function isChildActive(child: NavChild, siblings: NavChild[], pathname: string):
 
 function RoleBadge({ role }: { role: string }) {
   const classMap: Record<string, string> = {
-    superadmin: 'admin-role-badge admin-role-superadmin',
-    admin: 'admin-role-badge admin-role-admin',
-    editor: 'admin-role-badge admin-role-editor',
-    user: 'admin-role-badge admin-role-user',
+    superadmin: 'role-badge role-superadmin',
+    admin: 'role-badge role-admin',
+    editor: 'role-badge role-editor',
+    user: 'role-badge role-user',
   };
   return <span className={classMap[role] ?? classMap.user}>{role}</span>;
 }
@@ -132,7 +132,7 @@ export function AdminSidebar() {
               if (firstChild) router.push(firstChild.href);
               closeSidebar();
             }}
-            className={cn('admin-rail-btn', isActive && 'active')}
+            className={cn('rail-btn', isActive && 'active')}
           >
             <Icon className="h-5 w-5" />
           </button>
@@ -145,7 +145,7 @@ export function AdminSidebar() {
           href={item.href}
           title={item.name}
           onClick={closeSidebar}
-          className={cn('admin-rail-btn', isActive && 'active')}
+          className={cn('rail-btn', isActive && 'active')}
         >
           <Icon className="h-5 w-5" />
         </Link>
@@ -160,7 +160,7 @@ export function AdminSidebar() {
           type="button"
           title={__('Search')}
           onClick={openPalette}
-          className="admin-rail-btn"
+          className="rail-btn"
         >
           <Search className="h-5 w-5" />
         </button>
@@ -168,7 +168,7 @@ export function AdminSidebar() {
           type="button"
           title={`${__('Theme')}: ${themeLabels[theme]}`}
           onClick={cycleTheme}
-          className="admin-rail-btn"
+          className="rail-btn"
         >
           <ThemeIcon className="h-5 w-5" />
         </button>
@@ -178,12 +178,12 @@ export function AdminSidebar() {
             type="button"
             title={session?.user?.name ?? __('User')}
             onClick={() => setUserPopoverOpen((v) => !v)}
-            className="admin-rail-btn"
+            className="rail-btn"
           >
             <User className="h-5 w-5" />
           </button>
           {userPopoverOpen && (
-            <div ref={popoverRef} className="admin-user-popover">
+            <div ref={popoverRef} className="user-popover">
               {session?.user && (
                 <div className="px-3 py-2">
                   <div className="text-sm font-medium text-(--text-primary) truncate">
@@ -222,13 +222,13 @@ export function AdminSidebar() {
     return (
       <>
         <div className="flex items-center justify-between mb-1">
-          <div className={cn('admin-l2-title', isL2Collapsed && 'sr-only')}>
+          <div className={cn('l2-title', isL2Collapsed && 'sr-only')}>
             {activeItem.name}
           </div>
           <button
             type="button"
             onClick={toggleL2Collapsed}
-            className="admin-rail-btn !w-7 !h-7"
+            className="rail-btn !w-7 !h-7"
             title={isL2Collapsed ? __('Expand panel') : __('Collapse panel')}
           >
             <CollapseIcon className="h-3.5 w-3.5" />
@@ -244,7 +244,7 @@ export function AdminSidebar() {
                 href={child.href}
                 onClick={closeSidebar}
                 title={isL2Collapsed ? child.name : undefined}
-                className={cn('admin-sidebar-link', active && 'active')}
+                className={cn('sidebar-link', active && 'active')}
               >
                 <Icon className="h-4 w-4 shrink-0" />
                 {!isL2Collapsed && <span>{child.name}</span>}
@@ -259,19 +259,19 @@ export function AdminSidebar() {
   return (
     <>
       {/* ── Desktop Rail ── */}
-      <aside className="admin-rail hidden xl:flex">
-        <Link href="/dashboard" className="admin-rail-logo">
+      <aside className="rail hidden xl:flex">
+        <Link href="/dashboard" className="rail-logo">
           {logoLetter}
         </Link>
-        <div className="admin-rail-nav">
+        <div className="rail-nav">
           {renderRailNav()}
         </div>
-        <div className="admin-rail-bottom">
+        <div className="rail-bottom">
           <a
             href="/"
             target="_blank"
             rel="noopener noreferrer"
-            className="admin-rail-btn"
+            className="rail-btn"
             title={__('View site')}
           >
             <ExternalLink size={16} />
@@ -283,22 +283,22 @@ export function AdminSidebar() {
       {/* ── Desktop Level 2 Panel (always mounted for transition) ── */}
       <aside
         className={cn(
-          'admin-l2-panel hidden xl:block transition-[translate,opacity,width] duration-300 ease-in-out',
+          'l2-panel hidden xl:block transition-[translate,opacity,width] duration-300 ease-in-out',
           hasLevel2
             ? 'translate-x-0 opacity-100'
             : '-translate-x-full opacity-0 pointer-events-none',
-          hasLevel2 && isL2Collapsed && 'admin-l2-collapsed'
+          hasLevel2 && isL2Collapsed && 'l2-collapsed'
         )}
       >
         {hasLevel2 && renderLevel2()}
       </aside>
 
       {/* ── Mobile Top Bar ── */}
-      <div className="admin-mobile-topbar xl:hidden">
+      <div className="mobile-topbar xl:hidden">
         <button
           type="button"
           onClick={toggleSidebar}
-          className="admin-rail-btn"
+          className="rail-btn"
         >
           <Menu className="h-5 w-5" />
         </button>
@@ -306,7 +306,7 @@ export function AdminSidebar() {
           <button
             type="button"
             onClick={openPalette}
-            className="admin-rail-btn"
+            className="rail-btn"
           >
             <Search className="h-5 w-5" />
           </button>
@@ -321,20 +321,20 @@ export function AdminSidebar() {
             onClick={closeSidebar}
           />
           <div className="fixed inset-y-0 left-0 z-[60] flex xl:hidden">
-            {/* Mobile Rail — inline layout instead of reusing .admin-rail (which is position:fixed) */}
-            <aside className="admin-mobile-rail">
-              <Link href="/dashboard" onClick={closeSidebar} className="admin-rail-logo">
+            {/* Mobile Rail — inline layout instead of reusing .rail (which is position:fixed) */}
+            <aside className="mobile-rail">
+              <Link href="/dashboard" onClick={closeSidebar} className="rail-logo">
                 {logoLetter}
               </Link>
-              <div className="admin-rail-nav">
+              <div className="rail-nav">
                 {renderRailNav()}
               </div>
-              <div className="admin-rail-bottom">
+              <div className="rail-bottom">
                 <a
                   href="/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="admin-rail-btn"
+                  className="rail-btn"
                   title={__('View site')}
                 >
                   <ExternalLink size={16} />

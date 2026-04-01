@@ -62,16 +62,16 @@ export async function BlogSidebar() {
   ]);
 
   return (
-    <aside className="cms-sidebar">
+    <aside className="sidebar">
       {/* Search */}
       <div>
-        <h3 className="cms-sidebar-title">Search</h3>
+        <h3 className="sidebar-title">Search</h3>
         <form action="/search" method="GET">
           <input
             type="text"
             name="q"
             placeholder="Search posts..."
-            className="cms-input"
+            className="input"
           />
         </form>
       </div>
@@ -79,17 +79,17 @@ export async function BlogSidebar() {
       {/* Categories */}
       {categories.length > 0 && (
         <div>
-          <h3 className="cms-sidebar-title">Categories</h3>
-          <div className="cms-sidebar-list">
+          <h3 className="sidebar-title">Categories</h3>
+          <div className="sidebar-list">
             {categories.map((cat) => (
               <Link
                 key={cat.slug}
                 href={`/category/${cat.slug}`}
-                className="cms-sidebar-link"
+                className="sidebar-link"
               >
                 <span>{cat.name}</span>
                 {Number(cat.postCount) > 0 && (
-                  <span className="cms-sidebar-count">{Number(cat.postCount)}</span>
+                  <span className="sidebar-count">{Number(cat.postCount)}</span>
                 )}
               </Link>
             ))}
@@ -100,10 +100,10 @@ export async function BlogSidebar() {
       {/* Popular Tags */}
       {tags.length > 0 && (
         <div>
-          <h3 className="cms-sidebar-title">Tags</h3>
+          <h3 className="sidebar-title">Tags</h3>
           <div className="flex flex-wrap gap-1.5">
             {tags.map((tag) => (
-              <Link key={tag.id} href={`/tag/${tag.slug}`} className="cms-tag">
+              <Link key={tag.id} href={`/tag/${tag.slug}`} className="tag">
                 {tag.name}
               </Link>
             ))}

@@ -95,7 +95,7 @@ export function ContactForm({ formSlug, className }: ContactFormProps) {
   // Success state
   if (submitted) {
     return (
-      <div className={cn('cms-contact-form-success rounded-lg border p-8 text-center', className)}>
+      <div className={cn('contact-form-success rounded-lg border p-8 text-center', className)}>
         <p className="text-lg font-medium">{form.successMessage}</p>
       </div>
     );
@@ -108,11 +108,11 @@ export function ContactForm({ formSlug, className }: ContactFormProps) {
   return (
     <form
       onSubmit={handleSubmit}
-      className={cn('cms-contact-form space-y-4', className)}
+      className={cn('contact-form space-y-4', className)}
       noValidate
     >
       {fields.map((field) => (
-        <div key={field.id} className="cms-contact-form-field">
+        <div key={field.id} className="contact-form-field">
           <label className="mb-1 block text-sm font-medium">
             {field.label}
             {field.required && <span className="ml-1 text-red-500">*</span>}
@@ -125,14 +125,14 @@ export function ContactForm({ formSlug, className }: ContactFormProps) {
               placeholder={field.placeholder}
               required={field.required}
               rows={4}
-              className="cms-textarea"
+              className="textarea"
             />
           ) : field.type === 'select' ? (
             <select
               value={values[field.id] ?? ''}
               onChange={(e) => handleChange(field.id, e.target.value)}
               required={field.required}
-              className="cms-select w-full"
+              className="select w-full"
             >
               <option value="">
                 {field.placeholder ?? 'Select...'}
@@ -177,7 +177,7 @@ export function ContactForm({ formSlug, className }: ContactFormProps) {
               onChange={(e) => handleChange(field.id, e.target.value)}
               placeholder={field.placeholder}
               required={field.required}
-              className="cms-input"
+              className="input"
             />
           )}
         </div>
@@ -207,7 +207,7 @@ export function ContactForm({ formSlug, className }: ContactFormProps) {
       <button
         type="submit"
         disabled={submitting}
-        className="cms-btn cms-btn-primary rounded-md px-6 py-2 text-sm font-medium transition-opacity disabled:opacity-50"
+        className="btn btn-primary rounded-md px-6 py-2 text-sm font-medium transition-opacity disabled:opacity-50"
       >
         {submitting ? (
           <span className="flex items-center gap-2">

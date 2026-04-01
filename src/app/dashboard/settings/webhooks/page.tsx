@@ -100,9 +100,9 @@ export default function WebhooksPage() {
   const isPending = createWebhook.isPending || updateWebhook.isPending;
 
   return (
-    <div className="admin-webhooks-page">
-      <div className="admin-webhooks-header flex items-center justify-between">
-        <div className="admin-webhooks-header-left flex items-center gap-3">
+    <div className="webhooks-page">
+      <div className="webhooks-header flex items-center justify-between">
+        <div className="webhooks-header-left flex items-center gap-3">
           <Link
             href="/dashboard/settings"
             className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary)"
@@ -111,14 +111,14 @@ export default function WebhooksPage() {
           </Link>
           <h1 className="text-2xl font-bold text-(--text-primary)">{__('Webhooks')}</h1>
         </div>
-        <button onClick={() => { resetForm(); setShowForm(true); }} className="admin-btn admin-btn-primary">
+        <button onClick={() => { resetForm(); setShowForm(true); }} className="btn btn-primary">
           <Plus className="h-4 w-4" />
           {__('New Webhook')}
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="admin-webhook-form mt-4 admin-card p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="webhook-form mt-4 card p-6 space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
               <label className="block text-sm font-medium text-(--text-secondary)">{__('Name')}</label>
@@ -171,18 +171,18 @@ export default function WebhooksPage() {
           </label>
 
           <div className="flex gap-2">
-            <button type="submit" disabled={isPending || events.length === 0} className="admin-btn admin-btn-primary disabled:opacity-50">
+            <button type="submit" disabled={isPending || events.length === 0} className="btn btn-primary disabled:opacity-50">
               {isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
               {editId ? __('Update') : __('Create')}
             </button>
-            <button type="button" onClick={resetForm} className="admin-btn admin-btn-secondary">
+            <button type="button" onClick={resetForm} className="btn btn-secondary">
               {__('Cancel')}
             </button>
           </div>
         </form>
       )}
 
-      <div className="mt-4 admin-card overflow-hidden">
+      <div className="mt-4 card overflow-hidden">
         {webhooksQuery.isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
@@ -193,26 +193,26 @@ export default function WebhooksPage() {
           </p>
         ) : (
           <table className="w-full">
-            <thead className="admin-thead">
+            <thead className="thead">
               <tr>
-                <th className="admin-th">{__('Name')}</th>
-                <th className="admin-th">{__('URL')}</th>
-                <th className="admin-th w-20">{__('Status')}</th>
-                <th className="admin-th w-32" />
+                <th className="th">{__('Name')}</th>
+                <th className="th">{__('URL')}</th>
+                <th className="th w-20">{__('Status')}</th>
+                <th className="th w-32" />
               </tr>
             </thead>
             <tbody>
               {(webhooksQuery.data ?? []).map((hook) => (
                 <tr key={hook.id} className="hover:bg-(--surface-secondary)">
-                  <td className="admin-td font-medium text-(--text-primary)">{hook.name}</td>
-                  <td className="admin-td text-xs font-mono text-(--text-muted) truncate max-w-xs">{hook.url}</td>
-                  <td className="admin-td">
+                  <td className="td font-medium text-(--text-primary)">{hook.name}</td>
+                  <td className="td text-xs font-mono text-(--text-muted) truncate max-w-xs">{hook.url}</td>
+                  <td className="td">
                     <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${hook.active ? 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400' : 'bg-(--surface-secondary) text-(--text-muted)'}`}>
                       {hook.active ? __('Active') : __('Inactive')}
                     </span>
                   </td>
-                  <td className="admin-td">
-                    <div className="admin-webhooks-row-actions flex items-center justify-end gap-1">
+                  <td className="td">
+                    <div className="webhooks-row-actions flex items-center justify-end gap-1">
                       <button
                         onClick={() => testWebhook.mutate({ id: hook.id })}
                         className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"

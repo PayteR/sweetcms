@@ -112,12 +112,12 @@ export default function EmailTemplatesPage() {
   if (editing) {
     const template = TEMPLATES.find((t) => t.name === editing)!;
     return (
-      <div className="admin-email-editor-page">
-        <div className="admin-email-templates-header flex items-center justify-between">
+      <div className="email-editor-page">
+        <div className="email-templates-header flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setEditing(null)}
-              className="admin-btn admin-btn-secondary"
+              className="btn btn-secondary"
             >
               <ArrowLeft className="h-4 w-4" />
             </button>
@@ -129,7 +129,7 @@ export default function EmailTemplatesPage() {
             {getOverrideStatus(editing) && (
               <button
                 onClick={() => setResetTarget(editing)}
-                className="admin-btn admin-btn-secondary"
+                className="btn btn-secondary"
               >
                 <RotateCcw className="h-4 w-4" />
                 {__('Reset to Default')}
@@ -138,7 +138,7 @@ export default function EmailTemplatesPage() {
             <button
               onClick={handleSave}
               disabled={setOption.isPending}
-              className="admin-btn admin-btn-primary disabled:opacity-50"
+              className="btn btn-primary disabled:opacity-50"
             >
               {setOption.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -151,7 +151,7 @@ export default function EmailTemplatesPage() {
         </div>
 
         <div className="mt-6 space-y-4">
-          <div className="admin-card p-4">
+          <div className="card p-4">
             <label className="block text-sm font-medium text-(--text-secondary)">
               {__('Subject')}
             </label>
@@ -159,12 +159,12 @@ export default function EmailTemplatesPage() {
               type="text"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              className="admin-input mt-1"
+              className="input mt-1"
               placeholder={__('Email subject line')}
             />
           </div>
 
-          <div className="admin-card p-4">
+          <div className="card p-4">
             <label className="block text-sm font-medium text-(--text-secondary)">
               {__('HTML Body')}
             </label>
@@ -172,12 +172,12 @@ export default function EmailTemplatesPage() {
               value={html}
               onChange={(e) => setHtml(e.target.value)}
               rows={16}
-              className="admin-textarea mt-1 font-mono text-xs"
+              className="textarea mt-1 font-mono text-xs"
               placeholder="<html>...</html>"
             />
           </div>
 
-          <div className="admin-card p-4">
+          <div className="card p-4">
             <p className="text-sm font-medium text-(--text-secondary)">
               {__('Available Variables')}
             </p>
@@ -194,7 +194,7 @@ export default function EmailTemplatesPage() {
           </div>
 
           {html && (
-            <div className="admin-card p-4">
+            <div className="card p-4">
               <p className="text-sm font-medium text-(--text-secondary)">
                 {__('Preview')}
               </p>
@@ -222,7 +222,7 @@ export default function EmailTemplatesPage() {
   }
 
   return (
-    <div className="admin-email-templates-page">
+    <div className="email-templates-page">
       <h1 className="text-2xl font-bold text-(--text-primary)">
         {__('Email Templates')}
       </h1>
@@ -230,14 +230,14 @@ export default function EmailTemplatesPage() {
         {__('Customize email templates. Overrides are stored in the database; unmodified templates use the default file.')}
       </p>
 
-      <div className="admin-email-templates-cards mt-6 grid gap-4 sm:grid-cols-2">
+      <div className="email-templates-cards mt-6 grid gap-4 sm:grid-cols-2">
         {TEMPLATES.map((t) => {
           const hasOverride = getOverrideStatus(t.name);
           return (
             <button
               key={t.name}
               onClick={() => setEditing(t.name)}
-              className="admin-card p-4 text-left transition-shadow hover:ring-1 hover:ring-(--color-brand-400)"
+              className="card p-4 text-left transition-shadow hover:ring-1 hover:ring-(--color-brand-400)"
             >
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-(--text-primary)">

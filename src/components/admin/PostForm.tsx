@@ -357,7 +357,7 @@ export function PostForm({ contentType, postId }: Props) {
             href={`${contentType.urlPrefix}${formData.slug}?preview=${existingPost.data.previewToken}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="admin-btn admin-btn-secondary"
+            className="btn btn-secondary"
           >
             <Eye className="h-4 w-4" />
             {__('Preview')}
@@ -368,7 +368,7 @@ export function PostForm({ contentType, postId }: Props) {
             type="button"
             onClick={handlePublish}
             disabled={isSaving || !formData.title}
-            className="admin-btn admin-btn-primary disabled:opacity-50"
+            className="btn btn-primary disabled:opacity-50"
           >
             {__('Publish')}
           </button>
@@ -377,7 +377,7 @@ export function PostForm({ contentType, postId }: Props) {
           type="submit"
           form="post-form"
           disabled={isSaving || !formData.title}
-          className="admin-btn admin-btn-primary disabled:opacity-50"
+          className="btn btn-primary disabled:opacity-50"
         >
           {isSaving ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -403,11 +403,11 @@ export function PostForm({ contentType, postId }: Props) {
       <BrokenLinksBanner urls={brokenLinks} onDismiss={dismissBrokenLinks} />
 
       <form id="post-form" onSubmit={handleSubmit}>
-        <div className="admin-post-form-layout grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <div className="post-form-layout grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Main content — 2/3 */}
-          <div className="admin-post-form-main space-y-6 lg:col-span-2">
+          <div className="post-form-main space-y-6 lg:col-span-2">
             {/* Title */}
-            <div className="admin-card p-6">
+            <div className="card p-6">
               <label className="block text-sm font-medium text-(--text-secondary)">
                 {__('Title')}
               </label>
@@ -416,7 +416,7 @@ export function PostForm({ contentType, postId }: Props) {
                 required
                 value={formData.title}
                 onChange={(e) => handleChange('title', e.target.value)}
-                className="admin-input mt-1"
+                className="input mt-1"
                 placeholder={__(`${contentType.label} title`)}
               />
 
@@ -430,13 +430,13 @@ export function PostForm({ contentType, postId }: Props) {
                   handleChange('slug', e.target.value);
                   setSlugManual(true);
                 }}
-                className="admin-input mt-1 font-mono"
+                className="input mt-1 font-mono"
                 placeholder="url-slug"
               />
             </div>
 
             {/* Content — Rich Text Editor */}
-            <div className="admin-card p-6">
+            <div className="card p-6">
               <label className="mb-2 block text-sm font-medium text-(--text-secondary)">
                 {__('Content')}
               </label>
@@ -453,8 +453,8 @@ export function PostForm({ contentType, postId }: Props) {
             </div>
 
             {/* SEO */}
-            <div className="admin-card p-6">
-              <h3 className="admin-h2">{__('SEO')}</h3>
+            <div className="card p-6">
+              <h3 className="h2">{__('SEO')}</h3>
               <div className="mt-4 space-y-4">
                 <SEOFields
                   seoTitle={formData.seoTitle}
@@ -500,13 +500,13 @@ export function PostForm({ contentType, postId }: Props) {
 
             {/* JSON-LD */}
             {contentType.postFormFields?.jsonLd && (
-              <div className="admin-card p-6">
-                <h3 className="admin-h2">{__('Structured Data (JSON-LD)')}</h3>
+              <div className="card p-6">
+                <h3 className="h2">{__('Structured Data (JSON-LD)')}</h3>
                 <textarea
                   value={formData.jsonLd}
                   onChange={(e) => handleChange('jsonLd', e.target.value)}
                   rows={6}
-                  className="admin-textarea mt-3 font-mono"
+                  className="textarea mt-3 font-mono"
                   placeholder='{"@context": "https://schema.org", ...}'
                 />
               </div>
@@ -514,19 +514,19 @@ export function PostForm({ contentType, postId }: Props) {
           </div>
 
           {/* Sidebar — 1/3 */}
-          <div className="admin-post-form-sidebar space-y-6">
+          <div className="post-form-sidebar space-y-6">
             {/* Status & Scheduling */}
-            <div className="admin-card p-6">
-              <h3 className="admin-h2">{__('Status')}</h3>
+            <div className="card p-6">
+              <h3 className="h2">{__('Status')}</h3>
               <div className="mt-4 space-y-4">
-                <div className="admin-field-group">
+                <div className="field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Status')}
                   </label>
                   <select
                     value={formData.status}
                     onChange={(e) => handleChange('status', Number(e.target.value))}
-                    className="admin-select mt-1 w-full"
+                    className="select mt-1 w-full"
                   >
                     <option value={ContentStatus.DRAFT}>{__('Draft')}</option>
                     <option value={ContentStatus.PUBLISHED}>
@@ -538,7 +538,7 @@ export function PostForm({ contentType, postId }: Props) {
                   </select>
                 </div>
 
-                <div className="admin-field-group">
+                <div className="field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Publish Date')}
                   </label>
@@ -546,11 +546,11 @@ export function PostForm({ contentType, postId }: Props) {
                     type="datetime-local"
                     value={formData.publishedAt}
                     onChange={(e) => handleChange('publishedAt', e.target.value)}
-                    className="admin-input mt-1"
+                    className="input mt-1"
                   />
                 </div>
 
-                <div className="admin-field-group">
+                <div className="field-group">
                   {post && translationSiblings.data ? (
                     <TranslationBar
                       currentLang={formData.lang}
@@ -575,7 +575,7 @@ export function PostForm({ contentType, postId }: Props) {
                         value={formData.lang}
                         onChange={(e) => handleChange('lang', e.target.value)}
                         disabled={!isNew}
-                        className="admin-select mt-1 w-full disabled:bg-(--surface-secondary)"
+                        className="select mt-1 w-full disabled:bg-(--surface-secondary)"
                       >
                         <option value="en">English</option>
                       </select>
@@ -595,12 +595,12 @@ export function PostForm({ contentType, postId }: Props) {
 
             {/* Parent Page (pages only) */}
             {isPageType && (
-              <div className="admin-card p-6">
-                <h3 className="admin-h2">{__('Parent Page')}</h3>
+              <div className="card p-6">
+                <h3 className="h2">{__('Parent Page')}</h3>
                 <select
                   value={formData.parentId ?? ''}
                   onChange={(e) => handleChange('parentId', e.target.value || null)}
-                  className="admin-select mt-3 w-full"
+                  className="select mt-3 w-full"
                 >
                   <option value="">{__('None (top level)')}</option>
                   {(pageTree.data ?? [])
@@ -615,8 +615,8 @@ export function PostForm({ contentType, postId }: Props) {
             )}
 
             {/* Categories */}
-            <div className="admin-card p-6">
-              <h3 className="admin-h2">{__('Categories')}</h3>
+            <div className="card p-6">
+              <h3 className="h2">{__('Categories')}</h3>
               <div className="mt-3 max-h-48 space-y-1.5 overflow-y-auto">
                 {categoriesList.isLoading ? (
                   <Loader2 className="h-4 w-4 animate-spin text-(--text-muted)" />
@@ -644,8 +644,8 @@ export function PostForm({ contentType, postId }: Props) {
             </div>
 
             {/* Tags */}
-            <div className="admin-card p-6">
-              <h3 className="admin-h2">{__('Tags')}</h3>
+            <div className="card p-6">
+              <h3 className="h2">{__('Tags')}</h3>
               <div className="mt-3">
                 <TagInput
                   selectedTagIds={formData.tagIds}
@@ -657,11 +657,11 @@ export function PostForm({ contentType, postId }: Props) {
 
             {/* Featured Image */}
             {contentType.postFormFields?.featuredImage && (
-              <div className="admin-card p-6">
-                <h3 className="admin-h2">{__('Featured Image')}</h3>
+              <div className="card p-6">
+                <h3 className="h2">{__('Featured Image')}</h3>
                 <div className="mt-4 space-y-3">
                   {formData.featuredImage ? (
-                    <div className="admin-post-form-image-preview relative">
+                    <div className="post-form-image-preview relative">
                       <img
                         src={formData.featuredImage}
                         alt={formData.featuredImageAlt || 'Preview'}
@@ -689,7 +689,7 @@ export function PostForm({ contentType, postId }: Props) {
                     </button>
                   )}
                   {formData.featuredImage && (
-                    <div className="admin-post-form-image-actions flex gap-2">
+                    <div className="post-form-image-actions flex gap-2">
                       <button
                         type="button"
                         onClick={() => setShowMediaPicker(true)}
@@ -708,7 +708,7 @@ export function PostForm({ contentType, postId }: Props) {
                         type="text"
                         value={formData.featuredImageAlt}
                         onChange={(e) => handleChange('featuredImageAlt', e.target.value)}
-                        className="admin-input mt-1"
+                        className="input mt-1"
                         placeholder={__('Describe the image')}
                       />
                     </div>

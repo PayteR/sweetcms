@@ -293,13 +293,13 @@ export default function ImportPage() {
   // ── Render ─────────────────────────────────────────────────────────
 
   return (
-    <div className="admin-import-page">
+    <div className="import-page">
       <h1 className="text-2xl font-bold text-(--text-primary)">
         {__('Import Content')}
       </h1>
 
       {/* Step indicator */}
-      <div className="admin-import-steps mt-4 flex items-center gap-2">
+      <div className="import-steps mt-4 flex items-center gap-2">
         {steps.map((s, i) => (
           <div key={s.key} className="flex items-center gap-2">
             {i > 0 && (
@@ -325,9 +325,9 @@ export default function ImportPage() {
       {step === 'upload' && (
         <div className="mt-6 space-y-6">
           {/* Format selection */}
-          <div className="admin-card p-6">
-            <h2 className="admin-h2">{__('Import Format')}</h2>
-            <div className="admin-import-formats mt-4 grid gap-3 sm:grid-cols-3">
+          <div className="card p-6">
+            <h2 className="h2">{__('Import Format')}</h2>
+            <div className="import-formats mt-4 grid gap-3 sm:grid-cols-3">
               {FORMAT_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
@@ -358,8 +358,8 @@ export default function ImportPage() {
           </div>
 
           {/* File upload */}
-          <div className="admin-card p-6">
-            <h2 className="admin-h2">{__('Select File')}</h2>
+          <div className="card p-6">
+            <h2 className="h2">{__('Select File')}</h2>
             <div className="mt-4">
               <input
                 ref={fileInputRef}
@@ -376,7 +376,7 @@ export default function ImportPage() {
               />
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="admin-import-dropzone flex cursor-pointer flex-col items-center rounded-lg border-2 border-dashed border-(--border-primary) px-6 py-10 transition-colors hover:border-(--color-brand-400) hover:bg-(--surface-secondary)"
+                className="import-dropzone flex cursor-pointer flex-col items-center rounded-lg border-2 border-dashed border-(--border-primary) px-6 py-10 transition-colors hover:border-(--color-brand-400) hover:bg-(--surface-secondary)"
               >
                 {fileName ? (
                   <>
@@ -401,8 +401,8 @@ export default function ImportPage() {
           </div>
 
           {/* Import options */}
-          <div className="admin-card p-6">
-            <h2 className="admin-h2">{__('Import Options')}</h2>
+          <div className="card p-6">
+            <h2 className="h2">{__('Import Options')}</h2>
             <div className="mt-4 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-(--text-secondary)">
@@ -411,7 +411,7 @@ export default function ImportPage() {
                 <select
                   value={postType}
                   onChange={(e) => setPostType(Number(e.target.value))}
-                  className="admin-select mt-1 w-48"
+                  className="select mt-1 w-48"
                 >
                   <option value={PostType.BLOG}>{__('Blog Post')}</option>
                   <option value={PostType.PAGE}>{__('Page')}</option>
@@ -428,7 +428,7 @@ export default function ImportPage() {
                       e.target.value as 'draft' | 'published' | ''
                     )
                   }
-                  className="admin-select mt-1 w-48"
+                  className="select mt-1 w-48"
                 >
                   <option value="">{__('Keep original status')}</option>
                   <option value="draft">{__('Import all as Draft')}</option>
@@ -445,7 +445,7 @@ export default function ImportPage() {
               type="button"
               onClick={handleUploadNext}
               disabled={!fileContent}
-              className="admin-btn admin-btn-primary disabled:opacity-50"
+              className="btn btn-primary disabled:opacity-50"
             >
               {__('Next')}
               <ChevronRight className="h-4 w-4" />
@@ -457,8 +457,8 @@ export default function ImportPage() {
       {/* ── Step: Column Map (CSV only) ─────────────────────────────── */}
       {step === 'column-map' && (
         <div className="mt-6 space-y-6">
-          <div className="admin-card p-6">
-            <h2 className="admin-h2">{__('Map CSV Columns')}</h2>
+          <div className="card p-6">
+            <h2 className="h2">{__('Map CSV Columns')}</h2>
             <p className="mt-1 text-sm text-(--text-muted)">
               {__(
                 'Map your CSV column headers to CMS fields. Only Title is required.'
@@ -489,7 +489,7 @@ export default function ImportPage() {
                         return next;
                       });
                     }}
-                    className="admin-select w-64"
+                    className="select w-64"
                   >
                     <option value="">{__('-- Skip --')}</option>
                     {csvHeaders.map((h) => (
@@ -507,7 +507,7 @@ export default function ImportPage() {
             <button
               type="button"
               onClick={() => setStep('upload')}
-              className="admin-btn admin-btn-secondary"
+              className="btn btn-secondary"
             >
               <ChevronLeft className="h-4 w-4" />
               {__('Back')}
@@ -516,7 +516,7 @@ export default function ImportPage() {
               type="button"
               onClick={runPreview}
               disabled={!columnMap.title || previewMutation.isPending}
-              className="admin-btn admin-btn-primary disabled:opacity-50"
+              className="btn btn-primary disabled:opacity-50"
             >
               {previewMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -551,7 +551,7 @@ export default function ImportPage() {
           )}
 
           {/* Summary */}
-          <div className="admin-card p-4">
+          <div className="card p-4">
             <div className="flex items-center justify-between">
               <span className="text-sm text-(--text-secondary)">
                 {selectedIndices.size} {__('of')} {previewItems.length}{' '}
@@ -571,12 +571,12 @@ export default function ImportPage() {
 
           {/* Items table */}
           {previewItems.length > 0 && (
-            <div className="admin-card overflow-hidden">
+            <div className="card overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="admin-thead">
-                      <th className="admin-th w-10">
+                    <tr className="thead">
+                      <th className="th w-10">
                         <input
                           type="checkbox"
                           checked={selectedIndices.size === previewItems.length}
@@ -584,11 +584,11 @@ export default function ImportPage() {
                           className="rounded border-(--border-primary)"
                         />
                       </th>
-                      <th className="admin-th">{__('Title')}</th>
-                      <th className="admin-th">{__('Slug')}</th>
-                      <th className="admin-th">{__('Status')}</th>
-                      <th className="admin-th">{__('Date')}</th>
-                      <th className="admin-th">{__('Categories')}</th>
+                      <th className="th">{__('Title')}</th>
+                      <th className="th">{__('Slug')}</th>
+                      <th className="th">{__('Status')}</th>
+                      <th className="th">{__('Date')}</th>
+                      <th className="th">{__('Categories')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -600,7 +600,7 @@ export default function ImportPage() {
                           !selectedIndices.has(i) && 'opacity-40'
                         )}
                       >
-                        <td className="admin-td">
+                        <td className="td">
                           <input
                             type="checkbox"
                             checked={selectedIndices.has(i)}
@@ -608,17 +608,17 @@ export default function ImportPage() {
                             className="rounded border-(--border-primary)"
                           />
                         </td>
-                        <td className="admin-td max-w-xs">
+                        <td className="td max-w-xs">
                           <span className="font-medium text-(--text-primary)">
                             {truncate(item.title, 60)}
                           </span>
                         </td>
-                        <td className="admin-td">
+                        <td className="td">
                           <code className="text-xs text-(--text-muted)">
                             {truncate(item.slug, 40)}
                           </code>
                         </td>
-                        <td className="admin-td">
+                        <td className="td">
                           <span
                             className={cn(
                               'inline-block rounded-full px-2 py-0.5 text-xs font-medium',
@@ -632,10 +632,10 @@ export default function ImportPage() {
                               : __('Draft')}
                           </span>
                         </td>
-                        <td className="admin-td text-xs">
+                        <td className="td text-xs">
                           {formatDate(item.publishedAt)}
                         </td>
-                        <td className="admin-td text-xs text-(--text-muted)">
+                        <td className="td text-xs text-(--text-muted)">
                           {(item.categories ?? []).join(', ') || '--'}
                         </td>
                       </tr>
@@ -647,7 +647,7 @@ export default function ImportPage() {
           )}
 
           {previewItems.length === 0 && (
-            <div className="admin-card flex flex-col items-center py-12">
+            <div className="card flex flex-col items-center py-12">
               <FileText className="h-10 w-10 text-(--text-muted)" />
               <p className="mt-3 text-sm text-(--text-muted)">
                 {__('No items found in this file')}
@@ -661,7 +661,7 @@ export default function ImportPage() {
               onClick={() =>
                 setStep(format === 'csv' ? 'column-map' : 'upload')
               }
-              className="admin-btn admin-btn-secondary"
+              className="btn btn-secondary"
             >
               <ChevronLeft className="h-4 w-4" />
               {__('Back')}
@@ -672,7 +672,7 @@ export default function ImportPage() {
               disabled={
                 selectedIndices.size === 0 || executeMutation.isPending
               }
-              className="admin-btn admin-btn-primary disabled:opacity-50"
+              className="btn btn-primary disabled:opacity-50"
             >
               {executeMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -691,11 +691,11 @@ export default function ImportPage() {
       {step === 'result' && result && (
         <div className="mt-6 space-y-6">
           {/* Success summary */}
-          <div className="admin-card p-6">
+          <div className="card p-6">
             <div className="flex items-center gap-3">
               <CheckCircle className="h-8 w-8 text-green-500" />
               <div>
-                <h2 className="admin-h2">{__('Import Complete')}</h2>
+                <h2 className="h2">{__('Import Complete')}</h2>
                 <p className="mt-1 text-sm text-(--text-muted)">
                   {result.created} {__('items created')}
                   {result.skipped > 0 &&
@@ -707,8 +707,8 @@ export default function ImportPage() {
 
           {/* Errors */}
           {result.errors.length > 0 && (
-            <div className="admin-card p-6">
-              <h2 className="admin-h2 flex items-center gap-2">
+            <div className="card p-6">
+              <h2 className="h2 flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-red-500" />
                 {__('Errors')} ({result.errors.length})
               </h2>
@@ -729,7 +729,7 @@ export default function ImportPage() {
             <button
               type="button"
               onClick={handleReset}
-              className="admin-btn admin-btn-primary"
+              className="btn btn-primary"
             >
               {__('Import More')}
             </button>

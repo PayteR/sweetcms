@@ -35,7 +35,7 @@ export function PostCard({
     return (
       <Link
         href={href}
-        className="cms-post-card group rounded-lg border border-(--border-primary) bg-(--surface-primary) p-6 shadow-sm transition-shadow hover:shadow-md"
+        className="post-card group rounded-lg border border-(--border-primary) bg-(--surface-primary) p-6 shadow-sm transition-shadow hover:shadow-md"
       >
         <h3 className="text-lg font-semibold text-(--text-primary) group-hover:text-(--color-brand-600)">
           {title}
@@ -46,9 +46,9 @@ export function PostCard({
           </p>
         )}
         {tags && tags.length > 0 && (
-          <div className="cms-post-card-tags mt-3 flex flex-wrap gap-1">
+          <div className="post-card-tags mt-3 flex flex-wrap gap-1">
             {tags.map((tag) => (
-              <span key={tag.slug} className="cms-tag">
+              <span key={tag.slug} className="tag">
                 {tag.name}
               </span>
             ))}
@@ -62,7 +62,7 @@ export function PostCard({
   }
 
   return (
-    <article className="cms-post-card-article border-b border-(--border-secondary) pb-6">
+    <article className="post-card-article border-b border-(--border-secondary) pb-6">
       <Link
         href={href}
         className="text-xl font-semibold text-(--text-primary) hover:text-(--color-brand-600)"
@@ -73,9 +73,9 @@ export function PostCard({
         <p className="mt-2 text-(--text-secondary)">{metaDescription}</p>
       )}
       {tags && tags.length > 0 && (
-        <div className="cms-post-card-tags mt-2 flex flex-wrap gap-1.5">
+        <div className="post-card-tags mt-2 flex flex-wrap gap-1.5">
           {tags.map((tag) => (
-            <Link key={tag.slug} href={`/tag/${tag.slug}`} className="cms-tag">
+            <Link key={tag.slug} href={`/tag/${tag.slug}`} className="tag">
               {tag.name}
             </Link>
           ))}

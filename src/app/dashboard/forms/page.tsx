@@ -65,13 +65,13 @@ export default function FormsPage() {
   }
 
   return (
-    <div className="admin-forms-page">
+    <div className="forms-page">
       {/* Header */}
-      <div className="admin-forms-header flex items-center justify-between">
+      <div className="forms-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">
           {__('Forms')}
         </h1>
-        <Link href="/dashboard/forms/new" className="admin-btn admin-btn-primary">
+        <Link href="/dashboard/forms/new" className="btn btn-primary">
           <Plus className="h-4 w-4" />
           {__('New Form')}
         </Link>
@@ -79,14 +79,14 @@ export default function FormsPage() {
 
       {/* Search */}
       <form onSubmit={handleSearch} className="mt-4 flex gap-2">
-        <div className="admin-forms-search relative flex-1">
+        <div className="forms-search relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--text-muted)" />
           <input
             type="text"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder={__('Search forms...')}
-            className="admin-input pl-9 pr-3"
+            className="input pl-9 pr-3"
           />
           {search && (
             <button
@@ -102,13 +102,13 @@ export default function FormsPage() {
             </button>
           )}
         </div>
-        <button type="submit" className="admin-btn admin-btn-secondary">
+        <button type="submit" className="btn btn-secondary">
           {__('Search')}
         </button>
       </form>
 
       {/* Table */}
-      <div className="admin-card mt-4 overflow-hidden">
+      <div className="card mt-4 overflow-hidden">
         {list.isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
@@ -119,15 +119,15 @@ export default function FormsPage() {
           </p>
         ) : (
           <table className="w-full">
-            <thead className="admin-thead">
+            <thead className="thead">
               <tr>
-                <th className="admin-th">{__('Name')}</th>
-                <th className="admin-th w-40">{__('Slug')}</th>
-                <th className="admin-th w-20">{__('Active')}</th>
-                <th className="admin-th w-20">{__('Fields')}</th>
-                <th className="admin-th w-28">{__('Submissions')}</th>
-                <th className="admin-th w-32">{__('Created')}</th>
-                <th className="admin-th w-28" />
+                <th className="th">{__('Name')}</th>
+                <th className="th w-40">{__('Slug')}</th>
+                <th className="th w-20">{__('Active')}</th>
+                <th className="th w-20">{__('Fields')}</th>
+                <th className="th w-28">{__('Submissions')}</th>
+                <th className="th w-32">{__('Created')}</th>
+                <th className="th w-28" />
               </tr>
             </thead>
             <tbody>
@@ -137,7 +137,7 @@ export default function FormsPage() {
                   : 0;
                 return (
                   <tr key={form.id} className="hover:bg-(--surface-secondary)">
-                    <td className="admin-td">
+                    <td className="td">
                       <Link
                         href={`/dashboard/forms/${form.id}`}
                         className="font-medium text-(--text-primary) hover:text-(--color-brand-600)"
@@ -145,12 +145,12 @@ export default function FormsPage() {
                         {form.name}
                       </Link>
                     </td>
-                    <td className="admin-td">
+                    <td className="td">
                       <code className="rounded bg-(--surface-secondary) px-1.5 py-0.5 text-xs text-(--text-secondary)">
                         {form.slug}
                       </code>
                     </td>
-                    <td className="admin-td">
+                    <td className="td">
                       {form.active ? (
                         <span className="inline-flex items-center gap-1 text-xs font-medium text-green-600">
                           <Eye className="h-3 w-3" />
@@ -163,10 +163,10 @@ export default function FormsPage() {
                         </span>
                       )}
                     </td>
-                    <td className="admin-td text-sm text-(--text-secondary)">
+                    <td className="td text-sm text-(--text-secondary)">
                       {fieldCount}
                     </td>
-                    <td className="admin-td">
+                    <td className="td">
                       <Link
                         href={`/dashboard/forms/${form.id}/submissions`}
                         className="text-sm text-(--color-brand-600) hover:underline"
@@ -174,11 +174,11 @@ export default function FormsPage() {
                         {form.submissionCount}
                       </Link>
                     </td>
-                    <td className="admin-td text-xs text-(--text-muted)">
+                    <td className="td text-xs text-(--text-muted)">
                       {formatDate(form.createdAt)}
                     </td>
-                    <td className="admin-td">
-                      <div className="admin-forms-row-actions flex items-center justify-end gap-1">
+                    <td className="td">
+                      <div className="forms-row-actions flex items-center justify-end gap-1">
                         <Link
                           href={`/dashboard/forms/${form.id}`}
                           className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"
@@ -207,16 +207,16 @@ export default function FormsPage() {
 
       {/* Pagination */}
       {data && data.totalPages > 1 && (
-        <div className="admin-forms-pagination mt-4 flex items-center justify-between">
-          <p className="admin-pagination-info text-sm text-(--text-muted)">
+        <div className="forms-pagination mt-4 flex items-center justify-between">
+          <p className="pagination-info text-sm text-(--text-muted)">
             {__('Page')} {data.page} {__('of')} {data.totalPages} ({data.total}{' '}
             {__('total')})
           </p>
-          <div className="admin-forms-pagination-buttons flex gap-1">
+          <div className="forms-pagination-buttons flex gap-1">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}
-              className="admin-btn admin-btn-secondary disabled:opacity-40"
+              className="btn btn-secondary disabled:opacity-40"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -225,7 +225,7 @@ export default function FormsPage() {
                 setPage((p) => Math.min(data.totalPages, p + 1))
               }
               disabled={page >= data.totalPages}
-              className="admin-btn admin-btn-secondary disabled:opacity-40"
+              className="btn btn-secondary disabled:opacity-40"
             >
               <ChevronRight className="h-4 w-4" />
             </button>

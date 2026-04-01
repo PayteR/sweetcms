@@ -42,9 +42,9 @@ export function GalleryBlock({ attrs }: Props) {
   const ordered = ids.map((id) => mediaMap.get(id)).filter((m): m is NonNullable<typeof m> => m != null);
 
   return (
-    <div className="cms-gallery my-6 grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
+    <div className="gallery my-6 grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
       {ordered.map((m) => (
-        <div key={m.id} className="cms-gallery-item aspect-square overflow-hidden rounded-md bg-(--surface-secondary)">
+        <div key={m.id} className="gallery-item aspect-square overflow-hidden rounded-md bg-(--surface-secondary)">
           <img
             src={m.mediumUrl ?? m.url}
             alt={m.altText ?? ''}

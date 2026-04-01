@@ -7,7 +7,7 @@ export function YoutubeEmbed({ attrs }: Props) {
   if (!videoId || !/^[\w-]{1,20}$/.test(videoId)) return null;
 
   return (
-    <div className="cms-youtube-embed my-6 aspect-video overflow-hidden rounded-lg">
+    <div className="youtube-embed my-6 aspect-video overflow-hidden rounded-lg">
       <iframe
         src={`https://www.youtube-nocookie.com/embed/${videoId}`}
         title="YouTube video"

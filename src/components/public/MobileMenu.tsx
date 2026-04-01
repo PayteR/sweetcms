@@ -41,7 +41,7 @@ export function MobileMenu({ items }: Props) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="cms-header-icon-btn sm:hidden"
+        className="header-icon-btn sm:hidden"
         aria-label="Open menu"
       >
         <Menu className="h-5 w-5" />
@@ -49,35 +49,35 @@ export function MobileMenu({ items }: Props) {
 
       {/* Overlay */}
       <div
-        className={cn('cms-mobile-overlay transition-opacity duration-200', open ? 'opacity-100' : 'pointer-events-none opacity-0')}
+        className={cn('mobile-overlay transition-opacity duration-200', open ? 'opacity-100' : 'pointer-events-none opacity-0')}
         onClick={close}
         aria-hidden
       />
 
       {/* Drawer */}
       <div
-        className={cn('cms-mobile-drawer transition-transform duration-200', open ? 'translate-x-0' : 'translate-x-full')}
+        className={cn('mobile-drawer transition-transform duration-200', open ? 'translate-x-0' : 'translate-x-full')}
       >
-        <div className="cms-mobile-drawer-header">
+        <div className="mobile-drawer-header">
           <span className="text-sm font-semibold text-(--text-primary)">Menu</span>
           <button
             type="button"
             onClick={close}
-            className="cms-header-icon-btn"
+            className="header-icon-btn"
             aria-label="Close menu"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <nav className="cms-mobile-drawer-nav">
+        <nav className="mobile-drawer-nav">
           {items.map((item) => (
             <a
               key={item.url}
               href={item.url}
               className={cn(
-                'cms-mobile-drawer-link',
-                pathname === item.url && 'cms-mobile-drawer-link-active'
+                'mobile-drawer-link',
+                pathname === item.url && 'mobile-drawer-link-active'
               )}
             >
               {item.label}

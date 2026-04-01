@@ -31,9 +31,9 @@ function RecentActivityWidget() {
   const __ = useBlankTranslations();
 
   return (
-    <div className="admin-card flex flex-col overflow-hidden">
-      <div className="admin-widget-header">
-        <h2 className="admin-h2 flex items-center gap-2">
+    <div className="card flex flex-col overflow-hidden">
+      <div className="widget-header">
+        <h2 className="h2 flex items-center gap-2">
           <Clock className="h-4 w-4 text-(--text-muted)" />
           {__('Recent Activity')}
         </h2>

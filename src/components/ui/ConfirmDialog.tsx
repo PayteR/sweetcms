@@ -32,7 +32,7 @@ export function ConfirmDialog({
       <Dialog.Footer>
         <button
           onClick={onCancel}
-          className="admin-btn admin-btn-secondary"
+          className="btn btn-secondary"
         >
           {cancelLabel}
         </button>
@@ -40,8 +40,8 @@ export function ConfirmDialog({
           onClick={onConfirm}
           className={
             variant === 'danger'
-              ? 'admin-btn admin-btn-danger'
-              : 'admin-btn admin-btn-primary'
+              ? 'btn btn-danger'
+              : 'btn btn-primary'
           }
         >
           {confirmLabel}

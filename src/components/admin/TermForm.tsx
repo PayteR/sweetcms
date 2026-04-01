@@ -105,9 +105,9 @@ export function TermForm({ tagId }: Props) {
   }
 
   return (
-    <div className="admin-term-form-page">
-      <div className="admin-term-form-header flex items-center justify-between">
-        <div className="admin-term-form-header-left flex items-center gap-3">
+    <div className="term-form-page">
+      <div className="term-form-header flex items-center justify-between">
+        <div className="term-form-header-left flex items-center gap-3">
           <Link
             href="/dashboard/cms/tags"
             className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
@@ -122,7 +122,7 @@ export function TermForm({ tagId }: Props) {
           type="submit"
           form="term-form"
           disabled={isSaving || !name}
-          className="admin-btn admin-btn-primary disabled:opacity-50"
+          className="btn btn-primary disabled:opacity-50"
         >
           {isSaving ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -134,9 +134,9 @@ export function TermForm({ tagId }: Props) {
       </div>
 
       <form id="term-form" onSubmit={handleSubmit} className="mt-6">
-        <div className="admin-term-form-layout grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="admin-term-form-main space-y-6 lg:col-span-2">
-            <div className="admin-card p-6">
+        <div className="term-form-layout grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="term-form-main space-y-6 lg:col-span-2">
+            <div className="card p-6">
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-(--text-secondary)">
@@ -147,7 +147,7 @@ export function TermForm({ tagId }: Props) {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="admin-input mt-1"
+                    className="input mt-1"
                     placeholder={__('Tag name')}
                   />
                 </div>
@@ -163,7 +163,7 @@ export function TermForm({ tagId }: Props) {
                       setSlug(e.target.value);
                       setSlugManual(true);
                     }}
-                    className="admin-input mt-1 font-mono"
+                    className="input mt-1 font-mono"
                     placeholder="url-slug"
                   />
                 </div>
@@ -171,15 +171,15 @@ export function TermForm({ tagId }: Props) {
             </div>
           </div>
 
-          <div className="admin-term-form-sidebar space-y-6">
-            <div className="admin-card p-6">
-              <h3 className="admin-h2">{__('Status')}</h3>
+          <div className="term-form-sidebar space-y-6">
+            <div className="card p-6">
+              <h3 className="h2">{__('Status')}</h3>
               <div className="mt-4 space-y-4">
                 <div>
                   <select
                     value={status}
                     onChange={(e) => setStatus(Number(e.target.value))}
-                    className="admin-select w-full"
+                    className="select w-full"
                   >
                     <option value={ContentStatus.DRAFT}>{__('Draft')}</option>
                     <option value={ContentStatus.PUBLISHED}>
@@ -195,7 +195,7 @@ export function TermForm({ tagId }: Props) {
                     type="number"
                     value={order}
                     onChange={(e) => setOrder(Number(e.target.value))}
-                    className="admin-input mt-1"
+                    className="input mt-1"
                   />
                 </div>
                 <div>
@@ -206,7 +206,7 @@ export function TermForm({ tagId }: Props) {
                     value={lang}
                     disabled={!isNew}
                     onChange={(e) => setLang(e.target.value)}
-                    className="admin-select mt-1 w-full disabled:bg-(--surface-secondary)"
+                    className="select mt-1 w-full disabled:bg-(--surface-secondary)"
                   >
                     <option value="en">English</option>
                   </select>

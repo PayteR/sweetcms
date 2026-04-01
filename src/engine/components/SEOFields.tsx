@@ -22,8 +22,8 @@ export function SEOFields({
 
   return (
     <>
-      <div className="admin-seo-fields-title">
-        <label className="admin-label">
+      <div className="seo-fields-title">
+        <label className="label">
           {__('SEO Title')}
         </label>
         <input
@@ -32,7 +32,7 @@ export function SEOFields({
           onChange={(e) => onSeoTitleChange(e.target.value)}
           placeholder={__('Optional SEO title for <title> tag')}
           maxLength={255}
-          className={cn('admin-input', fieldErrors?.seoTitle && '!border-red-500 focus:!border-red-500')}
+          className={cn('input', fieldErrors?.seoTitle && '!border-red-500 focus:!border-red-500')}
         />
         {fieldErrors?.seoTitle ? (
           <p className="mt-1 text-sm text-red-400">{fieldErrors.seoTitle[0]}</p>
@@ -41,8 +41,8 @@ export function SEOFields({
         )}
       </div>
 
-      <div className="admin-seo-fields-description">
-        <label className="admin-label">
+      <div className="seo-fields-description">
+        <label className="label">
           {__('Meta Description')}
         </label>
         <textarea
@@ -51,7 +51,7 @@ export function SEOFields({
           placeholder={__('SEO meta description (max 160 chars)')}
           maxLength={160}
           rows={3}
-          className={cn('admin-textarea', fieldErrors?.metaDescription && '!border-red-500 focus:!border-red-500')}
+          className={cn('textarea', fieldErrors?.metaDescription && '!border-red-500 focus:!border-red-500')}
         />
         {fieldErrors?.metaDescription ? (
           <p className="mt-1 text-sm text-red-400">{fieldErrors.metaDescription[0]}</p>
@@ -60,7 +60,7 @@ export function SEOFields({
         )}
       </div>
 
-      <div className="admin-seo-fields-noindex">
+      <div className="seo-fields-noindex">
         <label className="flex items-center gap-2 text-sm font-medium text-(--text-secondary)">
           <input
             type="checkbox"

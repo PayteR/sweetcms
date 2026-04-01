@@ -61,18 +61,18 @@ html.dark .overflow-x-auto::-webkit-scrollbar-thumb:hover {
 /* ═══ Autofill override ═══
    Masks browser/1Password autofill backgrounds on admin inputs.
    box-shadow:inset masks injected bg, -webkit-text-fill-color overrides UA text color. */
-html.dark .admin-input:-webkit-autofill,
-html.dark .admin-input:-webkit-autofill:hover,
-html.dark .admin-input:-webkit-autofill:focus,
-html.dark input.admin-input[data-com-onepassword-filled],
-html.dark .admin-input-sm:-webkit-autofill,
-html.dark .admin-input-sm:-webkit-autofill:hover,
-html.dark .admin-input-sm:-webkit-autofill:focus,
-html.dark input.admin-input-sm[data-com-onepassword-filled],
-html.dark .admin-search-input:-webkit-autofill,
-html.dark .admin-search-input:-webkit-autofill:hover,
-html.dark .admin-search-input:-webkit-autofill:focus,
-html.dark input.admin-search-input[data-com-onepassword-filled] {
+html.dark .input:-webkit-autofill,
+html.dark .input:-webkit-autofill:hover,
+html.dark .input:-webkit-autofill:focus,
+html.dark input.input[data-com-onepassword-filled],
+html.dark .input-sm:-webkit-autofill,
+html.dark .input-sm:-webkit-autofill:hover,
+html.dark .input-sm:-webkit-autofill:focus,
+html.dark input.input-sm[data-com-onepassword-filled],
+html.dark .search-input:-webkit-autofill,
+html.dark .search-input:-webkit-autofill:hover,
+html.dark .search-input:-webkit-autofill:focus,
+html.dark input.search-input[data-com-onepassword-filled] {
   box-shadow: inset 0 0 0 9999px var(--color-gray-700) !important;
   -webkit-text-fill-color: var(--color-white) !important;
   caret-color: var(--color-white);
@@ -80,10 +80,10 @@ html.dark input.admin-search-input[data-com-onepassword-filled] {
 }
 
 /* ═══ Public input autofill override ═══ */
-html.dark .cms-input:-webkit-autofill,
-html.dark .cms-input:-webkit-autofill:hover,
-html.dark .cms-input:-webkit-autofill:focus,
-html.dark input.cms-input[data-com-onepassword-filled] {
+html.dark .input:-webkit-autofill,
+html.dark .input:-webkit-autofill:hover,
+html.dark .input:-webkit-autofill:focus,
+html.dark input.input[data-com-onepassword-filled] {
   box-shadow: inset 0 0 0 9999px var(--color-gray-800) !important;
   -webkit-text-fill-color: var(--color-white) !important;
   caret-color: var(--color-white);

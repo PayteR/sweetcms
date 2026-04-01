@@ -64,7 +64,7 @@ function DialogContent({ onClose, onSelect, searchInputRef }: DialogContentProps
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={__('Search pages, blog posts, categories...')}
-            className="admin-input rounded-lg py-2 pl-10 pr-4"
+            className="input rounded-lg py-2 pl-10 pr-4"
           />
         </div>
 
@@ -115,7 +115,7 @@ function DialogContent({ onClose, onSelect, searchInputRef }: DialogContentProps
         <button
           type="button"
           onClick={onClose}
-          className="admin-btn admin-btn-secondary"
+          className="btn btn-secondary"
         >
           {__('Cancel')}
         </button>

@@ -328,7 +328,7 @@ export function PortfolioForm({ portfolioId }: Props) {
           type="submit"
           form="portfolio-form"
           disabled={isSaving || !formData.name}
-          className="admin-btn admin-btn-primary disabled:opacity-50"
+          className="btn btn-primary disabled:opacity-50"
         >
           {isSaving ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -354,11 +354,11 @@ export function PortfolioForm({ portfolioId }: Props) {
       <BrokenLinksBanner urls={brokenLinks} onDismiss={dismissBrokenLinks} />
 
       <form id="portfolio-form" onSubmit={handleSubmit}>
-        <div className="admin-portfolio-form-layout grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div className="admin-portfolio-form-main space-y-6 lg:col-span-2">
-            <div className="admin-card p-6">
-              <div className="admin-portfolio-form-fields space-y-4">
-                <div className="admin-field-group">
+        <div className="portfolio-form-layout grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="portfolio-form-main space-y-6 lg:col-span-2">
+            <div className="card p-6">
+              <div className="portfolio-form-fields space-y-4">
+                <div className="field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Name')}
                   </label>
@@ -367,11 +367,11 @@ export function PortfolioForm({ portfolioId }: Props) {
                     required
                     value={formData.name}
                     onChange={(e) => handleChange('name', e.target.value)}
-                    className="admin-input mt-1"
+                    className="input mt-1"
                     placeholder={__('Project name')}
                   />
                 </div>
-                <div className="admin-field-group">
+                <div className="field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Slug')}
                   </label>
@@ -383,10 +383,10 @@ export function PortfolioForm({ portfolioId }: Props) {
                       handleChange('slug', e.target.value);
                       setSlugManual(true);
                     }}
-                    className="admin-input mt-1 font-mono"
+                    className="input mt-1 font-mono"
                   />
                 </div>
-                <div className="admin-field-group">
+                <div className="field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Title')}
                   </label>
@@ -398,7 +398,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                       handleChange('title', e.target.value);
                       setTitleManual(true);
                     }}
-                    className="admin-input mt-1"
+                    className="input mt-1"
                     placeholder={__('Display title')}
                   />
                 </div>
@@ -406,10 +406,10 @@ export function PortfolioForm({ portfolioId }: Props) {
             </div>
 
             {/* Portfolio-specific fields */}
-            <div className="admin-card p-6">
-              <h3 className="admin-h2">{__('Project Details')}</h3>
+            <div className="card p-6">
+              <h3 className="h2">{__('Project Details')}</h3>
               <div className="mt-4 space-y-4">
-                <div className="admin-field-group">
+                <div className="field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Client Name')}
                   </label>
@@ -417,11 +417,11 @@ export function PortfolioForm({ portfolioId }: Props) {
                     type="text"
                     value={formData.clientName}
                     onChange={(e) => handleChange('clientName', e.target.value)}
-                    className="admin-input mt-1"
+                    className="input mt-1"
                     placeholder={__('Client or company name')}
                   />
                 </div>
-                <div className="admin-field-group">
+                <div className="field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Project URL')}
                   </label>
@@ -429,19 +429,19 @@ export function PortfolioForm({ portfolioId }: Props) {
                     type="url"
                     value={formData.projectUrl}
                     onChange={(e) => handleChange('projectUrl', e.target.value)}
-                    className="admin-input mt-1"
+                    className="input mt-1"
                     placeholder="https://example.com"
                   />
                 </div>
-                <div className="admin-field-group">
+                <div className="field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Tech Stack')}
                   </label>
-                  <div className="admin-tag-chips mt-1 flex flex-wrap gap-1.5">
+                  <div className="tag-chips mt-1 flex flex-wrap gap-1.5">
                     {formData.techStack.map((tech, i) => (
                       <span
                         key={i}
-                        className="admin-tag-chip inline-flex items-center gap-1 rounded-full bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2.5 py-0.5 text-xs font-medium text-(--color-brand-700) dark:text-(--color-brand-400)"
+                        className="tag-chip inline-flex items-center gap-1 rounded-full bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2.5 py-0.5 text-xs font-medium text-(--color-brand-700) dark:text-(--color-brand-400)"
                       >
                         {tech}
                         <button
@@ -465,11 +465,11 @@ export function PortfolioForm({ portfolioId }: Props) {
                       }
                     }}
                     onBlur={() => { if (techInput.trim()) addTechItem(techInput); }}
-                    className="admin-input mt-2"
+                    className="input mt-2"
                     placeholder={__('Type and press Enter or comma to add')}
                   />
                 </div>
-                <div className="admin-field-group">
+                <div className="field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Completion Date')}
                   </label>
@@ -477,13 +477,13 @@ export function PortfolioForm({ portfolioId }: Props) {
                     type="datetime-local"
                     value={formData.completedAt}
                     onChange={(e) => handleChange('completedAt', e.target.value)}
-                    className="admin-input mt-1"
+                    className="input mt-1"
                   />
                 </div>
               </div>
             </div>
 
-            <div className="admin-card p-6">
+            <div className="card p-6">
               <label className="mb-2 block text-sm font-medium text-(--text-secondary)">
                 {__('Description')}
               </label>
@@ -499,8 +499,8 @@ export function PortfolioForm({ portfolioId }: Props) {
             </div>
 
             {/* SEO */}
-            <div className="admin-card p-6">
-              <h3 className="admin-h2">{__('SEO')}</h3>
+            <div className="card p-6">
+              <h3 className="h2">{__('SEO')}</h3>
               <div className="mt-4 space-y-4">
                 <SEOFields
                   seoTitle={formData.seoTitle}
@@ -538,10 +538,10 @@ export function PortfolioForm({ portfolioId }: Props) {
             )}
           </div>
 
-          <div className="admin-portfolio-form-sidebar space-y-6">
+          <div className="portfolio-form-sidebar space-y-6">
             {/* Featured Image */}
-            <div className="admin-card p-6">
-              <h3 className="admin-h2">{__('Featured Image')}</h3>
+            <div className="card p-6">
+              <h3 className="h2">{__('Featured Image')}</h3>
               <div className="mt-4">
                 {formData.featuredImage ? (
                   <div className="relative">
@@ -565,7 +565,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                       type="text"
                       value={formData.featuredImageAlt}
                       onChange={(e) => handleChange('featuredImageAlt', e.target.value)}
-                      className="admin-input mt-2"
+                      className="input mt-2"
                       placeholder={__('Alt text')}
                     />
                   </div>
@@ -573,7 +573,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                   <button
                     type="button"
                     onClick={() => setMediaPickerOpen(true)}
-                    className="admin-btn admin-btn-secondary w-full"
+                    className="btn btn-secondary w-full"
                   >
                     {__('Select Image')}
                   </button>
@@ -582,8 +582,8 @@ export function PortfolioForm({ portfolioId }: Props) {
             </div>
 
             {/* Tags */}
-            <div className="admin-card p-6">
-              <h3 className="admin-h2">{__('Tags')}</h3>
+            <div className="card p-6">
+              <h3 className="h2">{__('Tags')}</h3>
               <div className="mt-4">
                 <TagInput
                   selectedTagIds={formData.tagIds}
@@ -593,14 +593,14 @@ export function PortfolioForm({ portfolioId }: Props) {
               </div>
             </div>
 
-            <div className="admin-card p-6">
-              <h3 className="admin-h2">{__('Status')}</h3>
+            <div className="card p-6">
+              <h3 className="h2">{__('Status')}</h3>
               <div className="mt-4 space-y-4">
-                <div className="admin-field-group">
+                <div className="field-group">
                   <select
                     value={formData.status}
                     onChange={(e) => handleChange('status', Number(e.target.value))}
-                    className="admin-select w-full"
+                    className="select w-full"
                   >
                     <option value={ContentStatus.DRAFT}>{__('Draft')}</option>
                     <option value={ContentStatus.PUBLISHED}>
@@ -608,7 +608,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                     </option>
                   </select>
                 </div>
-                <div className="admin-field-group">
+                <div className="field-group">
                   {item && translationSiblings.data ? (
                     <TranslationBar
                       currentLang={formData.lang}
@@ -633,7 +633,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                         value={formData.lang}
                         disabled={!isNew}
                         onChange={(e) => handleChange('lang', e.target.value)}
-                        className="admin-select mt-1 w-full disabled:bg-(--surface-secondary)"
+                        className="select mt-1 w-full disabled:bg-(--surface-secondary)"
                       >
                         <option value="en">English</option>
                       </select>
@@ -649,7 +649,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                   />
                 )}
 
-                <div className="admin-field-group">
+                <div className="field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Publish Date')}
                   </label>
@@ -657,7 +657,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                     type="datetime-local"
                     value={formData.publishedAt}
                     onChange={(e) => handleChange('publishedAt', e.target.value)}
-                    className="admin-input mt-1"
+                    className="input mt-1"
                   />
                 </div>
               </div>

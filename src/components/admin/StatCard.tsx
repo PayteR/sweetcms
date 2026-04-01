@@ -32,14 +32,14 @@ export default function StatCard({
   color?: StatColor;
 }) {
   return (
-    <Link href={href} className="admin-card p-5 hover:shadow-md transition-shadow">
+    <Link href={href} className="card p-5 hover:shadow-md transition-shadow">
       <div className="flex items-center gap-3">
-        <div className={cn('admin-stat-card-icon rounded-lg p-2', STAT_BG[color])}>
+        <div className={cn('stat-card-icon rounded-lg p-2', STAT_BG[color])}>
           <Icon className={cn('h-5 w-5', STAT_TEXT[color])} />
         </div>
-        <div className="admin-stat-card-text">
+        <div className="stat-card-text">
           <p className="text-sm font-medium text-(--text-muted)">{label}</p>
-          <p className="admin-stat-card-count mt-0.5 text-2xl font-semibold text-(--text-primary)">
+          <p className="stat-card-count mt-0.5 text-2xl font-semibold text-(--text-primary)">
             {count ?? '—'}
           </p>
         </div>

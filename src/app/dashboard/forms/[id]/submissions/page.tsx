@@ -117,10 +117,10 @@ export default function SubmissionsPage() {
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="admin-submissions-page">
+    <div className="submissions-page">
       {/* Header */}
-      <div className="admin-submissions-header flex items-center justify-between">
-        <div className="admin-submissions-header-left flex items-center gap-3">
+      <div className="submissions-header flex items-center justify-between">
+        <div className="submissions-header-left flex items-center gap-3">
           <button
             onClick={() => router.push(`/dashboard/forms/${params.id}`)}
             className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-primary)"
@@ -134,17 +134,17 @@ export default function SubmissionsPage() {
             <p className="text-sm text-(--text-muted)">{form.name}</p>
           </div>
         </div>
-        <div className="admin-submissions-export flex items-center gap-2">
+        <div className="submissions-export flex items-center gap-2">
           <button
             onClick={() => handleExport('csv')}
-            className="admin-btn admin-btn-secondary"
+            className="btn btn-secondary"
           >
             <Download className="h-4 w-4" />
             {__('CSV')}
           </button>
           <button
             onClick={() => handleExport('json')}
-            className="admin-btn admin-btn-secondary"
+            className="btn btn-secondary"
           >
             <Download className="h-4 w-4" />
             {__('JSON')}
@@ -153,7 +153,7 @@ export default function SubmissionsPage() {
       </div>
 
       {/* Table */}
-      <div className="admin-card mt-4 overflow-hidden">
+      <div className="card mt-4 overflow-hidden">
         {submissionsQuery.isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
@@ -165,16 +165,16 @@ export default function SubmissionsPage() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="admin-thead">
+              <thead className="thead">
                 <tr>
-                  <th className="admin-th w-40">{__('Submitted')}</th>
+                  <th className="th w-40">{__('Submitted')}</th>
                   {fields.map((field) => (
-                    <th key={field.id} className="admin-th">
+                    <th key={field.id} className="th">
                       {field.label}
                     </th>
                   ))}
-                  <th className="admin-th w-28">{__('IP')}</th>
-                  <th className="admin-th w-16" />
+                  <th className="th w-28">{__('IP')}</th>
+                  <th className="th w-16" />
                 </tr>
               </thead>
               <tbody>
@@ -188,11 +188,11 @@ export default function SubmissionsPage() {
                       key={submission.id}
                       className="hover:bg-(--surface-secondary)"
                     >
-                      <td className="admin-td text-xs text-(--text-muted)">
+                      <td className="td text-xs text-(--text-muted)">
                         {formatDate(submission.createdAt)}
                       </td>
                       {fields.map((field) => (
-                        <td key={field.id} className="admin-td">
+                        <td key={field.id} className="td">
                           <span className="text-sm text-(--text-primary)">
                             {field.type === 'checkbox'
                               ? submissionData[field.id]
@@ -202,10 +202,10 @@ export default function SubmissionsPage() {
                           </span>
                         </td>
                       ))}
-                      <td className="admin-td text-xs text-(--text-muted)">
+                      <td className="td text-xs text-(--text-muted)">
                         {submission.ip ?? '—'}
                       </td>
-                      <td className="admin-td">
+                      <td className="td">
                         <button
                           onClick={() => setDeleteTarget(submission.id)}
                           className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-red-600"
@@ -225,16 +225,16 @@ export default function SubmissionsPage() {
 
       {/* Pagination */}
       {data && data.totalPages > 1 && (
-        <div className="admin-submissions-pagination mt-4 flex items-center justify-between">
-          <p className="admin-pagination-info text-sm text-(--text-muted)">
+        <div className="submissions-pagination mt-4 flex items-center justify-between">
+          <p className="pagination-info text-sm text-(--text-muted)">
             {__('Page')} {data.page} {__('of')} {data.totalPages} ({data.total}{' '}
             {__('total')})
           </p>
-          <div className="admin-submissions-pagination-buttons flex gap-1">
+          <div className="submissions-pagination-buttons flex gap-1">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}
-              className="admin-btn admin-btn-secondary disabled:opacity-40"
+              className="btn btn-secondary disabled:opacity-40"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -243,7 +243,7 @@ export default function SubmissionsPage() {
                 setPage((p) => Math.min(data.totalPages, p + 1))
               }
               disabled={page >= data.totalPages}
-              className="admin-btn admin-btn-secondary disabled:opacity-40"
+              className="btn btn-secondary disabled:opacity-40"
             >
               <ChevronRight className="h-4 w-4" />
             </button>

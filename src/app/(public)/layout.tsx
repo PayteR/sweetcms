@@ -83,26 +83,26 @@ export default async function PublicLayout({
       />
 
       {/* ═══ Header ═══ */}
-      <header className="cms-header">
-        <div className="cms-header-inner">
-          <Link href="/" className="cms-header-logo">
+      <header className="header">
+        <div className="header-inner">
+          <Link href="/" className="header-logo">
             {siteConfig.name}
           </Link>
 
           {/* Desktop nav */}
-          <div className="cms-header-nav hidden sm:flex">
+          <div className="header-nav hidden sm:flex">
             <DynamicNav
               menuSlug="main"
               fallback={
                 <>
-                  <Link href="/blog" className="cms-header-link">
+                  <Link href="/blog" className="header-link">
                     Blog
                   </Link>
                   {categories.map((cat) => (
                     <Link
                       key={cat.slug}
                       href={`/category/${cat.slug}`}
-                      className="cms-header-link"
+                      className="header-link"
                     >
                       {cat.name}
                     </Link>
@@ -113,8 +113,8 @@ export default async function PublicLayout({
           </div>
 
           {/* Actions */}
-          <div className="cms-header-actions">
-            <Link href="/search" className="cms-header-icon-btn" title="Search">
+          <div className="header-actions">
+            <Link href="/search" className="header-icon-btn" title="Search">
               <Search className="h-4 w-4" />
             </Link>
             <ThemeToggle />
@@ -126,9 +126,9 @@ export default async function PublicLayout({
       <main className="flex-1">{children}</main>
 
       {/* ═══ Footer ═══ */}
-      <footer className="cms-footer">
-        <div className="cms-container py-8">
-          <div className="cms-footer-grid">
+      <footer className="footer">
+        <div className="container py-8">
+          <div className="footer-grid">
             {/* Col 1: About */}
             <div>
               <p className="text-sm font-semibold text-(--text-primary)">
@@ -142,12 +142,12 @@ export default async function PublicLayout({
             {/* Col 2: Categories */}
             {categories.length > 0 && (
               <div>
-                <h4 className="cms-footer-col-title">Categories</h4>
+                <h4 className="footer-col-title">Categories</h4>
                 {categories.map((cat) => (
                   <Link
                     key={cat.slug}
                     href={`/category/${cat.slug}`}
-                    className="cms-footer-link"
+                    className="footer-link"
                   >
                     {cat.name}
                   </Link>
@@ -157,24 +157,24 @@ export default async function PublicLayout({
 
             {/* Col 3: Quick Links */}
             <div>
-              <h4 className="cms-footer-col-title">Quick Links</h4>
-              <Link href="/blog" className="cms-footer-link">Blog</Link>
-              <Link href="/portfolio" className="cms-footer-link">Portfolio</Link>
-              <Link href="/search" className="cms-footer-link">Search</Link>
+              <h4 className="footer-col-title">Quick Links</h4>
+              <Link href="/blog" className="footer-link">Blog</Link>
+              <Link href="/portfolio" className="footer-link">Portfolio</Link>
+              <Link href="/search" className="footer-link">Search</Link>
             </div>
 
             {/* Col 4: More */}
             <div>
-              <h4 className="cms-footer-col-title">More</h4>
-              <Link href="/api/feed/blog" className="cms-footer-link inline-flex items-center gap-1">
+              <h4 className="footer-col-title">More</h4>
+              <Link href="/api/feed/blog" className="footer-link inline-flex items-center gap-1">
                 <Rss className="h-3.5 w-3.5" />
                 RSS Feed
               </Link>
-              <Link href="/dashboard" className="cms-footer-link">Admin</Link>
+              <Link href="/dashboard" className="footer-link">Admin</Link>
             </div>
           </div>
 
-          <div className="cms-footer-bottom">
+          <div className="footer-bottom">
             <span>&copy; {new Date().getFullYear()} {siteConfig.name}</span>
             <span>Powered by SweetCMS</span>
           </div>

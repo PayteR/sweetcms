@@ -83,14 +83,14 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
   if (!open) return null;
 
   return (
-    <div className="admin-media-picker-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="admin-media-picker-panel mx-4 flex max-h-[80vh] w-full max-w-3xl flex-col rounded-lg bg-(--surface-primary) shadow-xl">
+    <div className="media-picker-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="media-picker-panel mx-4 flex max-h-[80vh] w-full max-w-3xl flex-col rounded-lg bg-(--surface-primary) shadow-xl">
         {/* Header */}
-        <div className="admin-media-picker-header flex items-center justify-between border-b border-(--border-primary) px-6 py-4">
+        <div className="media-picker-header flex items-center justify-between border-b border-(--border-primary) px-6 py-4">
           <h2 className="text-lg font-semibold text-(--text-primary)">
             {__('Select Image')}
           </h2>
-          <div className="admin-media-picker-header-actions flex items-center gap-2">
+          <div className="media-picker-header-actions flex items-center gap-2">
             <input
               ref={fileInputRef}
               type="file"
@@ -102,7 +102,7 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="admin-btn admin-btn-secondary"
+              className="btn btn-secondary"
             >
               {uploading ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -124,15 +124,15 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
         </div>
 
         {/* Grid */}
-        <div className="admin-media-picker-body flex-1 overflow-y-auto p-6">
+        <div className="media-picker-body flex-1 overflow-y-auto p-6">
           {mediaList.isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
             </div>
           ) : (data?.results ?? []).length === 0 ? (
-            <div className="admin-media-picker-empty flex flex-col items-center justify-center py-12">
+            <div className="media-picker-empty flex flex-col items-center justify-center py-12">
               <ImageIcon className="h-12 w-12 text-(--text-muted)" />
-              <p className="admin-media-picker-empty-text mt-4 text-sm text-(--text-muted)">
+              <p className="media-picker-empty-text mt-4 text-sm text-(--text-muted)">
                 {__('No images yet. Upload one above.')}
               </p>
             </div>
@@ -172,17 +172,17 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
                   <button
                     onClick={() => setPage((p) => Math.max(1, p - 1))}
                     disabled={page <= 1}
-                    className="admin-btn admin-btn-secondary text-xs disabled:opacity-40"
+                    className="btn btn-secondary text-xs disabled:opacity-40"
                   >
                     {__('Previous')}
                   </button>
-                  <span className="admin-media-picker-page-indicator px-3 py-1 text-xs text-(--text-muted)">
+                  <span className="media-picker-page-indicator px-3 py-1 text-xs text-(--text-muted)">
                     {page} / {data.totalPages}
                   </span>
                   <button
                     onClick={() => setPage((p) => Math.min(data.totalPages, p + 1))}
                     disabled={page >= data.totalPages}
-                    className="admin-btn admin-btn-secondary text-xs disabled:opacity-40"
+                    className="btn btn-secondary text-xs disabled:opacity-40"
                   >
                     {__('Next')}
                   </button>
@@ -193,24 +193,24 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
         </div>
 
         {/* Footer */}
-        <div className="admin-media-picker-footer flex items-center justify-between border-t border-(--border-primary) px-6 py-4">
-          <div className="admin-media-picker-selection-label text-sm text-(--text-muted)">
+        <div className="media-picker-footer flex items-center justify-between border-t border-(--border-primary) px-6 py-4">
+          <div className="media-picker-selection-label text-sm text-(--text-muted)">
             {selectedItem ? selectedItem.filename : __('No image selected')}
           </div>
-          <div className="admin-media-picker-footer-actions flex gap-2">
+          <div className="media-picker-footer-actions flex gap-2">
             <button
               onClick={() => {
                 onClose();
                 setSelectedId(null);
               }}
-              className="admin-btn admin-btn-secondary"
+              className="btn btn-secondary"
             >
               {__('Cancel')}
             </button>
             <button
               onClick={handleConfirm}
               disabled={!selectedItem}
-              className="admin-btn admin-btn-primary disabled:opacity-50"
+              className="btn btn-primary disabled:opacity-50"
             >
               {__('Select')}
             </button>

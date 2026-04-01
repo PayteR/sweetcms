@@ -152,7 +152,7 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="admin-users-page">
+    <div className="users-page">
       <h1 className="text-2xl font-bold text-(--text-primary)">{__('Users')}</h1>
 
       {/* Role tabs */}
@@ -181,14 +181,14 @@ export default function UsersPage() {
 
       {/* Search */}
       <form onSubmit={handleSearch} className="mt-4 flex gap-2">
-        <div className="admin-users-search relative flex-1">
+        <div className="users-search relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--text-muted)" />
           <input
             type="text"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             placeholder={__('Search by name or email...')}
-            className="admin-input pl-9 pr-3"
+            className="input pl-9 pr-3"
           />
           {search && (
             <button
@@ -204,32 +204,32 @@ export default function UsersPage() {
             </button>
           )}
         </div>
-        <button type="submit" className="admin-btn admin-btn-secondary">
+        <button type="submit" className="btn btn-secondary">
           {__('Search')}
         </button>
       </form>
 
       {/* Table */}
-      <div className="admin-card mt-4 overflow-hidden">
+      <div className="card mt-4 overflow-hidden">
         {userList.isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
           </div>
         ) : (
           <table className="w-full">
-            <thead className="admin-thead">
+            <thead className="thead">
               <tr>
-                <th className="admin-th">{__('User')}</th>
-                <th className="admin-th w-28">{__('Role')}</th>
-                <th className="admin-th w-24">{__('Status')}</th>
-                <th className="admin-th w-32">{__('Joined')}</th>
-                <th className="admin-th w-32" />
+                <th className="th">{__('User')}</th>
+                <th className="th w-28">{__('Role')}</th>
+                <th className="th w-24">{__('Status')}</th>
+                <th className="th w-32">{__('Joined')}</th>
+                <th className="th w-32" />
               </tr>
             </thead>
             <tbody>
               {(data?.results ?? []).length === 0 ? (
                 <tr>
-                  <td className="admin-td py-12 text-center text-(--text-muted)" colSpan={5}>
+                  <td className="td py-12 text-center text-(--text-muted)" colSpan={5}>
                     {search ? __('No users found.') : __('No users yet.')}
                   </td>
                 </tr>
@@ -238,8 +238,8 @@ export default function UsersPage() {
                   const RoleIcon = ROLE_ICONS[u.role] ?? Shield;
                   return (
                     <tr key={u.id} className="hover:bg-(--surface-secondary)">
-                      <td className="admin-td">
-                        <div className="admin-users-cell flex items-center gap-3">
+                      <td className="td">
+                        <div className="users-cell flex items-center gap-3">
                           {u.image ? (
                             <img
                               src={u.image}
@@ -251,18 +251,18 @@ export default function UsersPage() {
                               {(u.name ?? '?').charAt(0).toUpperCase()}
                             </div>
                           )}
-                          <div className="admin-users-info">
+                          <div className="users-info">
                             <Link
                               href={`/dashboard/users/${u.id}`}
                               className="font-medium text-(--text-primary) hover:text-(--color-brand-600) hover:underline"
                             >
                               {u.name}
                             </Link>
-                            <p className="admin-users-email text-xs text-(--text-muted)">{u.email}</p>
+                            <p className="users-email text-xs text-(--text-muted)">{u.email}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="admin-td">
+                      <td className="td">
                         <span
                           className={cn(
                             'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
@@ -273,7 +273,7 @@ export default function UsersPage() {
                           {u.role}
                         </span>
                       </td>
-                      <td className="admin-td">
+                      <td className="td">
                         {u.banned ? (
                           <span className="inline-block rounded-full bg-red-100 dark:bg-red-500/20 px-2 py-0.5 text-xs font-medium text-red-700 dark:text-red-400">
                             {__('Banned')}
@@ -284,11 +284,11 @@ export default function UsersPage() {
                           </span>
                         )}
                       </td>
-                      <td className="admin-td text-xs text-(--text-muted)">
+                      <td className="td text-xs text-(--text-muted)">
                         {formatDate(u.createdAt)}
                       </td>
-                      <td className="admin-td">
-                        <div className="admin-users-row-actions flex items-center justify-end gap-1">
+                      <td className="td">
+                        <div className="users-row-actions flex items-center justify-end gap-1">
                           <button
                             onClick={() => {
                               setEditingRole({
@@ -359,23 +359,23 @@ export default function UsersPage() {
 
       {/* Pagination */}
       {data && data.totalPages > 1 && (
-        <div className="admin-users-pagination mt-4 flex items-center justify-between">
-          <p className="admin-pagination-info text-sm text-(--text-muted)">
+        <div className="users-pagination mt-4 flex items-center justify-between">
+          <p className="pagination-info text-sm text-(--text-muted)">
             {__('Page')} {data.page} {__('of')} {data.totalPages} ({data.total}{' '}
             {__('total')})
           </p>
-          <div className="admin-users-pagination-buttons flex gap-1">
+          <div className="users-pagination-buttons flex gap-1">
             <button
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page <= 1}
-              className="admin-btn admin-btn-secondary disabled:opacity-40"
+              className="btn btn-secondary disabled:opacity-40"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
             <button
               onClick={() => setPage((p) => Math.min(data.totalPages, p + 1))}
               disabled={page >= data.totalPages}
-              className="admin-btn admin-btn-secondary disabled:opacity-40"
+              className="btn btn-secondary disabled:opacity-40"
             >
               <ChevronRight className="h-4 w-4" />
             </button>
@@ -389,7 +389,7 @@ export default function UsersPage() {
           open
           className="fixed inset-0 z-50 m-auto w-full max-w-md rounded-lg border border-(--border-primary) bg-(--surface-primary) p-0 shadow-xl backdrop:bg-black/30"
         >
-          <div className="admin-users-role-dialog-body p-6">
+          <div className="users-role-dialog-body p-6">
             <h3 className="text-lg font-semibold text-(--text-primary)">
               {__('Change Role')}
             </h3>
@@ -399,7 +399,7 @@ export default function UsersPage() {
             <select
               value={selectedRole}
               onChange={(e) => setSelectedRole(e.target.value)}
-              className="admin-select mt-4 w-full"
+              className="select mt-4 w-full"
             >
               {ROLES.map((r) => (
                 <option key={r} value={r}>
@@ -407,17 +407,17 @@ export default function UsersPage() {
                 </option>
               ))}
             </select>
-            <div className="admin-users-role-dialog-actions mt-6 flex justify-end gap-3">
+            <div className="users-role-dialog-actions mt-6 flex justify-end gap-3">
               <button
                 onClick={() => setEditingRole(null)}
-                className="admin-btn admin-btn-secondary"
+                className="btn btn-secondary"
               >
                 {__('Cancel')}
               </button>
               <button
                 onClick={handleRoleChange}
                 disabled={selectedRole === editingRole.currentRole}
-                className="admin-btn admin-btn-primary disabled:opacity-50"
+                className="btn btn-primary disabled:opacity-50"
               >
                 {__('Update')}
               </button>

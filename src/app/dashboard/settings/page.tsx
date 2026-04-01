@@ -111,7 +111,7 @@ export default function SettingsPage() {
   // ─── Render field by type ──────────────────────────────────────────────────
   function renderField(item: OptionItem) {
     const value = getValue(item);
-    const inputClass = 'admin-input mt-1';
+    const inputClass = 'input mt-1';
 
     switch (item.type) {
       case 'boolean':
@@ -134,7 +134,7 @@ export default function SettingsPage() {
             max={100}
             value={value as number}
             onChange={(e) => setValue(item.key, Number(e.target.value))}
-            className="admin-input mt-1 w-32"
+            className="input mt-1 w-32"
           />
         );
       case 'textarea':
@@ -143,7 +143,7 @@ export default function SettingsPage() {
             value={(value as string) ?? ''}
             onChange={(e) => setValue(item.key, e.target.value)}
             rows={3}
-            className="admin-textarea mt-1"
+            className="textarea mt-1"
           />
         );
       case 'json':
@@ -152,7 +152,7 @@ export default function SettingsPage() {
             value={(value as string) ?? ''}
             onChange={(e) => setValue(item.key, e.target.value)}
             rows={4}
-            className="admin-textarea mt-1 font-mono text-xs"
+            className="textarea mt-1 font-mono text-xs"
             placeholder='{"type":"service_account",...}'
           />
         );
@@ -188,14 +188,14 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="admin-settings-page">
-      <div className="admin-settings-header flex items-center justify-between">
+    <div className="settings-page">
+      <div className="settings-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">{__('Settings')}</h1>
         <button
           type="submit"
           form="settings-form"
           disabled={setMany.isPending || !hasChanges}
-          className="admin-btn admin-btn-primary disabled:opacity-50"
+          className="btn btn-primary disabled:opacity-50"
         >
           {setMany.isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -206,14 +206,14 @@ export default function SettingsPage() {
         </button>
       </div>
 
-      <form id="settings-form" onSubmit={handleSave} className="admin-settings-form mt-6 space-y-6">
+      <form id="settings-form" onSubmit={handleSave} className="settings-form mt-6 space-y-6">
         {groupOrder.map((groupKey) => {
           const groupItems = grouped[groupKey];
           if (!groupItems?.length) return null;
 
           return (
-            <div key={groupKey} className="admin-card p-6">
-              <h2 className="admin-h2">{__(GROUP_LABELS[groupKey] ?? groupKey)}</h2>
+            <div key={groupKey} className="card p-6">
+              <h2 className="h2">{__(GROUP_LABELS[groupKey] ?? groupKey)}</h2>
               {groupKey === 'ga4' && (
                 <p className="mt-1 text-xs text-(--text-muted)">
                   {__('Connect a GA4 property to display analytics on the dashboard. Requires a service account with Analytics read access.')}
@@ -223,7 +223,7 @@ export default function SettingsPage() {
                 {groupItems.map((item) => {
                   if (item.type === 'boolean') {
                     return (
-                      <div key={item.key} className="admin-settings-field-row flex items-center justify-between">
+                      <div key={item.key} className="settings-field-row flex items-center justify-between">
                         {renderField(item)}
                         {item.isCustom && (
                           <button
@@ -241,7 +241,7 @@ export default function SettingsPage() {
 
                   return (
                     <div key={item.key}>
-                      <div className="admin-settings-field-header flex items-center gap-2">
+                      <div className="settings-field-header flex items-center gap-2">
                         <label className="block text-sm font-medium text-(--text-secondary)">
                           {__(item.label)}
                         </label>
@@ -278,7 +278,7 @@ export default function SettingsPage() {
                       type="button"
                       disabled={testGA4.isPending}
                       onClick={() => testGA4.mutate()}
-                      className="admin-btn admin-btn-secondary disabled:opacity-50"
+                      className="btn btn-secondary disabled:opacity-50"
                     >
                       {testGA4.isPending ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -297,8 +297,8 @@ export default function SettingsPage() {
         })}
 
         {/* SEO Overrides — non-registry section */}
-        <div className="admin-settings-seo-section admin-card p-6">
-          <h2 className="admin-h2">{__('SEO Overrides')}</h2>
+        <div className="settings-seo-section card p-6">
+          <h2 className="h2">{__('SEO Overrides')}</h2>
           <p className="mt-1 text-sm text-(--text-muted)">
             {__('Create CMS pages to override SEO metadata for coded routes (homepage, login, etc.).')}
           </p>
@@ -306,7 +306,7 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={() => setSeoDialogOpen(true)}
-              className="admin-btn admin-btn-secondary"
+              className="btn btn-secondary"
             >
               <Globe className="h-4 w-4" />
               {__('Manage SEO Overrides')}

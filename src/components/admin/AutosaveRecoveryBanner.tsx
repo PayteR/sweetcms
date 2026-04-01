@@ -39,7 +39,7 @@ function AutosaveRecoveryBanner({
           <button
             type="button"
             onClick={onRestore}
-            className="admin-btn admin-btn-primary text-sm"
+            className="btn btn-primary text-sm"
           >
             {__('Restore')}
           </button>

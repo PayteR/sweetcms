@@ -189,30 +189,30 @@ export function CommandPalette({ open, onClose, navItems: navItemsProp }: Comman
   return (
     <dialog
       ref={dialogRef}
-      className="admin-command-palette"
+      className="command-palette"
       onClick={handleDialogClick}
       onClose={onClose}
     >
-      <div className="admin-command-panel" onKeyDown={handleKeyDown}>
+      <div className="command-panel" onKeyDown={handleKeyDown}>
         {/* Search input */}
-        <div className="admin-command-input-wrapper">
+        <div className="command-input-wrapper">
           <Search className="h-4 w-4 shrink-0 text-(--text-muted)" />
           <input
             ref={inputRef}
             type="text"
-            className="admin-command-input"
+            className="command-input"
             placeholder={__('Search pages, content, settings...')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
-          <kbd className="admin-kbd">Esc</kbd>
+          <kbd className="kbd">Esc</kbd>
         </div>
 
         {/* Results */}
-        <div ref={listRef} className="admin-command-results">
+        <div ref={listRef} className="command-results">
           {grouped.map((group) => (
             <div key={group.label}>
-              <div className="admin-command-group">{group.label}</div>
+              <div className="command-group">{group.label}</div>
               {group.items.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -221,7 +221,7 @@ export function CommandPalette({ open, onClose, navItems: navItemsProp }: Comman
                     type="button"
                     data-active={item.index === activeIndex}
                     className={cn(
-                      'admin-command-result',
+                      'command-result',
                       item.index === activeIndex && 'active'
                     )}
                     onClick={() => handleSelect(item)}
@@ -230,7 +230,7 @@ export function CommandPalette({ open, onClose, navItems: navItemsProp }: Comman
                     <Icon className="h-4 w-4 shrink-0 text-(--text-muted)" />
                     <span className="flex-1 truncate text-left">{item.label}</span>
                     {item.group === __('Content') && (
-                      <span className="admin-badge text-[0.625rem]">
+                      <span className="badge text-[0.625rem]">
                         {item.id.split(':')[1]}
                       </span>
                     )}
@@ -241,13 +241,13 @@ export function CommandPalette({ open, onClose, navItems: navItemsProp }: Comman
           ))}
 
           {results.length === 0 && query.length > 0 && (
-            <div className="admin-command-empty">
+            <div className="command-empty">
               {__('No results found')}
             </div>
           )}
 
           {results.length === 0 && query.length === 0 && (
-            <div className="admin-command-empty">
+            <div className="command-empty">
               {__('Start typing to search...')}
             </div>
           )}

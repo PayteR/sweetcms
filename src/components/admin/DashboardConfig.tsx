@@ -178,7 +178,7 @@ export function DashboardConfig() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="admin-btn admin-btn-secondary admin-btn-sm"
+        className="btn btn-secondary btn-sm"
         title={__('Configure dashboard')}
       >
         <Settings2 className="h-4 w-4" />

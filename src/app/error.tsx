@@ -63,7 +63,7 @@ export default function GlobalError({ error, reset }: Props) {
         <div className="mt-6 flex justify-center gap-3">
           <button
             onClick={reset}
-            className="admin-btn admin-btn-primary"
+            className="btn btn-primary"
           >
             Try Again
           </button>

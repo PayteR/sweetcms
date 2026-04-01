@@ -296,7 +296,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
           {postTags.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-1.5">
               {postTags.map((tag) => (
-                <Link key={tag.slug} href={`/tag/${tag.slug}`} className="cms-tag">
+                <Link key={tag.slug} href={`/tag/${tag.slug}`} className="tag">
                   {tag.name}
                 </Link>
               ))}
@@ -525,7 +525,7 @@ export default async function CatchAllPage({ params, searchParams }: Props) {
           {item.techStack && item.techStack.length > 0 && (
             <div className="mt-4 flex flex-wrap gap-1.5">
               {item.techStack.map((tech) => (
-                <span key={tech} className="cms-tag">
+                <span key={tech} className="tag">
                   {tech}
                 </span>
               ))}

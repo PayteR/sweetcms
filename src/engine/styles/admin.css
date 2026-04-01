@@ -31,8 +31,9 @@
 }
 
 @layer components {
+  [data-admin] {
   /* ===================== Cards ===================== */
-  .admin-card {
+  .card {
     background-color: var(--surface-secondary);
     border: none;
     border-radius: var(--radius-lg);
@@ -41,7 +42,7 @@
   }
 
   /* ===================== Widget Header & Stats ===================== */
-  .admin-widget-header {
+  .widget-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -50,12 +51,12 @@
     background-color: var(--surface-inset);
   }
 
-  .admin-stat-grid {
+  .stat-grid {
     display: grid;
     gap: 0;
   }
 
-  .admin-stat-row {
+  .stat-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -63,16 +64,16 @@
     border-bottom: 1px solid var(--border-secondary);
   }
 
-  .admin-stat-row:last-child {
+  .stat-row:last-child {
     border-bottom: none;
   }
 
-  .admin-stat-label {
+  .stat-label {
     font-size: 0.8125rem;
     color: var(--text-secondary);
   }
 
-  .admin-stat-value {
+  .stat-value {
     font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-primary);
@@ -80,7 +81,7 @@
   }
 
   /* ===================== Checkbox ===================== */
-  .admin-checkbox {
+  .checkbox {
     width: 0.875rem;
     height: 0.875rem;
     border-radius: 3px;
@@ -94,12 +95,12 @@
                 border-color var(--duration-fast) ease;
   }
 
-  .admin-checkbox:checked {
+  .checkbox:checked {
     background-color: var(--color-brand-500);
     border-color: var(--color-brand-500);
   }
 
-  .admin-checkbox:checked::after {
+  .checkbox:checked::after {
     content: '';
     width: 0.375rem;
     height: 0.25rem;
@@ -109,25 +110,25 @@
   }
 
   /* ===================== Typography ===================== */
-  .admin-h2 {
+  .h2 {
     font-size: 1.0625rem;
     font-weight: 600;
     color: var(--text-primary);
     letter-spacing: -0.02em;
   }
 
-  .admin-widget-header .admin-h2 {
+  .widget-header .h2 {
     font-size: 0.875rem;
     color: var(--text-secondary);
   }
 
   /* ===================== Tables ===================== */
-  .admin-thead {
+  .thead {
     background-color: var(--surface-inset);
     border-bottom: 1px solid var(--border-primary);
   }
 
-  .admin-th {
+  .th {
     padding: 0.5rem 1rem;
     text-align: left;
     font-size: 0.6875rem;
@@ -137,7 +138,7 @@
     text-transform: uppercase;
   }
 
-  .admin-td {
+  .td {
     padding: 0.75rem 1rem;
     font-size: 0.875rem;
     color: var(--text-primary);
@@ -145,7 +146,7 @@
   }
 
   /* ===================== Sidebar ===================== */
-  .admin-sidebar-link {
+  .sidebar-link {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -157,19 +158,19 @@
     transition: color var(--duration-fast) ease, background-color var(--duration-fast) ease;
   }
 
-  .admin-sidebar-link:hover {
+  .sidebar-link:hover {
     color: var(--text-primary);
     background-color: var(--surface-inset);
   }
 
-  .admin-sidebar-link.active {
+  .sidebar-link.active {
     color: var(--color-brand-700);
     background: linear-gradient(135deg, oklch(0.65 0.24 var(--brand-hue) / 0.12), oklch(0.55 0.27 var(--accent-hue) / 0.08));
     font-weight: 500;
   }
 
   /* ===================== Rail (Level 1) ===================== */
-  .admin-rail {
+  .rail {
     position: fixed;
     left: 0;
     top: 0;
@@ -183,7 +184,7 @@
     z-index: 60;
   }
 
-  .admin-rail-logo {
+  .rail-logo {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -199,7 +200,7 @@
     flex-shrink: 0;
   }
 
-  .admin-rail-nav {
+  .rail-nav {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -209,7 +210,7 @@
     overflow-y: auto;
   }
 
-  .admin-rail-btn {
+  .rail-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -223,17 +224,17 @@
     flex-shrink: 0;
   }
 
-  .admin-rail-btn:hover {
+  .rail-btn:hover {
     color: var(--text-primary);
     background-color: var(--surface-secondary);
   }
 
-  .admin-rail-btn.active {
+  .rail-btn.active {
     color: var(--color-brand-700);
     background: linear-gradient(135deg, oklch(0.65 0.24 var(--brand-hue) / 0.12), oklch(0.55 0.27 var(--accent-hue) / 0.08));
   }
 
-  .admin-rail-bottom {
+  .rail-bottom {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -243,7 +244,7 @@
   }
 
   /* ===================== Level 2 Panel ===================== */
-  .admin-l2-panel {
+  .l2-panel {
     position: fixed;
     left: 48px;
     top: 0;
@@ -256,17 +257,17 @@
     padding: 1rem 0.75rem;
   }
 
-  .admin-l2-panel.admin-l2-collapsed {
+  .l2-panel.l2-collapsed {
     width: 48px;
     padding: 1rem 0.375rem;
   }
 
-  .admin-l2-collapsed .admin-sidebar-link {
+  .l2-collapsed .sidebar-link {
     justify-content: center;
     padding: 0.375rem;
   }
 
-  .admin-l2-title {
+  .l2-title {
     font-size: 0.6875rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -276,7 +277,7 @@
   }
 
   /* ===================== User Popover ===================== */
-  .admin-user-popover {
+  .user-popover {
     position: absolute;
     left: calc(100% + 8px);
     bottom: 4px;
@@ -291,7 +292,7 @@
 
   /* ===================== Mobile Top Bar ===================== */
   /* ===================== Mobile Rail (overlay, not fixed) ===================== */
-  .admin-mobile-rail {
+  .mobile-rail {
     display: flex;
     width: 48px;
     flex-direction: column;
@@ -301,7 +302,7 @@
   }
 
   /* ===================== Mobile Top Bar ===================== */
-  .admin-mobile-topbar {
+  .mobile-topbar {
     position: fixed;
     top: 0;
     left: 0;
@@ -317,7 +318,7 @@
   }
 
   /* ===================== Buttons ===================== */
-  .admin-btn {
+  .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -337,67 +338,67 @@
     user-select: none;
   }
 
-  .admin-btn:disabled {
+  .btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     pointer-events: none;
   }
 
-  .admin-btn:active:not(:disabled) {
+  .btn:active:not(:disabled) {
     transform: scale(0.98);
   }
 
-  .admin-btn:focus-visible {
+  .btn:focus-visible {
     outline: 2px solid var(--color-brand-500);
     outline-offset: 2px;
   }
 
-  .admin-btn-primary {
+  .btn-primary {
     background: var(--gradient-brand);
     color: var(--color-white);
     transition: filter var(--duration-normal) ease;
   }
 
-  .admin-btn-primary:hover:not(:disabled) {
+  .btn-primary:hover:not(:disabled) {
     filter: brightness(0.88);
   }
 
-  .admin-btn-secondary {
+  .btn-secondary {
     background-color: var(--surface-secondary);
     color: var(--text-primary);
     border-color: var(--border-primary);
   }
 
-  .admin-btn-secondary:hover:not(:disabled) {
+  .btn-secondary:hover:not(:disabled) {
     background-color: var(--surface-inset);
   }
 
-  .admin-btn-danger {
+  .btn-danger {
     background-color: var(--color-danger-600);
     color: var(--color-white);
   }
 
-  .admin-btn-danger:hover:not(:disabled) {
+  .btn-danger:hover:not(:disabled) {
     background-color: var(--color-danger-700);
   }
 
-  .admin-btn-success {
+  .btn-success {
     background-color: var(--color-success-600);
     color: var(--color-white);
   }
 
-  .admin-btn-success:hover:not(:disabled) {
+  .btn-success:hover:not(:disabled) {
     background-color: var(--color-success-700);
   }
 
-  .admin-btn-sm {
+  .btn-sm {
     padding: 0.25rem 0.625rem;
     font-size: 0.8125rem;
     gap: 0.25rem;
   }
 
   /* ===================== Keyboard Shortcut Pill ===================== */
-  .admin-kbd {
+  .kbd {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -415,7 +416,7 @@
   }
 
   /* ===================== Command Palette ===================== */
-  .admin-command-palette {
+  .command-palette {
     position: fixed;
     inset: 0;
     z-index: 100;
@@ -431,11 +432,11 @@
     height: 100vh;
   }
 
-  .admin-command-palette::backdrop {
+  .command-palette::backdrop {
     background-color: oklch(0 0 0 / 0.5);
   }
 
-  .admin-command-panel {
+  .command-panel {
     width: 100%;
     max-width: 560px;
     border-radius: var(--radius-xl);
@@ -445,7 +446,7 @@
     border: 1px solid var(--border-primary);
   }
 
-  .admin-command-input-wrapper {
+  .command-input-wrapper {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -453,7 +454,7 @@
     border-bottom: 1px solid var(--border-secondary);
   }
 
-  .admin-command-input {
+  .command-input {
     flex: 1;
     background: transparent;
     border: none;
@@ -462,17 +463,17 @@
     color: var(--text-primary);
   }
 
-  .admin-command-input::placeholder {
+  .command-input::placeholder {
     color: var(--text-muted);
   }
 
-  .admin-command-results {
+  .command-results {
     max-height: 360px;
     overflow-y: auto;
     padding: 0.5rem;
   }
 
-  .admin-command-group {
+  .command-group {
     padding: 0.375rem 0.5rem;
     font-size: 0.6875rem;
     font-weight: 600;
@@ -481,7 +482,7 @@
     text-transform: uppercase;
   }
 
-  .admin-command-result {
+  .command-result {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -494,16 +495,16 @@
     transition: background-color var(--duration-fast) ease;
   }
 
-  .admin-command-result:hover,
-  .admin-command-result.active {
+  .command-result:hover,
+  .command-result.active {
     background-color: var(--surface-inset);
   }
 
-  .admin-command-result.active {
+  .command-result.active {
     background-color: oklch(0.65 0.24 var(--brand-hue) / 0.08);
   }
 
-  .admin-command-empty {
+  .command-empty {
     padding: 2rem 1rem;
     text-align: center;
     font-size: 0.875rem;
@@ -512,164 +513,165 @@
 
   /* ===================== Slide-Over Panel (visual only — structural in overlay.css) ===================== */
 
-  .admin-slide-over-panel {
+  .slide-over-panel {
     background-color: var(--surface-secondary);
     box-shadow: var(--shadow-lg);
     border-left: 1px solid var(--border-secondary);
   }
 
-  .admin-slide-over-header {
+  .slide-over-header {
     padding: 1rem 1.25rem;
     border-bottom: 1px solid var(--border-secondary);
   }
 
-  .admin-slide-over-body {
+  .slide-over-body {
     padding: 1.25rem;
   }
 
   /* ===================== Dialog (visual only — structural in overlay.css) ===================== */
 
-  .admin-dialog-panel {
+  .dialog-panel {
     background-color: var(--surface-secondary);
     border: 1px solid var(--border-primary);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-lg);
   }
 
-  .admin-dialog-header {
+  .dialog-header {
     padding: 1rem 1.25rem;
     border-bottom: 1px solid var(--border-secondary);
   }
 
-  .admin-dialog-body {
+  .dialog-body {
     padding: 1.25rem;
   }
 
-  .admin-dialog-footer {
+  .dialog-footer {
     padding: 0.75rem 1.25rem;
     border-top: 1px solid var(--border-secondary);
   }
+  } /* [data-admin] */
 }
 
 /* ===================== Dark mode overrides ===================== */
-html.dark {
+html.dark [data-admin] {
   /* Cards: solid dark surface */
-  .admin-card {
+  .card {
     background-color: var(--color-gray-800);
     border: 1px solid var(--color-gray-700);
     box-shadow: 0 2px 8px oklch(0 0 0 / 0.25), 0 0 0 1px oklch(1 0 0 / 0.03);
   }
 
-  .admin-card:hover {
+  .card:hover {
     box-shadow: 0 4px 12px oklch(0 0 0 / 0.3), 0 0 0 1px oklch(1 0 0 / 0.05);
   }
 
-  .admin-widget-header {
+  .widget-header {
     background-color: oklch(0.20 0.02 260);
     border-bottom-color: oklch(1 0 0 / 0.08);
   }
 
-  .admin-stat-row {
+  .stat-row {
     border-bottom-color: oklch(1 0 0 / 0.05);
   }
 
   /* Rail: surface-inset in dark = oklch(0.20), border = white tint */
-  .admin-rail {
+  .rail {
     background: var(--surface-inset);
     border-right-color: oklch(1 0 0 / 0.08);
   }
 
   /* L2 panel: solid dark (oklch 0.26) */
-  .admin-l2-panel {
+  .l2-panel {
     background: oklch(0.26 0.02 260);
     border-right-color: oklch(1 0 0 / 0.08);
     box-shadow: 1px 0 8px oklch(0 0 0 / 0.15);
   }
 
   /* Command palette: solid elevated */
-  .admin-command-panel {
+  .command-panel {
     background-color: var(--color-gray-800);
     border-color: var(--color-gray-700);
     box-shadow: 0 8px 24px oklch(0 0 0 / 0.4);
   }
 
   /* Dialog: solid elevated */
-  .admin-dialog-panel {
+  .dialog-panel {
     background-color: var(--color-gray-800);
     border-color: var(--color-gray-700);
     box-shadow: 0 8px 24px oklch(0 0 0 / 0.4);
   }
 
-  .admin-dialog-header {
+  .dialog-header {
     border-bottom-color: oklch(1 0 0 / 0.08);
   }
 
-  .admin-dialog-footer {
+  .dialog-footer {
     border-top-color: oklch(1 0 0 / 0.08);
   }
 
   /* Slide-over: solid elevated */
-  .admin-slide-over-panel {
+  .slide-over-panel {
     background-color: var(--color-gray-800);
     border-left-color: var(--color-gray-700);
     box-shadow: -8px 0 24px oklch(0 0 0 / 0.4);
   }
 
-  .admin-slide-over-header {
+  .slide-over-header {
     border-bottom-color: oklch(1 0 0 / 0.08);
   }
 
   /* User popover: solid elevated */
-  .admin-user-popover {
+  .user-popover {
     background-color: var(--color-gray-800);
     border-color: var(--color-gray-700);
     box-shadow: 0 8px 24px oklch(0 0 0 / 0.4);
   }
 
   /* Mobile rail + topbar: solid dark with white-tint borders */
-  .admin-mobile-rail {
+  .mobile-rail {
     background: var(--surface-inset);
     border-right-color: oklch(1 0 0 / 0.08);
   }
 
-  .admin-mobile-topbar {
+  .mobile-topbar {
     background: var(--surface-inset);
     border-bottom-color: oklch(1 0 0 / 0.08);
   }
 
-  .admin-sidebar-link.active {
+  .sidebar-link.active {
     color: var(--color-brand-300);
     background: linear-gradient(135deg, oklch(0.65 0.24 var(--brand-hue) / 0.22), oklch(0.55 0.27 var(--accent-hue) / 0.22));
   }
 
-  .admin-rail-btn.active {
+  .rail-btn.active {
     color: var(--color-brand-300);
     background: linear-gradient(135deg, oklch(0.65 0.24 var(--brand-hue) / 0.22), oklch(0.55 0.27 var(--accent-hue) / 0.22));
   }
 
   /* White-tint hovers */
-  .admin-sidebar-link:hover {
+  .sidebar-link:hover {
     background-color: oklch(1 0 0 / 0.06);
   }
 
-  .admin-rail-btn:hover {
+  .rail-btn:hover {
     background-color: oklch(1 0 0 / 0.08);
   }
 
-  .admin-command-result:hover {
+  .command-result:hover {
     background-color: oklch(1 0 0 / 0.06);
   }
 
-  .admin-btn-secondary {
+  .btn-secondary {
     background-color: var(--color-gray-700);
     border-color: var(--color-gray-600);
   }
 
-  .admin-btn-secondary:hover:not(:disabled) {
+  .btn-secondary:hover:not(:disabled) {
     background-color: var(--color-gray-600);
   }
 
-  .admin-command-result.active {
+  .command-result.active {
     background-color: oklch(0.65 0.24 var(--brand-hue) / 0.12);
   }
 }

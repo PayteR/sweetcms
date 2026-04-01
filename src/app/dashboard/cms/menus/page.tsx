@@ -44,12 +44,12 @@ export default function MenusPage() {
   }
 
   return (
-    <div className="admin-menus-page">
-      <div className="admin-menus-header flex items-center justify-between">
+    <div className="menus-page">
+      <div className="menus-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">{__('Menus')}</h1>
         <button
           onClick={() => setShowCreate(true)}
-          className="admin-btn admin-btn-primary"
+          className="btn btn-primary"
         >
           <Plus className="h-4 w-4" />
           {__('New Menu')}
@@ -57,7 +57,7 @@ export default function MenusPage() {
       </div>
 
       {showCreate && (
-        <form onSubmit={handleCreate} className="admin-menus-create-form mt-4 admin-card flex items-center gap-3 p-4">
+        <form onSubmit={handleCreate} className="menus-create-form mt-4 card flex items-center gap-3 p-4">
           <input
             type="text"
             value={newName}
@@ -69,7 +69,7 @@ export default function MenusPage() {
           <button
             type="submit"
             disabled={createMenu.isPending}
-            className="admin-btn admin-btn-primary disabled:opacity-50"
+            className="btn btn-primary disabled:opacity-50"
           >
             {createMenu.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
             {__('Create')}
@@ -77,14 +77,14 @@ export default function MenusPage() {
           <button
             type="button"
             onClick={() => { setShowCreate(false); setNewName(''); }}
-            className="admin-btn admin-btn-secondary"
+            className="btn btn-secondary"
           >
             {__('Cancel')}
           </button>
         </form>
       )}
 
-      <div className="mt-4 admin-card overflow-hidden">
+      <div className="mt-4 card overflow-hidden">
         {menusQuery.isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
@@ -95,20 +95,20 @@ export default function MenusPage() {
           </p>
         ) : (
           <table className="w-full">
-            <thead className="admin-thead">
+            <thead className="thead">
               <tr>
-                <th className="admin-th">{__('Name')}</th>
-                <th className="admin-th w-40">{__('Slug')}</th>
-                <th className="admin-th w-28" />
+                <th className="th">{__('Name')}</th>
+                <th className="th w-40">{__('Slug')}</th>
+                <th className="th w-28" />
               </tr>
             </thead>
             <tbody>
               {(menusQuery.data ?? []).map((menu) => (
                 <tr key={menu.id} className="hover:bg-(--surface-secondary)">
-                  <td className="admin-td font-medium text-(--text-primary)">{menu.name}</td>
-                  <td className="admin-td text-sm font-mono text-(--text-muted)">{menu.slug}</td>
-                  <td className="admin-td">
-                    <div className="admin-menus-row-actions flex items-center justify-end gap-1">
+                  <td className="td font-medium text-(--text-primary)">{menu.name}</td>
+                  <td className="td text-sm font-mono text-(--text-muted)">{menu.slug}</td>
+                  <td className="td">
+                    <div className="menus-row-actions flex items-center justify-end gap-1">
                       <Link
                         href={`/dashboard/cms/menus/${menu.id}`}
                         className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"

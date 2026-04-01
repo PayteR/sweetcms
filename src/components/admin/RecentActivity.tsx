@@ -36,23 +36,23 @@ export default function RecentActivity() {
   }
 
   return (
-    <div className="admin-activity-list divide-y divide-(--border-secondary)">
+    <div className="activity-list divide-y divide-(--border-secondary)">
       {data.map((entry) => (
-        <div key={entry.id} className="admin-activity-item flex items-center gap-3 px-4 py-2.5 text-sm">
-          <div className="admin-activity-content min-w-0 flex-1">
-            <span className="admin-activity-actor font-medium text-(--text-primary)">
+        <div key={entry.id} className="activity-item flex items-center gap-3 px-4 py-2.5 text-sm">
+          <div className="activity-content min-w-0 flex-1">
+            <span className="activity-actor font-medium text-(--text-primary)">
               {entry.userName ?? __('System')}
             </span>
             {' '}
-            <span className="admin-activity-action text-(--text-muted)">
+            <span className="activity-action text-(--text-muted)">
               {actionLabel(entry.action)}
             </span>
             {' '}
-            <span className="admin-activity-entity text-(--text-secondary)">
+            <span className="activity-entity text-(--text-secondary)">
               {entry.entityTitle ?? entry.entityType}
             </span>
           </div>
-          <time className="admin-activity-time shrink-0 text-xs tabular-nums text-(--text-muted)">
+          <time className="activity-time shrink-0 text-xs tabular-nums text-(--text-muted)">
             {formatRelativeTime(entry.createdAt)}
           </time>
         </div>

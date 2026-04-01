@@ -43,7 +43,7 @@ export function TaxonomyOverview() {
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {statCards.map((stat) => (
-          <div key={stat.label} className="admin-card p-4">
+          <div key={stat.label} className="card p-4">
             <div className="flex items-center gap-3">
               <div
                 className={`flex h-9 w-9 items-center justify-center rounded-lg ${stat.color}`}
@@ -61,26 +61,26 @@ export function TaxonomyOverview() {
 
       {/* Top tags table */}
       {data.topTags.length > 0 && (
-        <div className="admin-card overflow-hidden">
+        <div className="card overflow-hidden">
           <div className="px-4 py-3">
             <h3 className="text-sm font-semibold text-(--text-secondary)">
               {__('Top Tags')}
             </h3>
           </div>
           <table className="w-full">
-            <thead className="admin-thead">
+            <thead className="thead">
               <tr>
-                <th className="admin-th">{__('Tag')}</th>
-                <th className="admin-th w-24 text-right">{__('Posts')}</th>
+                <th className="th">{__('Tag')}</th>
+                <th className="th w-24 text-right">{__('Posts')}</th>
               </tr>
             </thead>
             <tbody>
               {data.topTags.map((tag) => (
                 <tr key={tag.slug} className="hover:bg-(--surface-secondary)">
-                  <td className="admin-td text-sm font-medium text-(--text-primary)">
+                  <td className="td text-sm font-medium text-(--text-primary)">
                     {tag.name}
                   </td>
-                  <td className="admin-td text-right text-sm text-(--text-muted)">
+                  <td className="td text-right text-sm text-(--text-muted)">
                     {Number(tag.count)}
                   </td>
                 </tr>

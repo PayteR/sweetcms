@@ -36,14 +36,14 @@ export function ShortcodeEditDialog({ def, attrs, content, onSave, onClose }: Pr
         <form id="shortcode-edit-form" onSubmit={handleSubmit} className="space-y-4">
           {def.attrs.map((attr) => (
             <div key={attr.name}>
-              <label className="admin-label">{attr.name}</label>
+              <label className="label">{attr.name}</label>
               {attr.type === 'select' ? (
                 <select
                   value={formAttrs[attr.name] ?? ''}
                   onChange={(e) =>
                     setFormAttrs((prev) => ({ ...prev, [attr.name]: e.target.value }))
                   }
-                  className="admin-select mt-1"
+                  className="select mt-1"
                 >
                   {attr.options?.map((opt) => (
                     <option key={opt} value={opt}>
@@ -58,7 +58,7 @@ export function ShortcodeEditDialog({ def, attrs, content, onSave, onClose }: Pr
                     setFormAttrs((prev) => ({ ...prev, [attr.name]: e.target.value }))
                   }
                   rows={3}
-                  className="admin-textarea mt-1"
+                  className="textarea mt-1"
                 />
               ) : (
                 <input
@@ -67,7 +67,7 @@ export function ShortcodeEditDialog({ def, attrs, content, onSave, onClose }: Pr
                   onChange={(e) =>
                     setFormAttrs((prev) => ({ ...prev, [attr.name]: e.target.value }))
                   }
-                  className="admin-input mt-1"
+                  className="input mt-1"
                 />
               )}
             </div>
@@ -75,22 +75,22 @@ export function ShortcodeEditDialog({ def, attrs, content, onSave, onClose }: Pr
 
           {def.hasContent && (
             <div>
-              <label className="admin-label">{__('Content')}</label>
+              <label className="label">{__('Content')}</label>
               <textarea
                 value={formContent}
                 onChange={(e) => setFormContent(e.target.value)}
                 rows={4}
-                className="admin-textarea mt-1"
+                className="textarea mt-1"
               />
             </div>
           )}
         </form>
       </Dialog.Body>
       <Dialog.Footer>
-        <button type="button" onClick={onClose} className="admin-btn admin-btn-secondary">
+        <button type="button" onClick={onClose} className="btn btn-secondary">
           {__('Cancel')}
         </button>
-        <button type="submit" form="shortcode-edit-form" className="admin-btn admin-btn-primary">
+        <button type="submit" form="shortcode-edit-form" className="btn btn-primary">
           {__('Save')}
         </button>
       </Dialog.Footer>

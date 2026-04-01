@@ -41,7 +41,7 @@ export default async function BlogListPage({ searchParams }: Props) {
   }
 
   return (
-    <div className="cms-container py-12">
+    <div className="container py-12">
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_280px]">
         {/* Main column */}
         <div>
@@ -62,22 +62,22 @@ export default async function BlogListPage({ searchParams }: Props) {
 
               {/* Pagination */}
               {data.totalPages > 1 && (
-                <div className="cms-pagination">
+                <div className="pagination">
                   {page > 1 && (
                     <Link
                       href={`/blog?page=${page - 1}`}
-                      className="cms-pagination-btn"
+                      className="pagination-btn"
                     >
                       Previous
                     </Link>
                   )}
-                  <span className="cms-pagination-info">
+                  <span className="pagination-info">
                     Page {page} of {data.totalPages}
                   </span>
                   {page < data.totalPages && (
                     <Link
                       href={`/blog?page=${page + 1}`}
-                      className="cms-pagination-btn"
+                      className="pagination-btn"
                     >
                       Next
                     </Link>

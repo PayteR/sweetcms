@@ -26,7 +26,7 @@ export default function AdminError({ error, reset }: Props) {
         )}
         <button
           onClick={reset}
-          className="admin-btn admin-btn-primary mt-6"
+          className="btn btn-primary mt-6"
         >
           Try Again
         </button>

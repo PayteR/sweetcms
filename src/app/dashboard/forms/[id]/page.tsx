@@ -211,10 +211,10 @@ export default function FormBuilderPage() {
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="admin-form-builder-page">
+    <div className="form-builder-page">
       {/* Header */}
-      <div className="admin-form-builder-header flex items-center justify-between">
-        <div className="admin-form-builder-header-left flex items-center gap-3">
+      <div className="form-builder-header flex items-center justify-between">
+        <div className="form-builder-header-left flex items-center gap-3">
           <button
             onClick={() => router.push('/dashboard/forms')}
             className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-primary)"
@@ -228,7 +228,7 @@ export default function FormBuilderPage() {
         <button
           onClick={handleSave}
           disabled={isPending}
-          className="admin-btn admin-btn-primary disabled:opacity-50"
+          className="btn btn-primary disabled:opacity-50"
         >
           {isPending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -240,8 +240,8 @@ export default function FormBuilderPage() {
       </div>
 
       {/* Form settings */}
-      <div className="admin-form-builder-settings admin-card mt-4 p-6">
-        <h2 className="admin-h2">{__('Form Settings')}</h2>
+      <div className="form-builder-settings card mt-4 p-6">
+        <h2 className="h2">{__('Form Settings')}</h2>
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label className="mb-1 block text-sm font-medium text-(--text-secondary)">
@@ -252,7 +252,7 @@ export default function FormBuilderPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder={__('e.g. Contact Form')}
-              className="admin-input"
+              className="input"
             />
           </div>
           <div>
@@ -264,7 +264,7 @@ export default function FormBuilderPage() {
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
               placeholder={__('Auto-generated from name')}
-              className="admin-input"
+              className="input"
             />
           </div>
           <div>
@@ -276,7 +276,7 @@ export default function FormBuilderPage() {
               value={recipientEmail}
               onChange={(e) => setRecipientEmail(e.target.value)}
               placeholder={__('Notifications sent to this email')}
-              className="admin-input"
+              className="input"
             />
           </div>
           <div>
@@ -288,7 +288,7 @@ export default function FormBuilderPage() {
               value={successMessage}
               onChange={(e) => setSuccessMessage(e.target.value)}
               placeholder={__('Thank you!')}
-              className="admin-input"
+              className="input"
             />
           </div>
           <div>
@@ -300,7 +300,7 @@ export default function FormBuilderPage() {
               value={honeypotField}
               onChange={(e) => setHoneypotField(e.target.value)}
               placeholder={__('e.g. website (leave empty to disable)')}
-              className="admin-input"
+              className="input"
             />
             <p className="mt-1 text-xs text-(--text-muted)">
               {__('Hidden field to catch bots. Submissions with this field filled are rejected.')}
@@ -324,13 +324,13 @@ export default function FormBuilderPage() {
       </div>
 
       {/* Form fields builder */}
-      <div className="admin-form-builder-fields admin-card mt-4 p-6">
+      <div className="form-builder-fields card mt-4 p-6">
         <div className="flex items-center justify-between">
-          <h2 className="admin-h2">{__('Fields')}</h2>
+          <h2 className="h2">{__('Fields')}</h2>
           <button
             type="button"
             onClick={addField}
-            className="admin-btn admin-btn-secondary"
+            className="btn btn-secondary"
           >
             <Plus className="h-4 w-4" />
             {__('Add Field')}
@@ -341,11 +341,11 @@ export default function FormBuilderPage() {
           {fields.map((field, index) => (
             <div
               key={field.id}
-              className="admin-form-builder-field-card rounded-lg border border-(--border-primary) bg-(--surface-primary) p-4"
+              className="form-builder-field-card rounded-lg border border-(--border-primary) bg-(--surface-primary) p-4"
             >
-              <div className="admin-form-builder-field-row flex items-start gap-3">
+              <div className="form-builder-field-row flex items-start gap-3">
                 {/* Grip + ordering */}
-                <div className="admin-form-builder-field-grip flex flex-col items-center gap-1 pt-1">
+                <div className="form-builder-field-grip flex flex-col items-center gap-1 pt-1">
                   <GripVertical className="h-4 w-4 text-(--text-muted)" />
                   <button
                     type="button"
@@ -374,7 +374,7 @@ export default function FormBuilderPage() {
                 </div>
 
                 {/* Field config */}
-                <div className="admin-form-builder-field-config flex-1">
+                <div className="form-builder-field-config flex-1">
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                     <div>
                       <label className="mb-1 block text-xs font-medium text-(--text-muted)">
@@ -385,7 +385,7 @@ export default function FormBuilderPage() {
                         onChange={(e) =>
                           updateField(index, { type: e.target.value as FieldType })
                         }
-                        className="admin-select w-full py-1.5"
+                        className="select w-full py-1.5"
                       >
                         {FIELD_TYPES.map((ft) => (
                           <option key={ft.value} value={ft.value}>
@@ -405,7 +405,7 @@ export default function FormBuilderPage() {
                           updateField(index, { label: e.target.value })
                         }
                         placeholder={__('Field label')}
-                        className="admin-input py-1.5"
+                        className="input py-1.5"
                       />
                     </div>
                     <div>
@@ -419,7 +419,7 @@ export default function FormBuilderPage() {
                           updateField(index, { placeholder: e.target.value })
                         }
                         placeholder={__('Placeholder text')}
-                        className="admin-input py-1.5"
+                        className="input py-1.5"
                       />
                     </div>
                   </div>
@@ -437,7 +437,7 @@ export default function FormBuilderPage() {
                           updateField(index, { options: e.target.value })
                         }
                         placeholder={__('Option 1, Option 2, Option 3')}
-                        className="admin-input py-1.5"
+                        className="input py-1.5"
                       />
                     </div>
                   )}
@@ -485,8 +485,8 @@ export default function FormBuilderPage() {
 
       {/* Embed info (only for existing forms) */}
       {!isNew && (
-        <div className="admin-form-builder-embed admin-card mt-4 p-6">
-          <h2 className="admin-h2">{__('Embed')}</h2>
+        <div className="form-builder-embed card mt-4 p-6">
+          <h2 className="h2">{__('Embed')}</h2>
           <p className="mt-2 text-sm text-(--text-secondary)">
             {__('Use this component to embed the form on any page:')}
           </p>

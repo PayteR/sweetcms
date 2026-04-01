@@ -154,9 +154,9 @@ export default function CustomFieldsPage() {
   const isPending = createField.isPending || updateField.isPending;
 
   return (
-    <div className="admin-custom-fields-page">
-      <div className="admin-custom-fields-page-header flex items-center justify-between">
-        <div className="admin-custom-fields-page-header-left flex items-center gap-3">
+    <div className="custom-fields-page">
+      <div className="custom-fields-page-header flex items-center justify-between">
+        <div className="custom-fields-page-header-left flex items-center gap-3">
           <Link
             href="/dashboard/settings"
             className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary)"
@@ -172,7 +172,7 @@ export default function CustomFieldsPage() {
             resetForm();
             setShowForm(true);
           }}
-          className="admin-btn admin-btn-primary"
+          className="btn btn-primary"
         >
           <Plus className="h-4 w-4" />
           {__('New Field')}
@@ -182,7 +182,7 @@ export default function CustomFieldsPage() {
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="admin-custom-field-form mt-4 admin-card p-6 space-y-4"
+          className="custom-field-form mt-4 card p-6 space-y-4"
         >
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div>
@@ -286,7 +286,7 @@ export default function CustomFieldsPage() {
             <button
               type="submit"
               disabled={isPending || form.contentTypes.length === 0 || !form.name}
-              className="admin-btn admin-btn-primary disabled:opacity-50"
+              className="btn btn-primary disabled:opacity-50"
             >
               {isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -296,7 +296,7 @@ export default function CustomFieldsPage() {
             <button
               type="button"
               onClick={resetForm}
-              className="admin-btn admin-btn-secondary"
+              className="btn btn-secondary"
             >
               {__('Cancel')}
             </button>
@@ -304,7 +304,7 @@ export default function CustomFieldsPage() {
         </form>
       )}
 
-      <div className="mt-4 admin-card overflow-hidden">
+      <div className="mt-4 card overflow-hidden">
         {fieldsQuery.isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
@@ -315,29 +315,29 @@ export default function CustomFieldsPage() {
           </p>
         ) : (
           <table className="w-full">
-            <thead className="admin-thead">
+            <thead className="thead">
               <tr>
-                <th className="admin-th">{__('Name')}</th>
-                <th className="admin-th">{__('Slug')}</th>
-                <th className="admin-th">{__('Type')}</th>
-                <th className="admin-th">{__('Content Types')}</th>
-                <th className="admin-th w-24">{__('Sort Order')}</th>
-                <th className="admin-th w-24" />
+                <th className="th">{__('Name')}</th>
+                <th className="th">{__('Slug')}</th>
+                <th className="th">{__('Type')}</th>
+                <th className="th">{__('Content Types')}</th>
+                <th className="th w-24">{__('Sort Order')}</th>
+                <th className="th w-24" />
               </tr>
             </thead>
             <tbody>
               {(fieldsQuery.data ?? []).map((def) => (
                 <tr key={def.id} className="hover:bg-(--surface-secondary)">
-                  <td className="admin-td font-medium text-(--text-primary)">
+                  <td className="td font-medium text-(--text-primary)">
                     {def.name}
                   </td>
-                  <td className="admin-td text-xs font-mono text-(--text-muted)">
+                  <td className="td text-xs font-mono text-(--text-muted)">
                     {def.slug}
                   </td>
-                  <td className="admin-td text-sm text-(--text-secondary)">
+                  <td className="td text-sm text-(--text-secondary)">
                     {def.fieldType}
                   </td>
-                  <td className="admin-td">
+                  <td className="td">
                     <div className="flex flex-wrap gap-1">
                       {(def.contentTypes as string[]).map((ct) => (
                         <span
@@ -349,11 +349,11 @@ export default function CustomFieldsPage() {
                       ))}
                     </div>
                   </td>
-                  <td className="admin-td text-sm text-(--text-secondary)">
+                  <td className="td text-sm text-(--text-secondary)">
                     {def.sortOrder}
                   </td>
-                  <td className="admin-td">
-                    <div className="admin-custom-fields-page-row-actions flex items-center justify-end gap-1">
+                  <td className="td">
+                    <div className="custom-fields-page-row-actions flex items-center justify-end gap-1">
                       <button
                         onClick={() => startEdit(def)}
                         className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"

@@ -239,51 +239,51 @@ Content is stored as **markdown** in `cms_posts.content` / `cms_categories.text`
 
 Section-based RBAC — each sidebar group maps to a `section.*` capability. tRPC routers use `sectionProcedure(section)`.
 
-Dashboard (`max-w-320`, centered) shows: 5 stat cards (pages, posts, categories, users, media) without widget headers, then Content Status + Quick Actions side-by-side with `.admin-widget-header`, GA4Widget (analytics chart + top pages), and Recent Activity feed from `audit.recent` query (last 10 audit log entries with "View all" link to `/dashboard/cms/activity`). Components: `StatCard` (`src/components/admin/StatCard.tsx`), `RecentActivity` (`src/components/admin/RecentActivity.tsx`), `GA4Widget` (`src/components/admin/GA4Widget.tsx`).
+Dashboard (`max-w-320`, centered) shows: 5 stat cards (pages, posts, categories, users, media) without widget headers, then Content Status + Quick Actions side-by-side with `.widget-header`, GA4Widget (analytics chart + top pages), and Recent Activity feed from `audit.recent` query (last 10 audit log entries with "View all" link to `/dashboard/cms/activity`). Components: `StatCard` (`src/components/admin/StatCard.tsx`), `RecentActivity` (`src/components/admin/RecentActivity.tsx`), `GA4Widget` (`src/components/admin/GA4Widget.tsx`).
 
-AdminSidebar: two-level layout — 48px rail (L1) + collapsible 220px panel (L2). Role badges use CSS classes: `.admin-role-superadmin`, `.admin-role-admin`, `.admin-role-editor`, `.admin-role-user`.
+AdminSidebar: two-level layout — 48px rail (L1) + collapsible 220px panel (L2). Role badges use CSS classes: `.role-superadmin`, `.role-admin`, `.role-editor`, `.role-user`.
 
-**Admin CSS classes** (`src/engine/styles/admin.css` + `src/engine/styles/admin-table.css`):
+**Admin CSS classes** (`src/engine/styles/admin.css` + `src/engine/styles/admin-table.css`). All rules scoped under `[data-admin]` via CSS nesting — admin classes only match inside the dashboard wrapper (`<div data-admin>` in `dashboard/layout.tsx`). This prevents collisions with identically-named content CSS classes (`.btn`, `.input`, etc.).
 | Class | Usage |
 |---|---|
-| `.admin-card` | Card containers. Add padding via utility |
-| `.admin-thead` | Table header row background |
-| `.admin-th` | Table header cells |
-| `.admin-td` | Table data cells |
-| `.admin-tr` | Table rows (hover highlight) |
-| `.admin-h2` | Section headings |
-| `.admin-btn` | Base button class |
-| `.admin-btn-primary` | Primary action button |
-| `.admin-btn-secondary` | Secondary button |
-| `.admin-btn-danger` | Danger/delete button |
-| `.admin-btn-success` | Success/confirm button |
-| `.admin-btn-sm` | Small button variant |
-| `.admin-rail` | Sidebar rail container |
-| `.admin-rail-logo` | Rail logo area |
-| `.admin-rail-nav` | Rail navigation container |
-| `.admin-rail-btn` | Rail icon buttons (cursor: pointer) |
-| `.admin-sidebar-link` | Sidebar L2 panel nav links |
-| `.admin-badge` | Status badges base |
-| `.admin-badge-published` | Published status |
-| `.admin-badge-draft` | Draft status |
-| `.admin-badge-scheduled` | Scheduled status |
-| `.admin-action-btn` | Row action buttons |
-| `.admin-search-input` | Search fields |
-| `.admin-filter-select` | Filter dropdowns |
-| `.admin-input` / `.admin-label` | Form fields |
-| `.admin-select` | Select dropdowns (form context) |
-| `.admin-textarea` | Textarea fields |
-| `.admin-highlight` / `.admin-highlight-strong` | Brand-tinted highlight backgrounds |
-| `.admin-status-tabs` / `.admin-status-tab` | Status tab navigation |
-| `.admin-pagination` | Pagination controls |
-| `.admin-empty-state` | Empty state containers |
-| `.admin-sortable-th` | Sortable column headers |
-| `.admin-widget-header` | Widget header bar (title + controls, border-bottom, inset bg) |
-| `.admin-stat-grid` | Grid container for stat rows |
-| `.admin-stat-row` | Label + value row (space-between, border-bottom) |
-| `.admin-stat-label` | Stat row label text |
-| `.admin-stat-value` | Stat row value (bold, tabular-nums) |
-| `.admin-role-badge` | Role badges (superadmin/admin/editor/user) |
+| `.card` | Card containers. Add padding via utility |
+| `.thead` | Table header row background |
+| `.th` | Table header cells |
+| `.td` | Table data cells |
+| `.tr` | Table rows (hover highlight) |
+| `.h2` | Section headings |
+| `.btn` | Base button class |
+| `.btn-primary` | Primary action button |
+| `.btn-secondary` | Secondary button |
+| `.btn-danger` | Danger/delete button |
+| `.btn-success` | Success/confirm button |
+| `.btn-sm` | Small button variant |
+| `.rail` | Sidebar rail container |
+| `.rail-logo` | Rail logo area |
+| `.rail-nav` | Rail navigation container |
+| `.rail-btn` | Rail icon buttons (cursor: pointer) |
+| `.sidebar-link` | Sidebar L2 panel nav links |
+| `.badge` | Status badges base |
+| `.badge-published` | Published status |
+| `.badge-draft` | Draft status |
+| `.badge-scheduled` | Scheduled status |
+| `.action-btn` | Row action buttons |
+| `.search-input` | Search fields |
+| `.filter-select` | Filter dropdowns |
+| `.input` / `.label` | Form fields |
+| `.select` | Select dropdowns (form context) |
+| `.textarea` | Textarea fields |
+| `.highlight` / `.highlight-strong` | Brand-tinted highlight backgrounds |
+| `.status-tabs` / `.status-tab` | Status tab navigation |
+| `.pagination` | Pagination controls |
+| `.empty-state` | Empty state containers |
+| `.sortable-th` | Sortable column headers |
+| `.widget-header` | Widget header bar (title + controls, border-bottom, inset bg) |
+| `.stat-grid` | Grid container for stat rows |
+| `.stat-row` | Label + value row (space-between, border-bottom) |
+| `.stat-label` | Stat row label text |
+| `.stat-value` | Stat row value (bold, tabular-nums) |
+| `.role-badge` | Role badges (superadmin/admin/editor/user) |
 
 Always use these instead of inline Tailwind equivalents.
 
@@ -310,7 +310,7 @@ Tailwind CSS v4 with `@tailwindcss/typography` for `prose` classes. CSS-first co
 - `src/engine/styles/tokens.css` — OKLCH design tokens (brand scale, tinted grays, semantic colors, surfaces, text, borders, shadows, radius, motion)
 - `src/engine/styles/admin.css` — admin panel core classes (cards, buttons, sidebar, typography)
 - `src/engine/styles/admin-table.css` — table, badge, form, pagination, role badge classes
-- `src/engine/styles/content.css` — CMS content rendering classes (`.cms-content`, `.cms-title`, `.cms-post-card`)
+- `src/engine/styles/content.css` — CMS content rendering classes (`.content`, `.title`, `.post-card`)
 - `src/app/globals.css` — imports Tailwind, typography, engine tokens, content CSS
 
 **Layer order:** `@layer theme, base, components, utilities;` — every CSS file must declare this.

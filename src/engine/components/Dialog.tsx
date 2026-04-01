@@ -32,10 +32,10 @@ export interface DialogClassNames {
 }
 
 const ADMIN_CLASSES: Required<DialogClassNames> = {
-  panel: 'admin-dialog-panel',
-  header: 'admin-dialog-header',
-  body: 'admin-dialog-body',
-  footer: 'admin-dialog-footer',
+  panel: 'dialog-panel',
+  header: 'dialog-header',
+  body: 'dialog-body',
+  footer: 'dialog-footer',
 };
 
 const DialogClassContext = createContext<Required<DialogClassNames>>(ADMIN_CLASSES);

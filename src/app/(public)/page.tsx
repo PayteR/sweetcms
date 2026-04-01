@@ -62,7 +62,7 @@ export default async function HomePage() {
     <div className="flex flex-col">
       {/* Hero */}
       <section className="bg-(--surface-primary) py-20">
-        <div className="cms-container text-center">
+        <div className="container text-center">
           <h1 className="text-4xl font-bold tracking-tight text-(--text-primary) sm:text-5xl">
             {siteConfig.name}
           </h1>
@@ -72,13 +72,13 @@ export default async function HomePage() {
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link
               href="/blog"
-              className="cms-btn cms-btn-primary rounded-lg px-6 py-3 text-sm shadow-sm"
+              className="btn btn-primary rounded-lg px-6 py-3 text-sm shadow-sm"
             >
               Read the Blog
             </Link>
             <Link
               href="/portfolio"
-              className="cms-btn cms-btn-secondary rounded-lg px-6 py-3 text-sm shadow-sm"
+              className="btn btn-secondary rounded-lg px-6 py-3 text-sm shadow-sm"
             >
               View Portfolio
             </Link>
@@ -88,8 +88,8 @@ export default async function HomePage() {
 
       {/* Recent posts */}
       {featured && (
-        <section className="cms-section-alt">
-          <div className="cms-container">
+        <section className="section-alt">
+          <div className="container">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-(--text-primary)">Recent Posts</h2>
               <Link
@@ -135,8 +135,8 @@ export default async function HomePage() {
 
       {/* Category showcase */}
       {categories.length > 0 && (
-        <section className="cms-section">
-          <div className="cms-container">
+        <section className="section">
+          <div className="container">
             <h2 className="text-2xl font-bold text-(--text-primary)">Categories</h2>
             <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
               {categories.map((cat) => (
@@ -157,8 +157,8 @@ export default async function HomePage() {
       <TagCloud
         limit={15}
         sectionTitle="Popular Tags"
-        sectionClassName="cms-section-alt"
-        containerClassName="cms-container"
+        sectionClassName="section-alt"
+        containerClassName="container"
       />
     </div>
   );

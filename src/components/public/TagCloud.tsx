@@ -48,7 +48,7 @@ export async function TagCloud({
   }
 
   const cloud = (
-    <div className="cms-tag-cloud flex flex-wrap gap-2">
+    <div className="tag-cloud flex flex-wrap gap-2">
       {tags.map((tag) => (
         <Link
           key={tag.id}

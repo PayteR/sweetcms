@@ -33,8 +33,8 @@ export default function BulkActionBar({
   if (selectedCount === 0) return null;
 
   return (
-    <div className="admin-bulk-action-bar mt-3 flex items-center justify-between rounded-lg border border-(--border-primary) bg-(--surface-secondary) px-4 py-3">
-      <div className="admin-bulk-actions-info flex items-center gap-3">
+    <div className="bulk-action-bar mt-3 flex items-center justify-between rounded-lg border border-(--border-primary) bg-(--surface-secondary) px-4 py-3">
+      <div className="bulk-actions-info flex items-center gap-3">
         {isPending && (
           <Loader2 size={16} className="animate-spin text-(--text-muted)" />
         )}
@@ -50,13 +50,13 @@ export default function BulkActionBar({
           {__('Deselect all')}
         </button>
       </div>
-      <div className="admin-bulk-actions-buttons flex items-center gap-2">
+      <div className="bulk-actions-buttons flex items-center gap-2">
         {trashed ? (
           <button
             type="button"
             onClick={onBulkRestore}
             disabled={isPending}
-            className="admin-btn admin-btn-secondary gap-1 text-sm disabled:opacity-50"
+            className="btn btn-secondary gap-1 text-sm disabled:opacity-50"
           >
             <Undo2 size={14} />
             {__('Restore')}
@@ -85,7 +85,7 @@ export default function BulkActionBar({
                   type="button"
                   onClick={() => setExportOpen(!exportOpen)}
                   disabled={isPending}
-                  className="admin-btn admin-btn-secondary gap-1 text-sm disabled:opacity-50"
+                  className="btn btn-secondary gap-1 text-sm disabled:opacity-50"
                 >
                   <Download size={14} />
                   {__('Export')}
@@ -112,7 +112,7 @@ export default function BulkActionBar({
               type="button"
               onClick={onBulkTrash}
               disabled={isPending}
-              className="admin-btn gap-1 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/15 disabled:opacity-50"
+              className="btn gap-1 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/15 disabled:opacity-50"
             >
               <Trash2 size={14} />
               {__('Move to Trash')}

@@ -160,7 +160,7 @@ export default function UserDetailPage() {
         <p className="text-(--text-muted)">{__('User not found')}</p>
         <button
           onClick={() => router.push('/dashboard/users')}
-          className="admin-btn admin-btn-secondary mt-4"
+          className="btn btn-secondary mt-4"
         >
           <ArrowLeft className="h-4 w-4" />
           {__('Back to Users')}
@@ -212,15 +212,15 @@ export default function UserDetailPage() {
       </div>
 
       {/* Profile Card */}
-      <form onSubmit={handleSaveProfile} className="admin-card mt-6 p-6">
+      <form onSubmit={handleSaveProfile} className="card mt-6 p-6">
         <div className="flex items-center justify-between">
-          <h2 className="admin-h2">{__('Profile')}</h2>
+          <h2 className="h2">{__('Profile')}</h2>
           <div className="flex items-center gap-2">
             {u.banned ? (
               <button
                 type="button"
                 onClick={() => unbanUser.mutate({ id: userId })}
-                className="admin-btn admin-btn-secondary text-sm"
+                className="btn btn-secondary text-sm"
               >
                 <CheckCircle className="h-4 w-4" />
                 {__('Unban')}
@@ -229,7 +229,7 @@ export default function UserDetailPage() {
               <button
                 type="button"
                 onClick={() => setBanDialogOpen(true)}
-                className="admin-btn admin-btn-secondary text-sm text-red-600 dark:text-red-400"
+                className="btn btn-secondary text-sm text-red-600 dark:text-red-400"
               >
                 <Ban className="h-4 w-4" />
                 {__('Ban')}
@@ -239,7 +239,7 @@ export default function UserDetailPage() {
               href={`/api/gdpr-export/${u.id}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="admin-btn admin-btn-secondary text-sm"
+              className="btn btn-secondary text-sm"
               title={__('Export data (GDPR)')}
             >
               <Download className="h-4 w-4" />
@@ -248,7 +248,7 @@ export default function UserDetailPage() {
             <button
               type="button"
               onClick={() => setAnonymizeDialogOpen(true)}
-              className="admin-btn admin-btn-secondary text-sm text-red-600 dark:text-red-400"
+              className="btn btn-secondary text-sm text-red-600 dark:text-red-400"
             >
               <UserX className="h-4 w-4" />
               {__('Anonymize')}
@@ -265,7 +265,7 @@ export default function UserDetailPage() {
               type="text"
               value={name}
               onChange={(e) => setEditName(e.target.value)}
-              className="admin-input mt-1"
+              className="input mt-1"
             />
           </div>
           <div>
@@ -276,7 +276,7 @@ export default function UserDetailPage() {
               type="email"
               value={email}
               onChange={(e) => setEditEmail(e.target.value)}
-              className="admin-input mt-1"
+              className="input mt-1"
             />
           </div>
           <div>
@@ -286,7 +286,7 @@ export default function UserDetailPage() {
             <select
               value={role}
               onChange={(e) => setEditRole(e.target.value)}
-              className="admin-select mt-1 w-full"
+              className="select mt-1 w-full"
             >
               {ROLES.map((r) => (
                 <option key={r} value={r}>
@@ -310,7 +310,7 @@ export default function UserDetailPage() {
             <button
               type="submit"
               disabled={updateUser.isPending}
-              className="admin-btn admin-btn-primary disabled:opacity-50"
+              className="btn btn-primary disabled:opacity-50"
             >
               {updateUser.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -324,9 +324,9 @@ export default function UserDetailPage() {
       </form>
 
       {/* Login History */}
-      <div className="admin-card mt-6 overflow-hidden">
+      <div className="card mt-6 overflow-hidden">
         <div className="p-6 pb-0">
-          <h2 className="admin-h2">{__('Login History')}</h2>
+          <h2 className="h2">{__('Login History')}</h2>
         </div>
         {loginHistory.isLoading ? (
           <div className="flex items-center justify-center py-8">
@@ -339,23 +339,23 @@ export default function UserDetailPage() {
         ) : (
           <>
             <table className="mt-2 w-full">
-              <thead className="admin-thead">
+              <thead className="thead">
                 <tr>
-                  <th className="admin-th w-40">{__('Date')}</th>
-                  <th className="admin-th w-36">{__('IP Address')}</th>
-                  <th className="admin-th">{__('User Agent')}</th>
+                  <th className="th w-40">{__('Date')}</th>
+                  <th className="th w-36">{__('IP Address')}</th>
+                  <th className="th">{__('User Agent')}</th>
                 </tr>
               </thead>
               <tbody>
                 {(loginHistory.data?.results ?? []).map((s) => (
                   <tr key={s.id} className="hover:bg-(--surface-secondary)">
-                    <td className="admin-td text-xs text-(--text-muted)">
+                    <td className="td text-xs text-(--text-muted)">
                       {formatDate(s.createdAt)}
                     </td>
-                    <td className="admin-td text-xs font-mono text-(--text-muted)">
+                    <td className="td text-xs font-mono text-(--text-muted)">
                       {s.ipAddress ?? '\u2014'}
                     </td>
-                    <td className="admin-td text-xs text-(--text-muted)">
+                    <td className="td text-xs text-(--text-muted)">
                       {truncate(s.userAgent, 80)}
                     </td>
                   </tr>
@@ -371,14 +371,14 @@ export default function UserDetailPage() {
                   <button
                     onClick={() => setLoginPage((p) => Math.max(1, p - 1))}
                     disabled={loginPage <= 1}
-                    className="admin-btn admin-btn-secondary disabled:opacity-40"
+                    className="btn btn-secondary disabled:opacity-40"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => setLoginPage((p) => Math.min(loginHistory.data?.totalPages ?? 1, p + 1))}
                     disabled={loginPage >= loginHistory.data.totalPages}
-                    className="admin-btn admin-btn-secondary disabled:opacity-40"
+                    className="btn btn-secondary disabled:opacity-40"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </button>
@@ -390,9 +390,9 @@ export default function UserDetailPage() {
       </div>
 
       {/* Audit Trail */}
-      <div className="admin-card mt-6 overflow-hidden">
+      <div className="card mt-6 overflow-hidden">
         <div className="p-6 pb-0">
-          <h2 className="admin-h2">{__('Audit Trail')}</h2>
+          <h2 className="h2">{__('Audit Trail')}</h2>
         </div>
         {auditLog.isLoading ? (
           <div className="flex items-center justify-center py-8">
@@ -405,27 +405,27 @@ export default function UserDetailPage() {
         ) : (
           <>
             <table className="mt-2 w-full">
-              <thead className="admin-thead">
+              <thead className="thead">
                 <tr>
-                  <th className="admin-th w-40">{__('Time')}</th>
-                  <th className="admin-th w-24">{__('Action')}</th>
-                  <th className="admin-th w-24">{__('Type')}</th>
-                  <th className="admin-th">{__('Entity')}</th>
+                  <th className="th w-40">{__('Time')}</th>
+                  <th className="th w-24">{__('Action')}</th>
+                  <th className="th w-24">{__('Type')}</th>
+                  <th className="th">{__('Entity')}</th>
                 </tr>
               </thead>
               <tbody>
                 {(auditLog.data?.results ?? []).map((entry) => (
                   <tr key={entry.id} className="hover:bg-(--surface-secondary)">
-                    <td className="admin-td text-xs text-(--text-muted)">
+                    <td className="td text-xs text-(--text-muted)">
                       {formatDate(entry.createdAt)}
                     </td>
-                    <td className="admin-td">
+                    <td className="td">
                       <span className="inline-block rounded-full bg-(--surface-secondary) px-2 py-0.5 text-xs font-medium text-(--text-secondary)">
                         {entry.action}
                       </span>
                     </td>
-                    <td className="admin-td text-xs text-(--text-muted)">{entry.entityType}</td>
-                    <td className="admin-td text-sm text-(--text-primary)">
+                    <td className="td text-xs text-(--text-muted)">{entry.entityType}</td>
+                    <td className="td text-sm text-(--text-primary)">
                       {entry.entityTitle ?? entry.entityId.slice(0, 8)}
                     </td>
                   </tr>
@@ -441,14 +441,14 @@ export default function UserDetailPage() {
                   <button
                     onClick={() => setAuditPage((p) => Math.max(1, p - 1))}
                     disabled={auditPage <= 1}
-                    className="admin-btn admin-btn-secondary disabled:opacity-40"
+                    className="btn btn-secondary disabled:opacity-40"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => setAuditPage((p) => Math.min(auditLog.data?.totalPages ?? 1, p + 1))}
                     disabled={auditPage >= auditLog.data.totalPages}
-                    className="admin-btn admin-btn-secondary disabled:opacity-40"
+                    className="btn btn-secondary disabled:opacity-40"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </button>

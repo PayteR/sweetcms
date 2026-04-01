@@ -168,9 +168,9 @@ export default function GA4Widget() {
   // Not configured state
   if (data && !data.configured) {
     return (
-      <div className="admin-card flex flex-col overflow-hidden">
-        <div className="admin-widget-header">
-          <h2 className="admin-h2 flex items-center gap-2">
+      <div className="card flex flex-col overflow-hidden">
+        <div className="widget-header">
+          <h2 className="h2 flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-(--text-muted)" />
             {__('Google Analytics')}
           </h2>
@@ -182,7 +182,7 @@ export default function GA4Widget() {
           </p>
           <Link
             href="/dashboard/settings"
-            className="admin-btn admin-btn-primary mt-2"
+            className="btn btn-primary mt-2"
           >
             <ExternalLink className="h-4 w-4" />
             {__('Configure in Settings')}
@@ -193,10 +193,10 @@ export default function GA4Widget() {
   }
 
   return (
-    <div className="admin-card flex flex-col overflow-hidden">
+    <div className="card flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="admin-widget-header">
-        <h2 className="admin-h2 flex items-center gap-2">
+      <div className="widget-header">
+        <h2 className="h2 flex items-center gap-2">
           <BarChart3 className="h-5 w-5 text-(--text-muted)" />
           {__('Google Analytics')}
         </h2>
@@ -238,49 +238,49 @@ export default function GA4Widget() {
       {data && data.configured && (
         <div className="p-4">
           {/* Stat cards */}
-          <div className="admin-ga4-stats-grid grid grid-cols-2 gap-4">
-            <div className="admin-ga4-stat-card rounded-lg bg-(--surface-secondary) p-4">
-              <div className="admin-ga4-stat-label flex items-center gap-2 text-sm text-(--text-muted)">
+          <div className="ga4-stats-grid grid grid-cols-2 gap-4">
+            <div className="ga4-stat-card rounded-lg bg-(--surface-secondary) p-4">
+              <div className="ga4-stat-label flex items-center gap-2 text-sm text-(--text-muted)">
                 <Eye className="h-4 w-4" />
                 {__('Page Views')}
               </div>
-              <p className="admin-ga4-stat-value mt-1 text-2xl font-semibold text-(--text-primary)">
+              <p className="ga4-stat-value mt-1 text-2xl font-semibold text-(--text-primary)">
                 {data.totalPageViews.toLocaleString()}
               </p>
             </div>
-            <div className="admin-ga4-stat-card rounded-lg bg-(--surface-secondary) p-4">
-              <div className="admin-ga4-stat-label flex items-center gap-2 text-sm text-(--text-muted)">
+            <div className="ga4-stat-card rounded-lg bg-(--surface-secondary) p-4">
+              <div className="ga4-stat-label flex items-center gap-2 text-sm text-(--text-muted)">
                 <Users className="h-4 w-4" />
                 {__('Sessions')}
               </div>
-              <p className="admin-ga4-stat-value mt-1 text-2xl font-semibold text-(--text-primary)">
+              <p className="ga4-stat-value mt-1 text-2xl font-semibold text-(--text-primary)">
                 {data.totalSessions.toLocaleString()}
               </p>
             </div>
           </div>
 
           {/* Chart */}
-          <div className="admin-ga4-chart-section mt-4">
+          <div className="ga4-chart-section mt-4">
             <h3 className="text-sm font-medium text-(--text-secondary)">
               {__('Daily Page Views')}
             </h3>
-            <div className="admin-ga4-chart-wrapper mt-2">
+            <div className="ga4-chart-wrapper mt-2">
               <SimpleLineChart data={data.dailyViews} />
             </div>
           </div>
 
           {/* Top pages table */}
           {data.topPages.length > 0 && (
-            <div className="admin-ga4-top-pages mt-4">
+            <div className="ga4-top-pages mt-4">
               <h3 className="text-sm font-medium text-(--text-secondary)">
                 {__('Top Pages')}
               </h3>
-              <div className="admin-ga4-table-wrapper mt-2 overflow-x-auto">
+              <div className="ga4-table-wrapper mt-2 overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="admin-thead">
-                      <th className="admin-th text-left">{__('Page')}</th>
-                      <th className="admin-th text-right">{__('Views')}</th>
+                    <tr className="thead">
+                      <th className="th text-left">{__('Page')}</th>
+                      <th className="th text-right">{__('Views')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -289,10 +289,10 @@ export default function GA4Widget() {
                         key={page.path}
                         className="border-b border-(--border-primary)"
                       >
-                        <td className="admin-ga4-page-path py-2 pr-4 text-(--text-primary) font-mono text-xs">
+                        <td className="ga4-page-path py-2 pr-4 text-(--text-primary) font-mono text-xs">
                           {page.path}
                         </td>
-                        <td className="admin-ga4-page-views py-2 text-right tabular-nums text-(--text-secondary)">
+                        <td className="ga4-page-views py-2 text-right tabular-nums text-(--text-secondary)">
                           {page.views.toLocaleString()}
                         </td>
                       </tr>

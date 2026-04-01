@@ -22,7 +22,7 @@ export function CtaBlock({ attrs }: Props) {
   const style = BUTTON_STYLES[attrs.style ?? 'primary'] ?? BUTTON_STYLES.primary;
 
   return (
-    <div className="cms-cta my-6 text-center">
+    <div className="cta my-6 text-center">
       <a
         href={url}
         className={cn('inline-block rounded-md px-6 py-3 font-medium transition-colors', style)}

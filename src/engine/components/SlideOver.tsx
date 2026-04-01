@@ -25,9 +25,9 @@ export interface SlideOverClassNames {
 }
 
 const ADMIN_CLASSES: Required<SlideOverClassNames> = {
-  panel: 'admin-slide-over-panel',
-  header: 'admin-slide-over-header',
-  body: 'admin-slide-over-body',
+  panel: 'slide-over-panel',
+  header: 'slide-over-header',
+  body: 'slide-over-body',
 };
 
 export interface SlideOverProps {

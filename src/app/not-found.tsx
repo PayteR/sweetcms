@@ -11,7 +11,7 @@ export default function NotFound() {
       <div className="mt-6 flex gap-3">
         <Link
           href="/"
-          className="admin-btn admin-btn-primary"
+          className="btn btn-primary"
         >
           Go Home
         </Link>

@@ -74,25 +74,25 @@ export function ContentCalendar() {
     day === now.getDate() && month === now.getMonth() + 1 && year === now.getFullYear();
 
   return (
-    <div className="admin-calendar">
+    <div className="calendar">
       {/* Month navigation */}
-      <div className="admin-calendar-header flex items-center justify-between">
+      <div className="calendar-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">{__('Calendar')}</h1>
-        <div className="admin-calendar-nav flex items-center gap-3">
-          <button onClick={prevMonth} className="admin-btn admin-btn-secondary">
+        <div className="calendar-nav flex items-center gap-3">
+          <button onClick={prevMonth} className="btn btn-secondary">
             <ChevronLeft className="h-4 w-4" />
           </button>
           <span className="text-sm font-medium text-(--text-primary) min-w-[140px] text-center">
             {__(MONTHS[month - 1]!)} {year}
           </span>
-          <button onClick={nextMonth} className="admin-btn admin-btn-secondary">
+          <button onClick={nextMonth} className="btn btn-secondary">
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
       </div>
 
       {/* Calendar grid */}
-      <div className="admin-card mt-4 overflow-hidden">
+      <div className="card mt-4 overflow-hidden">
         {events.isLoading ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
@@ -100,7 +100,7 @@ export function ContentCalendar() {
         ) : (
           <>
             {/* Day headers */}
-            <div className="admin-calendar-day-headers grid grid-cols-7 border-b border-(--border-primary)">
+            <div className="calendar-day-headers grid grid-cols-7 border-b border-(--border-primary)">
               {DAYS.map(day => (
                 <div key={day} className="px-2 py-2 text-center text-xs font-semibold text-(--text-muted)">
                   {__(day)}
@@ -108,7 +108,7 @@ export function ContentCalendar() {
               ))}
             </div>
             {/* Day cells */}
-            <div className="admin-calendar-grid grid grid-cols-7">
+            <div className="calendar-grid grid grid-cols-7">
               {cells.map((day, i) => (
                 <div
                   key={i}

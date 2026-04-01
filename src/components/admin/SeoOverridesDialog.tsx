@@ -195,14 +195,14 @@ export function SeoOverridesDialog({
         <button
           onClick={handleClose}
           disabled={isPending}
-          className="admin-btn admin-btn-secondary"
+          className="btn btn-secondary"
         >
           {__('Cancel')}
         </button>
         <button
           onClick={handleConfirm}
           disabled={isPending || selected.length === 0}
-          className="admin-btn admin-btn-primary flex items-center gap-2"
+          className="btn btn-primary flex items-center gap-2"
         >
           {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
           {__('Create Selected')} ({selected.length})
