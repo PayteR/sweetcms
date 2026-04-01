@@ -1,10 +1,11 @@
 'use client';
 
-import { useLayoutEffect, useEffect, useRef } from 'react';
+import type { ReactNode } from 'react';
 import { X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useBlankTranslations } from '@/lib/translations';
+import { useOverlay } from '@/engine/hooks/useOverlay';
 
 const widthClasses = {
   sm: 'max-w-[384px]',
@@ -13,12 +14,15 @@ const widthClasses = {
   xl: 'max-w-[768px]',
 } as const;
 
-interface SlideOverProps {
+export type SlideOverWidth = keyof typeof widthClasses;
+
+export interface SlideOverProps {
   open: boolean;
   onClose: () => void;
   title: string;
-  width?: keyof typeof widthClasses;
-  children: React.ReactNode;
+  width?: SlideOverWidth;
+  className?: string;
+  children: ReactNode;
 }
 
 export function SlideOver({
@@ -26,46 +30,28 @@ export function SlideOver({
   onClose,
   title,
   width = 'md',
+  className,
   children,
 }: SlideOverProps) {
   const __ = useBlankTranslations();
-  const dialogRef = useRef<HTMLDialogElement>(null);
-
-  useLayoutEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (open && !dialog.open) {
-      dialog.showModal();
-    } else if (!open && dialog.open) {
-      dialog.close();
-    }
-  }, [open]);
-
-  // Scroll lock with scrollbar compensation
-  useEffect(() => {
-    if (!open) return;
-    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-    document.body.style.paddingRight = `${scrollbarWidth}px`;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.paddingRight = '';
-      document.body.style.overflow = '';
-    };
-  }, [open]);
+  const { panelRef, animateOpen } = useOverlay({ open, onClose });
 
   return (
-    <dialog
-      ref={dialogRef}
-      className="admin-slide-over"
-      onClick={(e) => {
-        if (e.target === dialogRef.current) onClose();
-      }}
-      onCancel={(e) => {
-        e.preventDefault();
-        onClose();
-      }}
+    <div
+      className={cn('admin-slide-over', animateOpen && 'admin-slide-over-open')}
+      role="dialog"
+      aria-modal={open || undefined}
+      inert={!open || undefined}
     >
-      <div className={cn('admin-slide-over-panel', widthClasses[width])}>
+      <div
+        className="admin-slide-over-backdrop"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <div
+        ref={panelRef}
+        className={cn('admin-slide-over-panel', widthClasses[width], className)}
+      >
         {/* Header */}
         <div className="admin-slide-over-header flex items-center justify-between border-b border-(--border-secondary) px-5 py-4">
           <h2 className="admin-h2">{title}</h2>
@@ -84,6 +70,6 @@ export function SlideOver({
           {children}
         </div>
       </div>
-    </dialog>
+    </div>
   );
 }

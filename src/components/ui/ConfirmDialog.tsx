@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { Dialog } from '@/engine/components/Dialog';
 
 interface Props {
   open: boolean;
@@ -23,46 +23,30 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
 }: Props) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-
-  useEffect(() => {
-    if (open) {
-      dialogRef.current?.showModal();
-    } else {
-      dialogRef.current?.close();
-    }
-  }, [open]);
-
-  if (!open) return null;
-
   return (
-    <dialog
-      ref={dialogRef}
-      onClose={onCancel}
-      className="fixed inset-0 z-50 m-auto w-full max-w-md rounded-lg border border-(--border-primary) bg-(--surface-primary) p-0 shadow-xl backdrop:bg-black/30"
-    >
-      <div className="ui-confirm-dialog-body p-6">
+    <Dialog open={open} onClose={onCancel} size="sm">
+      <Dialog.Body>
         <h3 className="text-lg font-semibold text-(--text-primary)">{title}</h3>
         <p className="mt-2 text-sm text-(--text-secondary)">{message}</p>
-        <div className="ui-confirm-dialog-actions mt-6 flex justify-end gap-3">
-          <button
-            onClick={onCancel}
-            className="admin-btn admin-btn-secondary"
-          >
-            {cancelLabel}
-          </button>
-          <button
-            onClick={onConfirm}
-            className={
-              variant === 'danger'
-                ? 'admin-btn admin-btn-danger'
-                : 'admin-btn admin-btn-primary'
-            }
-          >
-            {confirmLabel}
-          </button>
-        </div>
-      </div>
-    </dialog>
+      </Dialog.Body>
+      <Dialog.Footer>
+        <button
+          onClick={onCancel}
+          className="admin-btn admin-btn-secondary"
+        >
+          {cancelLabel}
+        </button>
+        <button
+          onClick={onConfirm}
+          className={
+            variant === 'danger'
+              ? 'admin-btn admin-btn-danger'
+              : 'admin-btn admin-btn-primary'
+          }
+        >
+          {confirmLabel}
+        </button>
+      </Dialog.Footer>
+    </Dialog>
   );
 }

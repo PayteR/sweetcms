@@ -1,12 +1,13 @@
 'use client';
 
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { memo, useRef, useState, useEffect } from 'react';
 
 import { FileText, FolderOpen, Search, Tag } from 'lucide-react';
 
 import { useBlankTranslations } from '@/lib/translations';
 import { trpc } from '@/lib/trpc/client';
 import { cn } from '@/lib/utils';
+import { Dialog } from '@/engine/components/Dialog';
 
 const TYPE_CONFIG: Record<string, { label: string; icon: typeof FileText; color: string }> = {
   page: { label: 'Page', icon: FileText, color: 'bg-(--color-brand-600)' },
@@ -23,16 +24,16 @@ interface InternalLinkDialogProps {
   onSelect: (title: string, url: string) => void;
 }
 
-function DialogContent({ onClose, onSelect }: Omit<InternalLinkDialogProps, 'isOpen'>) {
+interface DialogContentProps {
+  onClose: () => void;
+  onSelect: (title: string, url: string) => void;
+  searchInputRef: React.RefObject<HTMLInputElement | null>;
+}
+
+function DialogContent({ onClose, onSelect, searchInputRef }: DialogContentProps) {
   const __ = useBlankTranslations();
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => inputRef.current?.focus(), 100);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Clear debounced query immediately when query is too short
   if (query.length < 2 && debouncedQuery !== '') {
@@ -52,106 +53,90 @@ function DialogContent({ onClose, onSelect }: Omit<InternalLinkDialogProps, 'isO
   );
 
   return (
-    <div className="p-4">
-      <h2 className="mb-4 text-lg font-semibold">{__('Insert Internal Link')}</h2>
+    <>
+      <Dialog.Header onClose={onClose}>{__('Insert Internal Link')}</Dialog.Header>
+      <Dialog.Body>
+        <div className="relative">
+          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-(--text-muted)" />
+          <input
+            ref={searchInputRef}
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={__('Search pages, blog posts, categories...')}
+            className="admin-input rounded-lg py-2 pl-10 pr-4"
+          />
+        </div>
 
-      <div className="relative">
-        <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-(--text-muted)" />
-        <input
-          ref={inputRef}
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={__('Search pages, blog posts, categories...')}
-          className="admin-input rounded-lg py-2 pl-10 pr-4"
-        />
-      </div>
+        <div className="mt-4 max-h-80 min-h-[120px] overflow-y-auto">
+          {isLoading && debouncedQuery.length >= 2 && (
+            <div className="flex items-center justify-center py-8 text-(--text-muted)">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-(--border-primary) border-t-(--color-brand-400)" />
+              <span className="ml-2">{__('Searching...')}</span>
+            </div>
+          )}
 
-      <div className="mt-4 max-h-80 min-h-[120px] overflow-y-auto">
-        {isLoading && debouncedQuery.length >= 2 && (
-          <div className="flex items-center justify-center py-8 text-(--text-muted)">
-            <div className="h-5 w-5 animate-spin rounded-full border-2 border-(--border-primary) border-t-(--color-brand-400)" />
-            <span className="ml-2">{__('Searching...')}</span>
-          </div>
-        )}
+          {!isLoading && debouncedQuery.length >= 2 && results?.length === 0 && (
+            <div className="py-8 text-center text-(--text-muted)">{__('No results found')}</div>
+          )}
 
-        {!isLoading && debouncedQuery.length >= 2 && results?.length === 0 && (
-          <div className="py-8 text-center text-(--text-muted)">{__('No results found')}</div>
-        )}
+          {!isLoading && debouncedQuery.length < 2 && (
+            <div className="py-8 text-center text-(--text-muted)">{__('Type at least 2 characters to search')}</div>
+          )}
 
-        {!isLoading && debouncedQuery.length < 2 && (
-          <div className="py-8 text-center text-(--text-muted)">{__('Type at least 2 characters to search')}</div>
-        )}
-
-        {results && results.length > 0 && (
-          <div className="space-y-1">
-            {results.map((result, idx) => {
-              const config = TYPE_CONFIG[result.type] ?? DEFAULT_TYPE_CONFIG;
-              const Icon = config.icon;
-              return (
-                <button
-                  key={`${result.type}-${result.id}-${idx}`}
-                  type="button"
-                  onClick={() => onSelect(result.title, result.url)}
-                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-(--surface-secondary)"
-                >
-                  <Icon size={16} className="shrink-0 text-(--text-muted)" />
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm text-(--text-primary)">{result.title}</div>
-                    <div className="truncate text-xs text-(--text-muted)">{result.url}</div>
-                  </div>
-                  <span className={cn('shrink-0 rounded px-1.5 py-0.5 text-xs text-white', config.color)}>
-                    {__(config.label)}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
-
-      <div className="mt-4 flex justify-end">
+          {results && results.length > 0 && (
+            <div className="space-y-1">
+              {results.map((result, idx) => {
+                const config = TYPE_CONFIG[result.type] ?? DEFAULT_TYPE_CONFIG;
+                const Icon = config.icon;
+                return (
+                  <button
+                    key={`${result.type}-${result.id}-${idx}`}
+                    type="button"
+                    onClick={() => onSelect(result.title, result.url)}
+                    className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left transition-colors hover:bg-(--surface-secondary)"
+                  >
+                    <Icon size={16} className="shrink-0 text-(--text-muted)" />
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm text-(--text-primary)">{result.title}</div>
+                      <div className="truncate text-xs text-(--text-muted)">{result.url}</div>
+                    </div>
+                    <span className={cn('shrink-0 rounded px-1.5 py-0.5 text-xs text-white', config.color)}>
+                      {__(config.label)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </Dialog.Body>
+      <Dialog.Footer>
         <button
           type="button"
           onClick={onClose}
-          className="rounded-lg border border-(--border-primary) px-4 py-2 text-sm text-(--text-secondary) transition-colors hover:bg-(--surface-secondary)"
+          className="admin-btn admin-btn-secondary"
         >
           {__('Cancel')}
         </button>
-      </div>
-    </div>
+      </Dialog.Footer>
+    </>
   );
 }
 
 function InternalLinkDialog({ isOpen, onClose, onSelect }: InternalLinkDialogProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
-
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (isOpen && !dialog.open) {
-      dialog.showModal();
-    } else if (!isOpen && dialog.open) {
-      dialog.close();
-    }
-  }, [isOpen]);
-
-  const handleDialogClick = useCallback(
-    (e: React.MouseEvent<HTMLDialogElement>) => {
-      if (e.target === dialogRef.current) onClose();
-    },
-    [onClose]
-  );
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <dialog
-      ref={dialogRef}
-      onClick={handleDialogClick}
-      onClose={onClose}
-      className="w-full max-w-lg rounded-xl border border-(--border-primary) bg-(--surface-primary) p-0 text-(--text-primary) shadow-xl backdrop:bg-black/50"
-    >
-      {isOpen && <DialogContent onClose={onClose} onSelect={onSelect} />}
-    </dialog>
+    <Dialog open={isOpen} onClose={onClose} size="lg" initialFocusRef={searchInputRef}>
+      {isOpen && (
+        <DialogContent
+          onClose={onClose}
+          onSelect={onSelect}
+          searchInputRef={searchInputRef}
+        />
+      )}
+    </Dialog>
   );
 }
 

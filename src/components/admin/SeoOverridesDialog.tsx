@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Check, Loader2 } from 'lucide-react';
 
 import { LOCALES, type Locale } from '@/lib/constants';
 import { useBlankTranslations } from '@/lib/translations';
 import { trpc } from '@/lib/trpc/client';
+import { Dialog } from '@/engine/components/Dialog';
 
 interface SelectedRoute {
   slug: string;
@@ -33,21 +34,12 @@ export function SeoOverridesDialog({
   isPending,
 }: Props) {
   const __ = useBlankTranslations();
-  const dialogRef = useRef<HTMLDialogElement>(null);
   const [checked, setChecked] = useState<Record<string, boolean>>({});
 
   const { data, isLoading } = trpc.cms.getSeoOverrideStatus.useQuery(
     undefined,
     { enabled: open }
   );
-
-  useEffect(() => {
-    if (open) {
-      dialogRef.current?.showModal();
-    } else {
-      dialogRef.current?.close();
-    }
-  }, [open]);
 
   // Group data by slug for row-based rendering
   const routes = useMemo(() => {
@@ -126,25 +118,16 @@ export function SeoOverridesDialog({
     }
   }, [selected, onConfirm]);
 
-  if (!open) return null;
-
   return (
-    <dialog
-      ref={dialogRef}
-      onClose={handleClose}
-      className="fixed inset-0 z-50 m-auto w-full max-w-2xl rounded-lg border border-(--border-primary) bg-(--surface-primary) p-0 shadow-xl backdrop:bg-black/30"
-    >
-      <div className="admin-seo-overrides-body p-6">
-        <h3 className="text-lg font-semibold text-(--text-primary)">
-          {__('Create SEO Override Pages')}
-        </h3>
-
+    <Dialog open={open} onClose={handleClose} size="2xl">
+      <Dialog.Header onClose={handleClose}>{__('Create SEO Override Pages')}</Dialog.Header>
+      <Dialog.Body>
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin text-(--text-secondary)" />
           </div>
         ) : (
-          <div className="mt-4 overflow-x-auto">
+          <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-(--border-primary)">
@@ -207,25 +190,24 @@ export function SeoOverridesDialog({
             </table>
           </div>
         )}
-
-        <div className="admin-seo-overrides-actions mt-6 flex justify-end gap-3">
-          <button
-            onClick={handleClose}
-            disabled={isPending}
-            className="admin-btn admin-btn-secondary"
-          >
-            {__('Cancel')}
-          </button>
-          <button
-            onClick={handleConfirm}
-            disabled={isPending || selected.length === 0}
-            className="admin-btn admin-btn-primary flex items-center gap-2"
-          >
-            {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
-            {__('Create Selected')} ({selected.length})
-          </button>
-        </div>
-      </div>
-    </dialog>
+      </Dialog.Body>
+      <Dialog.Footer>
+        <button
+          onClick={handleClose}
+          disabled={isPending}
+          className="admin-btn admin-btn-secondary"
+        >
+          {__('Cancel')}
+        </button>
+        <button
+          onClick={handleConfirm}
+          disabled={isPending || selected.length === 0}
+          className="admin-btn admin-btn-primary flex items-center gap-2"
+        >
+          {isPending && <Loader2 className="h-4 w-4 animate-spin" />}
+          {__('Create Selected')} ({selected.length})
+        </button>
+      </Dialog.Footer>
+    </Dialog>
   );
 }

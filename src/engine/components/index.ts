@@ -9,3 +9,4 @@ export { CustomFieldsEditor } from './CustomFieldsEditor';
 export type { CustomFieldsEditorHandle } from './CustomFieldsEditor';
 export { RevisionHistory } from './RevisionHistory';
 export { default as BulkActionBar } from './BulkActionBar';
+export { Dialog } from './Dialog';
