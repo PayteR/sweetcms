@@ -1,20 +1,20 @@
 @layer theme, base, components, utilities;
 
 /*
- * SweetCMS Design Tokens — OKLCH Tinted-Neutral System
+ * Design Tokens — OKLCH Tinted-Neutral System
  *
  * TO REBRAND:
  *   1. Replace "350" with your brand hue (brand scale, --brand-hue var)
  *   2. Replace "303" with your accent hue (accent scale, --accent-hue var)
- *   3. Grays use hue 260 (cool blue-violet, same as flirtcam) — change to match
- *      your brand if desired, but 260 works well as a universal neutral.
+ *   3. Grays use hue 260 (cool blue-violet) — change to match your brand
+ *      if desired, but 260 works well as a universal neutral.
  *   4. Dark surfaces use hue 260 — update if you changed gray hue.
  *
  * Hue examples: Blue=220, Teal=180, Emerald=155, Rose=10, Orange=55, Violet=290
  */
 
 @theme {
-  /* Brand scale — pink/coral (hue 350, matched to flirtcam brand-primary) */
+  /* Brand scale — pink/coral (hue 350) */
   --color-brand-50:  oklch(0.97 0.025 350);
   --color-brand-100: oklch(0.93 0.05 350);
   --color-brand-200: oklch(0.87 0.08 350);
@@ -26,7 +26,7 @@
   --color-brand-800: oklch(0.40 0.18 350);
   --color-brand-900: oklch(0.33 0.14 350);
 
-  /* Accent scale — purple (hue 303, matched to flirtcam brand-secondary) */
+  /* Accent scale — purple (hue 303) */
   --color-accent-50:  oklch(0.97 0.025 303);
   --color-accent-100: oklch(0.93 0.05 303);
   --color-accent-200: oklch(0.87 0.08 303);
@@ -36,7 +36,7 @@
   --color-accent-600: oklch(0.47 0.27 303);
   --color-accent-700: oklch(0.40 0.25 303);
 
-  /* Tinted gray scale — cool blue-violet neutrals (hue 260, same as flirtcam) */
+  /* Tinted gray scale — cool blue-violet neutrals (hue 260) */
   --color-gray-50:  oklch(0.98 0.002 265);
   --color-gray-100: oklch(0.96 0.003 265);
   --color-gray-200: oklch(0.93 0.005 265);
@@ -49,7 +49,7 @@
   --color-gray-900: oklch(0.21 0.02 260);
   --color-gray-950: oklch(0.16 0.02 260);
 
-  /* Semantic colors (matched to flirtcam) */
+  /* Semantic colors */
   --color-success-50:  oklch(0.97 0.02 145);
   --color-success-500: oklch(0.65 0.20 145);
   --color-success-600: oklch(0.58 0.19 145);
@@ -107,14 +107,14 @@
   --duration-normal: 200ms;
   --duration-slow: 300ms;
 
-  /* Brand gradient — pink→purple diagonal (matched to flirtcam brand-primary→brand-secondary) */
+  /* Brand gradient — pink→purple diagonal */
   --gradient-brand: linear-gradient(in oklch 135deg, oklch(0.65 0.24 var(--brand-hue)), oklch(0.55 0.27 var(--accent-hue)));
 }
 
 html.dark {
   color-scheme: dark;
 
-  /* Surfaces — layered dark (hue 260, matched to flirtcam)
+  /* Surfaces — layered dark (hue 260)
    * inset (0.20) < sidebar (0.20) < primary (0.21 = gray-900) < secondary (0.27) < elevated (0.32) */
   --surface-inset:     oklch(0.20 0.02 260);
   --surface-sidebar:   oklch(0.20 0.02 260);

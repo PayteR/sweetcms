@@ -29,6 +29,7 @@ import { MediaPickerDialog } from '@/engine/components/MediaPickerDialog';
 import { PostAttachments } from './PostAttachments';
 import { RevisionHistory } from '@/engine/components/RevisionHistory';
 import { RichTextEditor } from '@/engine/components/RichTextEditor';
+import { shortcodeConfig } from '@/lib/shortcodes/config';
 import { SEOFields } from '@/engine/components/SEOFields';
 import { SeoPreviewCard } from './SeoPreviewCard';
 import { TagInput } from '@/engine/components/TagInput';
@@ -447,6 +448,7 @@ export function PostForm({ contentType, postId }: Props) {
                 storageKey={`post-${post?.id ?? 'new'}`}
                 onRequestLinkPicker={openLinkPicker}
                 editorRef={editorRef}
+                shortcodes={shortcodeConfig}
               />
             </div>
 
@@ -480,6 +482,7 @@ export function PostForm({ contentType, postId }: Props) {
               ref={customFieldsRef}
               contentType={contentType.id}
               contentId={postId}
+              isAuthenticated={!!session}
             />
 
             {/* Revision History */}

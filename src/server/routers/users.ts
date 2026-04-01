@@ -182,7 +182,7 @@ export const usersRouter = createTRPCRouter({
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       try {
-        await anonymizeUser(ctx.db, input.id, ctx.session.user.id as string);
+        await anonymizeUser(ctx.db, input.id, ctx.session.user.id);
         return { success: true };
       } catch (err) {
         throw new TRPCError({
@@ -298,7 +298,7 @@ export const usersRouter = createTRPCRouter({
 
   /** Get current user's preferences */
   getPreferences: protectedProcedure.query(async ({ ctx }) => {
-    const userId = ctx.session.user.id as string;
+    const userId = ctx.session.user.id;
     const [row] = await ctx.db
       .select({ data: cmsUserPreferences.data })
       .from(cmsUserPreferences)
@@ -317,7 +317,7 @@ export const usersRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id as string;
+      const userId = ctx.session.user.id;
 
       // Read existing, merge, upsert
       const [existing] = await ctx.db
@@ -353,7 +353,7 @@ export const usersRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id as string;
+      const userId = ctx.session.user.id;
 
       const [existing] = await ctx.db
         .select({ data: cmsUserPreferences.data })

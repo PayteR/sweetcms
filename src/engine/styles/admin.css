@@ -3,7 +3,7 @@
 @import "./admin-table.css";
 
 /*
- * SweetCMS Admin Panel — Component Classes
+ * Admin Panel — Component Classes
  * Linear-inspired design: tinted neutrals, subtle elevation, clean typography.
  * All classes use design tokens from tokens.css.
  */
@@ -510,135 +510,50 @@
     color: var(--text-muted);
   }
 
-  /* ===================== Slide-Over Panel ===================== */
-
-  .admin-slide-over {
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-    display: flex;
-    justify-content: flex-end;
-    pointer-events: none;
-    visibility: hidden;
-    transition: visibility 0s 300ms;
-  }
-
-  .admin-slide-over-open {
-    pointer-events: auto;
-    visibility: visible;
-    transition: visibility 0s;
-  }
-
-  .admin-slide-over-backdrop {
-    position: absolute;
-    inset: 0;
-    background: oklch(0 0 0 / 0);
-    transition: background 300ms ease;
-  }
-
-  .admin-slide-over-open .admin-slide-over-backdrop {
-    background: oklch(0 0 0 / 0.5);
-  }
+  /* ===================== Slide-Over Panel (visual only — structural in overlay.css) ===================== */
 
   .admin-slide-over-panel {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
     background-color: var(--surface-secondary);
     box-shadow: var(--shadow-lg);
     border-left: 1px solid var(--border-secondary);
-    transform: translateX(100%);
-    transition: transform 300ms cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .admin-slide-over-open .admin-slide-over-panel {
-    transform: translateX(0);
+  .admin-slide-over-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--border-secondary);
   }
 
-  /* ===================== Dialog (centered modal) ===================== */
-
-  .admin-dialog {
-    position: fixed;
-    inset: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    pointer-events: none;
-    visibility: hidden;
-    transition: visibility 0s 200ms;
+  .admin-slide-over-body {
+    padding: 1.25rem;
   }
 
-  .admin-dialog-open {
-    pointer-events: auto;
-    visibility: visible;
-    transition: visibility 0s;
-  }
-
-  .admin-dialog-backdrop {
-    position: absolute;
-    inset: 0;
-    background: oklch(0 0 0 / 0);
-    transition: background 200ms ease;
-  }
-
-  .admin-dialog-open .admin-dialog-backdrop {
-    background: oklch(0 0 0 / 0.5);
-  }
+  /* ===================== Dialog (visual only — structural in overlay.css) ===================== */
 
   .admin-dialog-panel {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-height: calc(100vh - 2rem);
     background-color: var(--surface-secondary);
     border: 1px solid var(--border-primary);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-lg);
-    transform: scale(0.95);
-    opacity: 0;
-    transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1),
-                opacity 200ms ease;
-  }
-
-  .admin-dialog-open .admin-dialog-panel {
-    transform: scale(1);
-    opacity: 1;
   }
 
   .admin-dialog-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
     padding: 1rem 1.25rem;
     border-bottom: 1px solid var(--border-secondary);
-    flex-shrink: 0;
   }
 
   .admin-dialog-body {
-    flex: 1;
-    overflow-y: auto;
     padding: 1.25rem;
   }
 
   .admin-dialog-footer {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 0.5rem;
     padding: 0.75rem 1.25rem;
     border-top: 1px solid var(--border-secondary);
-    flex-shrink: 0;
   }
 }
 
 /* ===================== Dark mode overrides ===================== */
 html.dark {
-  /* Cards: solid dark surface (flirtcam-inspired) */
+  /* Cards: solid dark surface */
   .admin-card {
     background-color: var(--color-gray-800);
     border: 1px solid var(--color-gray-700);
@@ -658,13 +573,13 @@ html.dark {
     border-bottom-color: oklch(1 0 0 / 0.05);
   }
 
-  /* Rail: surface-inset in dark = oklch(0.20), border = white tint (matched to flirtcam) */
+  /* Rail: surface-inset in dark = oklch(0.20), border = white tint */
   .admin-rail {
     background: var(--surface-inset);
     border-right-color: oklch(1 0 0 / 0.08);
   }
 
-  /* L2 panel: solid dark (oklch 0.26 matched to flirtcam) */
+  /* L2 panel: solid dark (oklch 0.26) */
   .admin-l2-panel {
     background: oklch(0.26 0.02 260);
     border-right-color: oklch(1 0 0 / 0.08);
@@ -698,6 +613,10 @@ html.dark {
     background-color: var(--color-gray-800);
     border-left-color: var(--color-gray-700);
     box-shadow: -8px 0 24px oklch(0 0 0 / 0.4);
+  }
+
+  .admin-slide-over-header {
+    border-bottom-color: oklch(1 0 0 / 0.08);
   }
 
   /* User popover: solid elevated */

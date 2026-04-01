@@ -5,8 +5,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { LOCALES } from '@/lib/constants';
-
 export function useListViewState<
   TTab extends string,
   TSort extends string,
@@ -15,8 +13,10 @@ export function useListViewState<
   sortKeys: ReadonlySet<TSort>;
   defaultTab: TTab;
   defaultSort: TSort;
+  /** Available locale codes for language filtering. Defaults to ['en']. */
+  locales?: readonly string[];
 }) {
-  const { tabs, sortKeys, defaultTab, defaultSort } = config;
+  const { tabs, sortKeys, defaultTab, defaultSort, locales = ['en'] } = config;
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -29,7 +29,7 @@ export function useListViewState<
   );
   const [selectedLang, setSelectedLang] = useState<string>(() => {
     const v = searchParams.get('lang');
-    return v && (LOCALES as readonly string[]).includes(v) ? v : 'all';
+    return v && locales.includes(v) ? v : 'all';
   });
   const [activeTab, setActiveTab] = useState<TTab>(() => {
     const v = searchParams.get('tab') as TTab | null;

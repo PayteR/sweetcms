@@ -12,7 +12,6 @@ import { Loader2 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
-import { useSession } from '@/lib/auth-client';
 
 export interface CustomFieldsEditorHandle {
   save: (contentId: string) => Promise<void>;
@@ -21,14 +20,15 @@ export interface CustomFieldsEditorHandle {
 interface CustomFieldsEditorProps {
   contentType: string;
   contentId?: string;
+  /** Whether the user is authenticated. Controls query enabling. Defaults to true. */
+  isAuthenticated?: boolean;
 }
 
 export const CustomFieldsEditor = forwardRef<
   CustomFieldsEditorHandle,
   CustomFieldsEditorProps
->(function CustomFieldsEditor({ contentType, contentId }, ref) {
+>(function CustomFieldsEditor({ contentType, contentId, isAuthenticated = true }, ref) {
   const __ = useBlankTranslations();
-  const { data: session } = useSession();
 
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [loaded, setLoaded] = useState(false);
@@ -36,12 +36,12 @@ export const CustomFieldsEditor = forwardRef<
 
   const definitions = trpc.customFields.listForContentType.useQuery(
     { contentType },
-    { enabled: !!session }
+    { enabled: isAuthenticated }
   );
 
   const existingValues = trpc.customFields.getValues.useQuery(
     { contentType, contentId: contentId! },
-    { enabled: !!contentId && !!session }
+    { enabled: !!contentId && isAuthenticated }
   );
 
   const saveValues = trpc.customFields.saveValues.useMutation();

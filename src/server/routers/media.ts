@@ -116,7 +116,7 @@ export const mediaRouter = createTRPCRouter({
           thumbnailPath: input.thumbnailPath ?? null,
           mediumPath: input.mediumPath ?? null,
           blurDataUrl: input.blurDataUrl ?? null,
-          uploadedById: ctx.session.user.id as string,
+          uploadedById: ctx.session.user.id,
         })
         .returning();
 

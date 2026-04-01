@@ -206,7 +206,7 @@ export const portfolioRouter = createTRPCRouter({
 
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         action: 'create',
         entityType: 'portfolio',
         entityId: item!.id,
@@ -296,7 +296,7 @@ export const portfolioRouter = createTRPCRouter({
 
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         action: 'duplicate',
         entityType: 'portfolio',
         entityId: copy!.id,
@@ -399,7 +399,7 @@ export const portfolioRouter = createTRPCRouter({
 
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         action: 'duplicate',
         entityType: 'portfolio',
         entityId: newItem!.id,
@@ -551,7 +551,7 @@ export const portfolioRouter = createTRPCRouter({
         contentId: id,
         oldRecord: existing,
         snapshotKeys: [...PORTFOLIO_SNAPSHOT_KEYS],
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         oldSlug: existing.slug,
         newSlug: updates.slug,
         urlPrefix: '/portfolio/',
@@ -584,7 +584,7 @@ export const portfolioRouter = createTRPCRouter({
 
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         action: 'update',
         entityType: 'portfolio',
         entityId: id,
@@ -633,7 +633,7 @@ export const portfolioRouter = createTRPCRouter({
         input.status === ContentStatus.PUBLISHED ? 'publish' : 'unpublish';
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         action,
         entityType: 'portfolio',
         entityId: input.id,

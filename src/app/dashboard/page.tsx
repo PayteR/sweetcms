@@ -10,7 +10,7 @@ import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { cn } from '@/lib/utils';
 import { PostType } from '@/engine/types/cms';
-import { usePreferencesStore } from '@/store/preferences-store';
+import { usePreferencesStore } from '@/engine/store/preferences-store';
 import { DEFAULT_WIDGET_ORDER, DEFAULT_HIDDEN_WIDGETS, DASHBOARD_WIDGETS } from '@/config/dashboard-widgets';
 import GA4Widget from '@/components/admin/GA4Widget';
 import StatCard from '@/components/admin/StatCard';

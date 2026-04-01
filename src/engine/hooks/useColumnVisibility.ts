@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo } from 'react';
 
-import { usePreferencesStore } from '@/store/preferences-store';
+import { usePreferencesStore } from '@/engine/store/preferences-store';
 import type { PreferenceKey } from '@/engine/types/preferences';
 
 const STORAGE_PREFIX = 'cms-col-vis:';

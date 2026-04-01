@@ -23,7 +23,7 @@ import { useBlankTranslations } from '@/lib/translations';
 import { cn } from '@/lib/utils';
 import { SlideOver } from '@/engine/components/SlideOver';
 import { DASHBOARD_WIDGETS, DEFAULT_WIDGET_ORDER, DEFAULT_HIDDEN_WIDGETS } from '@/config/dashboard-widgets';
-import { usePreferencesStore } from '@/store/preferences-store';
+import { usePreferencesStore } from '@/engine/store/preferences-store';
 
 // ── Sortable widget row ─────────────────────────────────────
 function SortableWidgetRow({

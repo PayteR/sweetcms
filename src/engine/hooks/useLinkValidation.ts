@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-import { extractInternalLinks } from '@/lib/extract-internal-links';
+import { extractInternalLinks } from '@/engine/lib/extract-internal-links';
 import { trpc } from '@/lib/trpc/client';
 
 /**

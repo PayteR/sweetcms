@@ -118,7 +118,7 @@ export const importRouter = createTRPCRouter({
               metaDescription: item.metaDescription ?? null,
               seoTitle: item.seoTitle ?? null,
               previewToken,
-              authorId: ctx.session.user.id as string,
+              authorId: ctx.session.user.id,
             });
 
             created++;
@@ -133,7 +133,7 @@ export const importRouter = createTRPCRouter({
 
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         action: 'import',
         entityType: 'post',
         entityId: crypto.randomUUID(),

@@ -1,7 +1,7 @@
 @layer theme, base, components, utilities;
 
 /*
- * SweetCMS Admin — Table, Badge, Form, and Pagination Classes
+ * Admin — Table, Badge, Form, and Pagination Classes
  * Built on OKLCH tinted-neutral tokens.
  *
  * Brand-tinted alpha variants use decomposed oklch(L C var(--brand-hue) / alpha)
@@ -478,7 +478,7 @@
 /* ===================== Dark mode overrides ===================== */
 html.dark {
 
-  /* Badges: solid colors, white text (flirtcam-inspired) */
+  /* Badges: solid colors, white text */
   .admin-badge-published {
     background-color: var(--color-success-500);
     color: var(--color-white);
@@ -593,7 +593,7 @@ html.dark {
     background-color: oklch(0.30 0.02 260);
   }
 
-  /* Form inputs: lighter than cards (matched to flirtcam) */
+  /* Form inputs: lighter than cards */
   .admin-search-input,
   .admin-filter-select {
     background-color: var(--color-gray-800);

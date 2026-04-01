@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import type { ReactNode, RefObject } from 'react';
 import { X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -16,12 +16,37 @@ const widthClasses = {
 
 export type SlideOverWidth = keyof typeof widthClasses;
 
+/* ── Visual class names (overridable per variant) ── */
+
+export interface SlideOverClassNames {
+  panel?: string;
+  header?: string;
+  body?: string;
+}
+
+const ADMIN_CLASSES: Required<SlideOverClassNames> = {
+  panel: 'admin-slide-over-panel',
+  header: 'admin-slide-over-header',
+  body: 'admin-slide-over-body',
+};
+
 export interface SlideOverProps {
   open: boolean;
   onClose: () => void;
   title: string;
   width?: SlideOverWidth;
+  /** Additional CSS classes on the panel */
   className?: string;
+  /** Override visual class names for non-admin contexts (e.g. frontend) */
+  classNames?: SlideOverClassNames;
+  /** Close when clicking the backdrop (default: true) */
+  closeOnBackdropClick?: boolean;
+  /** Close on Escape key (default: true) */
+  closeOnEscape?: boolean;
+  /** Auto-focus first focusable element when opened (default: true) */
+  autoFocus?: boolean;
+  /** Specific element to receive initial focus */
+  initialFocusRef?: RefObject<HTMLElement | null>;
   children: ReactNode;
 }
 
@@ -31,34 +56,48 @@ export function SlideOver({
   title,
   width = 'md',
   className,
+  classNames,
+  closeOnBackdropClick = true,
+  closeOnEscape = true,
+  autoFocus = true,
+  initialFocusRef,
   children,
 }: SlideOverProps) {
   const __ = useBlankTranslations();
-  const { panelRef, animateOpen } = useOverlay({ open, onClose });
+  const { panelRef, animateOpen } = useOverlay({ open, onClose, closeOnEscape, autoFocus, initialFocusRef });
+
+  const resolved = classNames
+    ? { ...ADMIN_CLASSES, ...classNames }
+    : ADMIN_CLASSES;
 
   return (
     <div
-      className={cn('admin-slide-over', animateOpen && 'admin-slide-over-open')}
+      className={cn('overlay-slide-over', animateOpen && 'overlay-slide-over-open')}
       role="dialog"
       aria-modal={open || undefined}
       inert={!open || undefined}
     >
       <div
-        className="admin-slide-over-backdrop"
-        onClick={onClose}
+        className="overlay-backdrop"
+        onClick={closeOnBackdropClick ? onClose : undefined}
         aria-hidden="true"
       />
       <div
         ref={panelRef}
-        className={cn('admin-slide-over-panel', widthClasses[width], className)}
+        className={cn(
+          'overlay-slide-over-panel',
+          resolved.panel,
+          widthClasses[width],
+          className,
+        )}
       >
         {/* Header */}
-        <div className="admin-slide-over-header flex items-center justify-between border-b border-(--border-secondary) px-5 py-4">
-          <h2 className="admin-h2">{title}</h2>
+        <div className={cn('overlay-slide-over-header', resolved.header)}>
+          <h2 className="overlay-title">{title}</h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-md p-1 text-(--text-muted) hover:bg-(--surface-inset) hover:text-(--text-primary)"
+            className="overlay-close-btn"
             title={__('Close')}
           >
             <X className="h-5 w-5" />
@@ -66,7 +105,7 @@ export function SlideOver({
         </div>
 
         {/* Body */}
-        <div className="admin-slide-over-body flex-1 overflow-y-auto p-5">
+        <div className={cn('overlay-slide-over-body', resolved.body)}>
           {children}
         </div>
       </div>

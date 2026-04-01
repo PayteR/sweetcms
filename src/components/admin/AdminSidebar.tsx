@@ -11,7 +11,7 @@ import { signOut, useSession } from '@/lib/auth-client';
 import { useSidebarStore } from '@/store/sidebar-store';
 import { useThemeStore } from '@/store/theme-store';
 import { siteConfig } from '@/config/site';
-import { navigation, isNavGroup, getActiveSectionId } from '@/config/admin-nav';
+import { navigation, isNavGroup, getActiveSectionId, flatNavItems } from '@/config/admin-nav';
 import type { NavChild } from '@/config/admin-nav';
 import { CommandPalette, useCommandPaletteShortcut } from '@/engine/components/CommandPalette';
 
@@ -53,6 +53,7 @@ export function AdminSidebar() {
   const { theme, setTheme, initTheme } = useThemeStore();
 
   // Command palette state
+  const paletteNavItems = useMemo(() => flatNavItems(), []);
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const openPalette = useCallback(() => setCommandPaletteOpen(true), []);
   const closePalette = useCallback(() => setCommandPaletteOpen(false), []);
@@ -352,7 +353,7 @@ export function AdminSidebar() {
       )}
 
       {/* ── Command Palette ── */}
-      <CommandPalette open={commandPaletteOpen} onClose={closePalette} />
+      <CommandPalette open={commandPaletteOpen} onClose={closePalette} navItems={paletteNavItems} />
     </>
   );
 }

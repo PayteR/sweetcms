@@ -19,6 +19,7 @@ SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack: Nex
 - **Custom server:** `server.ts` — starts Next.js (Turbopack in dev) + BullMQ email worker (controlled by `SERVER_ROLE`)
 - **Database:** `bun run db:generate` after schema changes, `bun run db:migrate` to apply, `bun run db:studio` for DB viewer
 - **Type check:** `bun run typecheck`
+- **Tests:** `bun test` — Vitest with jsdom environment. Tests in `__tests__/` directories.
 - **Environment config:** Zod-validated env vars in `src/lib/env.ts`
 
 ## Architecture Overview
@@ -33,6 +34,8 @@ SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack: Nex
 **Project provides:** content type data (`src/config/cms.ts`), taxonomy data (`src/config/taxonomies.ts`), DB schema, tRPC routers, form components (PostForm, CategoryForm, etc.), routes, public UI.
 
 **Import rule:** project imports from `@/engine/*`. Engine accepts cross-boundary imports from `@/server/db`, `@/lib/trpc/client`, `@/lib/translations`, `@/lib/utils`, `@/store/toast-store`.
+
+**Engine stores:** `src/engine/store/preferences-store.ts` (Zustand preferences with typed keys from `@/engine/types/preferences`).
 
 **To rebrand:** In `src/engine/styles/tokens.css`: (1) find-replace `350` with your brand hue and `303` with your accent hue in the brand/accent scales; (2) update `--brand-hue` and `--accent-hue` in `:root` to match; (3) optionally change gray hue `260`/`265` to match your brand (260 = cool blue-violet, works well as universal neutral); (4) update hardcoded `260` in dark surface tokens and in `admin.css` (rail, L2 panel backgrounds); (5) update `--gradient-brand` L/C values to match your new brand scale.
 

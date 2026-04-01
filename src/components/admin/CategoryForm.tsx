@@ -27,6 +27,7 @@ import { FallbackRadio } from './FallbackRadio';
 import InternalLinkDialog from './InternalLinkDialog';
 import { RevisionHistory } from '@/engine/components/RevisionHistory';
 import { RichTextEditor } from '@/engine/components/RichTextEditor';
+import { shortcodeConfig } from '@/lib/shortcodes/config';
 import { SEOFields } from '@/engine/components/SEOFields';
 import { SeoPreviewCard } from './SeoPreviewCard';
 import { TagInput } from '@/engine/components/TagInput';
@@ -399,6 +400,7 @@ export function CategoryForm({ categoryId }: Props) {
                 storageKey={`category-${cat?.id ?? 'new'}`}
                 onRequestLinkPicker={openLinkPicker}
                 editorRef={editorRef}
+                shortcodes={shortcodeConfig}
               />
             </div>
 
@@ -431,6 +433,7 @@ export function CategoryForm({ categoryId }: Props) {
               ref={customFieldsRef}
               contentType="category"
               contentId={categoryId}
+              isAuthenticated={!!session}
             />
 
             {/* Revision History */}

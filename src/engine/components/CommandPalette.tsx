@@ -6,13 +6,21 @@ import { FileText, Hash, FolderOpen, Briefcase, Search } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useBlankTranslations } from '@/lib/translations';
-import { flatNavItems } from '@/config/admin-nav';
 import { trpc } from '@/lib/trpc/client';
 import { useKeyboardShortcuts } from '@/engine/hooks/useKeyboardShortcuts';
+
+export interface CommandPaletteNavItem {
+  name: string;
+  href: string;
+  icon: React.ElementType;
+  group?: string;
+}
 
 interface CommandPaletteProps {
   open: boolean;
   onClose: () => void;
+  /** Navigation items for the command palette search. If omitted, only content search is available. */
+  navItems?: CommandPaletteNavItem[];
 }
 
 interface ResultItem {
@@ -31,7 +39,7 @@ const contentTypeIcons: Record<string, React.ElementType> = {
   portfolio: Briefcase,
 };
 
-export function CommandPalette({ open, onClose }: CommandPaletteProps) {
+export function CommandPalette({ open, onClose, navItems: navItemsProp }: CommandPaletteProps) {
   const __ = useBlankTranslations();
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -41,7 +49,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
   const [activeIndex, setActiveIndex] = useState(0);
 
   // Nav items — static, filtered by query (only shown when typing)
-  const navItems = useMemo(() => flatNavItems(), []);
+  const navItems = useMemo(() => navItemsProp ?? [], [navItemsProp]);
   const filteredNav = useMemo(() => {
     if (!query) return [];
     const q = query.toLowerCase();

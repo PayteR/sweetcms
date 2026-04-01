@@ -65,7 +65,7 @@ export const menusRouter = createTRPCRouter({
 
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         action: 'create',
         entityType: 'menu',
         entityId: menu!.id,
@@ -118,7 +118,7 @@ export const menusRouter = createTRPCRouter({
 
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         action: 'update',
         entityType: 'menu',
         entityId: id,
@@ -146,7 +146,7 @@ export const menusRouter = createTRPCRouter({
 
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         action: 'delete',
         entityType: 'menu',
         entityId: input.id,

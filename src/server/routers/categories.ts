@@ -196,7 +196,7 @@ export const categoriesRouter = createTRPCRouter({
 
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         action: 'create',
         entityType: 'category',
         entityId: category!.id,
@@ -285,7 +285,7 @@ export const categoriesRouter = createTRPCRouter({
 
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         action: 'duplicate',
         entityType: 'category',
         entityId: copy!.id,
@@ -387,7 +387,7 @@ export const categoriesRouter = createTRPCRouter({
 
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         action: 'duplicate',
         entityType: 'category',
         entityId: newCategory!.id,
@@ -533,7 +533,7 @@ export const categoriesRouter = createTRPCRouter({
         contentId: id,
         oldRecord: existing,
         snapshotKeys: [...CATEGORY_SNAPSHOT_KEYS],
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         oldSlug: existing.slug,
         newSlug: updates.slug,
         urlPrefix: '/category/',
@@ -560,7 +560,7 @@ export const categoriesRouter = createTRPCRouter({
 
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         action: 'update',
         entityType: 'category',
         entityId: id,
@@ -610,7 +610,7 @@ export const categoriesRouter = createTRPCRouter({
         input.status === ContentStatus.PUBLISHED ? 'publish' : 'unpublish';
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         action,
         entityType: 'category',
         entityId: input.id,

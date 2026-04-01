@@ -1,11 +1,13 @@
 'use client';
 
-import type { ReactNode, RefObject } from 'react';
+import { createContext, useContext, type ReactNode, type RefObject } from 'react';
 import { X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useBlankTranslations } from '@/lib/translations';
 import { useOverlay } from '@/engine/hooks/useOverlay';
+
+/* ── Size presets ── */
 
 const sizeClasses = {
   sm: 'max-w-sm',
@@ -20,6 +22,26 @@ const sizeClasses = {
 
 export type DialogSize = keyof typeof sizeClasses;
 
+/* ── Visual class names (overridable per variant) ── */
+
+export interface DialogClassNames {
+  panel?: string;
+  header?: string;
+  body?: string;
+  footer?: string;
+}
+
+const ADMIN_CLASSES: Required<DialogClassNames> = {
+  panel: 'admin-dialog-panel',
+  header: 'admin-dialog-header',
+  body: 'admin-dialog-body',
+  footer: 'admin-dialog-footer',
+};
+
+const DialogClassContext = createContext<Required<DialogClassNames>>(ADMIN_CLASSES);
+
+/* ── Root ── */
+
 export interface DialogProps {
   /** Controls visibility and overlay behavior */
   open: boolean;
@@ -29,13 +51,15 @@ export interface DialogProps {
   size?: DialogSize;
   /** Additional CSS classes on the panel */
   className?: string;
+  /** Override visual class names for non-admin contexts (e.g. frontend) */
+  classNames?: DialogClassNames;
   /** Close when clicking the backdrop (default: true) */
   closeOnBackdropClick?: boolean;
   /** Close on Escape key (default: true) */
   closeOnEscape?: boolean;
   /** Auto-focus first focusable element when opened (default: true) */
   autoFocus?: boolean;
-  /** Specific element to receive initial focus (overrides first-focusable default) */
+  /** Specific element to receive initial focus */
   initialFocusRef?: RefObject<HTMLElement | null>;
   children: ReactNode;
 }
@@ -45,6 +69,7 @@ function DialogRoot({
   onClose,
   size = 'md',
   className,
+  classNames,
   closeOnBackdropClick = true,
   closeOnEscape = true,
   autoFocus = true,
@@ -59,25 +84,36 @@ function DialogRoot({
     initialFocusRef,
   });
 
+  const resolved = classNames
+    ? { ...ADMIN_CLASSES, ...classNames }
+    : ADMIN_CLASSES;
+
   return (
-    <div
-      className={cn('admin-dialog', animateOpen && 'admin-dialog-open')}
-      role="dialog"
-      aria-modal={open || undefined}
-      inert={!open || undefined}
-    >
+    <DialogClassContext.Provider value={resolved}>
       <div
-        className="admin-dialog-backdrop"
-        onClick={closeOnBackdropClick ? onClose : undefined}
-        aria-hidden="true"
-      />
-      <div
-        ref={panelRef}
-        className={cn('admin-dialog-panel', sizeClasses[size], className)}
+        className={cn('overlay-dialog', animateOpen && 'overlay-dialog-open')}
+        role="dialog"
+        aria-modal={open || undefined}
+        inert={!open || undefined}
       >
-        {children}
+        <div
+          className="overlay-backdrop"
+          onClick={closeOnBackdropClick ? onClose : undefined}
+          aria-hidden="true"
+        />
+        <div
+          ref={panelRef}
+          className={cn(
+            'overlay-dialog-panel',
+            resolved.panel,
+            sizeClasses[size],
+            className,
+          )}
+        >
+          {children}
+        </div>
       </div>
-    </div>
+    </DialogClassContext.Provider>
   );
 }
 
@@ -92,14 +128,15 @@ export interface DialogHeaderProps {
 
 function Header({ children, onClose, className }: DialogHeaderProps) {
   const __ = useBlankTranslations();
+  const classes = useContext(DialogClassContext);
   return (
-    <div className={cn('admin-dialog-header', className)}>
-      <h3 className="admin-h2">{children}</h3>
+    <div className={cn('overlay-dialog-header', classes.header, className)}>
+      <h3 className="overlay-title">{children}</h3>
       {onClose && (
         <button
           type="button"
           onClick={onClose}
-          className="rounded-md p-1 text-(--text-muted) hover:bg-(--surface-inset) hover:text-(--text-primary)"
+          className="overlay-close-btn"
           title={__('Close')}
         >
           <X className="h-5 w-5" />
@@ -115,7 +152,12 @@ export interface DialogBodyProps {
 }
 
 function Body({ children, className }: DialogBodyProps) {
-  return <div className={cn('admin-dialog-body', className)}>{children}</div>;
+  const classes = useContext(DialogClassContext);
+  return (
+    <div className={cn('overlay-dialog-body', classes.body, className)}>
+      {children}
+    </div>
+  );
 }
 
 export interface DialogFooterProps {
@@ -124,7 +166,12 @@ export interface DialogFooterProps {
 }
 
 function Footer({ children, className }: DialogFooterProps) {
-  return <div className={cn('admin-dialog-footer', className)}>{children}</div>;
+  const classes = useContext(DialogClassContext);
+  return (
+    <div className={cn('overlay-dialog-footer', classes.footer, className)}>
+      {children}
+    </div>
+  );
 }
 
 /* ── Export as compound component ── */

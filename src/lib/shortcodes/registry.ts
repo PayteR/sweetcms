@@ -1,20 +1,6 @@
-import type { ComponentType } from 'react';
+import type { ShortcodeDef } from '@/engine/types/shortcodes';
 
-export interface ShortcodeAttrDef {
-  name: string;
-  type: 'text' | 'select' | 'textarea';
-  default?: string;
-  options?: string[];
-}
-
-export interface ShortcodeDef {
-  name: string;
-  label: string;
-  icon: string;
-  hasContent: boolean;
-  attrs: ShortcodeAttrDef[];
-  component?: ComponentType<{ attrs: Record<string, string>; content?: string }>;
-}
+export type { ShortcodeAttrDef, ShortcodeDef } from '@/engine/types/shortcodes';
 
 export const SHORTCODE_REGISTRY: ShortcodeDef[] = [
   {

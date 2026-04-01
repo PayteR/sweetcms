@@ -92,6 +92,7 @@ export function CmsListView({ contentType }: Props) {
     sortKeys: SORT_KEYS,
     defaultTab: 'all',
     defaultSort: 'updated_at',
+    locales: LOCALES,
   });
 
   const tab = activeTab;

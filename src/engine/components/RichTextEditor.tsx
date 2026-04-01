@@ -35,23 +35,22 @@ import {
 
 import { cn } from '@/lib/utils';
 import { useBlankTranslations } from '@/lib/translations';
-import { SHORTCODE_REGISTRY } from '@/lib/shortcodes/registry';
 import { htmlToMarkdown, markdownToHtml } from '@/engine/lib/markdown';
-import { ShortcodeNode } from '@/components/admin/shortcodes/ShortcodeNode';
-import { prepareForEditor, serializeForStorage } from '@/components/admin/shortcodes/shortcode-utils';
 import { toast } from '@/store/toast-store';
 import type { EditorHandle } from '@/engine/hooks/useLinkPicker';
+import type { ShortcodeConfig } from '@/engine/types/shortcodes';
 
 interface Props {
   content: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  // NEW:
   postId?: string;
   height?: string;
   storageKey?: string;
   onRequestLinkPicker?: () => void;
   editorRef?: React.RefObject<EditorHandle | null>;
+  /** Optional shortcode integration (dropdown, Tiptap extension, transforms) */
+  shortcodes?: ShortcodeConfig;
 }
 
 const HEIGHT_STORAGE_PREFIX = 'cms-editor-h:';
@@ -105,6 +104,8 @@ function ToolbarDivider() {
   return <div className="mx-1 h-6 w-px bg-(--border-primary)" />;
 }
 
+const identity = (html: string) => html;
+
 export function RichTextEditor({
   content,
   onChange,
@@ -114,7 +115,14 @@ export function RichTextEditor({
   storageKey,
   onRequestLinkPicker,
   editorRef,
+  shortcodes,
 }: Props) {
+  const scPrepareRef = useRef(shortcodes?.prepareForEditor ?? identity);
+  const scSerializeRef = useRef(shortcodes?.serializeForStorage ?? identity);
+  useEffect(() => {
+    scPrepareRef.current = shortcodes?.prepareForEditor ?? identity;
+    scSerializeRef.current = shortcodes?.serializeForStorage ?? identity;
+  });
   const __ = useBlankTranslations();
   const [shortcodeMenuOpen, setShortcodeMenuOpen] = useState(false);
   const [mode, setMode] = useState<'wysiwyg' | 'source'>(() => {
@@ -184,13 +192,13 @@ export function RichTextEditor({
       Placeholder.configure({
         placeholder: placeholder ?? __('Start writing...'),
       }),
-      ShortcodeNode,
+      ...(shortcodes?.extension ? [shortcodes.extension] : []),
     ],
-    content: prepareForEditor(markdownToHtml(content)),
+    content: scPrepareRef.current(markdownToHtml(content)),
     onUpdate: ({ editor: e }) => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
-        const md = htmlToMarkdown(serializeForStorage(e.getHTML()));
+        const md = htmlToMarkdown(scSerializeRef.current(e.getHTML()));
         lastEmittedContent.current = md;
         onChangeRef.current(md);
       }, 300);
@@ -245,7 +253,7 @@ export function RichTextEditor({
     lastEmittedContent.current = content;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate external sync: parent content → source textarea
     if (mode === 'source') setSourceValue(content);
-    editor.commands.setContent(prepareForEditor(markdownToHtml(content)), {
+    editor.commands.setContent(scPrepareRef.current(markdownToHtml(content)), {
       emitUpdate: false,
     });
   }, [editor, content, mode]);
@@ -297,7 +305,7 @@ export function RichTextEditor({
         clearTimeout(debounceRef.current);
         debounceRef.current = null;
       }
-      const md = htmlToMarkdown(serializeForStorage(editor.getHTML()));
+      const md = htmlToMarkdown(scSerializeRef.current(editor.getHTML()));
       setSourceValue(md);
       lastEmittedContent.current = md;
       onChangeRef.current(md);
@@ -305,10 +313,10 @@ export function RichTextEditor({
       try { localStorage.setItem('cms-editor-mode', 'source'); } catch { /* quota */ }
     } else {
       // Source → WYSIWYG: suppress emitUpdate to avoid double-fire
-      editor.commands.setContent(prepareForEditor(markdownToHtml(sourceValue)), {
+      editor.commands.setContent(scPrepareRef.current(markdownToHtml(sourceValue)), {
         emitUpdate: false,
       });
-      const md = htmlToMarkdown(serializeForStorage(editor.getHTML()));
+      const md = htmlToMarkdown(scSerializeRef.current(editor.getHTML()));
       lastEmittedContent.current = md;
       onChangeRef.current(md);
       setMode('wysiwyg');
@@ -484,50 +492,54 @@ export function RichTextEditor({
 
         <ToolbarDivider />
 
-        {/* Shortcode insert dropdown */}
-        <div className="admin-editor-toolbar-menu relative">
-          <ToolbarButton
-            onClick={() => setShortcodeMenuOpen(!shortcodeMenuOpen)}
-            title={__('Insert Block')}
-          >
-            <Blocks className={iconSize} />
-          </ToolbarButton>
-          {shortcodeMenuOpen && (
-            <div className="admin-editor-shortcode-menu absolute left-0 top-full z-10 mt-1 w-40 rounded-md border border-(--border-primary) bg-(--surface-primary) py-1 shadow-lg">
-              {SHORTCODE_REGISTRY.map((sc) => (
-                <button
-                  key={sc.name}
-                  type="button"
-                  className="block w-full px-3 py-1.5 text-left text-sm text-(--text-secondary) hover:bg-(--surface-secondary)"
-                  onClick={() => {
-                    if (!editor) return;
-                    const defaultAttrs: Record<string, string> = {};
-                    for (const attr of sc.attrs) {
-                      if (attr.default) defaultAttrs[attr.name] = attr.default;
-                    }
-                    editor
-                      .chain()
-                      .focus()
-                      .insertContent({
-                        type: 'shortcode',
-                        attrs: {
-                          shortcodeName: sc.name,
-                          shortcodeAttrs: JSON.stringify(defaultAttrs),
-                          shortcodeContent: '',
-                        },
-                      })
-                      .run();
-                    setShortcodeMenuOpen(false);
-                  }}
-                >
-                  {__(sc.label)}
-                </button>
-              ))}
+        {/* Shortcode insert dropdown (only shown when shortcodes config provided) */}
+        {shortcodes && shortcodes.registry.length > 0 && (
+          <>
+            <div className="admin-editor-toolbar-menu relative">
+              <ToolbarButton
+                onClick={() => setShortcodeMenuOpen(!shortcodeMenuOpen)}
+                title={__('Insert Block')}
+              >
+                <Blocks className={iconSize} />
+              </ToolbarButton>
+              {shortcodeMenuOpen && (
+                <div className="admin-editor-shortcode-menu absolute left-0 top-full z-10 mt-1 w-40 rounded-md border border-(--border-primary) bg-(--surface-primary) py-1 shadow-lg">
+                  {shortcodes.registry.map((sc) => (
+                    <button
+                      key={sc.name}
+                      type="button"
+                      className="block w-full px-3 py-1.5 text-left text-sm text-(--text-secondary) hover:bg-(--surface-secondary)"
+                      onClick={() => {
+                        if (!editor) return;
+                        const defaultAttrs: Record<string, string> = {};
+                        for (const attr of sc.attrs) {
+                          if (attr.default) defaultAttrs[attr.name] = attr.default;
+                        }
+                        editor
+                          .chain()
+                          .focus()
+                          .insertContent({
+                            type: 'shortcode',
+                            attrs: {
+                              shortcodeName: sc.name,
+                              shortcodeAttrs: JSON.stringify(defaultAttrs),
+                              shortcodeContent: '',
+                            },
+                          })
+                          .run();
+                        setShortcodeMenuOpen(false);
+                      }}
+                    >
+                      {__(sc.label)}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        <ToolbarDivider />
+            <ToolbarDivider />
+          </>
+        )}
 
         <ToolbarButton
           onClick={() => editor.chain().focus().undo().run()}

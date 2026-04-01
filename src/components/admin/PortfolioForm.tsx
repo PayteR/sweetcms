@@ -28,6 +28,7 @@ import InternalLinkDialog from './InternalLinkDialog';
 import { MediaPickerDialog } from '@/engine/components/MediaPickerDialog';
 import { RevisionHistory } from '@/engine/components/RevisionHistory';
 import { RichTextEditor } from '@/engine/components/RichTextEditor';
+import { shortcodeConfig } from '@/lib/shortcodes/config';
 import { SEOFields } from '@/engine/components/SEOFields';
 import { SeoPreviewCard } from './SeoPreviewCard';
 import { TagInput } from '@/engine/components/TagInput';
@@ -493,6 +494,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                 storageKey={`portfolio-${item?.id ?? 'new'}`}
                 onRequestLinkPicker={openLinkPicker}
                 editorRef={editorRef}
+                shortcodes={shortcodeConfig}
               />
             </div>
 
@@ -523,6 +525,7 @@ export function PortfolioForm({ portfolioId }: Props) {
               ref={customFieldsRef}
               contentType="portfolio"
               contentId={portfolioId}
+              isAuthenticated={!!session}
             />
 
             {!isNew && portfolioId && (

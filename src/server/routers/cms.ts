@@ -216,7 +216,7 @@ export const cmsRouter = createTRPCRouter({
           translationGroup: postInput.translationGroup ?? null,
           fallbackToDefault: postInput.fallbackToDefault ?? null,
           parentId: postInput.parentId ?? null,
-          authorId: ctx.session.user.id as string,
+          authorId: ctx.session.user.id,
         })
         .returning();
 
@@ -230,7 +230,7 @@ export const cmsRouter = createTRPCRouter({
 
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         action: 'create',
         entityType: 'post',
         entityId: post!.id,
@@ -303,7 +303,7 @@ export const cmsRouter = createTRPCRouter({
         contentId: id,
         oldRecord: existing,
         snapshotKeys: [...POST_SNAPSHOT_KEYS],
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         oldSlug: existing.slug,
         newSlug: updates.slug,
         urlPrefix: contentType.urlPrefix,
@@ -333,7 +333,7 @@ export const cmsRouter = createTRPCRouter({
 
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         action: 'update',
         entityType: 'post',
         entityId: id,
@@ -381,7 +381,7 @@ export const cmsRouter = createTRPCRouter({
         input.status === ContentStatus.PUBLISHED ? 'publish' : 'unpublish';
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         action,
         entityType: 'post',
         entityId: input.id,
@@ -494,7 +494,7 @@ export const cmsRouter = createTRPCRouter({
           publishedAt: null,
           previewToken,
           parentId: original.parentId,
-          authorId: ctx.session.user.id as string,
+          authorId: ctx.session.user.id,
         })
         .returning();
 
@@ -515,7 +515,7 @@ export const cmsRouter = createTRPCRouter({
 
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         action: 'duplicate',
         entityType: 'post',
         entityId: copy!.id,
@@ -694,13 +694,13 @@ export const cmsRouter = createTRPCRouter({
           translationGroup,
           fallbackToDefault: source.fallbackToDefault,
           parentId: source.parentId,
-          authorId: ctx.session.user.id as string,
+          authorId: ctx.session.user.id,
         })
         .returning();
 
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id as string,
+        userId: ctx.session.user.id,
         action: 'duplicate',
         entityType: 'post',
         entityId: newPost!.id,
@@ -1128,7 +1128,7 @@ export const cmsRouter = createTRPCRouter({
           content: '',
           noindex: false,
           previewToken,
-          authorId: ctx.session.user.id as string,
+          authorId: ctx.session.user.id,
         });
         created++;
       }
@@ -1301,7 +1301,7 @@ export const cmsRouter = createTRPCRouter({
           mimeType: input.mimeType,
           fileSize: input.fileSize,
           fileType: input.fileType,
-          uploadedById: ctx.session.user.id as string,
+          uploadedById: ctx.session.user.id,
         })
         .returning();
 

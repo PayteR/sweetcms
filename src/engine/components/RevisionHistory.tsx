@@ -5,11 +5,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { History, RotateCcw } from 'lucide-react';
 
 import { useBlankTranslations } from '@/lib/translations';
-import { computeFieldDiffs } from '@/lib/revision-diff';
-import type { FieldDiff } from '@/lib/revision-diff';
+import { computeFieldDiffs } from '@/engine/lib/revision-diff';
+import type { FieldDiff } from '@/engine/lib/revision-diff';
 import { trpc } from '@/lib/trpc/client';
 import { toast } from '@/store/toast-store';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { Dialog } from '@/engine/components/Dialog';
 
 interface Props {
   contentType: string;
@@ -231,17 +231,28 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
             )}
           </div>
 
-          <ConfirmDialog
-            open={!!restoreTarget}
-            title={__('Restore revision?')}
-            message={__(
-              'This will overwrite the current content with the selected revision. Continue?'
-            )}
-            confirmLabel={__('Restore')}
-            variant="default"
-            onConfirm={handleRestore}
-            onCancel={() => setRestoreTarget(null)}
-          />
+          <Dialog open={!!restoreTarget} onClose={() => setRestoreTarget(null)} size="sm">
+            <Dialog.Body>
+              <h3 className="text-lg font-semibold text-(--text-primary)">{__('Restore revision?')}</h3>
+              <p className="mt-2 text-sm text-(--text-secondary)">
+                {__('This will overwrite the current content with the selected revision. Continue?')}
+              </p>
+            </Dialog.Body>
+            <Dialog.Footer>
+              <button
+                onClick={() => setRestoreTarget(null)}
+                className="admin-btn admin-btn-secondary"
+              >
+                {__('Cancel')}
+              </button>
+              <button
+                onClick={handleRestore}
+                className="admin-btn admin-btn-primary"
+              >
+                {__('Restore')}
+              </button>
+            </Dialog.Footer>
+          </Dialog>
         </dialog>
       )}
     </div>

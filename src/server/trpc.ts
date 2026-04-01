@@ -24,7 +24,7 @@ export async function createTRPCContext(opts: { headers: Headers }) {
 export type Context = Awaited<ReturnType<typeof createTRPCContext>>;
 
 type SessionUser = {
-  id?: string;
+  id: string;
   email?: string;
   role?: UserRole;
   banned?: boolean;
@@ -59,6 +59,13 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
   }
 
   const sessionUser = ctx.session.user as unknown as SessionUser;
+
+  if (!sessionUser.id) {
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'Invalid session',
+    });
+  }
 
   if (sessionUser.banned) {
     throw new TRPCError({

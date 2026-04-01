@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 
 import { trpc } from '@/lib/trpc/client';
-import { usePreferencesStore } from '@/store/preferences-store';
+import { usePreferencesStore } from '@/engine/store/preferences-store';
 
 /**
  * Hydrates the preferences Zustand store from the DB via tRPC.

@@ -14,7 +14,8 @@
     "db:studio": "bunx drizzle-kit studio",
     "init": "bun run src/scripts/init.ts",
     "promote": "bun run src/scripts/promote.ts",
-    "change-password": "bun run src/scripts/change-password.ts"
+    "change-password": "bun run src/scripts/change-password.ts",
+    "test": "vitest"
   },
   "dependencies": {
     "@better-fetch/fetch": "^1.1.21",
@@ -58,6 +59,8 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "^20",
     "@types/nodemailer": "^7.0.11",
     "@types/react": "^19",
@@ -66,8 +69,10 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
+    "jsdom": "^29.0.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.2"
   },
   "ignoreScripts": [
     "sharp",
