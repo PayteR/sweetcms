@@ -1,44 +1,50 @@
 import { NextResponse } from 'next/server';
-import type Stripe from 'stripe';
 import { eq } from 'drizzle-orm';
 import { db } from '@/server/db';
-import { saasSubscriptions, saasSubscriptionEvents } from '@/server/db/schema';
-import { getStripe } from '@/server/lib/stripe';
-import { getPlanByStripePriceId } from '@/config/plans';
+import { saasSubscriptionEvents } from '@/server/db/schema';
+import { getProvider } from '@/server/lib/payment/factory';
+import {
+  activateSubscription,
+  updateSubscription,
+  cancelSubscription,
+  getOrgByProviderSubscription,
+} from '@/server/lib/payment/subscription-service';
 import { logAudit } from '@/engine/lib/audit';
 import { sendOrgNotification } from '@/server/lib/notifications';
 import { NotificationType, NotificationCategory } from '@/engine/types/notifications';
+import { createLogger } from '@/engine/lib/logger';
+
+const logger = createLogger('stripe-webhook');
 
 export async function POST(request: Request) {
-  const stripe = getStripe();
-  if (!stripe) {
+  const stripeProvider = getProvider('stripe');
+  if (!stripeProvider) {
     return NextResponse.json({ error: 'Billing not configured' }, { status: 503 });
   }
 
-  const body = await request.text();
-  const signature = request.headers.get('stripe-signature');
+  // Clone request so we can read body twice (once for signature verification in provider)
+  const clonedRequest = request.clone();
 
-  if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
-    return NextResponse.json({ error: 'Missing signature' }, { status: 400 });
-  }
-
-  let event: Stripe.Event;
+  let event;
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET
-    );
+    event = await stripeProvider.handleWebhook(clonedRequest);
   } catch (err) {
-    console.error('Stripe webhook signature verification failed:', err);
+    logger.error('Stripe webhook verification failed', { error: String(err) });
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
-  // Idempotency check
+  // Idempotency check via raw Stripe event ID from providerData
+  const stripeEventId = (event.providerData as Record<string, unknown>)?.id as string | undefined;
+  if (!stripeEventId) {
+    // Fallback: try to extract from the original request
+    // For Stripe, the event ID is always available in providerData
+    return NextResponse.json({ error: 'Missing event ID' }, { status: 400 });
+  }
+
   const [existing] = await db
     .select({ id: saasSubscriptionEvents.id })
     .from(saasSubscriptionEvents)
-    .where(eq(saasSubscriptionEvents.stripeEventId, event.id))
+    .where(eq(saasSubscriptionEvents.providerEventId, stripeEventId))
     .limit(1);
 
   if (existing) {
@@ -47,157 +53,105 @@ export async function POST(request: Request) {
 
   // Log event for idempotency
   await db.insert(saasSubscriptionEvents).values({
-    stripeEventId: event.id,
+    providerId: 'stripe',
+    providerEventId: stripeEventId,
     type: event.type,
-    data: event.data.object as unknown as Record<string, unknown>,
+    data: event.providerData as Record<string, unknown>,
   });
 
   try {
     switch (event.type) {
-      case 'checkout.session.completed': {
-        const session = event.data.object as Stripe.Checkout.Session;
-        const orgId = session.metadata?.orgId;
-        if (!orgId || !session.subscription) break;
+      case 'subscription.activated': {
+        if (!event.organizationId || !event.providerSubscriptionId) break;
 
-        const subscription = await stripe.subscriptions.retrieve(
-          session.subscription as string
-        );
-        const firstItem = subscription.items.data[0];
-        const priceId = firstItem?.price.id;
-        const plan = priceId ? getPlanByStripePriceId(priceId) : null;
-        const periodStart = firstItem ? new Date(firstItem.current_period_start * 1000) : null;
-        const periodEnd = firstItem ? new Date(firstItem.current_period_end * 1000) : null;
-
-        await db
-          .insert(saasSubscriptions)
-          .values({
-            organizationId: orgId,
-            stripeCustomerId: session.customer as string,
-            stripeSubscriptionId: subscription.id,
-            stripePriceId: priceId ?? null,
-            planId: plan?.id ?? 'free',
-            status: subscription.status,
-            currentPeriodStart: periodStart,
-            currentPeriodEnd: periodEnd,
-          })
-          .onConflictDoUpdate({
-            target: saasSubscriptions.stripeSubscriptionId,
-            set: {
-              stripePriceId: priceId ?? null,
-              planId: plan?.id ?? 'free',
-              status: subscription.status,
-              currentPeriodStart: periodStart,
-              currentPeriodEnd: periodEnd,
-              updatedAt: new Date(),
-            },
-          });
+        await activateSubscription({
+          organizationId: event.organizationId,
+          planId: event.planId ?? 'free',
+          providerId: 'stripe',
+          interval: 'monthly', // determined by price, but we'll use what's available
+          providerCustomerId: event.providerCustomerId ?? '',
+          providerSubscriptionId: event.providerSubscriptionId,
+          providerPriceId: event.providerPriceId,
+          status: event.status,
+          periodStart: event.periodStart,
+          periodEnd: event.periodEnd,
+        });
 
         logAudit({
           db,
           userId: 'system',
           action: 'subscription.created',
           entityType: 'subscription',
-          entityId: subscription.id,
-          metadata: { orgId, planId: plan?.id },
+          entityId: event.providerSubscriptionId,
+          metadata: { orgId: event.organizationId, planId: event.planId },
         });
 
-        sendOrgNotification(orgId, {
+        sendOrgNotification(event.organizationId, {
           title: 'Subscription activated',
-          body: `Your subscription to the ${plan?.name ?? 'selected'} plan is now active.`,
+          body: `Your subscription to the ${event.planId ?? 'selected'} plan is now active.`,
           type: NotificationType.SUCCESS,
           category: NotificationCategory.BILLING,
-          actionUrl: '/dashboard/settings',
+          actionUrl: '/dashboard/settings/billing',
         });
         break;
       }
 
-      case 'customer.subscription.updated': {
-        const subscription = event.data.object as Stripe.Subscription;
-        const firstItem = subscription.items.data[0];
-        const priceId = firstItem?.price.id;
-        const plan = priceId ? getPlanByStripePriceId(priceId) : null;
-        const periodStart = firstItem ? new Date(firstItem.current_period_start * 1000) : null;
-        const periodEnd = firstItem ? new Date(firstItem.current_period_end * 1000) : null;
+      case 'subscription.updated': {
+        if (!event.providerSubscriptionId) break;
 
-        await db
-          .update(saasSubscriptions)
-          .set({
-            stripePriceId: priceId ?? null,
-            planId: plan?.id ?? 'free',
-            status: subscription.status,
-            currentPeriodStart: periodStart,
-            currentPeriodEnd: periodEnd,
-            cancelAtPeriodEnd: subscription.cancel_at_period_end,
-            updatedAt: new Date(),
-          })
-          .where(eq(saasSubscriptions.stripeSubscriptionId, subscription.id));
+        await updateSubscription(event.providerSubscriptionId, {
+          planId: event.planId,
+          status: event.status,
+          providerPriceId: event.providerPriceId,
+          periodStart: event.periodStart,
+          periodEnd: event.periodEnd,
+          cancelAtPeriodEnd: event.cancelAtPeriodEnd,
+        });
         break;
       }
 
-      case 'customer.subscription.deleted': {
-        const subscription = event.data.object as Stripe.Subscription;
+      case 'subscription.canceled': {
+        if (!event.providerSubscriptionId) break;
 
-        // Look up orgId before updating
-        const [canceledSub] = await db
-          .select({ organizationId: saasSubscriptions.organizationId })
-          .from(saasSubscriptions)
-          .where(eq(saasSubscriptions.stripeSubscriptionId, subscription.id))
-          .limit(1);
+        const orgId = await getOrgByProviderSubscription(event.providerSubscriptionId);
 
-        await db
-          .update(saasSubscriptions)
-          .set({
-            status: 'canceled',
-            planId: 'free',
-            updatedAt: new Date(),
-          })
-          .where(eq(saasSubscriptions.stripeSubscriptionId, subscription.id));
+        await cancelSubscription(event.providerSubscriptionId);
 
-        if (canceledSub) {
-          sendOrgNotification(canceledSub.organizationId, {
+        if (orgId) {
+          sendOrgNotification(orgId, {
             title: 'Subscription canceled',
             body: 'Your subscription has been canceled. You have been moved to the free plan.',
             type: NotificationType.WARNING,
             category: NotificationCategory.BILLING,
-            actionUrl: '/dashboard/settings',
+            actionUrl: '/dashboard/settings/billing',
           });
         }
         break;
       }
 
-      case 'invoice.payment_failed': {
-        const invoice = event.data.object as Stripe.Invoice;
-        const subRef = invoice.parent?.subscription_details?.subscription;
-        if (subRef) {
-          const subId = typeof subRef === 'string' ? subRef : subRef.id;
+      case 'payment.failed': {
+        if (!event.providerSubscriptionId) break;
 
-          // Look up orgId for notification
-          const [failedSub] = await db
-            .select({ organizationId: saasSubscriptions.organizationId })
-            .from(saasSubscriptions)
-            .where(eq(saasSubscriptions.stripeSubscriptionId, subId))
-            .limit(1);
+        const failedOrgId = await getOrgByProviderSubscription(event.providerSubscriptionId);
 
-          await db
-            .update(saasSubscriptions)
-            .set({ status: 'past_due', updatedAt: new Date() })
-            .where(eq(saasSubscriptions.stripeSubscriptionId, subId));
+        await updateSubscription(event.providerSubscriptionId, {
+          status: 'past_due',
+        });
 
-          if (failedSub) {
-            sendOrgNotification(failedSub.organizationId, {
-              title: 'Payment failed',
-              body: 'Payment failed for your subscription. Please update your payment method to avoid service interruption.',
-              type: NotificationType.ERROR,
-              category: NotificationCategory.BILLING,
-              actionUrl: '/dashboard/settings',
-            });
-          }
+        if (failedOrgId) {
+          sendOrgNotification(failedOrgId, {
+            title: 'Payment failed',
+            body: 'Payment failed for your subscription. Please update your payment method to avoid service interruption.',
+            type: NotificationType.ERROR,
+            category: NotificationCategory.BILLING,
+            actionUrl: '/dashboard/settings/billing',
+          });
         }
         break;
       }
     }
   } catch (err) {
-    console.error('Error processing webhook:', err);
+    logger.error('Error processing Stripe webhook', { error: String(err) });
     return NextResponse.json({ error: 'Processing failed' }, { status: 500 });
   }
 

@@ -1,8 +1,8 @@
-import { boolean, jsonb, pgTable, text, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { boolean, integer, jsonb, pgTable, text, timestamp, varchar } from 'drizzle-orm/pg-core';
 import { organization } from './organization';
 
 // ─── saas_subscriptions ──────────────────────────────────────────────────────
-// Tracks Stripe subscriptions per organization.
+// Tracks subscriptions per organization (provider-agnostic).
 
 export const saasSubscriptions = pgTable('saas_subscriptions', {
   id: text('id')
@@ -11,9 +11,10 @@ export const saasSubscriptions = pgTable('saas_subscriptions', {
   organizationId: text('organization_id')
     .notNull()
     .references(() => organization.id, { onDelete: 'cascade' }),
-  stripeCustomerId: text('stripe_customer_id').notNull(),
-  stripeSubscriptionId: text('stripe_subscription_id').unique(),
-  stripePriceId: text('stripe_price_id'),
+  providerId: varchar('provider_id', { length: 50 }).notNull().default('stripe'),
+  providerCustomerId: text('provider_customer_id').notNull(),
+  providerSubscriptionId: text('provider_subscription_id').unique(),
+  providerPriceId: text('provider_price_id'),
   planId: varchar('plan_id', { length: 50 }).notNull().default('free'),
   status: varchar('status', { length: 30 }).notNull().default('active'),
   currentPeriodStart: timestamp('current_period_start'),
@@ -25,14 +26,86 @@ export const saasSubscriptions = pgTable('saas_subscriptions', {
 });
 
 // ─── saas_subscription_events ────────────────────────────────────────────────
-// Idempotency log for processed Stripe webhook events.
+// Idempotency log for processed webhook events (provider-agnostic).
 
 export const saasSubscriptionEvents = pgTable('saas_subscription_events', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
-  stripeEventId: text('stripe_event_id').notNull().unique(),
+  providerId: varchar('provider_id', { length: 50 }).notNull().default('stripe'),
+  providerEventId: text('provider_event_id').notNull().unique(),
   type: varchar('type', { length: 100 }).notNull(),
   data: jsonb('data'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
+});
+
+// ─── saas_payment_transactions ───────────────────────────────────────────────
+// Records individual payment transactions across all providers.
+
+export const saasPaymentTransactions = pgTable('saas_payment_transactions', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id')
+    .notNull()
+    .references(() => organization.id, { onDelete: 'cascade' }),
+  userId: text('user_id'),
+  providerId: varchar('provider_id', { length: 50 }).notNull(),
+  providerTxId: text('provider_tx_id'),
+  amountCents: integer('amount_cents').notNull(),
+  currency: varchar('currency', { length: 10 }).notNull().default('usd'),
+  status: varchar('status', { length: 30 }).notNull().default('pending'),
+  planId: varchar('plan_id', { length: 50 }),
+  interval: varchar('interval', { length: 10 }),
+  discountCodeId: text('discount_code_id'),
+  discountAmountCents: integer('discount_amount_cents').notNull().default(0),
+  rawRequest: jsonb('raw_request'),
+  rawResponse: jsonb('raw_response'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+// ─── saas_discount_codes ─────────────────────────────────────────────────────
+// Discount/coupon code definitions.
+
+export const saasDiscountCodes = pgTable('saas_discount_codes', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  code: text('code').notNull().unique(),
+  isActive: boolean('is_active').notNull().default(true),
+  discountType: varchar('discount_type', { length: 30 }).notNull(), // percentage|fixed_price|trial|free_trial
+  discountValue: integer('discount_value'), // percentage (0-100) or fixed price in cents
+  trialDays: integer('trial_days'),
+  trialPriceCents: integer('trial_price_cents'),
+  /** Per-plan overrides: { planId: { type, value, trialDays?, trialPriceCents? } } */
+  planSpecificDiscounts: jsonb('plan_specific_discounts'),
+  maxUses: integer('max_uses'), // null = unlimited
+  currentUses: integer('current_uses').notNull().default(0),
+  maxUsesPerUser: integer('max_uses_per_user').notNull().default(1),
+  validFrom: timestamp('valid_from'),
+  validUntil: timestamp('valid_until'),
+  /** Countdown hours after applying (time-limited offers) */
+  timeLimitHours: integer('time_limit_hours'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+// ─── saas_discount_usages ────────────────────────────────────────────────────
+// Tracks per-user discount code usage.
+
+export const saasDiscountUsages = pgTable('saas_discount_usages', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id').notNull(),
+  discountCodeId: text('discount_code_id')
+    .notNull()
+    .references(() => saasDiscountCodes.id, { onDelete: 'cascade' }),
+  planId: varchar('plan_id', { length: 50 }),
+  appliedAt: timestamp('applied_at').notNull().defaultNow(),
+  expiresAt: timestamp('expires_at'),
+  usedAt: timestamp('used_at'),
+  removedAt: timestamp('removed_at'),
+  transactionId: text('transaction_id'),
 });

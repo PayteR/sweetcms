@@ -13,6 +13,7 @@ import {
   Calendar,
   ClipboardList,
   FileText,
+  FolderKanban,
   FolderOpen,
   Hash,
   Home,
@@ -58,6 +59,7 @@ export const navigation: NavItem[] = [
   { id: 'forms', name: 'Forms', href: '/dashboard/forms', icon: ClipboardList },
   { id: 'media', name: 'Media', href: '/dashboard/media', icon: Image },
   { id: 'users', name: 'Users', href: '/dashboard/users', icon: Users },
+  { id: 'projects', name: 'Projects', href: '/dashboard/projects', icon: FolderKanban },
   { id: 'activity', name: 'Activity', href: '/dashboard/cms/activity', icon: Activity },
   {
     id: 'settings',

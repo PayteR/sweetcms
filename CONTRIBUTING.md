@@ -58,6 +58,8 @@ Use GitHub Issues. Include:
 - Node/Bun version, OS
 - Relevant error messages or logs
 
-## License
+## License & CLA
 
-By contributing, you agree that your contributions will be licensed under the [MIT License](LICENSE).
+SweetCMS is dual-licensed under [AGPL-3.0](LICENSE) and a [commercial license](COMMERCIAL-LICENSE.md).
+
+By submitting a pull request, you agree to the [Contributor License Agreement (CLA)](CLA.md). This grants the project maintainers the right to include your contributions in both the open-source and commercially licensed versions of SweetCMS. Your Git commit metadata (name and email) serves as your electronic signature.

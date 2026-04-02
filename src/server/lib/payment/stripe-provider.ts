@@ -1,0 +1,182 @@
+import type Stripe from 'stripe';
+import type { PaymentProvider, CheckoutParams, CheckoutResult, WebhookEvent } from '@/engine/types/payment';
+import { getStripe, requireStripe, getOrCreateStripeCustomer } from '@/server/lib/stripe';
+import { getPlanByProviderPriceId, getPlan } from '@/config/plans';
+import { getProviderPriceId } from '@/config/plans';
+
+export class StripeProvider implements PaymentProvider {
+  config = {
+    id: 'stripe',
+    name: 'Stripe',
+    description: 'Credit card payments via Stripe',
+    supportsRecurring: true,
+    enabled: !!getStripe(),
+    allowedIntervals: ['monthly', 'yearly'] as ('monthly' | 'yearly')[],
+  };
+
+  async createCheckout(params: CheckoutParams): Promise<CheckoutResult> {
+    const stripe = requireStripe();
+    const customerId = await getOrCreateStripeCustomer(params.organizationId);
+
+    const plan = getPlan(params.planId);
+    if (!plan) throw new Error(`Plan not found: ${params.planId}`);
+
+    const priceId = getProviderPriceId(plan, 'stripe', params.interval);
+    if (!priceId) throw new Error(`No Stripe price for ${params.planId}/${params.interval}`);
+
+    const sessionParams: Stripe.Checkout.SessionCreateParams = {
+      customer: customerId,
+      mode: 'subscription',
+      line_items: [{ price: priceId, quantity: 1 }],
+      success_url: params.successUrl,
+      cancel_url: params.cancelUrl,
+      allow_promotion_codes: false, // we use our own discount engine
+      metadata: {
+        orgId: params.organizationId,
+        planId: params.planId,
+        ...params.metadata,
+      },
+    };
+
+    // Add trial period if plan has trialDays
+    if (plan.trialDays && plan.trialDays > 0) {
+      sessionParams.subscription_data = {
+        trial_period_days: plan.trialDays,
+      };
+    }
+
+    if (params.customerEmail) {
+      sessionParams.customer_email = params.customerEmail;
+    }
+
+    const session = await stripe.checkout.sessions.create(sessionParams);
+
+    return {
+      url: session.url!,
+      providerId: 'stripe',
+    };
+  }
+
+  async handleWebhook(request: Request): Promise<WebhookEvent> {
+    const stripe = requireStripe();
+    const body = await request.text();
+    const signature = request.headers.get('stripe-signature');
+
+    if (!signature || !process.env.STRIPE_WEBHOOK_SECRET) {
+      throw new Error('Missing Stripe webhook signature or secret');
+    }
+
+    const event = stripe.webhooks.constructEvent(
+      body,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET
+    );
+
+    // Include event.id in providerData for idempotency
+    const baseProviderData = { id: event.id, ...(event.data.object as unknown as Record<string, unknown>) };
+
+    switch (event.type) {
+      case 'checkout.session.completed': {
+        const session = event.data.object as Stripe.Checkout.Session;
+        const orgId = session.metadata?.orgId;
+        if (!orgId || !session.subscription) {
+          return { type: 'subscription.activated', providerData: baseProviderData };
+        }
+
+        const subscription = await stripe.subscriptions.retrieve(
+          session.subscription as string
+        );
+        const firstItem = subscription.items.data[0];
+        const priceId = firstItem?.price.id;
+        const plan = priceId ? getPlanByProviderPriceId('stripe', priceId) : null;
+
+        return {
+          type: 'subscription.activated',
+          organizationId: orgId,
+          planId: plan?.id ?? 'free',
+          status: subscription.status,
+          providerSubscriptionId: subscription.id,
+          providerCustomerId: session.customer as string,
+          providerPriceId: priceId,
+          periodStart: firstItem ? new Date(firstItem.current_period_start * 1000) : undefined,
+          periodEnd: firstItem ? new Date(firstItem.current_period_end * 1000) : undefined,
+          providerData: baseProviderData,
+        };
+      }
+
+      case 'customer.subscription.updated': {
+        const subscription = event.data.object as Stripe.Subscription;
+        const firstItem = subscription.items.data[0];
+        const priceId = firstItem?.price.id;
+        const plan = priceId ? getPlanByProviderPriceId('stripe', priceId) : null;
+
+        return {
+          type: 'subscription.updated',
+          planId: plan?.id ?? 'free',
+          status: subscription.status,
+          providerSubscriptionId: subscription.id,
+          providerPriceId: priceId,
+          periodStart: firstItem ? new Date(firstItem.current_period_start * 1000) : undefined,
+          periodEnd: firstItem ? new Date(firstItem.current_period_end * 1000) : undefined,
+          cancelAtPeriodEnd: subscription.cancel_at_period_end,
+          providerData: baseProviderData,
+        };
+      }
+
+      case 'customer.subscription.deleted': {
+        const subscription = event.data.object as Stripe.Subscription;
+        return {
+          type: 'subscription.canceled',
+          providerSubscriptionId: subscription.id,
+          status: 'canceled',
+          providerData: baseProviderData,
+        };
+      }
+
+      case 'invoice.payment_failed': {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subRef = invoice.parent?.subscription_details?.subscription;
+        const subId = subRef
+          ? typeof subRef === 'string' ? subRef : subRef.id
+          : undefined;
+        return {
+          type: 'payment.failed',
+          providerSubscriptionId: subId,
+          status: 'past_due',
+          providerData: baseProviderData,
+        };
+      }
+
+      default:
+        return {
+          type: 'subscription.updated',
+          providerData: baseProviderData,
+        };
+    }
+  }
+
+  async createPortalSession(orgId: string, returnUrl: string): Promise<string> {
+    const stripe = requireStripe();
+    const customerId = await getOrCreateStripeCustomer(orgId);
+
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: returnUrl,
+    });
+
+    return session.url;
+  }
+
+  async refund(transactionId: string, amountCents?: number): Promise<boolean> {
+    const stripe = requireStripe();
+    try {
+      await stripe.refunds.create({
+        payment_intent: transactionId,
+        ...(amountCents !== undefined && { amount: amountCents }),
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+}

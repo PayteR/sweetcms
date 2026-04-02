@@ -263,4 +263,9 @@ Point your AI agent at the repo and it can understand, modify, and extend the pl
 
 ## License
 
-[MIT](LICENSE)
+SweetCMS is dual-licensed:
+
+- **Open Source:** [AGPL-3.0](LICENSE) — free for open-source use. If you modify and deploy over a network, you must release your source code under AGPL-3.0.
+- **Commercial:** [Commercial License](COMMERCIAL-LICENSE.md) — for proprietary use without AGPL obligations. [Contact us](mailto:peter@visual.sk) for pricing.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for contributor license agreement details.

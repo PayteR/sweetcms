@@ -15,3 +15,4 @@ export * from './translations';
 export * from './user-preferences';
 export * from './organization';
 export * from './notifications';
+export * from './projects';

@@ -8,6 +8,7 @@ import { auth } from '@/lib/auth';
 import { logAudit } from '@/engine/lib/audit';
 import { sendNotification, sendBulkNotification } from '@/server/lib/notifications';
 import { NotificationType, NotificationCategory } from '@/engine/types/notifications';
+import { requireFeature } from '@/server/lib/payment/feature-gate';
 
 export const organizationsRouter = createTRPCRouter({
   /** List organizations the current user is a member of */
@@ -139,6 +140,15 @@ export const organizationsRouter = createTRPCRouter({
       role: z.enum(['admin', 'member']).default('member'),
     }))
     .mutation(async ({ ctx, input }) => {
+      // Check maxMembers feature gate
+      const currentMembers = await ctx.db
+        .select({ id: member.id })
+        .from(member)
+        .where(eq(member.organizationId, input.organizationId))
+        .limit(1000);
+
+      await requireFeature(input.organizationId, 'maxMembers', currentMembers.length);
+
       const result = await auth.api.createInvitation({
         headers: ctx.headers,
         body: {

@@ -76,7 +76,7 @@ export const PRICING_FAQ: PricingFaq[] = [
   {
     question: 'What payment methods do you accept?',
     answer:
-      'We accept all major credit cards (Visa, Mastercard, American Express) through Stripe. We also support wire transfers for Enterprise plans.',
+      'We accept all major credit cards (Visa, Mastercard, American Express) through Stripe. We also accept cryptocurrency payments via NOWPayments for yearly plans. Wire transfers are available for Enterprise plans.',
   },
   {
     question: 'Is there a discount for annual billing?',

@@ -1,7 +1,7 @@
 'use client';
 
 import {
-  FileText, Layers, FolderOpen, Users, Image,
+  FileText, Layers, FolderOpen, Users, Image, CreditCard, TrendingUp,
 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
@@ -18,6 +18,9 @@ export default function DashboardPage() {
   const catCounts = trpc.categories.counts.useQuery();
   const userCounts = trpc.users.counts.useQuery();
   const mediaCounts = trpc.media.count.useQuery();
+  const billingStats = trpc.billing.getStats.useQuery(undefined, {
+    retry: false, // Don't retry if billing section is not accessible
+  });
 
   return (
     <div className="mx-auto max-w-320">
@@ -67,6 +70,33 @@ export default function DashboardPage() {
           color="blue"
         />
       </div>
+
+      {/* Billing stat cards — only shown when billing stats are available */}
+      {billingStats.data && (
+        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <StatCard
+            label={__('Active Subscriptions')}
+            count={billingStats.data.totalActiveSubscriptions}
+            href="/dashboard/settings/billing"
+            icon={CreditCard}
+            color="green"
+          />
+          <StatCard
+            label={__('MRR')}
+            count={billingStats.data.mrr > 0 ? `$${(billingStats.data.mrr / 100).toFixed(0)}` : '$0'}
+            href="/dashboard/settings/billing"
+            icon={TrendingUp}
+            color="blue"
+          />
+          <StatCard
+            label={__('Churn (30d)')}
+            count={billingStats.data.churnLast30Days}
+            href="/dashboard/settings/billing"
+            icon={Users}
+            color="orange"
+          />
+        </div>
+      )}
 
       {/* Configurable widget grid with drag-and-drop */}
       <DashboardWidgetGrid />

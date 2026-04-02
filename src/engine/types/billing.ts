@@ -24,14 +24,20 @@ export interface PlanFeatures {
   [key: string]: unknown;
 }
 
+export interface ProviderPriceIds {
+  monthly?: string;
+  yearly?: string;
+}
+
 export interface PlanDefinition {
   id: string;
   name: string;
   description: string;
-  stripePriceIdMonthly: string | null;
-  stripePriceIdYearly: string | null;
+  /** Provider-specific price IDs: { stripe: { monthly, yearly }, nowpayments: { yearly: true } } */
+  providerPrices: Record<string, ProviderPriceIds | boolean>;
   priceMonthly: number; // in cents
   priceYearly: number; // in cents
+  trialDays?: number;
   features: PlanFeatures;
   popular?: boolean;
 }

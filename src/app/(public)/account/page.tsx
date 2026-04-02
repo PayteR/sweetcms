@@ -1,10 +1,26 @@
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
+import { serverTRPC } from '@/lib/trpc/server';
+import { CreateOrgCard } from '@/components/public/CreateOrgCard';
 
 export default async function AccountPage() {
   const session = await auth.api.getSession({ headers: await headers() });
   const user = session!.user;
   const userImage = (user as { image?: string | null }).image;
+
+  // Check if user has any organizations
+  const api = await serverTRPC();
+  const orgs = await api.organizations.list();
+  const hasOrgs = orgs.length > 0;
+
+  if (!hasOrgs) {
+    return (
+      <div>
+        <h1 className="text-2xl font-bold mb-6">Welcome, {user.name ?? 'there'}!</h1>
+        <CreateOrgCard />
+      </div>
+    );
+  }
 
   return (
     <div>

@@ -57,12 +57,23 @@ const envSchema = z.object({
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
 
+  // NOWPayments (optional — crypto payments disabled without API key)
+  NOWPAYMENTS_API_KEY: z.string().optional(),
+  NOWPAYMENTS_IPN_SECRET: z.string().optional(),
+  NOWPAYMENTS_SANDBOX: z.coerce.boolean().default(true),
+
   // Server role
   SERVER_ROLE: z.enum(['all', 'frontend', 'api', 'worker']).default('all'),
   PORT: z.string().regex(/^\d+$/).default('3000'),
 
   // WebSocket
   WS_ENABLED: z.coerce.boolean().default(true),
+
+  // Sentry (optional — error tracking disabled without DSN)
+  SENTRY_DSN: z.string().optional(),
+  NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
+  SENTRY_ORG: z.string().optional(),
+  SENTRY_PROJECT: z.string().optional(),
 });
 
 // Validate and export

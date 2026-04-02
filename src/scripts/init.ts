@@ -325,7 +325,7 @@ async function seedContent() {
   <li><strong>SEO Optimized</strong> — Meta descriptions, OG images, JSON-LD, sitemaps</li>
 </ul>
 <h3>Open Source</h3>
-<p>SweetCMS is MIT licensed and available on GitHub. Contributions are welcome!</p>`,
+<p>SweetCMS is open source (AGPL-3.0) and available on GitHub. Commercial licenses available for proprietary use. Contributions are welcome!</p>`,
       metaDescription: 'SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack (Next.js + tRPC + Drizzle).',
       seoTitle: 'About SweetCMS — Agent-Driven Headless CMS',
       publishedAt: new Date(),

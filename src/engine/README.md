@@ -32,4 +32,4 @@ types/        — PostType, ContentStatus, FileType, ContentSnapshot
 
 ## License
 
-MIT.
+[AGPL-3.0](LICENSE) — same as SweetCMS. See [COMMERCIAL-LICENSE.md](https://github.com/PayteR/sweetcms/blob/main/COMMERCIAL-LICENSE.md) for proprietary use.

@@ -28,12 +28,12 @@ export async function getOrCreateStripeCustomer(orgId: string): Promise<string> 
 
   // Check existing subscription record
   const [existing] = await db
-    .select({ stripeCustomerId: saasSubscriptions.stripeCustomerId })
+    .select({ providerCustomerId: saasSubscriptions.providerCustomerId })
     .from(saasSubscriptions)
     .where(eq(saasSubscriptions.organizationId, orgId))
     .limit(1);
 
-  if (existing?.stripeCustomerId) return existing.stripeCustomerId;
+  if (existing?.providerCustomerId) return existing.providerCustomerId;
 
   // Get org details
   const [org] = await db
@@ -49,46 +49,4 @@ export async function getOrCreateStripeCustomer(orgId: string): Promise<string> 
   });
 
   return customer.id;
-}
-
-export async function createCheckoutSession(
-  orgId: string,
-  priceId: string,
-  urls: { success: string; cancel: string }
-): Promise<string> {
-  const stripe = requireStripe();
-  const customerId = await getOrCreateStripeCustomer(orgId);
-
-  const session = await stripe.checkout.sessions.create({
-    customer: customerId,
-    mode: 'subscription',
-    line_items: [{ price: priceId, quantity: 1 }],
-    success_url: urls.success,
-    cancel_url: urls.cancel,
-    metadata: { orgId },
-  });
-
-  return session.url!;
-}
-
-export async function createPortalSession(orgId: string, returnUrl: string): Promise<string> {
-  const stripe = requireStripe();
-  const customerId = await getOrCreateStripeCustomer(orgId);
-
-  const session = await stripe.billingPortal.sessions.create({
-    customer: customerId,
-    return_url: returnUrl,
-  });
-
-  return session.url;
-}
-
-export async function getActiveSubscription(orgId: string) {
-  const [sub] = await db
-    .select()
-    .from(saasSubscriptions)
-    .where(eq(saasSubscriptions.organizationId, orgId))
-    .limit(1);
-
-  return sub ?? null;
 }

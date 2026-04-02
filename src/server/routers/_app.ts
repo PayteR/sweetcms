@@ -20,6 +20,8 @@ import { tagsRouter } from './tags';
 import { usersRouter } from './users';
 import { organizationsRouter } from './organizations';
 import { notificationsRouter } from './notifications';
+import { projectsRouter } from './projects';
+import { discountCodesRouter } from './discount-codes';
 import { webhooksRouter } from './webhooks';
 
 /**
@@ -33,6 +35,7 @@ export const appRouter = createTRPCRouter({
   cms: cmsRouter,
   categories: categoriesRouter,
   contentSearch: contentSearchRouter,
+  discountCodes: discountCodesRouter,
   customFields: customFieldsRouter,
   forms: formsRouter,
   import: importRouter,
@@ -43,6 +46,7 @@ export const appRouter = createTRPCRouter({
   notifications: notificationsRouter,
   organizations: organizationsRouter,
   portfolio: portfolioRouter,
+  projects: projectsRouter,
   redirects: redirectsRouter,
   revisions: revisionsRouter,
   tags: tagsRouter,
