@@ -18,9 +18,9 @@ import { useLinkPicker } from '@/engine/hooks/useLinkPicker';
 import { useLinkValidation } from '@/engine/hooks/useLinkValidation';
 import { useCmsAutosave } from '@/engine/hooks/useCmsAutosave';
 import { useKeyboardShortcuts } from '@/engine/hooks/useKeyboardShortcuts';
-import AutosaveIndicator from './AutosaveIndicator';
-import AutosaveRecoveryBanner from './AutosaveRecoveryBanner';
-import BrokenLinksBanner from './BrokenLinksBanner';
+import AutosaveIndicator from '@/engine/components/AutosaveIndicator';
+import AutosaveRecoveryBanner from '@/engine/components/AutosaveRecoveryBanner';
+import BrokenLinksBanner from '@/engine/components/BrokenLinksBanner';
 import CmsFormShell from '@/engine/components/CmsFormShell';
 import { CustomFieldsEditor, type CustomFieldsEditorHandle } from '@/engine/components/CustomFieldsEditor';
 import { FallbackRadio } from './FallbackRadio';
@@ -30,7 +30,7 @@ import { RevisionHistory } from '@/engine/components/RevisionHistory';
 import { RichTextEditor } from '@/engine/components/RichTextEditor';
 import { shortcodeConfig } from '@/lib/shortcodes/config';
 import { SEOFields } from '@/engine/components/SEOFields';
-import { SeoPreviewCard } from './SeoPreviewCard';
+import { SeoPreviewCard } from '@/engine/components/SeoPreviewCard';
 import { TagInput } from '@/engine/components/TagInput';
 import { TranslationBar } from './TranslationBar';
 
@@ -154,7 +154,9 @@ export function PortfolioForm({ portfolioId }: Props) {
   const createItem = trpc.portfolio.create.useMutation({
     onSuccess: (data) => {
       clearAutosave(formData);
-      customFieldsRef.current?.save(data.id).catch(() => {});
+      customFieldsRef.current?.save(data.id).catch((err: unknown) => {
+        console.error('[PortfolioForm] Failed to save custom fields', err);
+      });
       toast.success(__('Portfolio item created'));
       utils.portfolio.list.invalidate();
       utils.portfolio.counts.invalidate();
@@ -166,7 +168,9 @@ export function PortfolioForm({ portfolioId }: Props) {
   const updateItem = trpc.portfolio.update.useMutation({
     onSuccess: () => {
       clearAutosave(formData);
-      if (portfolioId) customFieldsRef.current?.save(portfolioId).catch(() => {});
+      if (portfolioId) customFieldsRef.current?.save(portfolioId).catch((err: unknown) => {
+        console.error('[PortfolioForm] Failed to save custom fields', err);
+      });
       toast.success(__('Portfolio item updated'));
       utils.portfolio.list.invalidate();
       existingItem.refetch();

@@ -12,7 +12,7 @@ vi.mock('@/lib/auth', () => ({
   },
 }));
 
-vi.mock('@/server/lib/redis', () => ({
+vi.mock('@/engine/lib/redis', () => ({
   getRedis: vi.fn().mockReturnValue(null),
 }));
 
@@ -85,7 +85,7 @@ vi.mock('@/server/translation/translate-fields', () => ({
   createFieldTranslator: vi.fn(),
 }));
 
-vi.mock('@/server/storage', () => ({
+vi.mock('@/engine/storage', () => ({
   getStorage: vi.fn().mockReturnValue({
     url: vi.fn((path: string) => `/uploads/${path}`),
   }),
@@ -184,6 +184,7 @@ vi.mock('@/server/db/schema', () => ({
 // Imports (after mocks)
 // ---------------------------------------------------------------------------
 
+import { asMock } from '@/test-utils';
 import { cmsRouter } from '../cms';
 import { buildStatusCounts } from '@/engine/crud/admin-crud';
 import { getTermRelationships, syncTermRelationships, resolveTagsForPosts } from '@/engine/crud/taxonomy-helpers';
@@ -310,7 +311,7 @@ describe('cmsRouter', () => {
   describe('counts', () => {
     it('returns status counts for a post type', async () => {
       const mockCounts = { all: 10, published: 5, draft: 3, scheduled: 1, trash: 1 };
-      vi.mocked(buildStatusCounts).mockResolvedValue(mockCounts);
+      asMock(buildStatusCounts).mockResolvedValue(mockCounts);
 
       const ctx = createMockCtx();
       const caller = cmsRouter.createCaller(ctx as never);
@@ -321,7 +322,7 @@ describe('cmsRouter', () => {
     });
 
     it('passes the correct type filter to buildStatusCounts', async () => {
-      vi.mocked(buildStatusCounts).mockResolvedValue({
+      asMock(buildStatusCounts).mockResolvedValue({
         all: 0, published: 0, draft: 0, scheduled: 0, trash: 0,
       });
 
@@ -345,7 +346,7 @@ describe('cmsRouter', () => {
       const ctx = createMockCtx();
       ctx.db._chains.select.limit.mockResolvedValue([MOCK_POST]);
 
-      vi.mocked(getTermRelationships).mockResolvedValue([
+      asMock(getTermRelationships).mockResolvedValue([
         { termId: 'c1c1c1c1-0000-4000-a000-000000000001', taxonomyId: 'category' },
         { termId: 'd1d1d1d1-0000-4000-a000-000000000001', taxonomyId: 'tag' },
         { termId: 'd1d1d1d1-0000-4000-a000-000000000002', taxonomyId: 'tag' },
@@ -374,7 +375,7 @@ describe('cmsRouter', () => {
     it('returns empty arrays when post has no taxonomy relationships', async () => {
       const ctx = createMockCtx();
       ctx.db._chains.select.limit.mockResolvedValue([MOCK_POST]);
-      vi.mocked(getTermRelationships).mockResolvedValue([]);
+      asMock(getTermRelationships).mockResolvedValue([]);
 
       const caller = cmsRouter.createCaller(ctx as never);
       const result = await caller.get({ id: MOCK_POST.id });
@@ -659,7 +660,7 @@ describe('cmsRouter', () => {
         delete: vi.fn(),
       };
 
-      vi.mocked(resolveTagsForPosts).mockResolvedValue(
+      asMock(resolveTagsForPosts).mockResolvedValue(
         posts.map((p) => ({ ...p, tags: [] }))
       );
 
@@ -705,7 +706,7 @@ describe('cmsRouter', () => {
         delete: vi.fn(),
       };
 
-      vi.mocked(resolveTagsForPosts).mockResolvedValue([]);
+      asMock(resolveTagsForPosts).mockResolvedValue([]);
 
       const ctx = createMockCtx({ db });
       const caller = cmsRouter.createCaller(ctx as never);
@@ -741,7 +742,7 @@ describe('cmsRouter', () => {
         delete: vi.fn(),
       };
 
-      vi.mocked(resolveTagsForPosts).mockResolvedValue([]);
+      asMock(resolveTagsForPosts).mockResolvedValue([]);
 
       const ctx = createMockCtx({ db });
       const caller = cmsRouter.createCaller(ctx as never);

@@ -7,7 +7,7 @@ import {
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { PostType } from '@/engine/types/cms';
-import StatCard from '@/components/admin/StatCard';
+import StatCard from '@/engine/components/StatCard';
 import { DashboardConfig } from '@/components/admin/DashboardConfig';
 import { DashboardWidgetGrid } from '@/components/admin/DashboardWidgetGrid';
 

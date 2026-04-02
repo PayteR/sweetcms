@@ -10,7 +10,7 @@ vi.mock('@/lib/auth', () => ({
   },
 }));
 
-vi.mock('@/server/lib/redis', () => ({
+vi.mock('@/engine/lib/redis', () => ({
   getRedis: vi.fn().mockReturnValue(null),
 }));
 
@@ -36,6 +36,7 @@ vi.mock('@/engine/policy', () => ({
   },
 }));
 
+import { asMock } from '@/test-utils';
 import { authRouter } from '../auth';
 import { auth } from '@/lib/auth';
 import { Policy } from '@/engine/policy';
@@ -152,7 +153,7 @@ describe('authRouter', () => {
     });
 
     it('throws BAD_REQUEST when auth.api.changePassword fails', async () => {
-      vi.mocked(auth.api.changePassword).mockRejectedValue(new Error('Wrong password'));
+      asMock(auth.api.changePassword).mockRejectedValue(new Error('Wrong password'));
       const ctx = createMockCtx();
       const caller = authRouter.createCaller(ctx as never);
 
@@ -183,7 +184,7 @@ describe('authRouter', () => {
       // Return user with 'user' role
       ctx.db._chains.select.limit.mockResolvedValue([{ role: 'user' }]);
       // Policy.for('user').canAccessAdmin() returns false
-      vi.mocked(Policy.for).mockReturnValue({
+      asMock(Policy.for).mockReturnValue({
         canAccessAdmin: vi.fn().mockReturnValue(false),
       } as never);
 
@@ -200,7 +201,7 @@ describe('authRouter', () => {
     it('prevents staff accounts from self-deleting', async () => {
       const ctx = createMockCtx();
       ctx.db._chains.select.limit.mockResolvedValue([{ role: 'admin' }]);
-      vi.mocked(Policy.for).mockReturnValue({
+      asMock(Policy.for).mockReturnValue({
         canAccessAdmin: vi.fn().mockReturnValue(true),
       } as never);
 

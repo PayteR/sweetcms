@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: '*',
-        disallow: ['/dashboard/', '/api/webhooks/'],
+        disallow: ['/dashboard/', '/api/webhooks/', '/api/health'],
       },
     ],
     sitemap: `${env.NEXT_PUBLIC_APP_URL}/sitemap.xml`,

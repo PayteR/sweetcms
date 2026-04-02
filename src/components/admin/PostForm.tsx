@@ -18,9 +18,9 @@ import { useLinkPicker } from '@/engine/hooks/useLinkPicker';
 import { useLinkValidation } from '@/engine/hooks/useLinkValidation';
 import { useCmsAutosave } from '@/engine/hooks/useCmsAutosave';
 import { useKeyboardShortcuts } from '@/engine/hooks/useKeyboardShortcuts';
-import AutosaveIndicator from './AutosaveIndicator';
-import AutosaveRecoveryBanner from './AutosaveRecoveryBanner';
-import BrokenLinksBanner from './BrokenLinksBanner';
+import AutosaveIndicator from '@/engine/components/AutosaveIndicator';
+import AutosaveRecoveryBanner from '@/engine/components/AutosaveRecoveryBanner';
+import BrokenLinksBanner from '@/engine/components/BrokenLinksBanner';
 import CmsFormShell from '@/engine/components/CmsFormShell';
 import { CustomFieldsEditor, type CustomFieldsEditorHandle } from '@/engine/components/CustomFieldsEditor';
 import { FallbackRadio } from './FallbackRadio';
@@ -31,7 +31,7 @@ import { RevisionHistory } from '@/engine/components/RevisionHistory';
 import { RichTextEditor } from '@/engine/components/RichTextEditor';
 import { shortcodeConfig } from '@/lib/shortcodes/config';
 import { SEOFields } from '@/engine/components/SEOFields';
-import { SeoPreviewCard } from './SeoPreviewCard';
+import { SeoPreviewCard } from '@/engine/components/SeoPreviewCard';
 import { TagInput } from '@/engine/components/TagInput';
 import { TranslationBar } from './TranslationBar';
 
@@ -163,7 +163,9 @@ export function PostForm({ contentType, postId }: Props) {
   const createPost = trpc.cms.create.useMutation({
     onSuccess: (data) => {
       clearAutosave(formData);
-      customFieldsRef.current?.save(data.id).catch(() => {});
+      customFieldsRef.current?.save(data.id).catch((err: unknown) => {
+        console.error('[PostForm] Failed to save custom fields', err);
+      });
       toast.success(__(`${contentType.label} created`));
       utils.cms.list.invalidate();
       utils.cms.counts.invalidate();
@@ -175,7 +177,9 @@ export function PostForm({ contentType, postId }: Props) {
   const updatePost = trpc.cms.update.useMutation({
     onSuccess: () => {
       clearAutosave(formData);
-      if (postId) customFieldsRef.current?.save(postId).catch(() => {});
+      if (postId) customFieldsRef.current?.save(postId).catch((err: unknown) => {
+        console.error('[PostForm] Failed to save custom fields', err);
+      });
       toast.success(__(`${contentType.label} updated`));
       utils.cms.list.invalidate();
       existingPost.refetch();

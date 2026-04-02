@@ -38,8 +38,10 @@ Open-source SaaS starter kit built for AI-assisted development. Clone, customize
 - Custom fields (polymorphic, per content type)
 - Audit logging
 - Webhooks for content events
-- REST API v1 (posts, categories, tags, menus)
+- REST API v1 (posts, categories, tags, menus) with [OpenAPI 3.1 spec](/api/v1/openapi)
 - RSS feeds (blog, tag)
+- Health check endpoint (`/api/health`) with DB + Redis status
+- Structured logging (JSON in production, human-readable in dev)
 - GDPR data export
 - Content calendar view
 - Shortcode system (callout, CTA, gallery, YouTube embed)
@@ -108,6 +110,8 @@ Open [http://localhost:3000](http://localhost:3000) — your app is ready.
 - **Admin panel:** [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
 - **Blog:** [http://localhost:3000/blog](http://localhost:3000/blog)
 - **Pricing:** [http://localhost:3000/pricing](http://localhost:3000/pricing)
+- **API docs:** [http://localhost:3000/api/v1/openapi](http://localhost:3000/api/v1/openapi)
+- **Health:** [http://localhost:3000/api/health](http://localhost:3000/api/health)
 
 ## Content Types
 
@@ -211,6 +215,37 @@ Set `STORAGE_BACKEND=s3` with S3-compatible credentials for production file stor
 ### WebSocket
 
 WebSocket requires the custom server (`server.ts`). Not available in serverless deployments. Redis pub/sub enables multi-instance broadcasting.
+
+## REST API
+
+All endpoints require an API key via `X-API-Key` header (configurable via `API_KEY` env var). Rate limited to 100 req/min per IP.
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/v1/posts` | List published posts (paginated, filterable by lang/type) |
+| `GET /api/v1/posts/{slug}` | Get single post by slug (supports preview tokens) |
+| `GET /api/v1/categories` | List published categories |
+| `GET /api/v1/categories/{slug}` | Get single category |
+| `GET /api/v1/tags` | List tags (filterable by taxonomyId) |
+| `GET /api/v1/menus/{slug}` | Get menu with nested item tree |
+| `GET /api/v1/openapi` | OpenAPI 3.1 specification |
+
+## Monitoring
+
+`GET /api/health` returns service status with per-check latency:
+
+```json
+{
+  "status": "healthy",
+  "uptime": 3600.5,
+  "checks": {
+    "database": { "status": "ok", "latencyMs": 2 },
+    "redis": { "status": "ok", "latencyMs": 1 }
+  }
+}
+```
+
+Returns `200` when healthy, `503` when degraded. Error details stripped in production.
 
 ## Agent-Driven Development
 

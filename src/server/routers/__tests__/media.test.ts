@@ -12,7 +12,7 @@ vi.mock('@/lib/auth', () => ({
   },
 }));
 
-vi.mock('@/server/lib/redis', () => ({
+vi.mock('@/engine/lib/redis', () => ({
   getRedis: vi.fn().mockReturnValue(null),
 }));
 
@@ -35,7 +35,7 @@ vi.mock('@/engine/policy', () => ({
   },
 }));
 
-vi.mock('@/server/storage', () => ({
+vi.mock('@/engine/storage', () => ({
   getStorage: vi.fn().mockReturnValue({
     url: vi.fn((path: string) => `/uploads/${path}`),
   }),
@@ -86,8 +86,9 @@ vi.mock('@/server/db/schema', () => ({
 // Imports (after mocks)
 // ---------------------------------------------------------------------------
 
+import { asMock } from '@/test-utils';
 import { mediaRouter } from '../media';
-import { getStorage, type StorageProvider } from '@/server/storage';
+import { getStorage, type StorageProvider } from '@/engine/storage';
 import { slugifyFilename } from '@/engine/lib/slug';
 import { logAudit } from '@/engine/lib/audit';
 import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
@@ -225,8 +226,8 @@ describe('mediaRouter', () => {
     it('returns paginated media with URLs added', async () => {
       const items = [MOCK_MEDIA, { ...MOCK_MEDIA, id: 'a1a1a1a1-b2b2-4c3c-8d4d-e5e5e5e5e5e6' }];
 
-      vi.mocked(parsePagination).mockReturnValue({ page: 1, pageSize: 20, offset: 0 });
-      vi.mocked(paginatedResult).mockReturnValue({
+      asMock(parsePagination).mockReturnValue({ page: 1, pageSize: 20, offset: 0 });
+      asMock(paginatedResult).mockReturnValue({
         results: items.map((i) => ({ ...i, url: `/uploads/${i.filepath}` })),
         total: 2,
         page: 1,
@@ -273,7 +274,7 @@ describe('mediaRouter', () => {
     it('adds URL to each item using storage.url(filepath)', async () => {
       const item = { ...MOCK_MEDIA };
       const urlMock = vi.fn((path: string) => `https://cdn.example.com/${path}`);
-      vi.mocked(getStorage).mockReturnValue({ url: urlMock } as unknown as StorageProvider);
+      asMock(getStorage).mockReturnValue({ url: urlMock } as unknown as StorageProvider);
 
       let selectCallIndex = 0;
 
@@ -292,7 +293,7 @@ describe('mediaRouter', () => {
         return { from: countFromMock };
       });
 
-      vi.mocked(paginatedResult).mockImplementation(
+      asMock(paginatedResult).mockImplementation(
         (items: unknown[], total: number, page: number, pageSize: number) => ({
           results: items as typeof item[],
           total,
@@ -314,7 +315,7 @@ describe('mediaRouter', () => {
     });
 
     it('calls parsePagination with the input', async () => {
-      vi.mocked(parsePagination).mockReturnValue({ page: 2, pageSize: 10, offset: 10 });
+      asMock(parsePagination).mockReturnValue({ page: 2, pageSize: 10, offset: 10 });
 
       let selectCallIndex = 0;
 
@@ -343,7 +344,7 @@ describe('mediaRouter', () => {
     });
 
     it('supports optional fileType filter', async () => {
-      vi.mocked(parsePagination).mockReturnValue({ page: 1, pageSize: 20, offset: 0 });
+      asMock(parsePagination).mockReturnValue({ page: 1, pageSize: 20, offset: 0 });
 
       let selectCallIndex = 0;
 
@@ -363,7 +364,7 @@ describe('mediaRouter', () => {
         return { from: countFromMock };
       });
 
-      vi.mocked(paginatedResult).mockImplementation(
+      asMock(paginatedResult).mockImplementation(
         (items: unknown[], total: number, page: number, pageSize: number) => ({
           results: items as typeof imageItems,
           total,
@@ -385,8 +386,8 @@ describe('mediaRouter', () => {
     });
 
     it('returns empty results when no media exists', async () => {
-      vi.mocked(parsePagination).mockReturnValue({ page: 1, pageSize: 20, offset: 0 });
-      vi.mocked(paginatedResult).mockReturnValue({
+      asMock(parsePagination).mockReturnValue({ page: 1, pageSize: 20, offset: 0 });
+      asMock(paginatedResult).mockReturnValue({
         results: [],
         total: 0,
         page: 1,
@@ -435,7 +436,7 @@ describe('mediaRouter', () => {
     };
 
     it('slugifies filename before inserting', async () => {
-      vi.mocked(slugifyFilename).mockReturnValue('my-photo.jpg');
+      asMock(slugifyFilename).mockReturnValue('my-photo.jpg');
 
       const ctx = createMockCtx();
       ctx.db._chains.insert.returning.mockResolvedValue([{ ...MOCK_MEDIA, filename: 'my-photo.jpg' }]);
@@ -447,7 +448,7 @@ describe('mediaRouter', () => {
     });
 
     it('detects IMAGE file type for image/jpeg mime type', async () => {
-      vi.mocked(slugifyFilename).mockReturnValue('my-photo.jpg');
+      asMock(slugifyFilename).mockReturnValue('my-photo.jpg');
 
       const createdMedia = { ...MOCK_MEDIA, fileType: 1 };
       const ctx = createMockCtx();
@@ -464,7 +465,7 @@ describe('mediaRouter', () => {
     });
 
     it('detects IMAGE file type for image/png mime type', async () => {
-      vi.mocked(slugifyFilename).mockReturnValue('photo.png');
+      asMock(slugifyFilename).mockReturnValue('photo.png');
 
       const createdMedia = { ...MOCK_MEDIA, mimeType: 'image/png', fileType: 1 };
       const ctx = createMockCtx();
@@ -479,7 +480,7 @@ describe('mediaRouter', () => {
     });
 
     it('detects VIDEO file type for video/mp4 mime type', async () => {
-      vi.mocked(slugifyFilename).mockReturnValue('video.mp4');
+      asMock(slugifyFilename).mockReturnValue('video.mp4');
 
       const createdMedia = { ...MOCK_MEDIA, mimeType: 'video/mp4', fileType: 2 };
       const ctx = createMockCtx();
@@ -494,7 +495,7 @@ describe('mediaRouter', () => {
     });
 
     it('detects DOCUMENT file type for application/pdf mime type', async () => {
-      vi.mocked(slugifyFilename).mockReturnValue('doc.pdf');
+      asMock(slugifyFilename).mockReturnValue('doc.pdf');
 
       const createdMedia = { ...MOCK_MEDIA, mimeType: 'application/pdf', fileType: 3 };
       const ctx = createMockCtx();
@@ -509,7 +510,7 @@ describe('mediaRouter', () => {
     });
 
     it('detects DOCUMENT file type for text/plain mime type', async () => {
-      vi.mocked(slugifyFilename).mockReturnValue('readme.txt');
+      asMock(slugifyFilename).mockReturnValue('readme.txt');
 
       const createdMedia = { ...MOCK_MEDIA, mimeType: 'text/plain', fileType: 3 };
       const ctx = createMockCtx();
@@ -524,7 +525,7 @@ describe('mediaRouter', () => {
     });
 
     it('detects OTHER file type for unknown mime type', async () => {
-      vi.mocked(slugifyFilename).mockReturnValue('archive.zip');
+      asMock(slugifyFilename).mockReturnValue('archive.zip');
 
       const createdMedia = { ...MOCK_MEDIA, mimeType: 'application/zip', fileType: 4 };
       const ctx = createMockCtx();
@@ -539,7 +540,7 @@ describe('mediaRouter', () => {
     });
 
     it('sets uploadedById from session user', async () => {
-      vi.mocked(slugifyFilename).mockReturnValue('photo.jpg');
+      asMock(slugifyFilename).mockReturnValue('photo.jpg');
 
       const ctx = createMockCtx();
       ctx.db._chains.insert.returning.mockResolvedValue([MOCK_MEDIA]);
@@ -553,7 +554,7 @@ describe('mediaRouter', () => {
     });
 
     it('stores optional fields when provided', async () => {
-      vi.mocked(slugifyFilename).mockReturnValue('photo.jpg');
+      asMock(slugifyFilename).mockReturnValue('photo.jpg');
 
       const inputWithOptionals = {
         ...registerInput,
@@ -584,7 +585,7 @@ describe('mediaRouter', () => {
     });
 
     it('sets optional fields to null when not provided', async () => {
-      vi.mocked(slugifyFilename).mockReturnValue('photo.jpg');
+      asMock(slugifyFilename).mockReturnValue('photo.jpg');
 
       const ctx = createMockCtx();
       ctx.db._chains.insert.returning.mockResolvedValue([MOCK_MEDIA]);
@@ -605,7 +606,7 @@ describe('mediaRouter', () => {
     });
 
     it('calls logAudit with media.upload action', async () => {
-      vi.mocked(slugifyFilename).mockReturnValue('my-photo.jpg');
+      asMock(slugifyFilename).mockReturnValue('my-photo.jpg');
 
       const createdMedia = { ...MOCK_MEDIA, filename: 'my-photo.jpg' };
       const ctx = createMockCtx();
@@ -627,7 +628,7 @@ describe('mediaRouter', () => {
     });
 
     it('returns the created media record', async () => {
-      vi.mocked(slugifyFilename).mockReturnValue('photo.jpg');
+      asMock(slugifyFilename).mockReturnValue('photo.jpg');
 
       const ctx = createMockCtx();
       ctx.db._chains.insert.returning.mockResolvedValue([MOCK_MEDIA]);
@@ -757,7 +758,7 @@ describe('mediaRouter', () => {
       const ctx = createMockCtx();
       ctx.db._chains.select.limit.mockResolvedValue(dbItems);
 
-      vi.mocked(getStorage).mockReturnValue({
+      asMock(getStorage).mockReturnValue({
         url: vi.fn((path: string) => `/uploads/${path}`),
       } as unknown as StorageProvider);
 
@@ -791,7 +792,7 @@ describe('mediaRouter', () => {
       ctx.db._chains.select.limit.mockResolvedValue([dbItem]);
 
       const urlMock = vi.fn((path: string) => `/uploads/${path}`);
-      vi.mocked(getStorage).mockReturnValue({ url: urlMock } as unknown as StorageProvider);
+      asMock(getStorage).mockReturnValue({ url: urlMock } as unknown as StorageProvider);
 
       const caller = mediaRouter.createCaller(ctx as never);
       const result = await caller.getByIds({ ids: [MOCK_MEDIA.id] });
@@ -837,7 +838,7 @@ describe('mediaRouter', () => {
       ctx.db._chains.select.limit.mockResolvedValue([dbItem]);
 
       const urlMock = vi.fn((path: string) => `/uploads/${path}`);
-      vi.mocked(getStorage).mockReturnValue({ url: urlMock } as unknown as StorageProvider);
+      asMock(getStorage).mockReturnValue({ url: urlMock } as unknown as StorageProvider);
 
       const caller = mediaRouter.createCaller(ctx as never);
       const result = await caller.getByIds({ ids: [MOCK_MEDIA.id] });

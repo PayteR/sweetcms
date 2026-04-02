@@ -1,5 +1,8 @@
 import path from 'path';
 import fs from 'fs/promises';
+import { createLogger } from '@/engine/lib/logger';
+
+const log = createLogger('storage');
 
 export interface StorageProvider {
   upload(filepath: string, buffer: Buffer): Promise<string>;
@@ -29,7 +32,9 @@ class FilesystemStorage implements StorageProvider {
 
   async delete(filepath: string): Promise<void> {
     const fullPath = path.join(this.basePath, filepath);
-    await fs.unlink(fullPath).catch(() => {});
+    await fs.unlink(fullPath).catch((err: unknown) => {
+      log.warn('Failed to delete file', { path: filepath, error: String(err) });
+    });
   }
 
   url(filepath: string): string {

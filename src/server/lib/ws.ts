@@ -206,7 +206,7 @@ export function sendToOrg(orgId: string, type: string, payload: unknown): void {
 // Redis pub/sub for multi-instance support
 async function setupRedisPubSub(): Promise<void> {
   try {
-    const { getSubscriber } = await import('@/server/lib/redis');
+    const { getSubscriber } = await import('@/engine/lib/redis');
     const subscriber = getSubscriber();
     if (!subscriber) return;
 
@@ -231,7 +231,7 @@ async function setupRedisPubSub(): Promise<void> {
 
 async function publishToRedis(channel: string, data: string): Promise<void> {
   try {
-    const { getPublisher } = await import('@/server/lib/redis');
+    const { getPublisher } = await import('@/engine/lib/redis');
     const publisher = getPublisher();
     if (!publisher) return;
     await publisher.publish('ws:broadcast', JSON.stringify({ channel, data }));

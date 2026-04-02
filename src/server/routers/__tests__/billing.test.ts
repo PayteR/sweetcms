@@ -8,13 +8,55 @@ vi.mock('@/server/lib/stripe', () => ({
   getActiveSubscription: vi.fn(),
 }));
 
-vi.mock('@/config/plans', async () => {
-  const actual = await vi.importActual<typeof import('@/config/plans')>('@/config/plans');
+// Inline plan data inside factory so it works with vitest hoisting and Bun's test runner
+vi.mock('@/config/plans', () => {
+  const plans = [
+    {
+      id: 'free',
+      name: 'Free',
+      description: 'For personal projects and trying things out',
+      stripePriceIdMonthly: null,
+      stripePriceIdYearly: null,
+      priceMonthly: 0,
+      priceYearly: 0,
+      features: { maxMembers: 1, maxStorageMb: 100, customDomain: false, apiAccess: false, prioritySupport: false },
+    },
+    {
+      id: 'starter',
+      name: 'Starter',
+      description: 'For small teams getting started',
+      stripePriceIdMonthly: 'price_starter_monthly',
+      stripePriceIdYearly: 'price_starter_yearly',
+      priceMonthly: 1900,
+      priceYearly: 19000,
+      features: { maxMembers: 5, maxStorageMb: 1024, customDomain: false, apiAccess: true, prioritySupport: false },
+    },
+    {
+      id: 'pro',
+      name: 'Pro',
+      description: 'For growing teams that need more',
+      stripePriceIdMonthly: 'price_pro_monthly',
+      stripePriceIdYearly: 'price_pro_yearly',
+      priceMonthly: 4900,
+      priceYearly: 49000,
+      features: { maxMembers: 20, maxStorageMb: 10240, customDomain: true, apiAccess: true, prioritySupport: false },
+      popular: true,
+    },
+    {
+      id: 'enterprise',
+      name: 'Enterprise',
+      description: 'For large teams with advanced needs',
+      stripePriceIdMonthly: 'price_enterprise_monthly',
+      stripePriceIdYearly: 'price_enterprise_yearly',
+      priceMonthly: 9900,
+      priceYearly: 99000,
+      features: { maxMembers: 100, maxStorageMb: 102400, customDomain: true, apiAccess: true, prioritySupport: true },
+    },
+  ];
   return {
-    ...actual,
-    // Override getPlan to return plans with real-looking price IDs for testing
+    PLANS: plans,
     getPlan: (id: string) => {
-      const plan = actual.getPlan(id);
+      const plan = plans.find((p) => p.id === id);
       if (!plan) return undefined;
       return {
         ...plan,
@@ -22,6 +64,9 @@ vi.mock('@/config/plans', async () => {
         stripePriceIdYearly: plan.stripePriceIdYearly || `price_${id}_yearly`,
       };
     },
+    getPlanByStripePriceId: (priceId: string) =>
+      plans.find((p) => p.stripePriceIdMonthly === priceId || p.stripePriceIdYearly === priceId),
+    getFreePlan: () => plans[0],
   };
 });
 
@@ -33,7 +78,7 @@ vi.mock('@/lib/auth', () => ({
   },
 }));
 
-vi.mock('@/server/lib/redis', () => ({
+vi.mock('@/engine/lib/redis', () => ({
   getRedis: vi.fn().mockReturnValue(null),
 }));
 
@@ -41,6 +86,7 @@ vi.mock('@/server/middleware/rate-limit', () => ({
   applyRateLimit: vi.fn().mockResolvedValue(undefined),
 }));
 
+import { asMock } from '@/test-utils';
 import { billingRouter } from '../billing';
 import { getStripe, getActiveSubscription, createCheckoutSession, createPortalSession } from '@/server/lib/stripe';
 import { PLANS } from '@/config/plans';
@@ -104,7 +150,7 @@ describe('billingRouter', () => {
 
   describe('getSubscription', () => {
     it('returns free plan when no subscription exists', async () => {
-      vi.mocked(getActiveSubscription).mockResolvedValue(null as never);
+      asMock(getActiveSubscription).mockResolvedValue(null as never);
       const ctx = createMockCtx();
       const caller = billingRouter.createCaller(ctx as never);
       const result = await caller.getSubscription();
@@ -128,7 +174,7 @@ describe('billingRouter', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      vi.mocked(getActiveSubscription).mockResolvedValue(sub);
+      asMock(getActiveSubscription).mockResolvedValue(sub);
       const ctx = createMockCtx();
       const caller = billingRouter.createCaller(ctx as never);
       const result = await caller.getSubscription();
@@ -148,7 +194,7 @@ describe('billingRouter', () => {
 
   describe('createCheckoutSession', () => {
     it('throws when Stripe is not configured', async () => {
-      vi.mocked(getStripe).mockReturnValue(null);
+      asMock(getStripe).mockReturnValue(null);
       const ctx = createMockCtx();
       const caller = billingRouter.createCaller(ctx as never);
 
@@ -158,7 +204,7 @@ describe('billingRouter', () => {
     });
 
     it('throws when plan not found', async () => {
-      vi.mocked(getStripe).mockReturnValue({} as never);
+      asMock(getStripe).mockReturnValue({} as never);
       const ctx = createMockCtx();
       // Mock member lookup to return owner
       ctx.db._selectChain.limit.mockResolvedValue([{ role: 'owner' }]);
@@ -170,7 +216,7 @@ describe('billingRouter', () => {
     });
 
     it('throws when user is not org owner/admin', async () => {
-      vi.mocked(getStripe).mockReturnValue({} as never);
+      asMock(getStripe).mockReturnValue({} as never);
       const ctx = createMockCtx();
       // Member with 'member' role (not owner/admin)
       ctx.db._selectChain.limit.mockResolvedValue([{ role: 'member' }]);
@@ -182,8 +228,8 @@ describe('billingRouter', () => {
     });
 
     it('returns checkout URL on success', async () => {
-      vi.mocked(getStripe).mockReturnValue({} as never);
-      vi.mocked(createCheckoutSession).mockResolvedValue('https://checkout.stripe.com/sess_123');
+      asMock(getStripe).mockReturnValue({} as never);
+      asMock(createCheckoutSession).mockResolvedValue('https://checkout.stripe.com/sess_123');
 
       const ctx = createMockCtx();
       ctx.db._selectChain.limit.mockResolvedValue([{ role: 'owner' }]);
@@ -200,7 +246,7 @@ describe('billingRouter', () => {
 
   describe('createPortalSession', () => {
     it('throws when Stripe is not configured', async () => {
-      vi.mocked(getStripe).mockReturnValue(null);
+      asMock(getStripe).mockReturnValue(null);
       const ctx = createMockCtx();
       const caller = billingRouter.createCaller(ctx as never);
 
@@ -210,8 +256,8 @@ describe('billingRouter', () => {
     });
 
     it('returns portal URL on success', async () => {
-      vi.mocked(getStripe).mockReturnValue({} as never);
-      vi.mocked(createPortalSession).mockResolvedValue('https://billing.stripe.com/portal_123');
+      asMock(getStripe).mockReturnValue({} as never);
+      asMock(createPortalSession).mockResolvedValue('https://billing.stripe.com/portal_123');
 
       const ctx = createMockCtx();
       const caller = billingRouter.createCaller(ctx as never);

@@ -65,9 +65,8 @@ describe('sendNotification', () => {
     });
 
     // Wait for the fire-and-forget async to complete
-    await vi.waitFor(() => {
-      expect(mockInsert).toHaveBeenCalled();
-    });
+    await new Promise((r) => setTimeout(r, 50));
+    expect(mockInsert).toHaveBeenCalled();
 
     expect(mockInsertValues).toHaveBeenCalledWith({
       userId: 'user-1',
@@ -91,9 +90,8 @@ describe('sendNotification', () => {
       orgId: 'org-1',
     });
 
-    await vi.waitFor(() => {
-      expect(mockInsertValues).toHaveBeenCalled();
-    });
+    await new Promise((r) => setTimeout(r, 50));
+    expect(mockInsertValues).toHaveBeenCalled();
 
     expect(mockInsertValues).toHaveBeenCalledWith({
       userId: 'user-2',
@@ -117,12 +115,11 @@ describe('sendNotification', () => {
       body: 'Body',
     });
 
-    await vi.waitFor(() => {
-      expect(consoleSpy).toHaveBeenCalledWith(
-        'Failed to send notification:',
-        expect.any(Error)
-      );
-    });
+    await new Promise((r) => setTimeout(r, 50));
+    expect(consoleSpy).toHaveBeenCalledWith(
+      'Failed to send notification:',
+      expect.any(Error)
+    );
 
     consoleSpy.mockRestore();
   });
@@ -152,10 +149,9 @@ describe('sendOrgNotification', () => {
       body: 'Something happened',
     });
 
-    await vi.waitFor(() => {
-      // Should have called insert once per member
-      expect(mockInsert).toHaveBeenCalledTimes(3);
-    });
+    await new Promise((r) => setTimeout(r, 50));
+    // Should have called insert once per member
+    expect(mockInsert).toHaveBeenCalledTimes(3);
   });
 
   it('handles empty org membership gracefully', async () => {
@@ -190,8 +186,7 @@ describe('sendBulkNotification', () => {
       body: 'Sent to multiple users',
     });
 
-    await vi.waitFor(() => {
-      expect(mockInsert).toHaveBeenCalledTimes(2);
-    });
+    await new Promise((r) => setTimeout(r, 50));
+    expect(mockInsert).toHaveBeenCalledTimes(2);
   });
 });

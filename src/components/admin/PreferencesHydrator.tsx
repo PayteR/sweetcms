@@ -29,8 +29,8 @@ export function PreferencesHydrator() {
 
     hydrate(data, (key: string, value: unknown) => {
       // Fire-and-forget DB persist
-      utils.client.users.setPreference.mutate({ key, value }).catch(() => {
-        // Silently fail — preferences are non-critical
+      utils.client.users.setPreference.mutate({ key, value }).catch((err: unknown) => {
+        console.warn('[Preferences] Failed to persist preference', key, err);
       });
     });
 

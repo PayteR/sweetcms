@@ -12,7 +12,7 @@ vi.mock('@/lib/auth', () => ({
   },
 }));
 
-vi.mock('@/server/lib/redis', () => ({
+vi.mock('@/engine/lib/redis', () => ({
   getRedis: vi.fn().mockReturnValue(null),
 }));
 
@@ -114,6 +114,7 @@ vi.mock('@/server/db/schema', () => ({
 // Imports (after mocks)
 // ---------------------------------------------------------------------------
 
+import { asMock } from '@/test-utils';
 import { tagsRouter } from '../tags';
 import {
   buildStatusCounts,
@@ -243,7 +244,7 @@ describe('tagsRouter', () => {
   describe('counts', () => {
     it('returns status counts', async () => {
       const mockCounts = { all: 10, published: 7, draft: 2, scheduled: 0, trash: 1 };
-      vi.mocked(buildStatusCounts).mockResolvedValue(mockCounts);
+      asMock(buildStatusCounts).mockResolvedValue(mockCounts);
 
       const ctx = createMockCtx();
       const caller = tagsRouter.createCaller(ctx as never);
@@ -254,7 +255,7 @@ describe('tagsRouter', () => {
     });
 
     it('passes the cmsTerms table to buildStatusCounts', async () => {
-      vi.mocked(buildStatusCounts).mockResolvedValue({
+      asMock(buildStatusCounts).mockResolvedValue({
         all: 0,
         published: 0,
         draft: 0,
@@ -589,8 +590,8 @@ describe('tagsRouter', () => {
     });
 
     it('cleans up term relationships via the cleanup callback', async () => {
-      vi.mocked(permanentDelete).mockImplementationOnce(
-        async (_db, _cols, _id, _type, cleanupFn) => {
+      asMock(permanentDelete).mockImplementationOnce(
+        async (_db: unknown, _cols: unknown, _id: string, _type: unknown, cleanupFn: ((tx: unknown, id: string) => Promise<void>) | undefined) => {
           // Simulate the cleanup callback being invoked with a mock tx
           await cleanupFn!({} as never, _id);
         }

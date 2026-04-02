@@ -3,6 +3,9 @@ import { eq } from 'drizzle-orm';
 
 import type { DbClient } from '@/server/db';
 import { cmsWebhooks } from '@/server/db/schema/webhooks';
+import { createLogger } from '@/engine/lib/logger';
+
+const log = createLogger('webhooks');
 
 /** Dispatch webhook to all active hooks matching the event. Fire-and-forget. */
 export function dispatchWebhook(
@@ -31,12 +34,12 @@ export function dispatchWebhook(
             'X-Webhook-Signature': signature,
           },
           body,
-        }).catch(() => {
-          // Webhook delivery is fire-and-forget
+        }).catch((err: unknown) => {
+          log.warn('Webhook delivery failed', { url: hook.url, event, error: String(err) });
         });
       }
     })
-    .catch(() => {
-      // Silently ignore DB errors for webhook dispatch
+    .catch((err: unknown) => {
+      log.error('Failed to query webhooks', { event, error: String(err) });
     });
 }

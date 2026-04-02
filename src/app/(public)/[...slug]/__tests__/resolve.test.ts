@@ -1,4 +1,14 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+// Ensure LOCALES has multiple entries for buildAlternates tests.
+// Without this mock, another test file's mock of @/lib/constants (e.g., LOCALES: ['en'])
+// can leak in shared-process runners like bun test.
+vi.mock('@/lib/constants', () => ({
+  LOCALES: ['en', 'es', 'de'] as const,
+  DEFAULT_LOCALE: 'en',
+  LOCALE_LABELS: { en: 'English', es: 'Espa\u00f1ol', de: 'Deutsch' },
+}));
+
 import { resolveSlug, buildAlternates } from '../resolve';
 
 describe('resolveSlug', () => {

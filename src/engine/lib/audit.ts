@@ -1,5 +1,8 @@
 import type { DbClient } from '@/server/db';
 import { cmsAuditLog } from '@/server/db/schema/audit';
+import { createLogger } from '@/engine/lib/logger';
+
+const log = createLogger('audit');
 
 export interface LogAuditParams {
   db: DbClient;
@@ -23,7 +26,7 @@ export function logAudit(params: LogAuditParams): void {
       entityTitle: params.entityTitle ?? null,
       metadata: params.metadata ?? null,
     })
-    .catch(() => {
-      // Audit logging is non-blocking — silently ignore errors
+    .catch((err: unknown) => {
+      log.error('Failed to write audit log', { action: params.action, entityType: params.entityType, error: String(err) });
     });
 }

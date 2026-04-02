@@ -1,5 +1,5 @@
 import { Queue, Worker, type Processor } from 'bullmq';
-import { getRedis, disconnectAll } from '@/server/lib/redis';
+import { getRedis, disconnectAll } from '@/engine/lib/redis';
 
 const queues: Queue[] = [];
 const workers: Worker[] = [];

@@ -12,7 +12,7 @@ vi.mock('@/lib/auth', () => ({
   },
 }));
 
-vi.mock('@/server/lib/redis', () => ({
+vi.mock('@/engine/lib/redis', () => ({
   getRedis: vi.fn().mockReturnValue(null),
 }));
 
@@ -124,6 +124,7 @@ vi.mock('@/server/db/schema', () => ({
 // Imports (after mocks)
 // ---------------------------------------------------------------------------
 
+import { asMock } from '@/test-utils';
 import { categoriesRouter } from '../categories';
 import {
   buildStatusCounts,
@@ -246,7 +247,7 @@ describe('categoriesRouter', () => {
   describe('counts', () => {
     it('returns status counts for categories', async () => {
       const mockCounts = { all: 8, published: 5, draft: 2, scheduled: 0, trash: 1 };
-      vi.mocked(buildStatusCounts).mockResolvedValue(mockCounts);
+      asMock(buildStatusCounts).mockResolvedValue(mockCounts);
 
       const ctx = createMockCtx();
       const caller = categoriesRouter.createCaller(ctx as never);
@@ -257,7 +258,7 @@ describe('categoriesRouter', () => {
     });
 
     it('passes the correct table to buildStatusCounts', async () => {
-      vi.mocked(buildStatusCounts).mockResolvedValue({
+      asMock(buildStatusCounts).mockResolvedValue({
         all: 0,
         published: 0,
         draft: 0,
@@ -284,7 +285,7 @@ describe('categoriesRouter', () => {
       const ctx = createMockCtx();
       ctx.db._chains.select.limit.mockResolvedValue([MOCK_CATEGORY]);
 
-      vi.mocked(getTermRelationships).mockResolvedValue([
+      asMock(getTermRelationships).mockResolvedValue([
         { termId: 'aaaaaaaa-bbbb-4ccc-8ddd-111111111111', taxonomyId: 'tag' },
         { termId: 'aaaaaaaa-bbbb-4ccc-8ddd-222222222222', taxonomyId: 'tag' },
       ]);
@@ -314,7 +315,7 @@ describe('categoriesRouter', () => {
     it('returns empty tagIds when category has no tag relationships', async () => {
       const ctx = createMockCtx();
       ctx.db._chains.select.limit.mockResolvedValue([MOCK_CATEGORY]);
-      vi.mocked(getTermRelationships).mockResolvedValue([]);
+      asMock(getTermRelationships).mockResolvedValue([]);
 
       const caller = categoriesRouter.createCaller(ctx as never);
       const result = await caller.get({ id: MOCK_CATEGORY.id });
@@ -325,7 +326,7 @@ describe('categoriesRouter', () => {
     it('calls getTermRelationships with tag taxonomy discriminator', async () => {
       const ctx = createMockCtx();
       ctx.db._chains.select.limit.mockResolvedValue([MOCK_CATEGORY]);
-      vi.mocked(getTermRelationships).mockResolvedValue([]);
+      asMock(getTermRelationships).mockResolvedValue([]);
 
       const caller = categoriesRouter.createCaller(ctx as never);
       await caller.get({ id: MOCK_CATEGORY.id });
@@ -697,8 +698,8 @@ describe('categoriesRouter', () => {
 
     it('passes a cascade callback that cleans up term relationships', async () => {
       let capturedCallback: ((tx: unknown, id: string) => Promise<void>) | undefined;
-      vi.mocked(permanentDelete).mockImplementationOnce(
-        async (_db, _cols, _id, _contentTypeId, cascadeFn) => {
+      asMock(permanentDelete).mockImplementationOnce(
+        async (_db: unknown, _cols: unknown, _id: unknown, _contentTypeId: unknown, cascadeFn: unknown) => {
           capturedCallback = cascadeFn as unknown as (tx: unknown, id: string) => Promise<void>;
         }
       );

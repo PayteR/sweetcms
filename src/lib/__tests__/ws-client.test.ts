@@ -38,14 +38,10 @@ class MockWebSocket {
 }
 
 // Set up WebSocket mock before imports
-vi.stubGlobal('WebSocket', MockWebSocket);
+(globalThis as Record<string, unknown>).WebSocket = MockWebSocket;
 
-// We need to isolate module state between tests since ws-client uses module-level state
-// Import fresh each time using dynamic import
+// Import ws-client module (uses module-level state)
 async function loadWsClient() {
-  // Reset module registry to get fresh module state
-  vi.resetModules();
-  vi.stubGlobal('WebSocket', MockWebSocket);
   const mod = await import('../ws-client');
   return mod;
 }

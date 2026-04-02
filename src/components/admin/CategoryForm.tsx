@@ -18,9 +18,9 @@ import { useLinkPicker } from '@/engine/hooks/useLinkPicker';
 import { useLinkValidation } from '@/engine/hooks/useLinkValidation';
 import { useCmsAutosave } from '@/engine/hooks/useCmsAutosave';
 import { useKeyboardShortcuts } from '@/engine/hooks/useKeyboardShortcuts';
-import AutosaveIndicator from './AutosaveIndicator';
-import AutosaveRecoveryBanner from './AutosaveRecoveryBanner';
-import BrokenLinksBanner from './BrokenLinksBanner';
+import AutosaveIndicator from '@/engine/components/AutosaveIndicator';
+import AutosaveRecoveryBanner from '@/engine/components/AutosaveRecoveryBanner';
+import BrokenLinksBanner from '@/engine/components/BrokenLinksBanner';
 import CmsFormShell from '@/engine/components/CmsFormShell';
 import { CustomFieldsEditor, type CustomFieldsEditorHandle } from '@/engine/components/CustomFieldsEditor';
 import { FallbackRadio } from './FallbackRadio';
@@ -29,7 +29,7 @@ import { RevisionHistory } from '@/engine/components/RevisionHistory';
 import { RichTextEditor } from '@/engine/components/RichTextEditor';
 import { shortcodeConfig } from '@/lib/shortcodes/config';
 import { SEOFields } from '@/engine/components/SEOFields';
-import { SeoPreviewCard } from './SeoPreviewCard';
+import { SeoPreviewCard } from '@/engine/components/SeoPreviewCard';
 import { TagInput } from '@/engine/components/TagInput';
 import { TranslationBar } from './TranslationBar';
 
@@ -148,7 +148,9 @@ export function CategoryForm({ categoryId }: Props) {
   const createCat = trpc.categories.create.useMutation({
     onSuccess: (data) => {
       clearAutosave(formData);
-      customFieldsRef.current?.save(data.id).catch(() => {});
+      customFieldsRef.current?.save(data.id).catch((err: unknown) => {
+        console.error('[CategoryForm] Failed to save custom fields', err);
+      });
       toast.success(__('Category created'));
       utils.categories.list.invalidate();
       utils.categories.counts.invalidate();
@@ -160,7 +162,9 @@ export function CategoryForm({ categoryId }: Props) {
   const updateCat = trpc.categories.update.useMutation({
     onSuccess: () => {
       clearAutosave(formData);
-      if (categoryId) customFieldsRef.current?.save(categoryId).catch(() => {});
+      if (categoryId) customFieldsRef.current?.save(categoryId).catch((err: unknown) => {
+        console.error('[CategoryForm] Failed to save custom fields', err);
+      });
       toast.success(__('Category updated'));
       utils.categories.list.invalidate();
       existingCat.refetch();

@@ -3,7 +3,7 @@ import { and, count, desc, eq, inArray, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { cmsMedia } from '@/server/db/schema';
-import { getStorage } from '@/server/storage';
+import { getStorage } from '@/engine/storage';
 import { slugifyFilename } from '@/engine/lib/slug';
 import { FileType } from '@/engine/types/cms';
 import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';

@@ -19,7 +19,7 @@ SweetCMS is an open-source, AI agent-driven T3 SaaS starter with integrated CMS:
 - **Custom server:** `server.ts` — starts Next.js (Turbopack in dev) + BullMQ workers + WebSocket server (controlled by `SERVER_ROLE`)
 - **Database:** `bun run db:generate` after schema changes, `bun run db:migrate` to apply, `bun run db:studio` for DB viewer
 - **Type check:** `bun run typecheck`
-- **Tests:** `bun test` — Vitest with jsdom environment. Tests in `__tests__/` directories.
+- **Tests:** `bun test` — Vitest-compatible (bun test runner) with jsdom environment. Tests in `__tests__/` directories. **Note:** Use `asMock(fn)` from `@/test-utils` instead of `vi.mocked()` (which is a vitest-only API). Also avoid `vi.waitFor()`, `vi.stubGlobal()`, `vi.importActual()` — these are vitest-only APIs not available in bun's test runner.
 - **Environment config:** Zod-validated env vars in `src/lib/env.ts`
 
 ## Architecture Overview
@@ -34,7 +34,7 @@ SweetCMS is an open-source, AI agent-driven T3 SaaS starter with integrated CMS:
 
 `src/config/`, `src/server/`, `src/app/`, `src/components/admin/` (forms) are project-specific — customize freely.
 
-**Engine provides:** config interfaces + factory helpers, types (PostType, ContentStatus), RBAC policy, CRUD utils (admin-crud, taxonomy-helpers, cms-helpers, content-revisions, slug-redirects), lib utils (slug, markdown, audit, webhooks), hooks (form state, list state, autosave, bulk actions), shared components (CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPickerDialog, CustomFieldsEditor, RevisionHistory, BulkActionBar, CommandPalette, SlideOver), styles (tokens, admin CSS).
+**Engine provides:** config interfaces + factory helpers, types (PostType, ContentStatus), RBAC policy, CRUD utils (admin-crud, taxonomy-helpers, cms-helpers, content-revisions, slug-redirects), lib utils (slug, markdown, audit, webhooks, logger, datetime, redis, rate-limit), hooks (form state, list state, autosave, bulk actions), shared components (CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPickerDialog, CustomFieldsEditor, RevisionHistory, BulkActionBar, CommandPalette, SlideOver), styles (tokens, admin CSS).
 
 **Project provides:** content type data (`src/config/cms.ts`), taxonomy data (`src/config/taxonomies.ts`), DB schema, tRPC routers, form components (PostForm, CategoryForm, etc.), routes, public UI.
 
@@ -153,7 +153,7 @@ src/
 │   │   ├── trpc/         — tRPC route handler
 │   │   ├── upload/       — file upload endpoint
 │   │   ├── uploads/      — file serving (static uploads)
-│   │   ├── v1/           — REST API v1 (posts, categories, tags, menus)
+│   │   ├── v1/           — REST API v1 (posts, categories, tags, menus) + OpenAPI spec
 │   │   └── webhooks/     — Stripe webhook handler
 │   ├── dashboard/        — admin panel
 │   │   ├── (auth)/       — admin auth (no sidebar)
@@ -175,7 +175,7 @@ src/
 │   │   │   ├── settings/     — site settings, custom-fields, email-templates, import, job-queue, webhooks, billing
 │   │   │   └── users/        — user management
 │   │   └── assets/       — admin CSS
-│   ├── robots.ts         — robots.txt (disallows /dashboard/)
+│   ├── robots.ts         — robots.txt (disallows /dashboard/, /api/webhooks/, /api/health)
 │   └── sitemap.ts        — dynamic sitemap generation
 ├── components/
 │   ├── admin/            — PostForm, CategoryForm, PortfolioForm, TermForm, CmsListView, AdminSidebar, DashboardShell, StatCard, RecentActivity, GA4Widget, TranslationBar, OrgSwitcher, NotificationBell, shortcodes/
@@ -188,15 +188,15 @@ src/
 │   ├── hooks/            — useCmsFormState, useCmsAutosave, useListViewState, useBulkActions, etc.
 │   ├── policy/           — Role, Policy, Capability, isSuperAdmin
 │   ├── components/       — CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPickerDialog, CommandPalette, SlideOver, etc.
-│   ├── lib/              — slug, markdown, audit, webhooks, rate-limit
+│   ├── lib/              — slug, markdown, audit, webhooks, logger, datetime, redis, rate-limit
 │   ├── types/            — PostType, ContentStatus, FileType, ContentSnapshot, organization, billing, realtime, notifications
 │   └── styles/           — tokens.css (OKLCH design tokens), admin.css, admin-table.css, content.css
-├── lib/                  — auth, auth-client, constants, datetime, env, extract-internal-links, locale, locale-server, password, revision-diff, translations, trpc, useLocale, utils, ws-client
+├── lib/                  — auth, auth-client, constants, env, locale, locale-server, password, translations, trpc, useLocale, utils, ws-client
 ├── scripts/              — init.ts, promote.ts, change-password.ts, migrate-html-to-markdown.ts, schedule-jobs.ts
 ├── server/
 │   ├── db/schema/        — auth, cms, categories, portfolio, terms, term-relationships, media, menu, webhooks, audit, custom-fields, forms, organization, billing, notifications
 │   ├── jobs/             — email queue (BullMQ + nodemailer)
-│   ├── lib/              — redis, stripe, ws (WebSocket server), ws-channels, notifications
+│   ├── lib/              — stripe, ws (WebSocket server), ws-channels, notifications
 │   ├── middleware/        — rate-limit (tRPC rate limiting)
 │   ├── routers/          — analytics, audit, auth, billing, categories, cms, content-search, custom-fields, forms, import, job-queue, media, menus, notifications, options, organizations, portfolio, redirects, revisions, tags, users, webhooks
 │   ├── storage/          — pluggable storage (filesystem, S3-compatible)
@@ -242,15 +242,16 @@ Always use these instead of manual alternatives:
 - **Slugs** (`src/engine/lib/slug.ts`): `slugify()` for URL slugs, `slugifyFilename()` for uploads. Never inline slug regex
 - **Translations** (`src/lib/translations.ts`): Use `useBlankTranslations()` in admin components. All user-visible text must be wrapped in `__()` so translations can be enabled later
 - **Email** (`src/server/jobs/email`): Use `enqueueEmail()` or `enqueueTemplateEmail()` — never call `sendEmail()` directly. Templates in `emails/` with `{{var}}` placeholders
-- **Audit logging** (`src/engine/lib/audit.ts`): Use `logAudit()` — fire-and-forget, never blocks request
-- **Webhooks** (`src/engine/lib/webhooks.ts`): Use `dispatchWebhook()` — fire-and-forget webhook dispatch
+- **Logger** (`src/engine/lib/logger.ts`): Use `createLogger(prefix)` for structured logging. JSON in production, human-readable in dev. All fire-and-forget operations must log errors, never silently swallow them
+- **Audit logging** (`src/engine/lib/audit.ts`): Use `logAudit()` — fire-and-forget, logs errors via logger
+- **Webhooks** (`src/engine/lib/webhooks.ts`): Use `dispatchWebhook()` — fire-and-forget, logs delivery failures via logger
 - **API auth** (`src/server/utils/api-auth.ts`): Use `validateApiKey()`, `await checkRateLimit()`, `apiHeaders()` for REST API v1 endpoints (note: `checkRateLimit` is now async/Redis-backed)
 - **Slug redirects** (`src/engine/crud/slug-redirects.ts`): Use `resolveSlugRedirect()` to resolve old slugs to current slugs
 - **GDPR** (`src/server/utils/gdpr.ts`): Use `anonymizeUser()` for user data deletion
 - **Markdown** (`src/engine/lib/markdown.ts`): Use `htmlToMarkdown()` / `markdownToHtml()` — preserve shortcodes through placeholder strategies
-- **Relative time** (`src/lib/datetime.ts`): Use `formatRelativeTime(date, locale?)` — locale-aware via `Intl.RelativeTimeFormat`. Also: `convertUTCToLocal()`, `convertLocalToUTC()`
+- **Relative time** (`src/engine/lib/datetime.ts`): Use `formatRelativeTime(date, locale?)` — locale-aware via `Intl.RelativeTimeFormat`. Also: `convertUTCToLocal()`, `convertLocalToUTC()`
 - **Rate limiting** (`src/engine/lib/rate-limit.ts`): Use `checkRateLimit(redis, key, config)` — sliding window via Redis sorted sets. Fail-open if Redis unavailable
-- **Redis** (`src/server/lib/redis.ts`): Use `getRedis()`, `getSubscriber()`, `getPublisher()`. Lazy init, null if no REDIS_URL
+- **Redis** (`src/engine/lib/redis.ts`): Use `getRedis()`, `getSubscriber()`, `getPublisher()`. Lazy init, null if no REDIS_URL
 - **Notifications** (`src/server/lib/notifications.ts`): Use `sendNotification()`, `sendOrgNotification()`, `sendBulkNotification()` — fire-and-forget (DB + WebSocket)
 - **Stripe** (`src/server/lib/stripe.ts`): Use `getStripe()` (null if no key), `getOrCreateStripeCustomer()`, `createCheckoutSession()`, `createPortalSession()`
 - **WebSocket** (`src/server/lib/ws.ts`): Use `broadcastToChannel()`, `sendToUser()`, `sendToOrg()` — fire-and-forget real-time delivery
@@ -471,13 +472,15 @@ BullMQ queue with nodemailer transport. Templates in `emails/` directory with HT
 
 ### Redis & Rate Limiting
 
-**Redis singleton** (`src/server/lib/redis.ts`): `getRedis()`, `getSubscriber()`, `getPublisher()`. Lazy init, graceful if no `REDIS_URL`. Each returns a dedicated connection (pub/sub connections are exclusive in ioredis).
+**Redis singleton** (`src/engine/lib/redis.ts`): `getRedis()`, `getSubscriber()`, `getPublisher()`. Lazy init, graceful if no `REDIS_URL`. Each returns a dedicated connection (pub/sub connections are exclusive in ioredis).
 
 **Rate limiting** (`src/engine/lib/rate-limit.ts`): Sliding window via Redis sorted sets (ZADD/ZRANGEBYSCORE). `checkRateLimit(redis, key, config) → { allowed, remaining, retryAfterMs }`. Fail-open if Redis unavailable.
 
 **tRPC middleware** (`src/server/middleware/rate-limit.ts`): Applied to `publicProcedure` (100 req/min per IP) and `protectedProcedure` (200 req/min per user). Throws `TOO_MANY_REQUESTS`.
 
-**REST API**: `src/server/utils/api-auth.ts` — `checkRateLimit()` is now async and Redis-backed. All v1 routes use `await`.
+**REST API**: `src/server/utils/api-auth.ts` — `checkRateLimit()` is now async and Redis-backed. All v1 routes use `await`. OpenAPI spec at `GET /api/v1/openapi`.
+
+**Health check**: `GET /api/health` — checks DB (SELECT 1) and Redis (PING) connectivity. Returns `200 { status: "healthy", uptime, checks }` or `503 { status: "degraded", ... }`. Error details stripped in production. Excluded from robots.txt.
 
 ### Organizations (Multi-tenancy)
 

@@ -4,8 +4,11 @@ import { admin, customSession, organization } from 'better-auth/plugins';
 import { role } from 'better-auth/plugins/access';
 
 import { Role } from '@/engine/policy';
+import { createLogger } from '@/engine/lib/logger';
 import { db } from '@/server/db';
 import { enqueueTemplateEmail } from '@/server/jobs/email';
+
+const log = createLogger('auth');
 
 function createAuth() {
   return betterAuth({
@@ -52,7 +55,9 @@ function createAuth() {
             enqueueTemplateEmail(user.email, 'welcome', {
               name: user.name ?? 'there',
               appUrl,
-            }).catch(() => {});
+            }).catch((err: unknown) => {
+              log.warn('Failed to send welcome email', { email: user.email, error: String(err) });
+            });
           },
         },
       },

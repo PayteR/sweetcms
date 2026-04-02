@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import sharp from 'sharp';
 import { auth } from '@/lib/auth';
 import { Policy } from '@/engine/policy';
-import { getStorage } from '@/server/storage';
+import { getStorage } from '@/engine/storage';
 import { slugifyFilename } from '@/engine/lib/slug';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB

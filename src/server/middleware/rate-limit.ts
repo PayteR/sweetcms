@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { getRedis } from '@/server/lib/redis';
+import { getRedis } from '@/engine/lib/redis';
 import {
   checkRateLimit,
   type RateLimitConfig,

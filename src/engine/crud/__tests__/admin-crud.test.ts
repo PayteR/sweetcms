@@ -36,6 +36,7 @@ vi.mock('drizzle-orm', () => ({
   ),
 }));
 
+import { asMock } from '@/test-utils';
 import {
   parsePagination,
   paginatedResult,
@@ -193,7 +194,7 @@ describe('paginatedResult', () => {
 describe('softDelete', () => {
   it('executes update and succeeds when row is affected', async () => {
     const db = makeDb();
-    vi.mocked(getAffectedRows).mockReturnValue(1);
+    asMock(getAffectedRows).mockReturnValue(1);
 
     await softDelete(db as never, makeCrudCols(), 'record-1');
 
@@ -203,7 +204,7 @@ describe('softDelete', () => {
 
   it('throws NOT_FOUND when 0 rows affected', async () => {
     const db = makeDb();
-    vi.mocked(getAffectedRows).mockReturnValue(0);
+    asMock(getAffectedRows).mockReturnValue(0);
 
     await expect(softDelete(db as never, makeCrudCols(), 'missing-id')).rejects.toThrow(
       TRPCError
@@ -219,7 +220,7 @@ describe('softDelete', () => {
 describe('softRestore', () => {
   it('executes update and succeeds when row is affected', async () => {
     const db = makeDb();
-    vi.mocked(getAffectedRows).mockReturnValue(1);
+    asMock(getAffectedRows).mockReturnValue(1);
 
     await softRestore(db as never, makeCrudCols(), 'record-1');
 
@@ -229,7 +230,7 @@ describe('softRestore', () => {
 
   it('throws NOT_FOUND when 0 rows affected', async () => {
     const db = makeDb();
-    vi.mocked(getAffectedRows).mockReturnValue(0);
+    asMock(getAffectedRows).mockReturnValue(0);
 
     await expect(softRestore(db as never, makeCrudCols(), 'missing-id')).rejects.toThrow(
       TRPCError
@@ -241,13 +242,21 @@ describe('softRestore', () => {
 
   it('calls preRestoreCheck before executing update', async () => {
     const db = makeDb();
-    vi.mocked(getAffectedRows).mockReturnValue(1);
-    const preCheck = vi.fn().mockResolvedValue(undefined);
+    asMock(getAffectedRows).mockReturnValue(1);
+    const callOrder: string[] = [];
+    const preCheck = vi.fn().mockImplementation(async () => {
+      callOrder.push('preCheck');
+    });
+    db.execute = vi.fn().mockImplementation(async () => {
+      callOrder.push('execute');
+      return { rowCount: 1 };
+    });
 
     await softRestore(db as never, makeCrudCols(), 'record-1', preCheck);
 
     expect(preCheck).toHaveBeenCalledWith(db, 'record-1');
-    expect(preCheck).toHaveBeenCalledBefore(db.execute);
+    expect(callOrder[0]).toBe('preCheck');
+    expect(callOrder[1]).toBe('execute');
   });
 
   it('propagates preRestoreCheck error without executing update', async () => {
@@ -444,7 +453,7 @@ describe('ensureSlugUnique', () => {
     );
 
     // and() should receive the extra condition among its arguments
-    const andArgs = vi.mocked(and).mock.calls[0]!;
+    const andArgs = asMock(and).mock.calls[0]!;
     expect(andArgs).toContain(extraCond);
   });
 
@@ -809,7 +818,7 @@ describe('buildAdminList', () => {
     );
 
     // and() should receive the extra condition among its arguments
-    const andArgs = vi.mocked(and).mock.calls[0]!;
+    const andArgs = asMock(and).mock.calls[0]!;
     expect(andArgs).toContain(extraCond);
   });
 });
