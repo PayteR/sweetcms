@@ -1,6 +1,6 @@
 # sweetcms-engine
 
-Shared CMS engine for [SweetCMS](https://github.com/payter/sweetcms). Provides reusable infrastructure: components, hooks, CRUD utilities, RBAC policy, design tokens, and type definitions.
+Shared CMS engine for [SweetCMS](https://github.com/PayteR/sweetcms). Provides reusable infrastructure: components, hooks, CRUD utilities, RBAC policy, design tokens, and type definitions.
 
 This repo is consumed via `git subtree` in SweetCMS projects. You don't install it as a package.
 
@@ -10,10 +10,10 @@ In a SweetCMS project:
 
 ```bash
 # Add engine as subtree (first time)
-git subtree add --prefix=src/engine https://github.com/payter/sweetcms-engine.git main --squash
+git subtree add --prefix=src/engine git@github.com:PayteR/sweetcms-engine.git main --squash
 
 # Pull engine updates
-git subtree pull --prefix=src/engine https://github.com/payter/sweetcms-engine.git main --squash
+git subtree pull --prefix=src/engine git@github.com:PayteR/sweetcms-engine.git main --squash
 ```
 
 ## Structure
