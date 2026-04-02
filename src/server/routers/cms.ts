@@ -112,7 +112,7 @@ export const cmsRouter = createTRPCRouter({
         search: z.string().max(200).optional(),
         trashed: z.boolean().optional(),
         lang: z.string().max(2).optional(),
-        sortBy: z.string().optional(),
+        sortBy: z.string().max(50).optional(),
         sortDir: z.enum(['asc', 'desc']).optional(),
         page: z.number().int().min(1).optional(),
         pageSize: z.number().int().min(1).max(100).optional(),

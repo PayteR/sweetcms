@@ -11,6 +11,7 @@ export const organization = pgTable('organization', {
   logo: text('logo'),
   metadata: text('metadata'), // JSON string
   createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at'),
 });
 
 // ─── member ───────────────────────────────────────────────────────────────────
@@ -35,7 +36,7 @@ export const invitation = pgTable('invitation', {
     .notNull()
     .references(() => organization.id, { onDelete: 'cascade' }),
   email: text('email').notNull(),
-  role: text('role').notNull().default('member'),
+  role: text('role').default('member'),
   status: text('status').notNull().default('pending'),
   inviterId: text('inviter_id')
     .notNull()

@@ -8,6 +8,8 @@ import { ContentStatus, PostType } from '@/engine/types/cms';
 import { LOCALES, DEFAULT_LOCALE } from '@/lib/constants';
 import type { Locale } from '@/lib/constants';
 
+export const dynamic = 'force-dynamic';
+
 /** Build absolute URL with optional locale prefix */
 function localeUrl(path: string, locale: Locale): string {
   if (locale === DEFAULT_LOCALE) return `${siteConfig.url}${path}`;

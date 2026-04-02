@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { BarChart3, Eye, Users, ExternalLink, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -156,7 +156,7 @@ const PERIODS = [
 
 /* ── Main widget ─────────────────────────────────────────────────────────── */
 
-export default function GA4Widget() {
+export default function GA4Widget({ dragHandle }: { dragHandle?: ReactNode }) {
   const __ = useBlankTranslations();
   const [period, setPeriod] = useState<'7' | '30' | '90'>('30');
 
@@ -170,10 +170,13 @@ export default function GA4Widget() {
     return (
       <div className="card flex flex-col overflow-hidden">
         <div className="widget-header">
-          <h2 className="h2 flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-(--text-muted)" />
-            {__('Google Analytics')}
-          </h2>
+          <div className="flex items-center gap-2">
+            {dragHandle}
+            <h2 className="h2 flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-(--text-muted)" />
+              {__('Google Analytics')}
+            </h2>
+          </div>
         </div>
         <div className="flex flex-col items-center gap-3 py-8 text-center">
           <BarChart3 className="h-10 w-10 text-(--text-muted)" />
@@ -196,10 +199,13 @@ export default function GA4Widget() {
     <div className="card flex flex-col overflow-hidden">
       {/* Header */}
       <div className="widget-header">
-        <h2 className="h2 flex items-center gap-2">
-          <BarChart3 className="h-5 w-5 text-(--text-muted)" />
-          {__('Google Analytics')}
-        </h2>
+        <div className="flex items-center gap-2">
+          {dragHandle}
+          <h2 className="h2 flex items-center gap-2">
+            <BarChart3 className="h-5 w-5 text-(--text-muted)" />
+            {__('Google Analytics')}
+          </h2>
+        </div>
 
         {/* Period toggle */}
         <div className="flex gap-1 rounded-md bg-(--surface-secondary) p-0.5">

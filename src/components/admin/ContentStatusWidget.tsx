@@ -1,10 +1,11 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { PostType } from '@/engine/types/cms';
 
-export default function ContentStatusWidget() {
+export default function ContentStatusWidget({ dragHandle }: { dragHandle?: ReactNode }) {
   const __ = useBlankTranslations();
   const pageCounts = trpc.cms.counts.useQuery({ type: PostType.PAGE });
   const blogCounts = trpc.cms.counts.useQuery({ type: PostType.BLOG });
@@ -12,7 +13,10 @@ export default function ContentStatusWidget() {
   return (
     <div className="card flex flex-col overflow-hidden">
       <div className="widget-header">
-        <h2 className="h2">{__('Content Status')}</h2>
+        <div className="flex items-center gap-2">
+          {dragHandle}
+          <h2 className="h2">{__('Content Status')}</h2>
+        </div>
       </div>
       <div className="stat-grid px-4">
         {[

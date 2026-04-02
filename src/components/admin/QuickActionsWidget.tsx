@@ -1,5 +1,6 @@
 'use client';
 
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import {
   FileText, Layers, FolderOpen, Briefcase, Image, ExternalLink,
@@ -7,13 +8,16 @@ import {
 
 import { useBlankTranslations } from '@/lib/translations';
 
-export default function QuickActionsWidget() {
+export default function QuickActionsWidget({ dragHandle }: { dragHandle?: ReactNode }) {
   const __ = useBlankTranslations();
 
   return (
     <div className="card flex flex-col overflow-hidden">
       <div className="widget-header">
-        <h2 className="h2">{__('Quick Actions')}</h2>
+        <div className="flex items-center gap-2">
+          {dragHandle}
+          <h2 className="h2">{__('Quick Actions')}</h2>
+        </div>
       </div>
       <div className="quick-actions-grid p-4 grid grid-cols-2 gap-2">
         <Link href="/dashboard/cms/pages/new" className="btn btn-secondary justify-center">

@@ -31,7 +31,7 @@ export const organizationsRouter = createTRPCRouter({
 
   /** Get a single organization by ID (must be a member) */
   get: protectedProcedure
-    .input(z.object({ id: z.string().min(1) }))
+    .input(z.object({ id: z.string().min(1).max(255) }))
     .query(async ({ ctx, input }) => {
       const [memberRecord] = await ctx.db
         .select()
@@ -79,7 +79,7 @@ export const organizationsRouter = createTRPCRouter({
   /** Update organization (owner/admin only — enforced by Better Auth) */
   update: protectedProcedure
     .input(z.object({
-      id: z.string().min(1),
+      id: z.string().min(1).max(255),
       name: z.string().min(1).max(100).optional(),
       logo: z.string().max(500).optional(),
     }))
@@ -102,7 +102,7 @@ export const organizationsRouter = createTRPCRouter({
 
   /** Delete organization (owner only — enforced by Better Auth) */
   delete: protectedProcedure
-    .input(z.object({ id: z.string().min(1) }))
+    .input(z.object({ id: z.string().min(1).max(255) }))
     .mutation(async ({ ctx, input }) => {
       await auth.api.deleteOrganization({
         headers: ctx.headers,
@@ -122,7 +122,7 @@ export const organizationsRouter = createTRPCRouter({
 
   /** Set the active organization in the current session */
   setActive: protectedProcedure
-    .input(z.object({ organizationId: z.string().min(1).nullable() }))
+    .input(z.object({ organizationId: z.string().min(1).max(255).nullable() }))
     .mutation(async ({ ctx, input }) => {
       await auth.api.setActiveOrganization({
         headers: ctx.headers,
@@ -134,7 +134,7 @@ export const organizationsRouter = createTRPCRouter({
   /** Invite a member by email (owner/admin — enforced by Better Auth) */
   inviteMember: protectedProcedure
     .input(z.object({
-      organizationId: z.string().min(1),
+      organizationId: z.string().min(1).max(255),
       email: z.string().email(),
       role: z.enum(['admin', 'member']).default('member'),
     }))
@@ -162,7 +162,7 @@ export const organizationsRouter = createTRPCRouter({
 
   /** List members of an organization (must be a member) */
   listMembers: protectedProcedure
-    .input(z.object({ organizationId: z.string().min(1) }))
+    .input(z.object({ organizationId: z.string().min(1).max(255) }))
     .query(async ({ ctx, input }) => {
       // Verify caller is a member
       const [memberRecord] = await ctx.db
@@ -186,8 +186,8 @@ export const organizationsRouter = createTRPCRouter({
   /** Remove a member from an organization (owner/admin — enforced by Better Auth) */
   removeMember: protectedProcedure
     .input(z.object({
-      organizationId: z.string().min(1),
-      memberId: z.string().min(1),
+      organizationId: z.string().min(1).max(255),
+      memberId: z.string().min(1).max(255),
     }))
     .mutation(async ({ ctx, input }) => {
       // Look up the member's userId and org name before removal
@@ -237,7 +237,7 @@ export const organizationsRouter = createTRPCRouter({
 
   /** Leave an organization */
   leave: protectedProcedure
-    .input(z.object({ organizationId: z.string().min(1) }))
+    .input(z.object({ organizationId: z.string().min(1).max(255) }))
     .mutation(async ({ ctx, input }) => {
       await auth.api.removeMember({
         headers: ctx.headers,
@@ -251,7 +251,7 @@ export const organizationsRouter = createTRPCRouter({
 
   /** List pending invitations for an organization (must be a member) */
   listInvitations: protectedProcedure
-    .input(z.object({ organizationId: z.string().min(1) }))
+    .input(z.object({ organizationId: z.string().min(1).max(255) }))
     .query(async ({ ctx, input }) => {
       const [memberRecord] = await ctx.db
         .select()
@@ -278,7 +278,7 @@ export const organizationsRouter = createTRPCRouter({
 
   /** Cancel a pending invitation */
   cancelInvitation: protectedProcedure
-    .input(z.object({ invitationId: z.string().min(1) }))
+    .input(z.object({ invitationId: z.string().min(1).max(255) }))
     .mutation(async ({ ctx, input }) => {
       await auth.api.cancelInvitation({
         headers: ctx.headers,
@@ -289,7 +289,7 @@ export const organizationsRouter = createTRPCRouter({
 
   /** Accept an invitation to join an organization */
   acceptInvitation: protectedProcedure
-    .input(z.object({ invitationId: z.string().min(1) }))
+    .input(z.object({ invitationId: z.string().min(1).max(255) }))
     .mutation(async ({ ctx, input }) => {
       // Look up invitation details before accepting
       const [inv] = await ctx.db

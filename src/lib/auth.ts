@@ -5,7 +5,7 @@ import { role } from 'better-auth/plugins/access';
 
 import { Role } from '@/engine/policy';
 import { db } from '@/server/db';
-import { enqueueEmail } from '@/server/jobs/email';
+import { enqueueTemplateEmail } from '@/server/jobs/email';
 
 function createAuth() {
   return betterAuth({
@@ -37,15 +37,24 @@ function createAuth() {
       minPasswordLength: 6,
       requireEmailVerification: false,
       sendResetPassword: async ({ user, url }) => {
-        await enqueueEmail({
-          to: user.email,
-          subject: 'Reset your password — SweetCMS',
-          html: `<p>Hi ${user.name ?? 'there'},</p>
-<p>Click the link below to reset your password:</p>
-<p><a href="${url}">${url}</a></p>
-<p>If you didn't request this, you can safely ignore this email.</p>
-<p>— SweetCMS</p>`,
+        await enqueueTemplateEmail(user.email, 'password-reset', {
+          name: user.name ?? 'there',
+          resetUrl: url,
         });
+      },
+    },
+
+    databaseHooks: {
+      user: {
+        create: {
+          after: async (user) => {
+            const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+            enqueueTemplateEmail(user.email, 'welcome', {
+              name: user.name ?? 'there',
+              appUrl,
+            }).catch(() => {});
+          },
+        },
       },
     },
 

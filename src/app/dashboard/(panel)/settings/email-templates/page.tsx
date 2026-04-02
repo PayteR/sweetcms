@@ -21,6 +21,21 @@ const TEMPLATES: { name: TemplateName; label: string; variables: string[] }[] = 
     label: 'Password Reset',
     variables: ['name', 'resetUrl', 'siteName'],
   },
+  {
+    name: 'invitation',
+    label: 'Organization Invitation',
+    variables: ['organizationName', 'inviteUrl', 'appUrl'],
+  },
+  {
+    name: 'payment-failed',
+    label: 'Payment Failed',
+    variables: ['planName', 'billingUrl', 'appUrl'],
+  },
+  {
+    name: 'subscription-activated',
+    label: 'Subscription Activated',
+    variables: ['planName', 'billingUrl', 'appUrl'],
+  },
 ];
 
 export default function EmailTemplatesPage() {
