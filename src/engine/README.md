@@ -32,4 +32,4 @@ types/        — PostType, ContentStatus, FileType, ContentSnapshot
 
 ## License
 
-MIT
+MIT.
