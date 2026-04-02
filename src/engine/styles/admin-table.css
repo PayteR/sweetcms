@@ -12,7 +12,6 @@
  */
 
 @layer components {
-  [data-admin] {
   /* ===================== Table Rows ===================== */
   .tr {
     transition: background-color var(--duration-fast) ease;
@@ -474,11 +473,10 @@
     color: var(--text-secondary);
     border-color: var(--border-primary);
   }
-  } /* [data-admin] */
 }
 
 /* ===================== Dark mode overrides ===================== */
-html.dark [data-admin] {
+html.dark {
 
   /* Badges: solid colors, white text */
   .badge-published {

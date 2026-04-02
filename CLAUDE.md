@@ -248,7 +248,7 @@ Dashboard (`max-w-320`, centered) shows: 5 stat cards (pages, posts, categories,
 
 AdminSidebar: two-level layout — 48px rail (L1) + collapsible 220px panel (L2). Role badges use CSS classes: `.role-superadmin`, `.role-admin`, `.role-editor`, `.role-user`.
 
-**Admin CSS classes** (`src/engine/styles/admin.css` + `src/engine/styles/admin-table.css`). All rules scoped under `[data-admin]` via CSS nesting — admin classes only match inside the dashboard wrapper (`<div data-admin>` in `dashboard/layout.tsx`). This prevents collisions with identically-named content CSS classes (`.btn`, `.input`, etc.).
+**Admin CSS classes** (`src/engine/styles/admin.css` + `src/engine/styles/admin-table.css`). Admin CSS is only loaded in the dashboard route (`dashboard/layout.tsx`), so no scoping attribute is needed — file-level separation prevents collisions with identically-named content CSS classes (`.btn`, `.input`, etc.).
 | Class | Usage |
 |---|---|
 | `.card` | Card containers. Add padding via utility |
@@ -314,7 +314,7 @@ Tailwind CSS v4 with `@tailwindcss/typography` for `prose` classes. CSS-first co
 **File structure (base + override inheritance):**
 - `src/engine/styles/tokens.css` — `@theme` color scales + `:root` ALL defaults (hues, radius, motion, gradient, overlay, surfaces, text, borders, shadows) + `html.dark` overrides. Loaded globally via `globals.css`.
 - `src/engine/styles/tokens-public.css` — `:root` overrides for public pages. Initially empty (inherits all defaults from tokens.css). Loaded in `(public)/layout.tsx` and `(auth)/layout.tsx`.
-- `src/engine/styles/tokens-admin.css` — `:root` overrides for admin. Initially empty (inherits all defaults from tokens.css). No `[data-admin]` scoping. Loaded via `admin.css`.
+- `src/engine/styles/tokens-admin.css` — `:root` overrides for admin. Initially empty (inherits all defaults from tokens.css). Loaded via `admin.css`.
 - `src/engine/styles/admin.css` — admin panel core classes (cards, buttons, sidebar, typography); imports tokens-admin.css
 - `src/engine/styles/admin-table.css` — table, badge, form, pagination, role badge classes + admin autofill
 - `src/engine/styles/content.css` — public component classes (header, footer, buttons, forms, content) + public autofill; loaded in `(public)/layout.tsx` and `(auth)/layout.tsx`, NOT globally
