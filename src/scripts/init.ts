@@ -196,7 +196,7 @@ async function seedOptions() {
 
     const defaults: Record<string, unknown> = {
       'site.name': siteName,
-      'site.tagline': 'Agent-driven headless CMS for T3 Stack',
+      'site.tagline': 'AI Agent-driven T3 SaaS starter with integrated CMS',
       'site.description': '',
       'site.url': siteUrl,
       'site.logo': '',

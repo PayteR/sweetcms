@@ -2,6 +2,7 @@ import { createTRPCRouter } from '../trpc';
 import { analyticsRouter } from './analytics';
 import { auditRouter } from './audit';
 import { authRouter } from './auth';
+import { billingRouter } from './billing';
 import { categoriesRouter } from './categories';
 import { cmsRouter } from './cms';
 import { contentSearchRouter } from './content-search';
@@ -17,6 +18,8 @@ import { redirectsRouter } from './redirects';
 import { revisionsRouter } from './revisions';
 import { tagsRouter } from './tags';
 import { usersRouter } from './users';
+import { organizationsRouter } from './organizations';
+import { notificationsRouter } from './notifications';
 import { webhooksRouter } from './webhooks';
 
 /**
@@ -26,6 +29,7 @@ export const appRouter = createTRPCRouter({
   analytics: analyticsRouter,
   audit: auditRouter,
   auth: authRouter,
+  billing: billingRouter,
   cms: cmsRouter,
   categories: categoriesRouter,
   contentSearch: contentSearchRouter,
@@ -36,6 +40,8 @@ export const appRouter = createTRPCRouter({
   media: mediaRouter,
   menus: menusRouter,
   options: optionsRouter,
+  notifications: notificationsRouter,
+  organizations: organizationsRouter,
   portfolio: portfolioRouter,
   redirects: redirectsRouter,
   revisions: revisionsRouter,

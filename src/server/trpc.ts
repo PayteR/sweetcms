@@ -5,6 +5,7 @@ import { ZodError } from 'zod';
 import { auth } from '@/lib/auth';
 import { type AdminSection, Policy, Role, type UserRole } from '@/engine/policy';
 import { db } from '@/server/db';
+import { applyRateLimit } from '@/server/middleware/rate-limit';
 
 /**
  * Context for tRPC procedures — session + Drizzle DB + headers
@@ -18,6 +19,7 @@ export async function createTRPCContext(opts: { headers: Headers }) {
     session,
     db,
     headers: opts.headers,
+    activeOrganizationId: (session as Record<string, unknown> | null)?.activeOrganizationId as string | null ?? null,
   };
 }
 
@@ -46,11 +48,14 @@ const t = initTRPC.context<Context>().create({
 
 export const createTRPCRouter = t.router;
 
-/** Public (unauthenticated) procedure */
-export const publicProcedure = t.procedure;
+/** Rate limit middleware for public (unauthenticated) procedures */
+const publicRateLimit = t.middleware(async ({ ctx, next }) => {
+  await applyRateLimit('public', ctx);
+  return next();
+});
 
-/** Protected (authenticated) procedure */
-export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
+/** Auth middleware — verifies session, checks for ban, narrows user type */
+const authMiddleware = t.middleware(({ ctx, next }) => {
   if (!ctx.session?.user) {
     throw new TRPCError({
       code: 'UNAUTHORIZED',
@@ -84,6 +89,17 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
     },
   });
 });
+
+/** Public (unauthenticated) procedure — rate-limited */
+export const publicProcedure = t.procedure.use(publicRateLimit);
+
+/** Protected (authenticated) procedure — auth check + rate-limited */
+export const protectedProcedure = t.procedure
+  .use(authMiddleware)
+  .use(async ({ ctx, next }) => {
+    await applyRateLimit('authenticated', ctx);
+    return next();
+  });
 
 /** Staff — requires any admin panel access */
 export const staffProcedure = protectedProcedure.use(({ ctx, next }) => {

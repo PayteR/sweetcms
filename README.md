@@ -1,16 +1,18 @@
 # SweetCMS
 
-**Agent-driven headless CMS for T3 Stack (Next.js + tRPC + Drizzle)**
+**AI Agent-driven T3 SaaS starter with integrated CMS (Next.js + tRPC + Drizzle)**
 
-Open-source CMS built for AI-assisted development. The comprehensive `CLAUDE.md` is the product differentiator — it enables AI coding agents to understand and extend the entire codebase autonomously.
+Open-source SaaS starter kit built for AI-assisted development. Clone, customize, ship. The comprehensive `CLAUDE.md` enables AI coding agents to understand and extend the entire codebase autonomously.
 
 ## Tech Stack
 
 - **Next.js 16** — App Router, React 19, Turbopack
 - **tRPC** — End-to-end type-safe API with `httpBatchStreamLink`
 - **Drizzle ORM** — PostgreSQL with UUID primary keys
-- **Better Auth** — Authentication with RBAC (4 roles)
+- **Better Auth** — Authentication with RBAC (4 roles) + organizations
+- **Stripe** — Subscription billing with webhooks
 - **BullMQ** — Background job queue (email)
+- **WebSocket** — Real-time via `ws` + Redis pub/sub
 - **Tailwind CSS v4** — Design tokens, CSS-first config
 - **Tiptap** — Rich text editor with full toolbar
 - **Zod** — Input validation
@@ -18,6 +20,7 @@ Open-source CMS built for AI-assisted development. The comprehensive `CLAUDE.md`
 
 ## Features
 
+### CMS
 - Config-driven content types (pages, blog posts, portfolio, categories, tags)
 - Revision history with JSONB snapshots
 - Automatic slug redirects on rename
@@ -40,6 +43,16 @@ Open-source CMS built for AI-assisted development. The comprehensive `CLAUDE.md`
 - GDPR data export
 - Content calendar view
 - Shortcode system (callout, CTA, gallery, YouTube embed)
+
+### SaaS
+- **Multi-tenancy** — Better Auth organizations with roles (owner, admin, member), invitations, org switching
+- **Stripe billing** — Checkout sessions, customer portal, webhook sync, subscription lifecycle, plan-based feature flags
+- **Real-time WebSocket** — Channel-based pub/sub, Redis broadcast for multi-instance, auto-reconnect client
+- **In-app notifications** — DB-backed with real-time delivery, bell icon + dropdown, mark read/unread
+- **Redis rate limiting** — Sliding window (ZADD/ZRANGEBYSCORE), fail-open, per-IP and per-user limits on tRPC + REST API
+- **Customer auth** — Login, register, forgot/reset password, social login (Google, Discord)
+- **Account pages** — Profile settings, security (password change, session management), billing portal
+- **Pricing page** — Plan comparison cards, monthly/yearly toggle, FAQ accordion
 
 ## Quick Start
 
@@ -90,10 +103,11 @@ Creates tables, runs migrations, prompts for a superadmin account, and seeds exa
 bun run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) — your CMS is ready.
+Open [http://localhost:3000](http://localhost:3000) — your app is ready.
 
 - **Admin panel:** [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
 - **Blog:** [http://localhost:3000/blog](http://localhost:3000/blog)
+- **Pricing:** [http://localhost:3000/pricing](http://localhost:3000/pricing)
 
 ## Content Types
 
@@ -111,18 +125,38 @@ Add new types by extending the `CONTENT_TYPES` array — no core code changes ne
 
 ## Roles & Permissions
 
-| Role | Dashboard | Content | Media | Users | Settings |
-|------|-----------|---------|-------|-------|----------|
-| user | — | — | — | — | — |
-| editor | yes | yes | yes | — | — |
-| admin | yes | yes | yes | yes | yes |
-| superadmin | yes | yes | yes | yes | yes |
+| Role | Dashboard | Content | Media | Users | Settings | Billing | Orgs |
+|------|-----------|---------|-------|-------|----------|---------|------|
+| user | — | — | — | — | — | — | — |
+| editor | yes | yes | yes | — | — | — | — |
+| admin | yes | yes | yes | yes | yes | yes | yes |
+| superadmin | yes | yes | yes | yes | yes | yes | yes |
+
+## SaaS Configuration
+
+All SaaS features are opt-in. The CMS works standalone without any of these:
+
+```env
+# Organizations (default: true)
+NEXT_PUBLIC_ORG_ENABLED=true
+
+# Stripe billing (disabled without STRIPE_SECRET_KEY)
+STRIPE_SECRET_KEY=sk_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_...
+
+# WebSocket (default: true, requires custom server)
+WS_ENABLED=true
+
+# Customer registration (default: true)
+NEXT_PUBLIC_REGISTRATION_ENABLED=true
+```
 
 ## Scripts
 
 | Command | Description |
 |---------|-------------|
-| `bun run dev` | Start dev server (Turbopack + BullMQ) |
+| `bun run dev` | Start dev server (Turbopack + BullMQ + WebSocket) |
 | `bun run build` | Production build |
 | `bun run start` | Start production server |
 | `bun run init` | Initialize DB + seed content |
@@ -138,22 +172,24 @@ Add new types by extending the `CONTENT_TYPES` array — no core code changes ne
 ```
 src/
 ├── app/
-│   ├── (auth)/          Login, register, forgot/reset password
-│   ├── (public)/        Public content (blog, catch-all CMS route)
-│   ├── api/             Auth, tRPC, upload endpoints
-│   └── dashboard/       Admin panel (CMS, media, users, settings)
+│   ├── (public)/        Public content, pricing, customer auth, account pages
+│   ├── api/             Auth, tRPC, upload, Stripe webhooks
+│   └── dashboard/       Admin panel (CMS, media, users, settings, billing, orgs)
 ├── components/
-│   ├── admin/           PostForm, CategoryForm, RichTextEditor, etc.
+│   ├── admin/           PostForm, CategoryForm, OrgSwitcher, NotificationBell, etc.
+│   ├── public/          UserMenu, PricingToggle, SocialLoginButtons, AccountSidebar, etc.
 │   └── ui/              ConfirmDialog, Toaster
-├── config/              Content types registry, site config
-├── lib/                 Auth, policy, slug, translations, tRPC
+├── config/              Content types, taxonomies, plans, pricing, site config
+├── engine/              Reusable CMS infrastructure (git subtree)
+├── lib/                 Auth, policy, slug, translations, tRPC, WebSocket client
 ├── server/
-│   ├── db/schema/       Drizzle schema (21 tables)
+│   ├── db/schema/       Drizzle schema (auth, CMS, billing, notifications, orgs)
 │   ├── jobs/            Email queue (BullMQ + nodemailer)
-│   ├── routers/         tRPC routers (18 routers)
+│   ├── lib/             Redis, Stripe, WebSocket server, notifications
+│   ├── routers/         tRPC routers (20+ routers)
 │   ├── storage/         Pluggable storage providers (filesystem, S3)
 │   └── utils/           Admin CRUD, revisions, CMS helpers
-└── types/               PostType, ContentStatus, FileType
+└── store/               Zustand stores (toast, theme, sidebar)
 ```
 
 ## Production Deployment
@@ -162,29 +198,34 @@ src/
 
 Scale independently with the same Docker image:
 
-| Role | Next.js | tRPC | BullMQ | Use case |
-|------|---------|------|--------|----------|
-| `all` (default) | yes | yes | yes | Single instance |
-| `frontend` | yes | — | — | Pages only |
-| `api` | yes | yes | — | API only |
-| `worker` | — | — | yes | Background jobs |
+| Role | Next.js | tRPC | BullMQ | WebSocket | Use case |
+|------|---------|------|--------|-----------|----------|
+| `all` (default) | yes | yes | yes | yes | Single instance |
+| `frontend` | yes | — | — | — | Pages only |
+| `api` | yes | yes | — | yes | API + WebSocket |
+| `worker` | — | — | yes | — | Background jobs |
 
 ### Storage
 
-Set `STORAGE_BACKEND=s3` with S3-compatible credentials for production file storage. Works with AWS S3, MinIO, Cloudflare R2, and DigitalOcean Spaces. See `.env.example` for all options.
+Set `STORAGE_BACKEND=s3` with S3-compatible credentials for production file storage. Works with AWS S3, MinIO, Cloudflare R2, and DigitalOcean Spaces.
+
+### WebSocket
+
+WebSocket requires the custom server (`server.ts`). Not available in serverless deployments. Redis pub/sub enables multi-instance broadcasting.
 
 ## Agent-Driven Development
 
 SweetCMS is designed for AI coding agents. The `CLAUDE.md` file contains:
 
-- Complete architecture overview
+- Complete architecture overview (CMS + SaaS primitives)
 - All tRPC router documentation
-- Database schema details
+- Database schema details (auth, CMS, billing, notifications, organizations)
 - CSS class reference
 - Coding standards and patterns
+- Engine/project boundary rules
 - Troubleshooting guide
 
-Point your AI agent at the repo and it can understand, modify, and extend the CMS autonomously.
+Point your AI agent at the repo and it can understand, modify, and extend the platform autonomously.
 
 ## License
 

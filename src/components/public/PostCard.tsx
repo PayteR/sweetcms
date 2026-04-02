@@ -1,4 +1,7 @@
 import Link from 'next/link';
+import { localePath } from '@/lib/locale';
+import { DEFAULT_LOCALE } from '@/lib/constants';
+import type { Locale } from '@/lib/constants';
 
 interface Tag {
   name: string;
@@ -11,6 +14,7 @@ interface Props {
   metaDescription?: string | null;
   publishedAt?: Date | string | null;
   tags?: Tag[];
+  locale?: Locale;
   /** Render as a card (home page grid) vs article (blog list) */
   variant?: 'article' | 'card';
 }
@@ -21,6 +25,7 @@ export function PostCard({
   metaDescription,
   publishedAt,
   tags,
+  locale = DEFAULT_LOCALE,
   variant = 'article',
 }: Props) {
   const dateStr = publishedAt
@@ -75,7 +80,7 @@ export function PostCard({
       {tags && tags.length > 0 && (
         <div className="post-card-tags mt-2 flex flex-wrap gap-1.5">
           {tags.map((tag) => (
-            <Link key={tag.slug} href={`/tag/${tag.slug}`} className="tag">
+            <Link key={tag.slug} href={localePath(`/tag/${tag.slug}`, locale)} className="tag">
               {tag.name}
             </Link>
           ))}

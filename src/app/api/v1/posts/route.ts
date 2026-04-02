@@ -17,7 +17,7 @@ export async function GET(request: Request) {
       { status: 401, headers: apiHeaders() }
     );
   }
-  if (!checkRateLimit(request)) {
+  if (!(await checkRateLimit(request))) {
     return NextResponse.json(
       { error: 'Rate limit exceeded' },
       { status: 429, headers: apiHeaders() }

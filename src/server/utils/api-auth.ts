@@ -3,8 +3,8 @@ import { eq } from 'drizzle-orm';
 
 import { db } from '@/server/db';
 import { cmsOptions } from '@/server/db/schema';
-
-const rateMap = new Map<string, { count: number; resetAt: number }>();
+import { getRedis } from '@/server/lib/redis';
+import { checkRateLimit as redisRateLimit } from '@/engine/lib/rate-limit';
 
 /** Validate API key from x-api-key header. Returns true if valid or if no key is configured. */
 export async function validateApiKey(request: Request): Promise<boolean> {
@@ -23,20 +23,16 @@ export async function validateApiKey(request: Request): Promise<boolean> {
   return hash === (option.value as string);
 }
 
-/** Simple in-memory rate limiter: 100 req/min per IP */
-export function checkRateLimit(request: Request): boolean {
+/** Redis-backed rate limiter: 100 req/min per IP. Falls back to allowing if Redis unavailable. */
+export async function checkRateLimit(request: Request): Promise<boolean> {
   const ip =
     request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
-  const now = Date.now();
-  const entry = rateMap.get(ip);
-
-  if (!entry || now > entry.resetAt) {
-    rateMap.set(ip, { count: 1, resetAt: now + 60_000 });
-    return true;
-  }
-
-  entry.count++;
-  return entry.count <= 100;
+  const redis = getRedis();
+  const result = await redisRateLimit(redis, `api:ip:${ip}`, {
+    windowMs: 60_000,
+    maxRequests: 100,
+  });
+  return result.allowed;
 }
 
 /** Standard CORS and cache headers */

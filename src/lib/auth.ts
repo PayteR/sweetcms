@@ -1,6 +1,6 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { admin, customSession } from 'better-auth/plugins';
+import { admin, customSession, organization } from 'better-auth/plugins';
 import { role } from 'better-auth/plugins/access';
 
 import { Role } from '@/engine/policy';
@@ -73,6 +73,20 @@ function createAuth() {
           [Role.SUPERADMIN]: role({}),
         },
       }),
+      organization({
+        allowUserToCreateOrganization: true,
+        creatorRole: 'owner',
+        membershipLimit: 100,
+        sendInvitationEmail: async ({ invitation, organization: org }) => {
+          const { enqueueTemplateEmail } = await import('@/server/jobs/email');
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+          await enqueueTemplateEmail(invitation.email, 'invitation', {
+            organizationName: org.name,
+            inviteUrl: `${appUrl}/dashboard/organizations?accept=${invitation.id}`,
+            appUrl,
+          });
+        },
+      }),
       customSession(async ({ user, session }) => {
         return {
           user: {
@@ -80,7 +94,10 @@ function createAuth() {
             role: (user as Record<string, unknown>).role as string ?? Role.USER,
             banned: (user as Record<string, unknown>).banned as boolean ?? false,
           },
-          session,
+          session: {
+            ...session,
+            activeOrganizationId: (session as Record<string, unknown>).activeOrganizationId as string | null ?? null,
+          },
         };
       }),
     ],

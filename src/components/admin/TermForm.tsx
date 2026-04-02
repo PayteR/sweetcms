@@ -11,6 +11,7 @@ import { useBlankTranslations } from '@/lib/translations';
 import { useSession } from '@/lib/auth-client';
 import { ContentStatus } from '@/engine/types/cms';
 import { toast } from '@/store/toast-store';
+import { DEFAULT_LOCALE, LOCALES, LOCALE_LABELS } from '@/lib/constants';
 
 interface Props {
   tagId?: string;
@@ -27,7 +28,7 @@ export function TermForm({ tagId }: Props) {
   const [slug, setSlug] = useState('');
   const [slugManual, setSlugManual] = useState(false);
   const [status, setStatus] = useState<number>(ContentStatus.PUBLISHED);
-  const [lang, setLang] = useState('en');
+  const [lang, setLang] = useState(DEFAULT_LOCALE);
   const [order, setOrder] = useState(0);
 
   const existingTag = trpc.tags.get.useQuery(
@@ -208,7 +209,9 @@ export function TermForm({ tagId }: Props) {
                     onChange={(e) => setLang(e.target.value)}
                     className="select mt-1 w-full disabled:bg-(--surface-secondary)"
                   >
-                    <option value="en">English</option>
+                    {LOCALES.map((l) => (
+                      <option key={l} value={l}>{LOCALE_LABELS[l]}</option>
+                    ))}
                   </select>
                 </div>
               </div>

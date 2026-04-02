@@ -12,8 +12,13 @@ import { and, asc, eq, isNull } from 'drizzle-orm';
 import { DynamicNav } from '@/components/public/DynamicNav';
 import { ThemeToggle } from '@/components/public/ThemeToggle';
 import { MobileMenu } from '@/components/public/MobileMenu';
+import { LanguageSwitcher } from '@/components/public/LanguageSwitcher';
+import { UserMenu } from '@/components/public/UserMenu';
+import { getLocale } from '@/lib/locale-server';
+import { localePath } from '@/lib/locale';
+import type { Locale } from '@/lib/constants';
 
-async function getPublishedCategories() {
+async function getPublishedCategories(locale: Locale) {
   try {
     return await db
       .select({ name: cmsCategories.name, slug: cmsCategories.slug })
@@ -21,7 +26,7 @@ async function getPublishedCategories() {
       .where(
         and(
           eq(cmsCategories.status, ContentStatus.PUBLISHED),
-          eq(cmsCategories.lang, 'en'),
+          eq(cmsCategories.lang, locale),
           isNull(cmsCategories.deletedAt)
         )
       )
@@ -34,7 +39,8 @@ async function getPublishedCategories() {
 
 /** Build serialized nav items for mobile menu — tries DB menu first, falls back to categories */
 async function getMobileNavItems(
-  categories: { name: string; slug: string }[]
+  categories: { name: string; slug: string }[],
+  locale: Locale
 ) {
   try {
     const [menu] = await db
@@ -52,7 +58,10 @@ async function getMobileNavItems(
         .limit(20);
 
       if (items.length > 0) {
-        return items.map((i) => ({ label: i.label, url: i.url ?? '/' }));
+        return items.map((i) => ({
+          label: i.label,
+          url: localePath(i.url ?? '/', locale),
+        }));
       }
     }
   } catch {
@@ -61,10 +70,13 @@ async function getMobileNavItems(
 
   // Fallback: Blog + categories
   return [
-    { label: 'Blog', url: '/blog' },
-    ...categories.map((c) => ({ label: c.name, url: `/category/${c.slug}` })),
-    { label: 'Portfolio', url: '/portfolio' },
-    { label: 'Search', url: '/search' },
+    { label: 'Blog', url: localePath('/blog', locale) },
+    ...categories.map((c) => ({
+      label: c.name,
+      url: localePath(`/category/${c.slug}`, locale),
+    })),
+    { label: 'Portfolio', url: localePath('/portfolio', locale) },
+    { label: 'Search', url: localePath('/search', locale) },
   ];
 }
 
@@ -73,8 +85,9 @@ export default async function PublicLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const categories = await getPublishedCategories();
-  const mobileItems = await getMobileNavItems(categories);
+  const locale = await getLocale();
+  const categories = await getPublishedCategories(locale);
+  const mobileItems = await getMobileNavItems(categories, locale);
 
   return (
     <>
@@ -82,13 +95,13 @@ export default async function PublicLayout({
         rel="alternate"
         type="application/rss+xml"
         title={`${siteConfig.name} — Blog RSS`}
-        href="/api/feed/blog"
+        href={`/api/feed/blog?lang=${locale}`}
       />
 
       {/* ═══ Header ═══ */}
       <header className="header">
         <div className="header-inner">
-          <Link href="/" className="header-logo">
+          <Link href={localePath('/', locale)} className="header-logo">
             {siteConfig.name}
           </Link>
 
@@ -98,13 +111,13 @@ export default async function PublicLayout({
               menuSlug="main"
               fallback={
                 <>
-                  <Link href="/blog" className="header-link">
+                  <Link href={localePath('/blog', locale)} className="header-link">
                     Blog
                   </Link>
                   {categories.map((cat) => (
                     <Link
                       key={cat.slug}
-                      href={`/category/${cat.slug}`}
+                      href={localePath(`/category/${cat.slug}`, locale)}
                       className="header-link"
                     >
                       {cat.name}
@@ -117,10 +130,12 @@ export default async function PublicLayout({
 
           {/* Actions */}
           <div className="header-actions">
-            <Link href="/search" className="header-icon-btn" title="Search">
+            <Link href={localePath('/search', locale)} className="header-icon-btn" title="Search">
               <Search className="h-4 w-4" />
             </Link>
+            <LanguageSwitcher />
             <ThemeToggle />
+            <UserMenu />
             <MobileMenu items={mobileItems} />
           </div>
         </div>
@@ -149,7 +164,7 @@ export default async function PublicLayout({
                 {categories.map((cat) => (
                   <Link
                     key={cat.slug}
-                    href={`/category/${cat.slug}`}
+                    href={localePath(`/category/${cat.slug}`, locale)}
                     className="footer-link"
                   >
                     {cat.name}
@@ -161,9 +176,9 @@ export default async function PublicLayout({
             {/* Col 3: Quick Links */}
             <div>
               <h4 className="footer-col-title">Quick Links</h4>
-              <Link href="/blog" className="footer-link">Blog</Link>
-              <Link href="/portfolio" className="footer-link">Portfolio</Link>
-              <Link href="/search" className="footer-link">Search</Link>
+              <Link href={localePath('/blog', locale)} className="footer-link">Blog</Link>
+              <Link href={localePath('/portfolio', locale)} className="footer-link">Portfolio</Link>
+              <Link href={localePath('/search', locale)} className="footer-link">Search</Link>
             </div>
 
             {/* Col 4: More */}

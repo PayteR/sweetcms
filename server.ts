@@ -25,6 +25,7 @@ if (!VALID_ROLES.includes(role)) {
 
 const enableNextjs = role !== 'worker';
 const enableWorkers = role === 'all' || role === 'worker';
+const enableWs = (role === 'all' || role === 'api') && process.env.WS_ENABLED !== 'false';
 
 const dev = process.env.NODE_ENV !== 'production';
 const hostname = process.env.HOSTNAME || 'localhost';
@@ -73,9 +74,27 @@ async function main() {
     console.log('BullMQ workers ready (email + content workers started)');
   }
 
+  // Initialize WebSocket server
+  if (enableWs) {
+    const { initWebSocketServer } = await import('./src/server/lib/ws');
+    initWebSocketServer(server);
+    console.log('WebSocket server ready');
+  }
+
   // Graceful shutdown
   const shutdown = async () => {
     console.log('Shutting down gracefully...');
+
+    // Shutdown WebSocket
+    if (enableWs) {
+      try {
+        const { shutdownWebSocket } = await import('./src/server/lib/ws');
+        shutdownWebSocket();
+      } catch {
+        // Ignore
+      }
+    }
+
     const { shutdownAllWorkers } = await import('./src/server/jobs/queue');
     await shutdownAllWorkers();
     server.close(() => {
@@ -91,6 +110,7 @@ async function main() {
     const features = [
       enableNextjs ? 'Next.js' : null,
       enableWorkers ? 'BullMQ' : null,
+      enableWs ? 'WebSocket' : null,
     ]
       .filter(Boolean)
       .join(' + ');

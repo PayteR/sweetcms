@@ -15,6 +15,8 @@ import { siteConfig } from '@/config/site';
 import { navigation, isNavGroup, getActiveSectionId, flatNavItems } from '@/config/admin-nav';
 import type { NavChild } from '@/config/admin-nav';
 import { CommandPalette, useCommandPaletteShortcut } from '@/engine/components/CommandPalette';
+import { NotificationBell } from '@/components/admin/NotificationBell';
+import { OrgSwitcher } from '@/components/admin/OrgSwitcher';
 
 /* ── Helpers ── */
 
@@ -159,6 +161,7 @@ export function AdminSidebar() {
   function renderRailBottom() {
     return (
       <>
+        <NotificationBell />
         <button
           type="button"
           title={__('Search')}
@@ -266,6 +269,7 @@ export function AdminSidebar() {
         <Link href="/dashboard" className="rail-logo">
           {logoLetter}
         </Link>
+        <OrgSwitcher />
         <div className="rail-nav">
           {renderRailNav()}
         </div>
@@ -329,6 +333,7 @@ export function AdminSidebar() {
               <Link href="/dashboard" onClick={closeSidebar} className="rail-logo">
                 {logoLetter}
               </Link>
+              <OrgSwitcher />
               <div className="rail-nav">
                 {renderRailNav()}
               </div>

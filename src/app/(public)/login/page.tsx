@@ -1,26 +1,19 @@
-import Link from 'next/link';
+import { Metadata } from 'next';
+import { LoginForm } from './LoginForm';
 
-export default function CustomerLoginPage() {
+export const metadata: Metadata = {
+  title: 'Sign In',
+  description: 'Sign in to your account',
+};
+
+export default function LoginPage() {
   return (
-    <div className="flex min-h-[60vh] items-center justify-center">
-      <div className="w-full max-w-md rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 text-center shadow-sm">
-        <h1 className="text-2xl font-bold text-(--text-primary)">Customer Login</h1>
-        <p className="mt-3 text-sm text-(--text-secondary)">
-          Customer login is coming soon.
-        </p>
-        <p className="mt-2 text-sm text-(--text-muted)">
-          Looking for the admin panel?{' '}
-          <Link href="/dashboard/login" className="font-medium text-(--color-brand-600) hover:text-(--color-brand-500)">
-            Sign in here
-          </Link>
-        </p>
-        <Link
-          href="/"
-          className="mt-6 inline-block text-sm font-medium text-(--color-brand-600) hover:text-(--color-brand-500)"
-        >
-          Back to Home
-        </Link>
+    <main className="container mx-auto px-4 py-16 max-w-md">
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold">Sign In</h1>
+        <p className="text-(--text-secondary) mt-2">Welcome back! Sign in to your account.</p>
       </div>
-    </div>
+      <LoginForm />
+    </main>
   );
 }

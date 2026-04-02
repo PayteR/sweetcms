@@ -1,6 +1,25 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+  // Security headers for all routes
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          { key: 'X-Frame-Options', value: 'DENY' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'X-DNS-Prefetch-Control', value: 'on' },
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=()',
+          },
+        ],
+      },
+    ];
+  },
+
   // Allow serving uploaded files from /uploads
   async rewrites() {
     return [
@@ -11,21 +30,8 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Redirect old auth URLs to new dashboard auth paths
-  async redirects() {
-    return [
-      {
-        source: '/forgot-password',
-        destination: '/dashboard/forgot-password',
-        permanent: true,
-      },
-      {
-        source: '/reset-password',
-        destination: '/dashboard/reset-password',
-        permanent: true,
-      },
-    ];
-  },
+  // Note: /forgot-password and /reset-password are now customer-facing pages
+  // in (public)/ — no redirects needed.
 };
 
 export default nextConfig;

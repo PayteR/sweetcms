@@ -3,6 +3,8 @@ import Link from 'next/link';
 
 import { siteConfig } from '@/config/site';
 import { serverTRPC } from '@/lib/trpc/server';
+import { getLocale } from '@/lib/locale-server';
+import { localePath } from '@/lib/locale';
 
 export const metadata: Metadata = {
   title: `Portfolio | ${siteConfig.name}`,
@@ -10,9 +12,10 @@ export const metadata: Metadata = {
 };
 
 export default async function PortfolioListPage() {
+  const locale = await getLocale();
   const api = await serverTRPC();
   const { results: items } = await api.portfolio.listPublished({
-    lang: 'en',
+    lang: locale,
     pageSize: 100,
   });
 
@@ -30,7 +33,7 @@ export default async function PortfolioListPage() {
           {items.map((item) => (
             <Link
               key={item.id}
-              href={`/portfolio/${item.slug}`}
+              href={localePath(`/portfolio/${item.slug}`, locale)}
               className="group overflow-hidden rounded-lg border border-(--border-primary) bg-(--surface-primary) transition-shadow hover:shadow-md"
             >
               {item.featuredImage && (

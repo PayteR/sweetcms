@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack: Next.js 16 (App Router) + tRPC + Drizzle ORM + Better Auth. PostgreSQL with UUID primary keys. Designed for AI-assisted development — this CLAUDE.md is the product differentiator.
+SweetCMS is an open-source, AI agent-driven T3 SaaS starter with integrated CMS: Next.js 16 (App Router) + tRPC + Drizzle ORM + Better Auth. PostgreSQL with UUID primary keys. Designed for AI-assisted development — this CLAUDE.md is the product differentiator. Clone for each new SaaS/social/AI app project. CMS stays global (marketing site); SaaS primitives (orgs, billing, notifications, real-time) scope to organizations.
 
-**Tagline:** Agent-driven headless CMS for T3 Stack (Next.js + tRPC + Drizzle)
+**Tagline:** AI Agent-driven T3 SaaS starter with integrated CMS (Next.js + tRPC + Drizzle)
 
 ## Development
 
@@ -15,8 +15,8 @@ SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack: Nex
 - **First-time setup:** `bun run init` — creates DB, runs migrations, creates superadmin, seeds defaults (3 pages, 4 blog posts, 3 categories, 4 tags)
 - **Promote user:** `bun run promote <email>` — promote user to superadmin
 - **Change password:** `bun run change-password <email>` — change a user's password
-- **Entry point:** `src/app/` (Next.js App Router, no locale routing yet)
-- **Custom server:** `server.ts` — starts Next.js (Turbopack in dev) + BullMQ email worker (controlled by `SERVER_ROLE`)
+- **Entry point:** `src/app/` (Next.js App Router with locale-prefix routing)
+- **Custom server:** `server.ts` — starts Next.js (Turbopack in dev) + BullMQ workers + WebSocket server (controlled by `SERVER_ROLE`)
 - **Database:** `bun run db:generate` after schema changes, `bun run db:migrate` to apply, `bun run db:studio` for DB viewer
 - **Type check:** `bun run typecheck`
 - **Tests:** `bun test` — Vitest with jsdom environment. Tests in `__tests__/` directories.
@@ -50,7 +50,7 @@ SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack: Nex
 
 **Procedure types:** `publicProcedure`, `protectedProcedure`, `staffProcedure`, `sectionProcedure(section)`, `superadminProcedure`.
 
-**Routers (`src/server/routers/_app.ts`):** `analytics`, `audit`, `auth`, `categories`, `cms`, `contentSearch`, `customFields`, `forms`, `import`, `jobQueue`, `media`, `menus`, `options`, `portfolio`, `redirects`, `revisions`, `tags`, `users`, `webhooks`.
+**Routers (`src/server/routers/_app.ts`):** `analytics`, `audit`, `auth`, `billing`, `categories`, `cms`, `contentSearch`, `customFields`, `forms`, `import`, `jobQueue`, `media`, `menus`, `notifications`, `options`, `organizations`, `portfolio`, `redirects`, `revisions`, `tags`, `users`, `webhooks`.
 
 ### Database
 
@@ -76,6 +76,12 @@ PostgreSQL only. All CMS tables prefixed `cms_`. UUID primary keys via `gen_rand
 - `cms_custom_field_values` — custom field data (polymorphic: fieldDefinitionId, contentType, contentId, value JSONB)
 - `cms_forms` — form builder definitions (name, slug, fields JSONB, recipientEmail, honeypot)
 - `cms_form_submissions` — form submission data (formId, data JSONB, ip, userAgent)
+- `organization` — Better Auth organizations (name, slug, logo, metadata). Text PKs.
+- `member` — org membership (organizationId, userId, role). Text PKs.
+- `invitation` — org invitations (organizationId, email, role, status, inviterId, expiresAt)
+- `saas_subscriptions` — Stripe subscriptions per org (stripeCustomerId, stripeSubscriptionId, planId, status, period dates, cancelAtPeriodEnd)
+- `saas_subscription_events` — Stripe webhook idempotency log (stripeEventId UNIQUE, type, data JSONB)
+- `saas_notifications` — in-app notifications (userId, orgId, type, category, title, body, actionUrl, read, readAt, expiresAt)
 
 ### Content Type Registry
 
@@ -128,11 +134,15 @@ WordPress-style universal taxonomy with config-driven declarations.
 ```
 src/
 ├── app/
-│   ├── (public)/         — public-facing content
+│   ├── (public)/         — public-facing content + customer auth
+│   │   ├── account/      — customer account pages (overview, settings, security, billing)
 │   │   ├── blog/         — blog list page
-│   │   ├── login/        — customer login placeholder
+│   │   ├── forgot-password/ — customer password reset request
+│   │   ├── login/        — customer login (email/password + social)
 │   │   ├── portfolio/    — portfolio list page
-│   │   ├── register/     — customer registration placeholder
+│   │   ├── pricing/      — public pricing page (plan cards, FAQ)
+│   │   ├── register/     — customer registration (gated by NEXT_PUBLIC_REGISTRATION_ENABLED)
+│   │   ├── reset-password/ — customer password reset (token-based)
 │   │   ├── search/       — content search page
 │   │   └── [...slug]/    — catch-all CMS route (pages, posts, categories, tags, portfolio)
 │   ├── api/
@@ -143,7 +153,8 @@ src/
 │   │   ├── trpc/         — tRPC route handler
 │   │   ├── upload/       — file upload endpoint
 │   │   ├── uploads/      — file serving (static uploads)
-│   │   └── v1/           — REST API v1 (posts, categories, tags, menus)
+│   │   ├── v1/           — REST API v1 (posts, categories, tags, menus)
+│   │   └── webhooks/     — Stripe webhook handler
 │   ├── dashboard/        — admin panel
 │   │   ├── (auth)/       — admin auth (no sidebar)
 │   │   │   ├── login/
@@ -159,31 +170,35 @@ src/
 │   │   │   │   └── redirects/ — slug redirect management
 │   │   │   ├── forms/        — form builder & submissions
 │   │   │   ├── media/        — media library
-│   │   │   ├── settings/     — site settings, custom-fields, email-templates, import, job-queue, webhooks
+│   │   │   ├── notifications/ — notification list
+│   │   │   ├── organizations/ — org management (members, invitations)
+│   │   │   ├── settings/     — site settings, custom-fields, email-templates, import, job-queue, webhooks, billing
 │   │   │   └── users/        — user management
 │   │   └── assets/       — admin CSS
 │   ├── robots.ts         — robots.txt (disallows /dashboard/)
 │   └── sitemap.ts        — dynamic sitemap generation
 ├── components/
-│   ├── admin/            — PostForm, CategoryForm, PortfolioForm, TermForm, CmsListView, AdminSidebar, DashboardShell, StatCard, RecentActivity, GA4Widget, TranslationBar, shortcodes/
-│   ├── public/           — ContactForm, DynamicNav, PostCard, ShortcodeRenderer, TagCloud, shortcodes/
+│   ├── admin/            — PostForm, CategoryForm, PortfolioForm, TermForm, CmsListView, AdminSidebar, DashboardShell, StatCard, RecentActivity, GA4Widget, TranslationBar, OrgSwitcher, NotificationBell, shortcodes/
+│   ├── public/           — ContactForm, DynamicNav, LanguageSwitcher, LocaleLink, PostCard, ShortcodeRenderer, TagCloud, UserMenu, PricingToggle, FaqAccordion, SocialLoginButtons, AccountSidebar, shortcodes/
 │   └── ui/               — ConfirmDialog, Toaster
-├── config/               — cms.ts (content types), taxonomies.ts (taxonomy declarations), site.ts (site config)
+├── config/               — cms.ts (content types), taxonomies.ts (taxonomy declarations), plans.ts (billing plans), pricing.ts (pricing display), site.ts (site config)
 ├── engine/
 │   ├── config/           — ContentTypeDeclaration, TaxonomyDeclaration interfaces + factory helpers
 │   ├── crud/             — admin-crud, taxonomy-helpers, cms-helpers, content-revisions, slug-redirects
 │   ├── hooks/            — useCmsFormState, useCmsAutosave, useListViewState, useBulkActions, etc.
 │   ├── policy/           — Role, Policy, Capability, isSuperAdmin
 │   ├── components/       — CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPickerDialog, CommandPalette, SlideOver, etc.
-│   ├── lib/              — slug, markdown, audit, webhooks
-│   ├── types/            — PostType, ContentStatus, FileType, ContentSnapshot
+│   ├── lib/              — slug, markdown, audit, webhooks, rate-limit
+│   ├── types/            — PostType, ContentStatus, FileType, ContentSnapshot, organization, billing, realtime, notifications
 │   └── styles/           — tokens.css (OKLCH design tokens), admin.css, admin-table.css, content.css
-├── lib/                  — auth, auth-client, constants, datetime, env, extract-internal-links, password, revision-diff, translations, trpc, utils
+├── lib/                  — auth, auth-client, constants, datetime, env, extract-internal-links, locale, locale-server, password, revision-diff, translations, trpc, useLocale, utils, ws-client
 ├── scripts/              — init.ts, promote.ts, change-password.ts, migrate-html-to-markdown.ts, schedule-jobs.ts
 ├── server/
-│   ├── db/schema/        — auth, cms, categories, portfolio, terms, term-relationships, media, menu, webhooks, audit, custom-fields, forms
+│   ├── db/schema/        — auth, cms, categories, portfolio, terms, term-relationships, media, menu, webhooks, audit, custom-fields, forms, organization, billing, notifications
 │   ├── jobs/             — email queue (BullMQ + nodemailer)
-│   ├── routers/          — analytics, audit, auth, categories, cms, content-search, custom-fields, forms, import, job-queue, media, menus, options, portfolio, redirects, revisions, tags, users, webhooks
+│   ├── lib/              — redis, stripe, ws (WebSocket server), ws-channels, notifications
+│   ├── middleware/        — rate-limit (tRPC rate limiting)
+│   ├── routers/          — analytics, audit, auth, billing, categories, cms, content-search, custom-fields, forms, import, job-queue, media, menus, notifications, options, organizations, portfolio, redirects, revisions, tags, users, webhooks
 │   ├── storage/          — pluggable storage (filesystem, S3-compatible)
 │   └── utils/            — api-auth, ga4, gdpr, page-seo, seo-routes
 ├── store/                — toast-store, theme-store, sidebar-store (Zustand)
@@ -199,7 +214,7 @@ src/
 - **Never** use hardcoded role strings like `role === 'admin'` — always use `Role.*` consts or `Policy.for(role).can(...)`
 - **Invalid roles:** `Policy.for()` normalizes unknown/empty/null to `Role.USER` (fail-closed)
 
-**Admin sections:** `dashboard`, `content`, `media`, `users`, `settings`
+**Admin sections:** `dashboard`, `content`, `media`, `users`, `settings`, `billing`, `organizations`
 
 **Section capabilities by role:**
 | Capability | editor | admin | superadmin |
@@ -209,6 +224,8 @@ src/
 | section.media | yes | yes | yes |
 | section.users | — | yes | yes |
 | section.settings | — | yes | yes |
+| section.billing | — | yes | yes |
+| section.organizations | — | yes | yes |
 | privilege.manage_roles | — | yes | yes |
 
 ### Shared Utilities — Key Rules
@@ -227,11 +244,16 @@ Always use these instead of manual alternatives:
 - **Email** (`src/server/jobs/email`): Use `enqueueEmail()` or `enqueueTemplateEmail()` — never call `sendEmail()` directly. Templates in `emails/` with `{{var}}` placeholders
 - **Audit logging** (`src/engine/lib/audit.ts`): Use `logAudit()` — fire-and-forget, never blocks request
 - **Webhooks** (`src/engine/lib/webhooks.ts`): Use `dispatchWebhook()` — fire-and-forget webhook dispatch
-- **API auth** (`src/server/utils/api-auth.ts`): Use `validateApiKey()`, `checkRateLimit()`, `apiHeaders()` for REST API v1 endpoints
+- **API auth** (`src/server/utils/api-auth.ts`): Use `validateApiKey()`, `await checkRateLimit()`, `apiHeaders()` for REST API v1 endpoints (note: `checkRateLimit` is now async/Redis-backed)
 - **Slug redirects** (`src/engine/crud/slug-redirects.ts`): Use `resolveSlugRedirect()` to resolve old slugs to current slugs
 - **GDPR** (`src/server/utils/gdpr.ts`): Use `anonymizeUser()` for user data deletion
 - **Markdown** (`src/engine/lib/markdown.ts`): Use `htmlToMarkdown()` / `markdownToHtml()` — preserve shortcodes through placeholder strategies
 - **Relative time** (`src/lib/datetime.ts`): Use `formatRelativeTime(date, locale?)` — locale-aware via `Intl.RelativeTimeFormat`. Also: `convertUTCToLocal()`, `convertLocalToUTC()`
+- **Rate limiting** (`src/engine/lib/rate-limit.ts`): Use `checkRateLimit(redis, key, config)` — sliding window via Redis sorted sets. Fail-open if Redis unavailable
+- **Redis** (`src/server/lib/redis.ts`): Use `getRedis()`, `getSubscriber()`, `getPublisher()`. Lazy init, null if no REDIS_URL
+- **Notifications** (`src/server/lib/notifications.ts`): Use `sendNotification()`, `sendOrgNotification()`, `sendBulkNotification()` — fire-and-forget (DB + WebSocket)
+- **Stripe** (`src/server/lib/stripe.ts`): Use `getStripe()` (null if no key), `getOrCreateStripeCustomer()`, `createCheckoutSession()`, `createPortalSession()`
+- **WebSocket** (`src/server/lib/ws.ts`): Use `broadcastToChannel()`, `sendToUser()`, `sendToOrg()` — fire-and-forget real-time delivery
 
 ### Rich Text Editor
 
@@ -335,7 +357,15 @@ Use `cn()` from `@/lib/utils` for conditional classes — never template literal
 
 ### Catch-All CMS Route (`[...slug]`)
 
-`src/app/(public)/[...slug]/page.tsx` — handles ALL CMS content.
+`src/app/(public)/[...slug]/` — handles ALL CMS content. Split into focused modules:
+
+- `page.tsx` — thin orchestrator: resolves slug, delegates to renderers, generates metadata
+- `resolve.ts` — pure routing helpers: `resolveSlug()`, `buildAlternates()`
+- `queries.ts` — shared DB queries: `getAncestors()`, translation sibling lookups
+- `renderers/PostDetail.tsx` — page + blog post rendering (parallel: tags, related, ancestors)
+- `renderers/TagDetail.tsx` — tag detail + paginated posts
+- `renderers/PortfolioDetail.tsx` — portfolio item detail
+- `renderers/CategoryDetail.tsx` — category detail + posts in category
 
 URL patterns:
 - `/privacy-policy` → page
@@ -356,18 +386,69 @@ Many-to-many via `cms_term_relationships` (polymorphic). CMS router `create`/`up
 
 PostForm includes: category checkbox selector + tag autocomplete input (`TagInput`) in sidebar. Tags support create-on-enter via `tags.getOrCreate` mutation.
 
-### Auth Pages (Admin)
+### Auth Pages
 
-Admin auth lives under `/dashboard/` (no sidebar, centered card layout):
+**Admin auth** lives under `/dashboard/` (no sidebar, centered card layout):
 
 - `/dashboard/login` — email/password sign in with "Forgot password?" link
 - `/dashboard/register` — sign up (gated by `NEXT_PUBLIC_ADMIN_REGISTRATION_ENABLED`, default: `false`)
 - `/dashboard/forgot-password` — request password reset (server action → `auth.api.requestPasswordReset`)
 - `/dashboard/reset-password?token=...` — set new password via `authClient.resetPassword`
 
-Customer-facing `/login` and `/register` are placeholder pages. Old `/forgot-password` and `/reset-password` permanently redirect to dashboard equivalents.
+**Customer auth** lives under `(public)/` (public layout):
 
-Proxy (`src/proxy.ts`) allows dashboard auth paths without session cookie; all other `/dashboard/*` paths redirect to `/dashboard/login`.
+- `/login` — email/password + social login (Google, Discord). Redirects to `/account` on success.
+- `/register` — email/password + social. Gated by `NEXT_PUBLIC_REGISTRATION_ENABLED` (default: `true`). Terms checkbox.
+- `/forgot-password` — customer password reset request (server action → `auth.api.forgetPassword`)
+- `/reset-password?token=...` — set new password via `authClient.resetPassword`
+
+**Account pages** (`/account/*`) — auth-guarded layout with sidebar:
+- `/account` — overview (avatar, name, email, quick links)
+- `/account/settings` — profile (name), GDPR (download data, delete account)
+- `/account/security` — change password, active sessions, revoke sessions
+- `/account/billing` — current plan, Stripe portal, upgrade
+
+**Components:** `SocialLoginButtons` (Google/Discord, conditional on env vars), `UserMenu` (header avatar dropdown or "Sign In" link), `AccountSidebar` (client nav with active state).
+
+Proxy (`src/proxy.ts`) allows dashboard auth paths without session cookie; all other `/dashboard/*` paths redirect to `/dashboard/login`. `/account` paths require session cookie (redirect to `/login`).
+
+### i18n / Locale Routing
+
+**Approach:** Proxy-rewrite with locale prefix — no `[locale]` route segment. Default locale (`en`) has no prefix; non-default locales use prefix (`/de/blog/post`). Dashboard is unaffected.
+
+```
+/blog/my-post          → English (no rewrite, x-locale: en)
+/de/blog/my-post       → proxy rewrites to /blog/my-post, x-locale: de
+/es/category/tech      → proxy rewrites to /category/tech, x-locale: es
+```
+
+**Config:** `src/lib/constants.ts` — `LOCALES`, `DEFAULT_LOCALE`, `LOCALE_LABELS`. Single source of truth.
+
+**Proxy:** `src/proxy.ts` — detects locale prefix in first path segment, rewrites URL (strips prefix), sets `x-locale` header. Matcher excludes `api`, `_next`, `uploads`, `favicon.ico`, `sitemap.xml`, `robots.txt`.
+
+**Helpers:**
+- `localePath(path, locale)` (`src/lib/locale.ts`) — prepends locale prefix for non-default locales. Pure function, shared by server + client code.
+- `getLocale()` (`src/lib/locale-server.ts`) — server-side, reads `x-locale` header via `headers()`. Use in server components + `generateMetadata`.
+- `useLocale()` (`src/lib/useLocale.ts`) — client hook, detects locale from `usePathname()` first segment.
+
+**Components:**
+- `LocaleLink` (`src/components/public/LocaleLink.tsx`) — client `<Link>` wrapper using `useLocale()` + `localePath()`.
+- `LanguageSwitcher` (`src/components/public/LanguageSwitcher.tsx`) — header dropdown, only renders when `LOCALES.length > 1`.
+
+**Key rules:**
+- All public `<Link>` hrefs must use `localePath()` (server) or `<LocaleLink>` (client)
+- All public queries must pass `lang: locale` (from `getLocale()` or `useLocale()`)
+- `<html lang>` is dynamic — reads `x-locale` header in root layout
+- hreflang alternates in `generateMetadata` use `translationGroup` DB column for actual sibling lookup
+- Sitemap generates per-locale entries with `alternates.languages`
+- RSS feeds accept `?lang=` query param
+
+**Tradeoff:** The `x-locale` header via `headers()` makes all public pages dynamic (no ISR/SSG). Acceptable for a CMS where content is DB-driven, but worth noting. To restore static generation for single-locale deployments, set `LOCALES` to a single entry — the proxy will pass through without rewriting.
+
+**To add a new locale:**
+1. Add to `LOCALES` array and `LOCALE_LABELS` in `src/lib/constants.ts`
+2. Add DeepL mapping in `src/server/translation/deepl-languages.ts` (if auto-translation desired)
+3. No other code changes needed — proxy, helpers, and components read from `LOCALES` dynamically
 
 ### Email System
 
@@ -381,12 +462,88 @@ BullMQ queue with nodemailer transport. Templates in `emails/` directory with HT
 
 ### SERVER_ROLE (Production Scaling)
 
-| Role | Next.js | tRPC | BullMQ | Use case |
-|---|---|---|---|---|
-| `all` (default) | yes | yes | yes | Development, single-instance |
-| `frontend` | yes | — | — | Pages only |
-| `api` | yes | yes | — | tRPC API only |
-| `worker` | — | — | yes | Background jobs only |
+| Role | Next.js | tRPC | BullMQ | WebSocket | Use case |
+|---|---|---|---|---|---|
+| `all` (default) | yes | yes | yes | yes | Development, single-instance |
+| `frontend` | yes | — | — | — | Pages only |
+| `api` | yes | yes | — | yes | tRPC API + WebSocket |
+| `worker` | — | — | yes | — | Background jobs only |
+
+### Redis & Rate Limiting
+
+**Redis singleton** (`src/server/lib/redis.ts`): `getRedis()`, `getSubscriber()`, `getPublisher()`. Lazy init, graceful if no `REDIS_URL`. Each returns a dedicated connection (pub/sub connections are exclusive in ioredis).
+
+**Rate limiting** (`src/engine/lib/rate-limit.ts`): Sliding window via Redis sorted sets (ZADD/ZRANGEBYSCORE). `checkRateLimit(redis, key, config) → { allowed, remaining, retryAfterMs }`. Fail-open if Redis unavailable.
+
+**tRPC middleware** (`src/server/middleware/rate-limit.ts`): Applied to `publicProcedure` (100 req/min per IP) and `protectedProcedure` (200 req/min per user). Throws `TOO_MANY_REQUESTS`.
+
+**REST API**: `src/server/utils/api-auth.ts` — `checkRateLimit()` is now async and Redis-backed. All v1 routes use `await`.
+
+### Organizations (Multi-tenancy)
+
+Better Auth `organization()` plugin. Tables: `organization`, `member`, `invitation` (text PKs, Better Auth convention). Session includes `activeOrganizationId`.
+
+**Router:** `src/server/routers/organizations.ts` — `protectedProcedure`: list, get, create, update, delete, setActive, inviteMember, listMembers, removeMember, leave, listInvitations, cancelInvitation, acceptInvitation.
+
+**Components:** `OrgSwitcher` (admin rail dropdown), org management page at `/dashboard/organizations`.
+
+**Auth config:** `src/lib/auth.ts` — `organization()` plugin with `allowUserToCreateOrganization: true`, `creatorRole: 'owner'`, `membershipLimit: 100`. Invitation emails via `enqueueTemplateEmail`.
+
+**Client:** `src/lib/auth-client.ts` — `organizationClient()` plugin.
+
+**Context:** `ctx.activeOrganizationId` available in all tRPC procedures.
+
+### Stripe Billing
+
+All guarded by `STRIPE_SECRET_KEY` — disabled if not configured. Organization-scoped (subscriptions belong to orgs, not users).
+
+**Config:** `src/config/plans.ts` — plan definitions (free/starter/pro/enterprise). `getPlan(id)`, `getPlanByStripePriceId()`. Feature flags + limits per plan. `src/config/pricing.ts` — display config for public pricing page.
+
+**Schema:** `src/server/db/schema/billing.ts` — `saas_subscriptions` (orgId→Stripe mapping, plan, status, period), `saas_subscription_events` (idempotency log).
+
+**Stripe lib:** `src/server/lib/stripe.ts` — `getStripe()` (lazy, null if no key), `requireStripe()`, `getOrCreateStripeCustomer()`, `createCheckoutSession()`, `createPortalSession()`, `getActiveSubscription()`.
+
+**Router:** `src/server/routers/billing.ts` — `getPlans`, `getSubscription`, `createCheckoutSession`, `createPortalSession`. Org owner/admin required for mutations.
+
+**Webhook:** `src/app/api/webhooks/stripe/route.ts` — signature verification, idempotency via event log. Handles: `checkout.session.completed`, `customer.subscription.created/updated/deleted`, `invoice.payment_failed`.
+
+**Pages:** `/pricing` (public), `/dashboard/settings/billing` (admin).
+
+### WebSocket / Real-time
+
+`ws` package, attached to HTTP server via upgrade event. Only on `/ws` path. Auth via session cookie on upgrade.
+
+**Server:** `src/server/lib/ws.ts` — `initWebSocketServer(server)`, `broadcastToChannel()`, `sendToUser()`, `sendToOrg()`, `shutdownWebSocket()`. Heartbeat 30s ping/pong. Redis pub/sub for multi-instance via `getSubscriber()`/`getPublisher()`.
+
+**Channels** (`src/server/lib/ws-channels.ts`): `user:<id>` (own only), `org:<orgId>` (authenticated), `content:<id>` (public), `admin` (authenticated).
+
+**Client:** `src/lib/ws-client.ts` — `useWebSocket()` hook (connect, state, send), `useChannel(channel)` hook (subscribe, messages). Auto-reconnect with exponential backoff.
+
+**Server.ts integration:** Enabled when `SERVER_ROLE` is `all` or `api` and `WS_ENABLED !== 'false'`.
+
+### In-app Notifications
+
+DB-backed notifications with real-time delivery via WebSocket.
+
+**Schema:** `src/server/db/schema/notifications.ts` — `saas_notifications` (userId, orgId, type, category, title, body, actionUrl, read, readAt, expiresAt).
+
+**Service:** `src/server/lib/notifications.ts` — `sendNotification()` (DB insert + WS broadcast, fire-and-forget), `sendOrgNotification()`, `sendBulkNotification()`.
+
+**Router:** `src/server/routers/notifications.ts` — `protectedProcedure` (own only): list (paginated), unreadCount, markRead, markAllRead, delete.
+
+**Components:** `NotificationBell` (admin header, polls every 30s, dropdown with mark-read), notifications page at `/dashboard/notifications`.
+
+### Customer Auth & Account Pages
+
+**Login/Register:** `/login`, `/register` — email/password + social (Google, Discord). Gated by `NEXT_PUBLIC_REGISTRATION_ENABLED`.
+
+**Password reset:** `/forgot-password` (server action → Better Auth), `/reset-password?token=...` (client-side via authClient).
+
+**User menu:** `UserMenu` component in public header — avatar dropdown with account links + sign out.
+
+**Account pages** (`/account/*`): Auth-guarded layout with sidebar. Overview, Settings (profile, GDPR), Security (change password, active sessions, revoke), Billing (current plan, Stripe portal).
+
+**Auth router extensions:** `src/server/routers/auth.ts` — `updateProfile`, `changePassword`, `deleteAccount`, `activeSessions`, `revokeSession`, `revokeAllSessions`.
 
 ## Coding Standards
 

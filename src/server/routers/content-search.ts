@@ -23,11 +23,12 @@ export const contentSearchRouter = createTRPCRouter({
     .input(
       z.object({
         query: z.string().min(1).max(200),
+        lang: z.string().max(5).optional(),
         limit: z.number().int().min(1).max(50).default(20),
       })
     )
     .query(async ({ ctx, input }) => {
-      const { query, limit } = input;
+      const { query, limit, lang } = input;
       const pattern = `%${query}%`;
 
       type SearchResult = {
@@ -52,6 +53,7 @@ export const contentSearchRouter = createTRPCRouter({
           and(
             eq(cmsPosts.status, ContentStatus.PUBLISHED),
             isNull(cmsPosts.deletedAt),
+            ...(lang ? [eq(cmsPosts.lang, lang)] : []),
             or(
               ilike(cmsPosts.title, pattern),
               ilike(cmsPosts.slug, pattern)
@@ -87,6 +89,7 @@ export const contentSearchRouter = createTRPCRouter({
           and(
             eq(cmsCategories.status, ContentStatus.PUBLISHED),
             isNull(cmsCategories.deletedAt),
+            ...(lang ? [eq(cmsCategories.lang, lang)] : []),
             or(
               ilike(cmsCategories.name, pattern),
               ilike(cmsCategories.slug, pattern)
@@ -117,6 +120,7 @@ export const contentSearchRouter = createTRPCRouter({
             eq(cmsTerms.taxonomyId, 'tag'),
             eq(cmsTerms.status, ContentStatus.PUBLISHED),
             isNull(cmsTerms.deletedAt),
+            ...(lang ? [eq(cmsTerms.lang, lang)] : []),
             or(
               ilike(cmsTerms.name, pattern),
               ilike(cmsTerms.slug, pattern)
@@ -146,6 +150,7 @@ export const contentSearchRouter = createTRPCRouter({
           and(
             eq(cmsPortfolio.status, ContentStatus.PUBLISHED),
             isNull(cmsPortfolio.deletedAt),
+            ...(lang ? [eq(cmsPortfolio.lang, lang)] : []),
             or(
               ilike(cmsPortfolio.name, pattern),
               ilike(cmsPortfolio.slug, pattern)

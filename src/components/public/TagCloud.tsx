@@ -1,6 +1,9 @@
 import Link from 'next/link';
 
 import { serverTRPC } from '@/lib/trpc/server';
+import { localePath } from '@/lib/locale';
+import { DEFAULT_LOCALE } from '@/lib/constants';
+import type { Locale } from '@/lib/constants';
 
 interface Props {
   lang?: string;
@@ -14,12 +17,13 @@ interface Props {
 }
 
 export async function TagCloud({
-  lang = 'en',
+  lang = DEFAULT_LOCALE,
   limit = 20,
   sectionTitle,
   sectionClassName,
   containerClassName,
 }: Props) {
+  const locale = lang as Locale;
   let tags: { id: string; name: string; slug: string; count: number }[] = [];
 
   try {
@@ -52,7 +56,7 @@ export async function TagCloud({
       {tags.map((tag) => (
         <Link
           key={tag.id}
-          href={`/tag/${tag.slug}`}
+          href={localePath(`/tag/${tag.slug}`, locale)}
           className={`inline-block rounded-full border border-(--border-primary) bg-(--surface-primary) px-3 py-1 text-(--text-secondary) transition-colors hover:border-(--color-brand-300) dark:hover:border-[oklch(0.65_0.17_var(--brand-hue)_/_0.30)] hover:bg-(--color-brand-50) dark:hover:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] hover:text-(--color-brand-700) dark:hover:text-(--color-brand-400) ${getSizeClass(Number(tag.count))}`}
         >
           {tag.name}

@@ -1,27 +1,12 @@
 import { Queue, Worker, type Processor } from 'bullmq';
-import type IORedis from 'ioredis';
-
-let connection: IORedis | null = null;
-
-function getConnection(): IORedis | null {
-  if (!process.env.REDIS_URL) return null;
-
-  if (!connection) {
-    const IORedisModule = require('ioredis');
-    connection = new IORedisModule(process.env.REDIS_URL, {
-      password: process.env.REDIS_PASSWORD,
-      maxRetriesPerRequest: null,
-    });
-  }
-  return connection;
-}
+import { getRedis, disconnectAll } from '@/server/lib/redis';
 
 const queues: Queue[] = [];
 const workers: Worker[] = [];
 
 /** Create a BullMQ queue with shared Redis connection */
 export function createQueue(name: string): Queue | null {
-  const conn = getConnection();
+  const conn = getRedis();
   if (!conn) return null;
 
   const queue = new Queue(name, { connection: conn });
@@ -34,7 +19,7 @@ export function createWorker(
   name: string,
   processor: Processor
 ): Worker | null {
-  const conn = getConnection();
+  const conn = getRedis();
   if (!conn) return null;
 
   const worker = new Worker(name, processor, { connection: conn });
@@ -51,8 +36,5 @@ export function getQueues(): Queue[] {
 export async function shutdownAllWorkers(): Promise<void> {
   await Promise.all(workers.map((w) => w.close()));
   await Promise.all(queues.map((q) => q.close()));
-  if (connection) {
-    connection.disconnect();
-    connection = null;
-  }
+  await disconnectAll();
 }

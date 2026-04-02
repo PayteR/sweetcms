@@ -79,9 +79,9 @@ describe('Policy', () => {
       expect(sections).toEqual(['dashboard', 'content', 'media']);
     });
 
-    it('superadmin gets all 5 sections', () => {
+    it('superadmin gets all 7 sections', () => {
       const sections = Policy.for(Role.SUPERADMIN).getSections();
-      expect(sections).toHaveLength(5);
+      expect(sections).toHaveLength(7);
     });
   });
 });

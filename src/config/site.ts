@@ -13,12 +13,12 @@ export const clientEnv = {
 
 export const siteConfig = {
   name: clientEnv.siteName,
-  description: 'Agent-driven headless CMS for T3 Stack',
+  description: 'AI Agent-driven T3 SaaS starter with integrated CMS',
   url: clientEnv.appUrl,
 
   seo: {
-    title: `${clientEnv.siteName} — Agent-driven headless CMS`,
+    title: `${clientEnv.siteName} — AI Agent-driven T3 SaaS Starter`,
     description:
-      'Open-source headless CMS built on Next.js, tRPC, Drizzle, and Better Auth.',
+      'Open-source SaaS starter kit with integrated CMS, built on Next.js, tRPC, Drizzle, and Better Auth. Multi-tenancy, Stripe billing, real-time WebSocket, and more.',
   },
 } as const;

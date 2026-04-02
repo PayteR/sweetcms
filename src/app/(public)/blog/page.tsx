@@ -8,9 +8,12 @@ import { PostCard } from '@/components/public/PostCard';
 import { BlogSidebar } from '@/components/public/BlogSidebar';
 import { db } from '@/server/db';
 import { getCodedRouteSEO } from '@/server/utils/page-seo';
+import { getLocale } from '@/lib/locale-server';
+import { localePath } from '@/lib/locale';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const seo = await getCodedRouteSEO(db, 'blog', 'en').catch(() => null);
+  const locale = await getLocale();
+  const seo = await getCodedRouteSEO(db, 'blog', locale).catch(() => null);
 
   return {
     title: seo?.seoTitle || `Blog | ${siteConfig.name}`,
@@ -27,12 +30,13 @@ export default async function BlogListPage({ searchParams }: Props) {
   const params = await searchParams;
   const page = Math.max(1, parseInt(params.page ?? '1', 10) || 1);
 
+  const locale = await getLocale();
   let data;
   try {
     const api = await serverTRPC();
     data = await api.cms.listPublished({
       type: PostType.BLOG,
-      lang: 'en',
+      lang: locale,
       page,
       pageSize: 10,
     });
@@ -53,10 +57,11 @@ export default async function BlogListPage({ searchParams }: Props) {
                 <PostCard
                   key={post.id}
                   title={post.title}
-                  href={`/blog/${post.slug}`}
+                  href={localePath(`/blog/${post.slug}`, locale)}
                   metaDescription={post.metaDescription}
                   publishedAt={post.publishedAt}
                   tags={post.tags}
+                  locale={locale}
                 />
               ))}
 
@@ -65,7 +70,7 @@ export default async function BlogListPage({ searchParams }: Props) {
                 <div className="pagination">
                   {page > 1 && (
                     <Link
-                      href={`/blog?page=${page - 1}`}
+                      href={`${localePath('/blog', locale)}?page=${page - 1}`}
                       className="pagination-btn"
                     >
                       Previous
@@ -76,7 +81,7 @@ export default async function BlogListPage({ searchParams }: Props) {
                   </span>
                   {page < data.totalPages && (
                     <Link
-                      href={`/blog?page=${page + 1}`}
+                      href={`${localePath('/blog', locale)}?page=${page + 1}`}
                       className="pagination-btn"
                     >
                       Next
@@ -92,7 +97,7 @@ export default async function BlogListPage({ searchParams }: Props) {
 
         {/* Sidebar — hidden on mobile */}
         <div className="hidden lg:block">
-          <BlogSidebar />
+          <BlogSidebar lang={locale} />
         </div>
       </div>
     </div>

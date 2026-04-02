@@ -49,9 +49,20 @@ const envSchema = z.object({
   // Admin registration
   NEXT_PUBLIC_ADMIN_REGISTRATION_ENABLED: z.coerce.boolean().default(false),
 
+  // Customer registration
+  NEXT_PUBLIC_REGISTRATION_ENABLED: z.coerce.boolean().default(true),
+
+  // Stripe (optional — billing disabled without STRIPE_SECRET_KEY)
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
+
   // Server role
   SERVER_ROLE: z.enum(['all', 'frontend', 'api', 'worker']).default('all'),
   PORT: z.string().regex(/^\d+$/).default('3000'),
+
+  // WebSocket
+  WS_ENABLED: z.coerce.boolean().default(true),
 });
 
 // Validate and export

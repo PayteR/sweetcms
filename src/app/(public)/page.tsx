@@ -9,9 +9,12 @@ import { PostCard } from '@/components/public/PostCard';
 import { TagCloud } from '@/components/public/TagCloud';
 import { db } from '@/server/db';
 import { getCodedRouteSEO } from '@/server/utils/page-seo';
+import { getLocale } from '@/lib/locale-server';
+import { localePath } from '@/lib/locale';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const seo = await getCodedRouteSEO(db, '', 'en').catch(() => null);
+  const locale = await getLocale();
+  const seo = await getCodedRouteSEO(db, '', locale).catch(() => null);
 
   return {
     title: seo?.seoTitle || siteConfig.seo.title,
@@ -21,6 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function HomePage() {
+  const locale = await getLocale();
   let recentPosts: Array<{
     id: string;
     slug: string;
@@ -40,12 +44,12 @@ export default async function HomePage() {
     const [postData, catData] = await Promise.all([
       api.cms.listPublished({
         type: PostType.BLOG,
-        lang: 'en',
+        lang: locale,
         page: 1,
         pageSize: 6,
       }),
       api.categories.listPublished({
-        lang: 'en',
+        lang: locale,
         page: 1,
         pageSize: 8,
       }),
@@ -71,13 +75,13 @@ export default async function HomePage() {
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link
-              href="/blog"
+              href={localePath('/blog', locale)}
               className="btn btn-primary rounded-lg px-6 py-3 text-sm shadow-sm"
             >
               Read the Blog
             </Link>
             <Link
-              href="/portfolio"
+              href={localePath('/portfolio', locale)}
               className="btn btn-secondary rounded-lg px-6 py-3 text-sm shadow-sm"
             >
               View Portfolio
@@ -93,7 +97,7 @@ export default async function HomePage() {
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-(--text-primary)">Recent Posts</h2>
               <Link
-                href="/blog"
+                href={localePath('/blog', locale)}
                 className="flex items-center gap-1 text-sm font-medium text-(--color-brand-600) hover:text-(--color-brand-500)"
               >
                 View all
@@ -105,10 +109,11 @@ export default async function HomePage() {
             <div className="mt-8">
               <PostCard
                 title={featured.title}
-                href={`/blog/${featured.slug}`}
+                href={localePath(`/blog/${featured.slug}`, locale)}
                 metaDescription={featured.metaDescription}
                 publishedAt={featured.publishedAt}
                 tags={featured.tags}
+                locale={locale}
                 variant="card"
               />
             </div>
@@ -120,10 +125,11 @@ export default async function HomePage() {
                   <PostCard
                     key={post.id}
                     title={post.title}
-                    href={`/blog/${post.slug}`}
+                    href={localePath(`/blog/${post.slug}`, locale)}
                     metaDescription={post.metaDescription}
                     publishedAt={post.publishedAt}
                     tags={post.tags}
+                    locale={locale}
                     variant="card"
                   />
                 ))}
@@ -142,7 +148,7 @@ export default async function HomePage() {
               {categories.map((cat) => (
                 <Link
                   key={cat.slug}
-                  href={`/category/${cat.slug}`}
+                  href={localePath(`/category/${cat.slug}`, locale)}
                   className="rounded-lg border border-(--border-primary) bg-(--surface-secondary) p-4 text-center text-sm font-medium text-(--text-primary) transition-colors hover:border-(--color-brand-300) hover:text-(--color-brand-600)"
                 >
                   {cat.name}
@@ -155,6 +161,7 @@ export default async function HomePage() {
 
       {/* Tag cloud */}
       <TagCloud
+        lang={locale}
         limit={15}
         sectionTitle="Popular Tags"
         sectionClassName="section-alt"

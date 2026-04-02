@@ -11,7 +11,7 @@ import { useBlankTranslations } from '@/lib/translations';
 import { useSession } from '@/lib/auth-client';
 import { ContentStatus } from '@/engine/types/cms';
 import { toast } from '@/store/toast-store';
-import { DEFAULT_LOCALE } from '@/lib/constants';
+import { DEFAULT_LOCALE, LOCALES, LOCALE_LABELS } from '@/lib/constants';
 import { convertUTCToLocal, convertLocalToUTC } from '@/lib/datetime';
 import { useCmsFormState } from '@/engine/hooks/useCmsFormState';
 import { useLinkPicker } from '@/engine/hooks/useLinkPicker';
@@ -513,7 +513,9 @@ export function CategoryForm({ categoryId }: Props) {
                         onChange={(e) => handleChange('lang', e.target.value)}
                         className="select mt-1 w-full disabled:bg-(--surface-secondary)"
                       >
-                        <option value="en">English</option>
+                        {LOCALES.map((l) => (
+                          <option key={l} value={l}>{LOCALE_LABELS[l]}</option>
+                        ))}
                       </select>
                     </div>
                   )}

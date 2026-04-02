@@ -4,6 +4,8 @@ import { ContentStatus } from '@/engine/types/cms';
 import { CONTENT_TYPES } from '@/config/cms';
 import { and, desc, eq, ilike, isNull, or, sql } from 'drizzle-orm';
 import Link from 'next/link';
+import { getLocale } from '@/lib/locale-server';
+import { localePath } from '@/lib/locale';
 
 interface Props {
   searchParams: Promise<{ q?: string; page?: string }>;
@@ -28,6 +30,8 @@ export default async function SearchPage({ searchParams }: Props) {
   }> = [];
   let total = 0;
 
+  const locale = await getLocale();
+
   if (query.length >= 1) {
     const hasSearchVector = query.length >= 3;
 
@@ -35,6 +39,7 @@ export default async function SearchPage({ searchParams }: Props) {
       const tsQuery = sql`plainto_tsquery('english', ${query})`;
       const conditions = and(
         eq(cmsPosts.status, ContentStatus.PUBLISHED),
+        eq(cmsPosts.lang, locale),
         isNull(cmsPosts.deletedAt),
         sql`search_vector @@ ${tsQuery}`
       );
@@ -64,9 +69,10 @@ export default async function SearchPage({ searchParams }: Props) {
       total = Number(countResult[0]?.count ?? 0);
       results = items.map((item) => {
         const ct = CONTENT_TYPES.find((c) => c.postType === item.type);
-        const url = ct
+        const rawUrl = ct
           ? ct.urlPrefix === '/' ? `/${item.slug}` : `${ct.urlPrefix}${item.slug}`
           : `/${item.slug}`;
+        const url = localePath(rawUrl, locale);
         return { ...item, url };
       });
     } else {
@@ -74,6 +80,7 @@ export default async function SearchPage({ searchParams }: Props) {
       const pattern = `%${query}%`;
       const conditions = and(
         eq(cmsPosts.status, ContentStatus.PUBLISHED),
+        eq(cmsPosts.lang, locale),
         isNull(cmsPosts.deletedAt),
         or(ilike(cmsPosts.title, pattern), ilike(cmsPosts.content, pattern))
       );
@@ -102,9 +109,10 @@ export default async function SearchPage({ searchParams }: Props) {
       total = Number(countResult[0]?.count ?? 0);
       results = items.map((item) => {
         const ct = CONTENT_TYPES.find((c) => c.postType === item.type);
-        const url = ct
+        const rawUrl = ct
           ? ct.urlPrefix === '/' ? `/${item.slug}` : `${ct.urlPrefix}${item.slug}`
           : `/${item.slug}`;
+        const url = localePath(rawUrl, locale);
         return { ...item, url, headline: item.metaDescription ?? '' };
       });
     }
@@ -116,7 +124,7 @@ export default async function SearchPage({ searchParams }: Props) {
     <div className="mx-auto max-w-3xl px-4 py-8">
       <h1 className="text-3xl font-bold text-(--text-primary)">Search</h1>
 
-      <form className="mt-6" action="/search" method="GET">
+      <form className="mt-6" action={localePath('/search', locale)} method="GET">
         <div className="flex gap-2">
           <input
             type="text"
@@ -167,7 +175,7 @@ export default async function SearchPage({ searchParams }: Props) {
         <div className="mt-8 flex items-center justify-center gap-2">
           {page > 1 && (
             <Link
-              href={`/search?q=${encodeURIComponent(query)}&page=${page - 1}`}
+              href={`${localePath('/search', locale)}?q=${encodeURIComponent(query)}&page=${page - 1}`}
               className="rounded-md border border-(--border-primary) px-3 py-1.5 text-sm"
             >
               Previous
@@ -178,7 +186,7 @@ export default async function SearchPage({ searchParams }: Props) {
           </span>
           {page < totalPages && (
             <Link
-              href={`/search?q=${encodeURIComponent(query)}&page=${page + 1}`}
+              href={`${localePath('/search', locale)}?q=${encodeURIComponent(query)}&page=${page + 1}`}
               className="rounded-md border border-(--border-primary) px-3 py-1.5 text-sm"
             >
               Next

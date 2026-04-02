@@ -5,8 +5,15 @@ import { cmsCategories, cmsPosts, cmsTermRelationships } from '@/server/db/schem
 import { ContentStatus } from '@/engine/types/cms';
 import { and, count, eq, isNull } from 'drizzle-orm';
 import { serverTRPC } from '@/lib/trpc/server';
+import { localePath } from '@/lib/locale';
+import { DEFAULT_LOCALE } from '@/lib/constants';
+import type { Locale } from '@/lib/constants';
 
-async function getCategories() {
+interface Props {
+  lang?: string;
+}
+
+async function getCategories(lang: string) {
   try {
     const rows = await db
       .select({
@@ -33,7 +40,7 @@ async function getCategories() {
       .where(
         and(
           eq(cmsCategories.status, ContentStatus.PUBLISHED),
-          eq(cmsCategories.lang, 'en'),
+          eq(cmsCategories.lang, lang),
           isNull(cmsCategories.deletedAt)
         )
       )
@@ -46,19 +53,20 @@ async function getCategories() {
   }
 }
 
-async function getPopularTags() {
+async function getPopularTags(lang: string) {
   try {
     const api = await serverTRPC();
-    return await api.tags.listPopular({ lang: 'en', limit: 15 });
+    return await api.tags.listPopular({ lang, limit: 15 });
   } catch {
     return [];
   }
 }
 
-export async function BlogSidebar() {
+export async function BlogSidebar({ lang = DEFAULT_LOCALE }: Props) {
+  const locale = lang as Locale;
   const [categories, tags] = await Promise.all([
-    getCategories(),
-    getPopularTags(),
+    getCategories(lang),
+    getPopularTags(lang),
   ]);
 
   return (
@@ -66,7 +74,7 @@ export async function BlogSidebar() {
       {/* Search */}
       <div>
         <h3 className="sidebar-title">Search</h3>
-        <form action="/search" method="GET">
+        <form action={localePath('/search', locale)} method="GET">
           <input
             type="text"
             name="q"
@@ -84,7 +92,7 @@ export async function BlogSidebar() {
             {categories.map((cat) => (
               <Link
                 key={cat.slug}
-                href={`/category/${cat.slug}`}
+                href={localePath(`/category/${cat.slug}`, locale)}
                 className="sidebar-link"
               >
                 <span>{cat.name}</span>
@@ -103,7 +111,7 @@ export async function BlogSidebar() {
           <h3 className="sidebar-title">Tags</h3>
           <div className="flex flex-wrap gap-1.5">
             {tags.map((tag) => (
-              <Link key={tag.id} href={`/tag/${tag.slug}`} className="tag">
+              <Link key={tag.id} href={localePath(`/tag/${tag.slug}`, locale)} className="tag">
                 {tag.name}
               </Link>
             ))}

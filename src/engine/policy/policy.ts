@@ -15,7 +15,7 @@ export const Role = {
 export type UserRole = (typeof Role)[keyof typeof Role];
 export const ROLES = Object.values(Role) as [UserRole, ...UserRole[]];
 
-export type AdminSection = 'dashboard' | 'content' | 'media' | 'users' | 'settings';
+export type AdminSection = 'dashboard' | 'content' | 'media' | 'users' | 'settings' | 'billing' | 'organizations';
 
 export type Capability =
   | `section.${AdminSection}`
@@ -27,6 +27,8 @@ const ALL_SECTIONS: AdminSection[] = [
   'media',
   'users',
   'settings',
+  'billing',
+  'organizations',
 ];
 
 const ROLE_CAPABILITIES: Record<
@@ -45,6 +47,8 @@ const ROLE_CAPABILITIES: Record<
     'section.media': true,
     'section.users': true,
     'section.settings': true,
+    'section.billing': true,
+    'section.organizations': true,
     'privilege.manage_roles': true,
   },
   [Role.SUPERADMIN]: {

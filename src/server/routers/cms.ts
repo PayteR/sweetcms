@@ -32,6 +32,10 @@ import { logAudit } from '@/engine/lib/audit';
 import { createFieldTranslator } from '@/server/translation/translate-fields';
 import { dispatchWebhook } from '@/engine/lib/webhooks';
 import { getStorage } from '@/server/storage';
+import { sendBulkNotification } from '@/server/lib/notifications';
+import { NotificationType, NotificationCategory } from '@/engine/types/notifications';
+import { user } from '@/server/db/schema';
+import { Role } from '@/engine/policy';
 import {
   createTRPCRouter,
   publicProcedure,
@@ -62,6 +66,42 @@ const crudCols = {
   id: cmsPosts.id,
   deleted_at: cmsPosts.deletedAt,
 };
+
+/** Notify staff users (editors, admins, superadmins) that content was published. Fire-and-forget. */
+function notifyContentPublished(
+  dbInstance: typeof import('@/server/db').db,
+  postTitle: string,
+  postSlug: string,
+  publisherId: string,
+  contentType: { label: string; urlPrefix: string },
+): void {
+  const doNotify = async () => {
+    try {
+      const staffUsers = await dbInstance
+        .select({ id: user.id })
+        .from(user)
+        .where(inArray(user.role, [Role.EDITOR, Role.ADMIN, Role.SUPERADMIN]))
+        .limit(200);
+
+      const recipientIds = staffUsers
+        .map((u) => u.id)
+        .filter((id) => id !== publisherId);
+
+      if (recipientIds.length > 0) {
+        sendBulkNotification(recipientIds, {
+          title: `${contentType.label} published`,
+          body: `"${postTitle}" has been published.`,
+          type: NotificationType.INFO,
+          category: NotificationCategory.CONTENT,
+          actionUrl: `${contentType.urlPrefix}/${postSlug}`,
+        });
+      }
+    } catch (err) {
+      console.error('Failed to notify staff about published content:', err);
+    }
+  };
+  doNotify();
+}
 
 export const cmsRouter = createTRPCRouter({
   /** List posts with search, pagination, status tabs */
@@ -238,6 +278,11 @@ export const cmsRouter = createTRPCRouter({
       });
       dispatchWebhook(ctx.db, 'post.created', { id: post!.id, title: post!.title, type: post!.type });
 
+      // Notify staff when content is created as published
+      if (post!.status === ContentStatus.PUBLISHED) {
+        notifyContentPublished(ctx.db, post!.title, post!.slug, ctx.session.user.id, contentType);
+      }
+
       return post!;
     }),
 
@@ -341,6 +386,20 @@ export const cmsRouter = createTRPCRouter({
       });
       dispatchWebhook(ctx.db, 'post.updated', { id, title: updates.title ?? existing.title });
 
+      // Notify staff when content status changes to published
+      if (
+        updates.status === ContentStatus.PUBLISHED &&
+        existing.status !== ContentStatus.PUBLISHED
+      ) {
+        notifyContentPublished(
+          ctx.db,
+          updates.title ?? existing.title,
+          updates.slug ?? existing.slug,
+          ctx.session.user.id,
+          contentType,
+        );
+      }
+
       return { success: true };
     }),
 
@@ -354,7 +413,14 @@ export const cmsRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const [existing] = await ctx.db
-        .select({ id: cmsPosts.id, publishedAt: cmsPosts.publishedAt })
+        .select({
+          id: cmsPosts.id,
+          title: cmsPosts.title,
+          slug: cmsPosts.slug,
+          type: cmsPosts.type,
+          status: cmsPosts.status,
+          publishedAt: cmsPosts.publishedAt,
+        })
         .from(cmsPosts)
         .where(eq(cmsPosts.id, input.id))
         .limit(1);
@@ -386,6 +452,15 @@ export const cmsRouter = createTRPCRouter({
         entityType: 'post',
         entityId: input.id,
       });
+
+      // Notify staff when status changes to published
+      if (
+        input.status === ContentStatus.PUBLISHED &&
+        existing.status !== ContentStatus.PUBLISHED
+      ) {
+        const ct = getContentTypeByPostType(existing.type);
+        notifyContentPublished(ctx.db, existing.title, existing.slug, ctx.session.user.id, ct);
+      }
 
       return { success: true };
     }),

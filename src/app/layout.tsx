@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import { Geist, Geist_Mono } from 'next/font/google';
 
 import { TRPCProvider } from '@/lib/trpc/provider';
+import { DEFAULT_LOCALE } from '@/lib/constants';
 
 import './globals.css';
 
@@ -20,14 +22,17 @@ export const metadata: Metadata = {
   description: 'Agent-driven headless CMS for T3 Stack',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const h = await headers();
+  const locale = h.get('x-locale') || DEFAULT_LOCALE;
+
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
     >
