@@ -7,6 +7,7 @@ import {
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { PostType } from '@/engine/types/cms';
+import { adminPanel } from '@/config/routes';
 import StatCard from '@/engine/components/StatCard';
 import { DashboardConfig } from '@/components/admin/DashboardConfig';
 import { DashboardWidgetGrid } from '@/components/admin/DashboardWidgetGrid';
@@ -37,35 +38,35 @@ export default function DashboardPage() {
         <StatCard
           label={__('Pages')}
           count={pageCounts.data?.all}
-          href="/dashboard/cms/pages"
+          href={adminPanel.cms('pages')}
           icon={FileText}
           color="blue"
         />
         <StatCard
           label={__('Blog Posts')}
           count={blogCounts.data?.all}
-          href="/dashboard/cms/blog"
+          href={adminPanel.cms('blog')}
           icon={Layers}
           color="green"
         />
         <StatCard
           label={__('Categories')}
           count={catCounts.data?.all}
-          href="/dashboard/cms/categories"
+          href={adminPanel.cms('categories')}
           icon={FolderOpen}
           color="orange"
         />
         <StatCard
           label={__('Users')}
           count={userCounts.data?.all}
-          href="/dashboard/users"
+          href={adminPanel.users}
           icon={Users}
           color="purple"
         />
         <StatCard
           label={__('Media Files')}
           count={mediaCounts.data?.count}
-          href="/dashboard/media"
+          href={adminPanel.media}
           icon={Image}
           color="blue"
         />
@@ -77,21 +78,21 @@ export default function DashboardPage() {
           <StatCard
             label={__('Active Subscriptions')}
             count={billingStats.data.totalActiveSubscriptions}
-            href="/dashboard/settings/billing"
+            href={adminPanel.settingsBilling}
             icon={CreditCard}
             color="green"
           />
           <StatCard
             label={__('MRR')}
             count={Math.round(billingStats.data.mrr / 100)}
-            href="/dashboard/settings/billing"
+            href={adminPanel.settingsBilling}
             icon={TrendingUp}
             color="blue"
           />
           <StatCard
             label={__('Churn (30d)')}
             count={billingStats.data.churnLast30Days}
-            href="/dashboard/settings/billing"
+            href={adminPanel.settingsBilling}
             icon={Users}
             color="orange"
           />

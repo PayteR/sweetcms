@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
+import { adminPanel } from '@/config/routes';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { DiscountType } from '@/engine/types/payment';
 
@@ -123,7 +124,7 @@ export default function DiscountCodesPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link
-            href="/dashboard/settings"
+            href={adminPanel.settings}
             className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary)"
           >
             <ArrowLeft className="h-5 w-5" />

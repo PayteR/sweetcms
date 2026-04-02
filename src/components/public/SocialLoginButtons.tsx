@@ -1,8 +1,9 @@
 'use client';
 
 import { signIn } from '@/lib/auth-client';
+import { accountRoutes } from '@/config/routes';
 
-export function SocialLoginButtons({ callbackUrl = '/account' }: { callbackUrl?: string }) {
+export function SocialLoginButtons({ callbackUrl = accountRoutes.home }: { callbackUrl?: string }) {
   const hasGoogle = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
   const hasDiscord = !!process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID;
 

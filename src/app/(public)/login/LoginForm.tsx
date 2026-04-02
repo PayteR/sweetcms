@@ -5,11 +5,12 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { signIn } from '@/lib/auth-client';
 import { SocialLoginButtons } from '@/components/public/SocialLoginButtons';
+import { publicAuthRoutes, accountRoutes } from '@/config/routes';
 
 export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get('callbackUrl') ?? '/account';
+  const callbackUrl = searchParams.get('callbackUrl') ?? accountRoutes.home;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -67,7 +68,7 @@ export function LoginForm() {
         <div>
           <div className="flex items-center justify-between mb-1">
             <label htmlFor="password" className="block text-sm font-medium">Password</label>
-            <Link href="/forgot-password" className="text-xs text-(--color-brand-500) hover:underline">
+            <Link href={publicAuthRoutes.forgotPassword} className="text-xs text-(--color-brand-500) hover:underline">
               Forgot password?
             </Link>
           </div>
@@ -93,7 +94,7 @@ export function LoginForm() {
 
       <p className="text-center text-sm text-(--text-secondary) mt-6">
         Don&apos;t have an account?{' '}
-        <Link href="/register" className="text-(--color-brand-500) hover:underline">
+        <Link href={publicAuthRoutes.register} className="text-(--color-brand-500) hover:underline">
           Sign up
         </Link>
       </p>

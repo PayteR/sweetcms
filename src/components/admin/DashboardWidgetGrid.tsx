@@ -23,6 +23,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 import { cn } from '@/lib/utils';
+import { adminPanel } from '@/config/routes';
 import { useBlankTranslations } from '@/lib/translations';
 import { usePreferencesStore } from '@/engine/store/preferences-store';
 import {
@@ -53,7 +54,7 @@ function RecentActivityWidget({ dragHandle }: { dragHandle?: ReactNode }) {
           </h2>
         </div>
         <Link
-          href="/dashboard/cms/activity"
+          href={adminPanel.activity}
           className="text-xs font-medium text-(--text-muted) hover:text-(--text-primary) transition-colors"
         >
           {__('View all')}

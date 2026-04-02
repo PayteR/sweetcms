@@ -6,6 +6,7 @@ import {
   FileText, Layers, FolderOpen, Briefcase, Image, ExternalLink,
 } from 'lucide-react';
 
+import { adminPanel } from '@/config/routes';
 import { useBlankTranslations } from '@/lib/translations';
 
 export default function QuickActionsWidget({ dragHandle }: { dragHandle?: ReactNode }) {
@@ -20,23 +21,23 @@ export default function QuickActionsWidget({ dragHandle }: { dragHandle?: ReactN
         </div>
       </div>
       <div className="quick-actions-grid p-4 grid grid-cols-2 gap-2">
-        <Link href="/dashboard/cms/pages/new" className="btn btn-secondary justify-center">
+        <Link href={adminPanel.cmsNew('pages')} className="btn btn-secondary justify-center">
           <FileText className="h-4 w-4" />
           {__('New Page')}
         </Link>
-        <Link href="/dashboard/cms/blog/new" className="btn btn-secondary justify-center">
+        <Link href={adminPanel.cmsNew('blog')} className="btn btn-secondary justify-center">
           <Layers className="h-4 w-4" />
           {__('New Post')}
         </Link>
-        <Link href="/dashboard/cms/categories/new" className="btn btn-secondary justify-center">
+        <Link href={adminPanel.cmsNew('categories')} className="btn btn-secondary justify-center">
           <FolderOpen className="h-4 w-4" />
           {__('New Category')}
         </Link>
-        <Link href="/dashboard/cms/portfolio/new" className="btn btn-secondary justify-center">
+        <Link href={adminPanel.cmsNew('portfolio')} className="btn btn-secondary justify-center">
           <Briefcase className="h-4 w-4" />
           {__('New Project')}
         </Link>
-        <Link href="/dashboard/media" className="btn btn-secondary justify-center">
+        <Link href={adminPanel.media} className="btn btn-secondary justify-center">
           <Image className="h-4 w-4" />
           {__('Media Library')}
         </Link>

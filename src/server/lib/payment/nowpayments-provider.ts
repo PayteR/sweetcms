@@ -103,7 +103,9 @@ export class NowPaymentsProvider implements PaymentProvider {
         status: TransactionStatus.PENDING,
         planId: params.planId,
         interval: params.interval,
+        discountCodeId: params.metadata?.discountCodeId ?? null,
         discountAmountCents: discountAmountCents > 0 ? discountAmountCents : 0,
+        rawRequest: params.metadata as Record<string, unknown> ?? null,
       })
       .returning({ id: saasPaymentTransactions.id });
 
@@ -200,13 +202,15 @@ export class NowPaymentsProvider implements PaymentProvider {
           })
           .where(eq(saasPaymentTransactions.id, orderId));
 
+        // Merge checkout metadata (contains discountUsageId etc.) into providerData
+        const checkoutMetadata = tx.rawRequest as Record<string, unknown> | null;
         return {
           type: 'subscription.activated',
           organizationId: tx.organizationId,
           planId: tx.planId ?? undefined,
           status: 'active',
-          providerCustomerId: orderId,
-          providerData: body,
+          providerCustomerId: `np_org_${tx.organizationId}`,
+          providerData: { ...body, ...checkoutMetadata },
           // Crypto = one-time. Set period end to 365 days from now.
           periodStart: new Date(),
           periodEnd: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),

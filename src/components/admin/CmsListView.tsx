@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 
 import type { ContentTypeDeclaration } from '@/config/cms';
+import { adminPanel } from '@/config/routes';
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { ContentStatus } from '@/engine/types/cms';
@@ -563,7 +564,7 @@ export function CmsListView({ contentType }: Props) {
             </button>
           )}
           <Link
-            href={`/dashboard/cms/${contentType.adminSlug}/new`}
+            href={adminPanel.cmsNew(contentType.adminSlug)}
             className="btn btn-primary"
           >
             <Plus className="h-4 w-4" />
@@ -740,7 +741,7 @@ export function CmsListView({ contentType }: Props) {
                     onClick={(e) => {
                       const target = e.target as HTMLElement;
                       if (target.closest('a, button, input')) return;
-                      router.push(`/dashboard/cms/${contentType.adminSlug}/${item.id}`);
+                      router.push(adminPanel.cmsItem(contentType.adminSlug, item.id));
                     }}
                   >
                     <td className="td">
@@ -754,7 +755,7 @@ export function CmsListView({ contentType }: Props) {
                     {isColVisible('title') && (
                       <td className="td">
                         <Link
-                          href={`/dashboard/cms/${contentType.adminSlug}/${item.id}`}
+                          href={adminPanel.cmsItem(contentType.adminSlug, item.id)}
                           className="font-medium text-(--text-primary) hover:text-(--color-brand-600)"
                         >
                           {item.title || __('(untitled)')}
@@ -843,7 +844,7 @@ export function CmsListView({ contentType }: Props) {
                               </button>
                             )}
                             <Link
-                              href={`/dashboard/cms/${contentType.adminSlug}/${item.id}`}
+                              href={adminPanel.cmsItem(contentType.adminSlug, item.id)}
                               className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"
                               title={__('Edit')}
                             >

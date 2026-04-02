@@ -103,6 +103,8 @@ export const billingRouter = createTRPCRouter({
       let finalPriceCents: number | undefined;
 
       // Validate discount code if provided
+      let discountUsageId: string | undefined;
+      let discountCodeId: string | undefined;
       if (input.discountCode) {
         const validation = await validateCode(
           input.discountCode,
@@ -116,6 +118,8 @@ export const billingRouter = createTRPCRouter({
         // Apply the discount (creates usage record)
         const applied = await applyDiscount(input.discountCode, ctx.session.user.id, input.planId);
         resolvedDiscount = applied.discount;
+        discountUsageId = applied.usageId;
+        discountCodeId = applied.discountCodeId;
         finalPriceCents = validation.finalPriceCents ?? undefined;
       }
 
@@ -133,6 +137,8 @@ export const billingRouter = createTRPCRouter({
         metadata: {
           userId: ctx.session.user.id,
           ...(input.discountCode && { discountCode: input.discountCode }),
+          ...(discountUsageId && { discountUsageId }),
+          ...(discountCodeId && { discountCodeId }),
         },
       });
 

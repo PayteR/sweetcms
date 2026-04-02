@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Eye, Loader2, ImageIcon, X } from 'lucide-react';
 
 import type { ContentTypeDeclaration } from '@/config/cms';
+import { adminPanel } from '@/config/routes';
 import { useSession } from '@/lib/auth-client';
 import { trpc } from '@/lib/trpc/client';
 import { slugify } from '@/engine/lib/slug';
@@ -169,7 +170,7 @@ export function PostForm({ contentType, postId }: Props) {
       toast.success(__(`${contentType.label} created`));
       utils.cms.list.invalidate();
       utils.cms.counts.invalidate();
-      router.push(`/dashboard/cms/${contentType.adminSlug}/${data.id}`);
+      router.push(adminPanel.cmsItem(contentType.adminSlug, data.id));
     },
     onError: (err) => handleSaveError(err, `Failed to create ${contentType.label}`),
   });
@@ -342,7 +343,7 @@ export function PostForm({ contentType, postId }: Props) {
           type="button"
           onClick={() => {
             if (window.history.length > 1) router.back();
-            else router.push(`/dashboard/cms/${contentType.adminSlug}`);
+            else router.push(adminPanel.cms(contentType.adminSlug));
           }}
           className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
         >
@@ -567,7 +568,7 @@ export function PostForm({ contentType, postId }: Props) {
                           targetLang,
                           autoTranslate,
                         });
-                        router.push(`/dashboard/cms/${contentType.adminSlug}/${result.id}`);
+                        router.push(adminPanel.cmsItem(contentType.adminSlug, result.id));
                       }}
                     />
                   ) : (

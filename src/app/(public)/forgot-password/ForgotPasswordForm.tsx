@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { requestPasswordReset } from './actions';
+import { publicAuthRoutes } from '@/config/routes';
 
 export function ForgotPasswordForm() {
   const [email, setEmail] = useState('');
@@ -40,7 +41,7 @@ export function ForgotPasswordForm() {
         <p className="text-sm text-(--text-secondary)">
           If an account exists with that email, you&apos;ll receive a reset link shortly.
         </p>
-        <Link href="/login" className="inline-block mt-4 text-sm text-(--color-brand-500) hover:underline">
+        <Link href={publicAuthRoutes.login} className="inline-block mt-4 text-sm text-(--color-brand-500) hover:underline">
           Back to sign in
         </Link>
       </div>
@@ -77,7 +78,7 @@ export function ForgotPasswordForm() {
       </button>
 
       <p className="text-center text-sm text-(--text-secondary)">
-        <Link href="/login" className="text-(--color-brand-500) hover:underline">Back to sign in</Link>
+        <Link href={publicAuthRoutes.login} className="text-(--color-brand-500) hover:underline">Back to sign in</Link>
       </p>
     </form>
   );

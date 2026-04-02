@@ -4,12 +4,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { User, Settings, Shield, CreditCard } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { accountRoutes } from '@/config/routes';
 
 const NAV_ITEMS = [
-  { href: '/account', label: 'Overview', icon: User, exact: true },
-  { href: '/account/settings', label: 'Settings', icon: Settings },
-  { href: '/account/security', label: 'Security', icon: Shield },
-  { href: '/account/billing', label: 'Billing', icon: CreditCard },
+  { href: accountRoutes.home, label: 'Overview', icon: User, exact: true },
+  { href: accountRoutes.settings, label: 'Settings', icon: Settings },
+  { href: accountRoutes.security, label: 'Security', icon: Shield },
+  { href: accountRoutes.billing, label: 'Billing', icon: CreditCard },
 ];
 
 export function AccountSidebar() {

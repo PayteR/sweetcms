@@ -20,6 +20,7 @@ import {
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { ROLES, Role } from '@/engine/policy';
+import { adminPanel, apiRoutes } from '@/config/routes';
 import { toast } from '@/store/toast-store';
 import { cn } from '@/lib/utils';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -104,7 +105,7 @@ export default function UserDetailPage() {
   const gdprAnonymize = trpc.users.gdprAnonymize.useMutation({
     onSuccess: () => {
       toast.success(__('User anonymized'));
-      router.push('/dashboard/users');
+      router.push(adminPanel.users);
     },
     onError: (err) => toast.error(err.message),
   });
@@ -159,7 +160,7 @@ export default function UserDetailPage() {
       <div className="py-20 text-center">
         <p className="text-(--text-muted)">{__('User not found')}</p>
         <button
-          onClick={() => router.push('/dashboard/users')}
+          onClick={() => router.push(adminPanel.users)}
           className="btn btn-secondary mt-4"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -176,7 +177,7 @@ export default function UserDetailPage() {
       {/* Header */}
       <div className="flex items-center gap-3">
         <button
-          onClick={() => router.push('/dashboard/users')}
+          onClick={() => router.push(adminPanel.users)}
           className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-primary)"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -236,7 +237,7 @@ export default function UserDetailPage() {
               </button>
             )}
             <a
-              href={`/api/gdpr-export/${u.id}`}
+              href={apiRoutes.gdprExport(u.id)}
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn-secondary text-sm"

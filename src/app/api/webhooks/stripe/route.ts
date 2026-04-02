@@ -9,10 +9,13 @@ import {
   cancelSubscription,
   getOrgByProviderSubscription,
 } from '@/server/lib/payment/subscription-service';
+import { finalizeUsage } from '@/server/lib/payment/discount-service';
+import { getPlanByProviderPriceId } from '@/config/plans';
 import { logAudit } from '@/engine/lib/audit';
 import { sendOrgNotification } from '@/server/lib/notifications';
 import { NotificationType, NotificationCategory } from '@/engine/types/notifications';
 import { createLogger } from '@/engine/lib/logger';
+import { adminPanel } from '@/config/routes';
 
 const logger = createLogger('stripe-webhook');
 
@@ -62,11 +65,20 @@ export async function POST(request: Request) {
       case 'subscription.activated': {
         if (!event.organizationId || !event.providerSubscriptionId) break;
 
+        // Infer interval from provider price ID
+        const activatedPlan = event.providerPriceId
+          ? getPlanByProviderPriceId('stripe', event.providerPriceId)
+          : null;
+        const inferredInterval: 'monthly' | 'yearly' =
+          activatedPlan && event.providerPriceId &&
+          activatedPlan.providerPrices.stripe?.yearly === event.providerPriceId
+            ? 'yearly' : 'monthly';
+
         await activateSubscription({
           organizationId: event.organizationId,
           planId: event.planId ?? 'free',
           providerId: 'stripe',
-          interval: 'monthly', // determined by price, but we'll use what's available
+          interval: inferredInterval,
           providerCustomerId: event.providerCustomerId ?? '',
           providerSubscriptionId: event.providerSubscriptionId,
           providerPriceId: event.providerPriceId,
@@ -74,6 +86,13 @@ export async function POST(request: Request) {
           periodStart: event.periodStart,
           periodEnd: event.periodEnd,
         });
+
+        // Finalize discount usage if one was applied at checkout
+        const metadata = event.providerData as Record<string, unknown> | undefined;
+        const discountUsageId = metadata?.discountUsageId as string | undefined;
+        if (discountUsageId) {
+          await finalizeUsage(discountUsageId, event.providerSubscriptionId);
+        }
 
         logAudit({
           db,
@@ -89,7 +108,7 @@ export async function POST(request: Request) {
           body: `Your subscription to the ${event.planId ?? 'selected'} plan is now active.`,
           type: NotificationType.SUCCESS,
           category: NotificationCategory.BILLING,
-          actionUrl: '/dashboard/settings/billing',
+          actionUrl: adminPanel.settingsBilling,
         });
         break;
       }
@@ -121,7 +140,7 @@ export async function POST(request: Request) {
             body: 'Your subscription has been canceled. You have been moved to the free plan.',
             type: NotificationType.WARNING,
             category: NotificationCategory.BILLING,
-            actionUrl: '/dashboard/settings/billing',
+            actionUrl: adminPanel.settingsBilling,
           });
         }
         break;
@@ -142,7 +161,7 @@ export async function POST(request: Request) {
             body: 'Payment failed for your subscription. Please update your payment method to avoid service interruption.',
             type: NotificationType.ERROR,
             category: NotificationCategory.BILLING,
-            actionUrl: '/dashboard/settings/billing',
+            actionUrl: adminPanel.settingsBilling,
           });
         }
         break;

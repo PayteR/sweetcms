@@ -16,6 +16,7 @@ import {
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
+import { adminPanel } from '@/config/routes';
 import { cn } from '@/lib/utils';
 
 // ---------------------------------------------------------------------------
@@ -105,7 +106,7 @@ export default function FormBuilderPage() {
   const createForm = trpc.forms.create.useMutation({
     onSuccess: (data) => {
       toast.success(__('Form created'));
-      router.push(`/dashboard/forms/${data.id}`);
+      router.push(adminPanel.formDetail(data.id));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -216,7 +217,7 @@ export default function FormBuilderPage() {
       <div className="form-builder-header flex items-center justify-between">
         <div className="form-builder-header-left flex items-center gap-3">
           <button
-            onClick={() => router.push('/dashboard/forms')}
+            onClick={() => router.push(adminPanel.forms)}
             className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-primary)"
           >
             <ArrowLeft className="h-5 w-5" />

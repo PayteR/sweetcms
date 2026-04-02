@@ -7,6 +7,7 @@ import { ArrowLeft, Loader2, Save } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
+import { adminPanel } from '@/config/routes';
 import { MenuBuilder } from '@/components/admin/MenuBuilder';
 
 interface Props {
@@ -48,7 +49,7 @@ export default function MenuEditPage({ params }: Props) {
       <div className="menu-edit-header flex items-center justify-between">
         <div className="menu-edit-header-left flex items-center gap-3">
           <Link
-            href="/dashboard/cms/menus"
+            href={adminPanel.menus}
             className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
           >
             <ArrowLeft className="h-5 w-5" />

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 
 import { requestReset } from './actions';
+import { adminRoutes } from '@/config/routes';
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
@@ -39,7 +40,7 @@ export default function ForgotPasswordPage() {
           Check your inbox and follow the instructions.
         </p>
         <Link
-          href="/dashboard/login"
+          href={adminRoutes.login}
           className="mt-6 inline-block text-sm font-medium text-(--color-brand-600) hover:text-(--color-brand-500)"
         >
           Back to Sign In
@@ -91,7 +92,7 @@ export default function ForgotPasswordPage() {
 
       <p className="auth-forgot-alt-action mt-6 text-center text-sm text-(--text-muted)">
         Remember your password?{' '}
-        <Link href="/dashboard/login" className="font-medium text-(--color-brand-600) hover:text-(--color-brand-500)">
+        <Link href={adminRoutes.login} className="font-medium text-(--color-brand-600) hover:text-(--color-brand-500)">
           Sign in
         </Link>
       </p>

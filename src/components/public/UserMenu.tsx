@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSession, signOut } from '@/lib/auth-client';
 import { User, Settings, Shield, CreditCard, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { publicAuthRoutes, accountRoutes } from '@/config/routes';
 
 export function UserMenu() {
   const { data: session, isPending } = useSession();
@@ -26,7 +27,7 @@ export function UserMenu() {
   if (!session?.user) {
     return (
       <Link
-        href="/login"
+        href={publicAuthRoutes.login}
         className="text-sm font-medium text-(--color-brand-500) hover:underline"
       >
         Sign In
@@ -70,7 +71,7 @@ export function UserMenu() {
           </div>
 
           <Link
-            href="/account"
+            href={accountRoutes.home}
             className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-(--surface-secondary) transition-colors"
             onClick={() => setOpen(false)}
           >
@@ -78,7 +79,7 @@ export function UserMenu() {
             Account
           </Link>
           <Link
-            href="/account/settings"
+            href={accountRoutes.settings}
             className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-(--surface-secondary) transition-colors"
             onClick={() => setOpen(false)}
           >
@@ -86,7 +87,7 @@ export function UserMenu() {
             Settings
           </Link>
           <Link
-            href="/account/security"
+            href={accountRoutes.security}
             className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-(--surface-secondary) transition-colors"
             onClick={() => setOpen(false)}
           >
@@ -94,7 +95,7 @@ export function UserMenu() {
             Security
           </Link>
           <Link
-            href="/account/billing"
+            href={accountRoutes.billing}
             className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-(--surface-secondary) transition-colors"
             onClick={() => setOpen(false)}
           >

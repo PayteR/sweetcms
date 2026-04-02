@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import { signIn } from '@/lib/auth-client';
+import { adminRoutes } from '@/config/routes';
 
 const registrationEnabled =
   process.env.NEXT_PUBLIC_ADMIN_REGISTRATION_ENABLED === 'true' ||
@@ -32,7 +33,7 @@ export default function LoginPage() {
           setError(result.error.message ?? 'Invalid credentials');
         }
       } else {
-        router.push('/dashboard');
+        router.push(adminRoutes.home);
       }
     } catch {
       setError('Something went wrong. Please try again.');
@@ -102,7 +103,7 @@ export default function LoginPage() {
       </form>
 
       <div className="auth-login-forgot-link mt-4 text-center">
-        <Link href="/dashboard/forgot-password" className="text-sm text-(--text-muted) hover:text-(--color-brand-600)">
+        <Link href={adminRoutes.forgotPassword} className="text-sm text-(--text-muted) hover:text-(--color-brand-600)">
           Forgot your password?
         </Link>
       </div>
@@ -110,7 +111,7 @@ export default function LoginPage() {
       {registrationEnabled && (
         <p className="auth-login-alt-action mt-4 text-center text-sm text-(--text-muted)">
           Don&apos;t have an account?{' '}
-          <Link href="/dashboard/register" className="font-medium text-(--color-brand-600) hover:text-(--color-brand-500)">
+          <Link href={adminRoutes.register} className="font-medium text-(--color-brand-600) hover:text-(--color-brand-500)">
             Sign up
           </Link>
         </p>

@@ -15,9 +15,38 @@ vi.mock('@/server/lib/payment/subscription-service', () => ({
   activateSubscription: (...args: unknown[]) => mockActivateSubscription(...args),
 }));
 
-// Mock db
+// Mock discount service
+const mockFinalizeUsage = vi.fn().mockResolvedValue(undefined);
+vi.mock('@/server/lib/payment/discount-service', () => ({
+  finalizeUsage: (...args: unknown[]) => mockFinalizeUsage(...args),
+}));
+
+// Mock db with idempotency query support
+const limitMock = vi.fn().mockResolvedValue([]);
+const whereMock = vi.fn().mockReturnValue({ limit: limitMock });
+const fromMock = vi.fn().mockReturnValue({ where: whereMock });
+const selectMock = vi.fn().mockReturnValue({ from: fromMock });
+const valuesMock = vi.fn().mockResolvedValue(undefined);
+const insertMock = vi.fn().mockReturnValue({ values: valuesMock });
+
 vi.mock('@/server/db', () => ({
-  db: {},
+  db: {
+    select: (...args: unknown[]) => selectMock(...args),
+    insert: (...args: unknown[]) => insertMock(...args),
+  },
+}));
+
+// Mock schema
+vi.mock('@/server/db/schema', () => ({
+  saasSubscriptionEvents: {
+    id: 'saas_subscription_events.id',
+    providerEventId: 'saas_subscription_events.provider_event_id',
+  },
+}));
+
+// Mock drizzle-orm
+vi.mock('drizzle-orm', () => ({
+  eq: vi.fn((_col: unknown, val: unknown) => ({ _type: 'eq', val })),
 }));
 
 // Mock audit
@@ -67,6 +96,15 @@ describe('NOWPayments webhook route', () => {
       config: { id: 'nowpayments' },
     });
     mockActivateSubscription.mockResolvedValue(undefined);
+    mockFinalizeUsage.mockResolvedValue(undefined);
+
+    // Re-establish mock chains
+    selectMock.mockReturnValue({ from: fromMock });
+    fromMock.mockReturnValue({ where: whereMock });
+    whereMock.mockReturnValue({ limit: limitMock });
+    limitMock.mockResolvedValue([]); // no duplicate by default
+    insertMock.mockReturnValue({ values: valuesMock });
+    valuesMock.mockResolvedValue(undefined);
   });
 
   it('returns 503 when provider is not configured', async () => {
@@ -101,6 +139,7 @@ describe('NOWPayments webhook route', () => {
       providerCustomerId: 'cus_np_123',
       periodStart,
       periodEnd,
+      providerData: { order_id: 'tx-uuid-1', payment_status: 'finished' },
     });
 
     const res = await POST(makeRequest());
@@ -124,7 +163,7 @@ describe('NOWPayments webhook route', () => {
       userId: 'system',
       action: 'subscription.created',
       entityType: 'subscription',
-      entityId: 'cus_np_123',
+      entityId: 'tx-uuid-1',
       metadata: expect.objectContaining({
         orgId: 'org-1',
         planId: 'pro',
@@ -140,6 +179,62 @@ describe('NOWPayments webhook route', () => {
     }));
   });
 
+  it('calls finalizeUsage when discountUsageId is present in providerData', async () => {
+    mockHandleWebhook.mockResolvedValue({
+      type: 'subscription.activated',
+      organizationId: 'org-1',
+      planId: 'pro',
+      status: 'active',
+      providerCustomerId: 'cus_np_123',
+      periodStart: new Date(),
+      periodEnd: new Date(),
+      providerData: { order_id: 'tx-uuid-2', payment_status: 'finished', discountUsageId: 'usage-1' },
+    });
+
+    const res = await POST(makeRequest());
+    expect(res.status).toBe(200);
+    expect(mockFinalizeUsage).toHaveBeenCalledWith('usage-1', 'tx-uuid-2');
+  });
+
+  it('does not call finalizeUsage when discountUsageId is absent', async () => {
+    mockHandleWebhook.mockResolvedValue({
+      type: 'subscription.activated',
+      organizationId: 'org-1',
+      planId: 'pro',
+      status: 'active',
+      providerCustomerId: 'cus_np_123',
+      periodStart: new Date(),
+      periodEnd: new Date(),
+      providerData: { order_id: 'tx-uuid-3', payment_status: 'finished' },
+    });
+
+    const res = await POST(makeRequest());
+    expect(res.status).toBe(200);
+    expect(mockFinalizeUsage).not.toHaveBeenCalled();
+  });
+
+  it('returns duplicate:true for already-processed events (idempotency)', async () => {
+    // Simulate that the event was already processed
+    limitMock.mockResolvedValue([{ id: 'existing-event' }]);
+
+    mockHandleWebhook.mockResolvedValue({
+      type: 'subscription.activated',
+      organizationId: 'org-1',
+      planId: 'pro',
+      status: 'active',
+      providerData: { order_id: 'tx-uuid-dup', payment_status: 'finished' },
+    });
+
+    const res = await POST(makeRequest());
+    expect(res.status).toBe(200);
+
+    const body = await res.json();
+    expect(body.duplicate).toBe(true);
+
+    // Should NOT process the event
+    expect(mockActivateSubscription).not.toHaveBeenCalled();
+  });
+
   it('uses defaults when planId and providerCustomerId are missing on subscription.activated', async () => {
     mockHandleWebhook.mockResolvedValue({
       type: 'subscription.activated',
@@ -147,6 +242,7 @@ describe('NOWPayments webhook route', () => {
       status: 'active',
       periodStart: new Date(),
       periodEnd: new Date(),
+      providerData: { order_id: 'tx-uuid-4', payment_status: 'finished' },
     });
 
     const res = await POST(makeRequest());
@@ -158,7 +254,7 @@ describe('NOWPayments webhook route', () => {
     }));
 
     expect(logAudit).toHaveBeenCalledWith(expect.objectContaining({
-      entityId: 'unknown',
+      entityId: 'tx-uuid-4',
     }));
   });
 
@@ -166,6 +262,7 @@ describe('NOWPayments webhook route', () => {
     mockHandleWebhook.mockResolvedValue({
       type: 'payment.failed',
       organizationId: 'org-3',
+      providerData: { order_id: 'tx-uuid-5', payment_status: 'failed' },
     });
 
     const res = await POST(makeRequest());
@@ -190,6 +287,7 @@ describe('NOWPayments webhook route', () => {
     mockHandleWebhook.mockResolvedValue({
       type: 'payment.refunded',
       organizationId: 'org-4',
+      providerData: { order_id: 'tx-uuid-6', payment_status: 'refunded' },
     });
 
     const res = await POST(makeRequest());
@@ -216,6 +314,7 @@ describe('NOWPayments webhook route', () => {
       // no organizationId
       planId: 'pro',
       status: 'active',
+      providerData: { order_id: 'tx-uuid-7', payment_status: 'finished' },
     });
 
     const res = await POST(makeRequest());
@@ -230,6 +329,7 @@ describe('NOWPayments webhook route', () => {
     mockHandleWebhook.mockResolvedValue({
       type: 'payment.failed',
       // no organizationId
+      providerData: { order_id: 'tx-uuid-8', payment_status: 'failed' },
     });
 
     const res = await POST(makeRequest());
@@ -242,6 +342,7 @@ describe('NOWPayments webhook route', () => {
     mockHandleWebhook.mockResolvedValue({
       type: 'payment.refunded',
       // no organizationId
+      providerData: { order_id: 'tx-uuid-9', payment_status: 'refunded' },
     });
 
     const res = await POST(makeRequest());
@@ -259,6 +360,7 @@ describe('NOWPayments webhook route', () => {
       providerCustomerId: 'cus_np_err',
       periodStart: new Date(),
       periodEnd: new Date(),
+      providerData: { order_id: 'tx-uuid-err', payment_status: 'finished' },
     });
     mockActivateSubscription.mockRejectedValue(new Error('DB connection failed'));
 
@@ -273,6 +375,7 @@ describe('NOWPayments webhook route', () => {
     mockHandleWebhook.mockResolvedValue({
       type: 'some.unknown.event',
       organizationId: 'org-5',
+      providerData: { order_id: 'tx-uuid-unk', payment_status: 'unknown' },
     });
 
     const res = await POST(makeRequest());

@@ -1,6 +1,7 @@
 'use server';
 
 import { auth } from '@/lib/auth';
+import { adminRoutes } from '@/config/routes';
 
 interface ResetResult {
   success: boolean;
@@ -12,7 +13,7 @@ export async function requestReset(email: string): Promise<ResetResult> {
     await auth.api.requestPasswordReset({
       body: {
         email,
-        redirectTo: '/dashboard/reset-password',
+        redirectTo: adminRoutes.resetPassword,
       },
     });
     return { success: true };

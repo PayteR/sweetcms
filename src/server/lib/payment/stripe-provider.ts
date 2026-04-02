@@ -122,7 +122,7 @@ export class StripeProvider implements PaymentProvider {
           providerPriceId: priceId,
           periodStart: firstItem ? new Date(firstItem.current_period_start * 1000) : undefined,
           periodEnd: firstItem ? new Date(firstItem.current_period_end * 1000) : undefined,
-          providerData: baseProviderData,
+          providerData: { ...baseProviderData, ...session.metadata },
         };
       }
 

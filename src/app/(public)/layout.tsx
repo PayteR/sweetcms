@@ -17,6 +17,7 @@ import { UserMenu } from '@/components/public/UserMenu';
 import { getLocale } from '@/lib/locale-server';
 import { localePath } from '@/lib/locale';
 import type { Locale } from '@/lib/constants';
+import { adminRoutes, contentRoutes, apiRoutes } from '@/config/routes';
 
 async function getPublishedCategories(locale: Locale) {
   try {
@@ -70,13 +71,13 @@ async function getMobileNavItems(
 
   // Fallback: Blog + categories
   return [
-    { label: 'Blog', url: localePath('/blog', locale) },
+    { label: 'Blog', url: localePath(contentRoutes.blog, locale) },
     ...categories.map((c) => ({
       label: c.name,
       url: localePath(`/category/${c.slug}`, locale),
     })),
-    { label: 'Portfolio', url: localePath('/portfolio', locale) },
-    { label: 'Search', url: localePath('/search', locale) },
+    { label: 'Portfolio', url: localePath(contentRoutes.portfolio, locale) },
+    { label: 'Search', url: localePath(contentRoutes.search, locale) },
   ];
 }
 
@@ -95,7 +96,7 @@ export default async function PublicLayout({
         rel="alternate"
         type="application/rss+xml"
         title={`${siteConfig.name} — Blog RSS`}
-        href={`/api/feed/blog?lang=${locale}`}
+        href={`${apiRoutes.feedBlog}?lang=${locale}`}
       />
 
       {/* ═══ Header ═══ */}
@@ -111,7 +112,7 @@ export default async function PublicLayout({
               menuSlug="main"
               fallback={
                 <>
-                  <Link href={localePath('/blog', locale)} className="header-link">
+                  <Link href={localePath(contentRoutes.blog, locale)} className="header-link">
                     Blog
                   </Link>
                   {categories.map((cat) => (
@@ -130,7 +131,7 @@ export default async function PublicLayout({
 
           {/* Actions */}
           <div className="header-actions">
-            <Link href={localePath('/search', locale)} className="header-icon-btn" title="Search">
+            <Link href={localePath(contentRoutes.search, locale)} className="header-icon-btn" title="Search">
               <Search className="h-4 w-4" />
             </Link>
             <LanguageSwitcher />
@@ -176,19 +177,19 @@ export default async function PublicLayout({
             {/* Col 3: Quick Links */}
             <div>
               <h4 className="footer-col-title">Quick Links</h4>
-              <Link href={localePath('/blog', locale)} className="footer-link">Blog</Link>
-              <Link href={localePath('/portfolio', locale)} className="footer-link">Portfolio</Link>
-              <Link href={localePath('/search', locale)} className="footer-link">Search</Link>
+              <Link href={localePath(contentRoutes.blog, locale)} className="footer-link">Blog</Link>
+              <Link href={localePath(contentRoutes.portfolio, locale)} className="footer-link">Portfolio</Link>
+              <Link href={localePath(contentRoutes.search, locale)} className="footer-link">Search</Link>
             </div>
 
             {/* Col 4: More */}
             <div>
               <h4 className="footer-col-title">More</h4>
-              <Link href="/api/feed/blog" className="footer-link inline-flex items-center gap-1">
+              <Link href={apiRoutes.feedBlog} className="footer-link inline-flex items-center gap-1">
                 <Rss className="h-3.5 w-3.5" />
                 RSS Feed
               </Link>
-              <Link href="/dashboard" className="footer-link">Admin</Link>
+              <Link href={adminRoutes.home} className="footer-link">Admin</Link>
             </div>
           </div>
 

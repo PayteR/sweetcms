@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 
 import { getContentType } from '@/config/cms';
+import { adminPanel } from '@/config/routes';
 import { trpc } from '@/lib/trpc/client';
 import { slugify } from '@/engine/lib/slug';
 import { useBlankTranslations } from '@/lib/translations';
@@ -154,7 +155,7 @@ export function CategoryForm({ categoryId }: Props) {
       toast.success(__('Category created'));
       utils.categories.list.invalidate();
       utils.categories.counts.invalidate();
-      router.push(`/dashboard/cms/categories/${data.id}`);
+      router.push(adminPanel.cmsItem('categories', data.id));
     },
     onError: (err) => handleSaveError(err, 'Failed to create category'),
   });
@@ -288,7 +289,7 @@ export function CategoryForm({ categoryId }: Props) {
           type="button"
           onClick={() => {
             if (window.history.length > 1) router.back();
-            else router.push('/dashboard/cms/categories');
+            else router.push(adminPanel.cms('categories'));
           }}
           className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
         >
@@ -503,7 +504,7 @@ export function CategoryForm({ categoryId }: Props) {
                           targetLang,
                           autoTranslate,
                         });
-                        router.push(`/dashboard/cms/categories/${result.id}`);
+                        router.push(adminPanel.cmsItem('categories', result.id));
                       }}
                     />
                   ) : (

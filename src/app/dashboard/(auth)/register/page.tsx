@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 import { signUp } from '@/lib/auth-client';
+import { adminRoutes } from '@/config/routes';
 
 const registrationEnabled =
   process.env.NEXT_PUBLIC_ADMIN_REGISTRATION_ENABLED === 'true' ||
@@ -26,7 +27,7 @@ export default function RegisterPage() {
           Admin registration is currently disabled. Contact your administrator for access.
         </p>
         <Link
-          href="/dashboard/login"
+          href={adminRoutes.login}
           className="mt-6 inline-block text-sm font-medium text-(--color-brand-600) hover:text-(--color-brand-500)"
         >
           Back to Sign In
@@ -45,7 +46,7 @@ export default function RegisterPage() {
       if (result.error) {
         setError(result.error.message ?? 'Registration failed');
       } else {
-        router.push('/dashboard');
+        router.push(adminRoutes.home);
       }
     } catch {
       setError('Something went wrong. Please try again.');
@@ -134,7 +135,7 @@ export default function RegisterPage() {
 
       <p className="auth-register-alt-action mt-6 text-center text-sm text-(--text-muted)">
         Already have an account?{' '}
-        <Link href="/dashboard/login" className="font-medium text-(--color-brand-600) hover:text-(--color-brand-500)">
+        <Link href={adminRoutes.login} className="font-medium text-(--color-brand-600) hover:text-(--color-brand-500)">
           Sign in
         </Link>
       </p>

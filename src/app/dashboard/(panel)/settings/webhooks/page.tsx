@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
+import { adminPanel } from '@/config/routes';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 const ALL_EVENTS = [
@@ -104,7 +105,7 @@ export default function WebhooksPage() {
       <div className="webhooks-header flex items-center justify-between">
         <div className="webhooks-header-left flex items-center gap-3">
           <Link
-            href="/dashboard/settings"
+            href={adminPanel.settings}
             className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary)"
           >
             <ArrowLeft className="h-5 w-5" />

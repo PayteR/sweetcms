@@ -20,6 +20,7 @@ import {
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { Role, ROLES } from '@/engine/policy';
+import { adminPanel, apiRoutes } from '@/config/routes';
 import { toast } from '@/store/toast-store';
 import { cn } from '@/lib/utils';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -253,7 +254,7 @@ export default function UsersPage() {
                           )}
                           <div className="users-info">
                             <Link
-                              href={`/dashboard/users/${u.id}`}
+                              href={adminPanel.userDetail(u.id)}
                               className="font-medium text-(--text-primary) hover:text-(--color-brand-600) hover:underline"
                             >
                               {u.name}
@@ -326,7 +327,7 @@ export default function UsersPage() {
                             )}
                           </button>
                           <a
-                            href={`/api/gdpr-export/${u.id}`}
+                            href={apiRoutes.gdprExport(u.id)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"

@@ -14,6 +14,7 @@ import {
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
+import { adminPanel } from '@/config/routes';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 export default function SubmissionsPage() {
@@ -122,7 +123,7 @@ export default function SubmissionsPage() {
       <div className="submissions-header flex items-center justify-between">
         <div className="submissions-header-left flex items-center gap-3">
           <button
-            onClick={() => router.push(`/dashboard/forms/${params.id}`)}
+            onClick={() => router.push(adminPanel.formDetail(params.id))}
             className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-primary)"
           >
             <ArrowLeft className="h-5 w-5" />

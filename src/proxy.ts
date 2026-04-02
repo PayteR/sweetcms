@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { getSessionCookie } from 'better-auth/cookies';
 import { LOCALES, DEFAULT_LOCALE } from '@/lib/constants';
 import type { Locale } from '@/lib/constants';
+import { DASHBOARD_PREFIX, ACCOUNT_PREFIX, PUBLIC_ADMIN_PATHS, adminRoutes, publicAuthRoutes } from '@/config/routes';
 
 /**
  * Next.js 16 Proxy — runs before routes are rendered.
@@ -11,13 +12,6 @@ import type { Locale } from '@/lib/constants';
  * 1. Dashboard auth gating (session cookie check)
  * 2. Locale prefix detection + URL rewriting for i18n
  */
-
-const PUBLIC_DASHBOARD_PATHS = [
-  '/dashboard/login',
-  '/dashboard/register',
-  '/dashboard/forgot-password',
-  '/dashboard/reset-password',
-];
 
 /** Non-default locale codes for prefix matching */
 const NON_DEFAULT_LOCALE_SET: Set<string> = new Set(
@@ -28,24 +22,24 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // ── Dashboard auth gating ──
-  if (pathname.startsWith('/dashboard')) {
-    if (PUBLIC_DASHBOARD_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
+  if (pathname.startsWith(DASHBOARD_PREFIX)) {
+    if (PUBLIC_ADMIN_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'))) {
       return NextResponse.next();
     }
 
     const sessionCookie = getSessionCookie(request);
     if (!sessionCookie) {
-      return NextResponse.redirect(new URL('/dashboard/login', request.url));
+      return NextResponse.redirect(new URL(adminRoutes.login, request.url));
     }
 
     return NextResponse.next();
   }
 
   // ── Customer account auth gating ──
-  if (pathname.startsWith('/account')) {
+  if (pathname.startsWith(ACCOUNT_PREFIX)) {
     const sessionCookie = getSessionCookie(request);
     if (!sessionCookie) {
-      return NextResponse.redirect(new URL(`/login?callbackUrl=${encodeURIComponent(pathname)}`, request.url));
+      return NextResponse.redirect(new URL(`${publicAuthRoutes.login}?callbackUrl=${encodeURIComponent(pathname)}`, request.url));
     }
   }
 

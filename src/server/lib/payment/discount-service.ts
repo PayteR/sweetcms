@@ -123,7 +123,7 @@ export async function applyDiscount(
   code: string,
   userId: string,
   planId: string,
-): Promise<{ usageId: string; discount: DiscountDefinition }> {
+): Promise<{ usageId: string; discountCodeId: string; discount: DiscountDefinition }> {
   const [discountCode] = await db
     .select()
     .from(saasDiscountCodes)
@@ -154,35 +154,43 @@ export async function applyDiscount(
   const discount = resolveDiscount(discountCode, planId);
 
   logger.info('Discount applied', { userId, code, planId });
-  return { usageId: usage!.id, discount };
+  return { usageId: usage!.id, discountCodeId: discountCode.id, discount };
 }
 
 /**
  * Mark a discount usage as finalized (payment completed).
- * Increments the global usage counter.
+ * Atomically increments the global usage counter only if under the cap.
  */
 export async function finalizeUsage(usageId: string, transactionId: string): Promise<void> {
   const [usage] = await db
-    .select({ discountCodeId: saasDiscountUsages.discountCodeId })
+    .select({
+      discountCodeId: saasDiscountUsages.discountCodeId,
+      usedAt: saasDiscountUsages.usedAt,
+    })
     .from(saasDiscountUsages)
     .where(eq(saasDiscountUsages.id, usageId))
     .limit(1);
 
-  if (!usage) return;
+  if (!usage || usage.usedAt) return; // already finalized or not found
 
   await db
     .update(saasDiscountUsages)
     .set({ usedAt: new Date(), transactionId })
     .where(eq(saasDiscountUsages.id, usageId));
 
-  // Increment global counter
+  // Atomic increment: only if current_uses < max_uses (or max_uses is null = unlimited)
   await db
     .update(saasDiscountCodes)
     .set({
       currentUses: sql`${saasDiscountCodes.currentUses} + 1`,
       updatedAt: new Date(),
     })
-    .where(eq(saasDiscountCodes.id, usage.discountCodeId));
+    .where(
+      and(
+        eq(saasDiscountCodes.id, usage.discountCodeId),
+        sql`(${saasDiscountCodes.maxUses} IS NULL OR ${saasDiscountCodes.currentUses} < ${saasDiscountCodes.maxUses})`,
+      )
+    );
 }
 
 /**

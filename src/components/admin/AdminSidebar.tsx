@@ -12,6 +12,7 @@ import { useSidebarStore } from '@/store/sidebar-store';
 import { useThemeStore } from '@/store/theme-store';
 import { usePreferencesStore } from '@/engine/store/preferences-store';
 import { siteConfig } from '@/config/site';
+import { adminRoutes } from '@/config/routes';
 import { navigation, isNavGroup, getActiveSectionId, flatNavItems } from '@/config/admin-nav';
 import type { NavChild } from '@/config/admin-nav';
 import { CommandPalette, useCommandPaletteShortcut } from '@/engine/components/CommandPalette';
@@ -113,7 +114,7 @@ export function AdminSidebar() {
 
   async function handleSignOut() {
     await signOut();
-    router.push('/dashboard/login');
+    router.push(adminRoutes.login);
   }
 
   const userRole = (session?.user as Record<string, unknown> | undefined)?.role as string | undefined;
@@ -266,7 +267,7 @@ export function AdminSidebar() {
     <>
       {/* ── Desktop Rail ── */}
       <aside className="rail hidden xl:flex">
-        <Link href="/dashboard" className="rail-logo">
+        <Link href={adminRoutes.home} className="rail-logo">
           {logoLetter}
         </Link>
         <OrgSwitcher />
@@ -330,7 +331,7 @@ export function AdminSidebar() {
           <div className="fixed inset-y-0 left-0 z-[60] flex xl:hidden">
             {/* Mobile Rail — inline layout instead of reusing .rail (which is position:fixed) */}
             <aside className="mobile-rail">
-              <Link href="/dashboard" onClick={closeSidebar} className="rail-logo">
+              <Link href={adminRoutes.home} onClick={closeSidebar} className="rail-logo">
                 {logoLetter}
               </Link>
               <OrgSwitcher />

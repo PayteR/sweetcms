@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
 import { authClient } from '@/lib/auth-client';
+import { adminRoutes } from '@/config/routes';
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -54,7 +55,7 @@ function ResetPasswordForm() {
           This password reset link is invalid or has expired.
         </p>
         <Link
-          href="/dashboard/forgot-password"
+          href={adminRoutes.forgotPassword}
           className="mt-4 inline-block text-sm font-medium text-(--color-brand-600) hover:text-(--color-brand-500)"
         >
           Request a new reset link
@@ -71,7 +72,7 @@ function ResetPasswordForm() {
           Your password has been reset successfully. You can now sign in with your new password.
         </p>
         <Link
-          href="/dashboard/login"
+          href={adminRoutes.login}
           className="btn btn-primary mt-4 inline-block rounded-md px-4 py-2 text-sm font-medium"
         >
           Sign In

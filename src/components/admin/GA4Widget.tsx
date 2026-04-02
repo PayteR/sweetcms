@@ -4,6 +4,7 @@ import { useState, type ReactNode } from 'react';
 import { BarChart3, Eye, Users, ExternalLink, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
+import { adminPanel } from '@/config/routes';
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { cn } from '@/lib/utils';
@@ -184,7 +185,7 @@ export default function GA4Widget({ dragHandle }: { dragHandle?: ReactNode }) {
             {__('Connect Google Analytics to see page views, sessions, and top pages.')}
           </p>
           <Link
-            href="/dashboard/settings"
+            href={adminPanel.settings}
             className="btn btn-primary mt-2"
           >
             <ExternalLink className="h-4 w-4" />

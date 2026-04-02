@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { DASHBOARD_PREFIX } from '@/config/routes';
 
 type Theme = 'light' | 'dark' | 'system';
 type ResolvedTheme = 'light' | 'dark';
@@ -9,7 +10,7 @@ const PUBLIC_KEY = 'sweetcms-theme-public';
 
 function detectStorageKey(): string {
   if (typeof window === 'undefined') return PUBLIC_KEY;
-  return window.location.pathname.startsWith('/dashboard') ? ADMIN_KEY : PUBLIC_KEY;
+  return window.location.pathname.startsWith(DASHBOARD_PREFIX) ? ADMIN_KEY : PUBLIC_KEY;
 }
 
 function getStoredTheme(key: string): Theme | null {

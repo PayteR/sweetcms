@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import type { PricingPlan } from '@/config/pricing';
+import { publicAuthRoutes } from '@/config/routes';
 
 export function PricingToggle({ plans, cryptoEnabled = false }: { plans: PricingPlan[]; cryptoEnabled?: boolean }) {
   const [yearly, setYearly] = useState(false);
@@ -83,7 +84,7 @@ export function PricingToggle({ plans, cryptoEnabled = false }: { plans: Pricing
               ))}
             </ul>
             <a
-              href={plan.id === 'free' ? '/register' : `/register?plan=${plan.id}`}
+              href={plan.id === 'free' ? publicAuthRoutes.register : `${publicAuthRoutes.register}?plan=${plan.id}`}
               className={cn(
                 'block text-center py-2.5 px-4 rounded-lg font-medium text-sm transition-colors',
                 plan.popular

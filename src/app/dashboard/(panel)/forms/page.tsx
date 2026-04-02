@@ -18,6 +18,7 @@ import {
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
+import { adminPanel } from '@/config/routes';
 import { cn } from '@/lib/utils';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
@@ -71,7 +72,7 @@ export default function FormsPage() {
         <h1 className="text-2xl font-bold text-(--text-primary)">
           {__('Forms')}
         </h1>
-        <Link href="/dashboard/forms/new" className="btn btn-primary">
+        <Link href={adminPanel.formNew} className="btn btn-primary">
           <Plus className="h-4 w-4" />
           {__('New Form')}
         </Link>
@@ -139,7 +140,7 @@ export default function FormsPage() {
                   <tr key={form.id} className="hover:bg-(--surface-secondary)">
                     <td className="td">
                       <Link
-                        href={`/dashboard/forms/${form.id}`}
+                        href={adminPanel.formDetail(form.id)}
                         className="font-medium text-(--text-primary) hover:text-(--color-brand-600)"
                       >
                         {form.name}
@@ -168,7 +169,7 @@ export default function FormsPage() {
                     </td>
                     <td className="td">
                       <Link
-                        href={`/dashboard/forms/${form.id}/submissions`}
+                        href={adminPanel.formSubmissions(form.id)}
                         className="text-sm text-(--color-brand-600) hover:underline"
                       >
                         {form.submissionCount}
@@ -180,7 +181,7 @@ export default function FormsPage() {
                     <td className="td">
                       <div className="forms-row-actions flex items-center justify-end gap-1">
                         <Link
-                          href={`/dashboard/forms/${form.id}`}
+                          href={adminPanel.formDetail(form.id)}
                           className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"
                           title={__('Edit form')}
                         >

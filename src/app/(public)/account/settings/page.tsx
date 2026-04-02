@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useSession } from '@/lib/auth-client';
 import { trpc } from '@/lib/trpc/client';
+import { apiRoutes } from '@/config/routes';
 
 export default function AccountSettingsPage() {
   const { data: session } = useSession();
@@ -58,7 +59,7 @@ export default function AccountSettingsPage() {
           Download your data or permanently delete your account.
         </p>
         <div className="flex gap-3">
-          <a href="/api/gdpr-export" className="py-2 px-4 rounded-lg text-sm border border-(--border-primary) hover:bg-(--surface-secondary) transition-colors">
+          <a href={apiRoutes.gdprExport()} className="py-2 px-4 rounded-lg text-sm border border-(--border-primary) hover:bg-(--surface-secondary) transition-colors">
             Download My Data
           </a>
           <button className="py-2 px-4 rounded-lg text-sm border border-(--color-danger-500) text-(--color-danger-500) hover:bg-(--color-danger-500)/10 transition-colors">

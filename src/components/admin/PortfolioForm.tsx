@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Loader2, X } from 'lucide-react';
 
 import { getContentType } from '@/config/cms';
+import { adminPanel } from '@/config/routes';
 import { trpc } from '@/lib/trpc/client';
 import { slugify } from '@/engine/lib/slug';
 import { useBlankTranslations } from '@/lib/translations';
@@ -160,7 +161,7 @@ export function PortfolioForm({ portfolioId }: Props) {
       toast.success(__('Portfolio item created'));
       utils.portfolio.list.invalidate();
       utils.portfolio.counts.invalidate();
-      router.push(`/dashboard/cms/portfolio/${data.id}`);
+      router.push(adminPanel.cmsItem('portfolio', data.id));
     },
     onError: (err) => handleSaveError(err, 'Failed to create portfolio item'),
   });
@@ -316,7 +317,7 @@ export function PortfolioForm({ portfolioId }: Props) {
           type="button"
           onClick={() => {
             if (window.history.length > 1) router.back();
-            else router.push('/dashboard/cms/portfolio');
+            else router.push(adminPanel.cms('portfolio'));
           }}
           className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
         >
@@ -625,7 +626,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                           targetLang,
                           autoTranslate,
                         });
-                        router.push(`/dashboard/cms/portfolio/${result.id}`);
+                        router.push(adminPanel.cmsItem('portfolio', result.id));
                       }}
                     />
                   ) : (

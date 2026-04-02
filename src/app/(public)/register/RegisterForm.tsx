@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { signUp } from '@/lib/auth-client';
 import { SocialLoginButtons } from '@/components/public/SocialLoginButtons';
+import { accountRoutes, publicAuthRoutes } from '@/config/routes';
 
 export function RegisterForm() {
   const router = useRouter();
@@ -26,7 +27,7 @@ export function RegisterForm() {
       if (result.error) {
         setError(result.error.message ?? 'Registration failed');
       } else {
-        router.push(plan ? `/account?plan=${plan}` : '/account');
+        router.push(plan ? `${accountRoutes.home}?plan=${plan}` : accountRoutes.home);
       }
     } catch {
       setError('Something went wrong. Please try again.');
@@ -37,7 +38,7 @@ export function RegisterForm() {
 
   return (
     <div>
-      <SocialLoginButtons callbackUrl="/account" />
+      <SocialLoginButtons callbackUrl={accountRoutes.home} />
 
       <div className="flex items-center gap-3 my-6">
         <div className="flex-1 border-t border-(--border-primary)" />
@@ -113,7 +114,7 @@ export function RegisterForm() {
 
       <p className="text-center text-sm text-(--text-secondary) mt-6">
         Already have an account?{' '}
-        <Link href="/login" className="text-(--color-brand-500) hover:underline">
+        <Link href={publicAuthRoutes.login} className="text-(--color-brand-500) hover:underline">
           Sign in
         </Link>
       </p>

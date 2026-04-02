@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
+import { adminPanel } from '@/config/routes';
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { ContentStatus, PostType } from '@/engine/types/cms';
@@ -65,9 +66,9 @@ export function ContentCalendar() {
 
   // Resolve admin edit URL
   function getEditUrl(ev: NonNullable<typeof events.data>[number]) {
-    if (ev.contentType === 'category') return `/dashboard/cms/categories/${ev.id}`;
-    const adminSlug = (ev.type != null && POST_TYPE_ADMIN_SLUG[ev.type]) ?? 'blog';
-    return `/dashboard/cms/${adminSlug}/${ev.id}`;
+    if (ev.contentType === 'category') return adminPanel.cmsItem('categories', ev.id);
+    const adminSlug = (ev.type != null && POST_TYPE_ADMIN_SLUG[ev.type]) || 'blog';
+    return adminPanel.cmsItem(adminSlug, ev.id);
   }
 
   const isToday = (day: number) =>

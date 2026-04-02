@@ -16,6 +16,7 @@ import {
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { FileType } from '@/engine/types/cms';
+import { apiRoutes } from '@/config/routes';
 import { toast } from '@/store/toast-store';
 
 interface Props {
@@ -96,7 +97,7 @@ export function PostAttachments({ postId }: Props) {
         const formData = new FormData();
         formData.append('file', file);
 
-        const res = await fetch('/api/upload', {
+        const res = await fetch(apiRoutes.upload, {
           method: 'POST',
           body: formData,
         });

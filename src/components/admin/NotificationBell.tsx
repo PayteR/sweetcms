@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Bell } from 'lucide-react';
+import { adminPanel } from '@/config/routes';
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { cn } from '@/lib/utils';
@@ -117,7 +118,7 @@ export function NotificationBell() {
           </div>
 
           <a
-            href="/dashboard/notifications"
+            href={adminPanel.notifications}
             className="block text-center text-xs text-(--color-brand-500) hover:underline px-4 py-3 border-t border-(--border-primary)"
           >
             {__('View all notifications')}

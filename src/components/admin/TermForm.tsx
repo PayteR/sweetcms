@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
+import { adminPanel } from '@/config/routes';
 import { trpc } from '@/lib/trpc/client';
 import { slugify } from '@/engine/lib/slug';
 import { useBlankTranslations } from '@/lib/translations';
@@ -59,7 +60,7 @@ export function TermForm({ tagId }: Props) {
       toast.success(__('Tag created'));
       utils.tags.list.invalidate();
       utils.tags.counts.invalidate();
-      router.push(`/dashboard/cms/tags/${data.id}`);
+      router.push(adminPanel.cmsItem('tags', data.id));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -110,7 +111,7 @@ export function TermForm({ tagId }: Props) {
       <div className="term-form-header flex items-center justify-between">
         <div className="term-form-header-left flex items-center gap-3">
           <Link
-            href="/dashboard/cms/tags"
+            href={adminPanel.cms('tags')}
             className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
           >
             <ArrowLeft className="h-5 w-5" />

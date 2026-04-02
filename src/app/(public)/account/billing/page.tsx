@@ -1,6 +1,7 @@
 'use client';
 
 import { trpc } from '@/lib/trpc/client';
+import { contentRoutes } from '@/config/routes';
 
 export default function AccountBillingPage() {
   const { data: subscription } = trpc.billing.getSubscription.useQuery();
@@ -24,7 +25,7 @@ export default function AccountBillingPage() {
       </div>
 
       <div className="flex gap-3">
-        <a href="/pricing" className="py-2 px-4 rounded-lg text-sm font-medium bg-(--color-brand-500) text-white hover:bg-(--color-brand-600) transition-colors">
+        <a href={contentRoutes.pricing} className="py-2 px-4 rounded-lg text-sm font-medium bg-(--color-brand-500) text-white hover:bg-(--color-brand-600) transition-colors">
           View Plans
         </a>
         {subscription?.planId !== 'free' && (

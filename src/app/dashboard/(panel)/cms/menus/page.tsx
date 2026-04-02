@@ -7,6 +7,7 @@ import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
+import { adminPanel } from '@/config/routes';
 import { slugify } from '@/engine/lib/slug';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
@@ -110,7 +111,7 @@ export default function MenusPage() {
                   <td className="td">
                     <div className="menus-row-actions flex items-center justify-end gap-1">
                       <Link
-                        href={`/dashboard/cms/menus/${menu.id}`}
+                        href={adminPanel.menuDetail(menu.id)}
                         className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"
                         title={__('Edit')}
                       >

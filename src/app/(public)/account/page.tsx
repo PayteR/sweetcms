@@ -2,6 +2,7 @@ import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import { serverTRPC } from '@/lib/trpc/server';
 import { CreateOrgCard } from '@/components/public/CreateOrgCard';
+import { accountRoutes } from '@/config/routes';
 
 export default async function AccountPage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -43,15 +44,15 @@ export default async function AccountPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <a href="/account/settings" className="account-card rounded-lg border border-(--border-primary) p-4 hover:bg-(--surface-secondary) transition-colors">
+        <a href={accountRoutes.settings} className="account-card rounded-lg border border-(--border-primary) p-4 hover:bg-(--surface-secondary) transition-colors">
           <h3 className="font-medium">Profile Settings</h3>
           <p className="text-sm text-(--text-secondary) mt-1">Update your name and profile information.</p>
         </a>
-        <a href="/account/security" className="account-card rounded-lg border border-(--border-primary) p-4 hover:bg-(--surface-secondary) transition-colors">
+        <a href={accountRoutes.security} className="account-card rounded-lg border border-(--border-primary) p-4 hover:bg-(--surface-secondary) transition-colors">
           <h3 className="font-medium">Security</h3>
           <p className="text-sm text-(--text-secondary) mt-1">Change your password and manage sessions.</p>
         </a>
-        <a href="/account/billing" className="account-card rounded-lg border border-(--border-primary) p-4 hover:bg-(--surface-secondary) transition-colors">
+        <a href={accountRoutes.billing} className="account-card rounded-lg border border-(--border-primary) p-4 hover:bg-(--surface-secondary) transition-colors">
           <h3 className="font-medium">Billing</h3>
           <p className="text-sm text-(--text-secondary) mt-1">Manage your subscription and payment methods.</p>
         </a>

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import { AccountSidebar } from '@/components/public/AccountSidebar';
+import { publicAuthRoutes, accountRoutes } from '@/config/routes';
 
 export default async function AccountLayout({ children }: { children: React.ReactNode }) {
   const session = await auth.api.getSession({
@@ -9,7 +10,7 @@ export default async function AccountLayout({ children }: { children: React.Reac
   });
 
   if (!session?.user) {
-    redirect('/login?callbackUrl=/account');
+    redirect(`${publicAuthRoutes.login}?callbackUrl=${accountRoutes.home}`);
   }
 
   return (

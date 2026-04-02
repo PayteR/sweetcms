@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { authClient } from '@/lib/auth-client';
+import { publicAuthRoutes } from '@/config/routes';
 
 export function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -19,7 +20,7 @@ export function ResetPasswordForm() {
     return (
       <div className="text-center">
         <p className="text-sm text-(--color-danger-500)">Invalid or missing reset token.</p>
-        <Link href="/forgot-password" className="inline-block mt-4 text-sm text-(--color-brand-500) hover:underline">
+        <Link href={publicAuthRoutes.forgotPassword} className="inline-block mt-4 text-sm text-(--color-brand-500) hover:underline">
           Request a new link
         </Link>
       </div>
@@ -30,7 +31,7 @@ export function ResetPasswordForm() {
     return (
       <div className="text-center">
         <p className="text-sm text-(--text-secondary)">Your password has been reset successfully!</p>
-        <Link href="/login" className="inline-block mt-4 text-sm text-(--color-brand-500) hover:underline">
+        <Link href={publicAuthRoutes.login} className="inline-block mt-4 text-sm text-(--color-brand-500) hover:underline">
           Sign in with your new password
         </Link>
       </div>

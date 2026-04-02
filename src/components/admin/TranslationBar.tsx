@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Copy, Languages, Loader2, Plus } from 'lucide-react';
 
 import { type Locale, LOCALES, LOCALE_LABELS } from '@/lib/constants';
+import { adminPanel } from '@/config/routes';
 import { useBlankTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
 import { cn } from '@/lib/utils';
@@ -78,7 +79,7 @@ export function TranslationBar({
         {translations.map((t) => (
           <Link
             key={t.lang}
-            href={`/dashboard/cms/${adminSlug}/${t.id}`}
+            href={adminPanel.cmsItem(adminSlug, t.id)}
             className="rounded-md border border-(--border-primary) px-3 py-1 text-sm text-(--text-secondary) transition-colors hover:border-(--color-brand-500) hover:text-(--text-primary)"
           >
             {LOCALE_LABELS[t.lang as Locale] ?? t.lang}
