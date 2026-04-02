@@ -6,6 +6,10 @@ import { useRouter } from 'next/navigation';
 
 import { signIn } from '@/lib/auth-client';
 
+const registrationEnabled =
+  process.env.NEXT_PUBLIC_ADMIN_REGISTRATION_ENABLED === 'true' ||
+  process.env.NEXT_PUBLIC_ADMIN_REGISTRATION_ENABLED === '1';
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
@@ -98,17 +102,19 @@ export default function LoginPage() {
       </form>
 
       <div className="auth-login-forgot-link mt-4 text-center">
-        <Link href="/forgot-password" className="text-sm text-(--text-muted) hover:text-(--color-brand-600)">
+        <Link href="/dashboard/forgot-password" className="text-sm text-(--text-muted) hover:text-(--color-brand-600)">
           Forgot your password?
         </Link>
       </div>
 
-      <p className="auth-login-alt-action mt-4 text-center text-sm text-(--text-muted)">
-        Don&apos;t have an account?{' '}
-        <Link href="/register" className="font-medium text-(--color-brand-600) hover:text-(--color-brand-500)">
-          Sign up
-        </Link>
-      </p>
+      {registrationEnabled && (
+        <p className="auth-login-alt-action mt-4 text-center text-sm text-(--text-muted)">
+          Don&apos;t have an account?{' '}
+          <Link href="/dashboard/register" className="font-medium text-(--color-brand-600) hover:text-(--color-brand-500)">
+            Sign up
+          </Link>
+        </p>
+      )}
     </div>
   );
 }

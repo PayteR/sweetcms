@@ -6,12 +6,14 @@
 export type PreferenceKey =
   | 'dashboard.widgetOrder'
   | 'dashboard.hiddenWidgets'
+  | 'theme.admin'
   | `listView.columns.${string}`;
 
 /** Value types mapped per preference key */
 export type PreferenceValueMap = {
   'dashboard.widgetOrder': string[];
   'dashboard.hiddenWidgets': string[];
+  'theme.admin': string;
   [key: `listView.columns.${string}`]: string[];
 };
 

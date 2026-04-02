@@ -3,7 +3,21 @@ import { create } from 'zustand';
 type Theme = 'light' | 'dark' | 'system';
 type ResolvedTheme = 'light' | 'dark';
 
-const STORAGE_KEY = 'sweetcms-theme';
+const LEGACY_KEY = 'sweetcms-theme';
+const ADMIN_KEY = 'sweetcms-theme-admin';
+const PUBLIC_KEY = 'sweetcms-theme-public';
+
+function detectStorageKey(): string {
+  if (typeof window === 'undefined') return PUBLIC_KEY;
+  return window.location.pathname.startsWith('/dashboard') ? ADMIN_KEY : PUBLIC_KEY;
+}
+
+function getStoredTheme(key: string): Theme | null {
+  const val = localStorage.getItem(key) as Theme | null;
+  if (val) return val;
+  // Migration: fallback to legacy key
+  return localStorage.getItem(LEGACY_KEY) as Theme | null;
+}
 
 function getSystemTheme(): ResolvedTheme {
   if (typeof window === 'undefined') return 'light';
@@ -32,7 +46,8 @@ export const useThemeStore = create<ThemeStore>((set, get) => ({
   resolvedTheme: 'light',
 
   setTheme(t: Theme) {
-    localStorage.setItem(STORAGE_KEY, t);
+    const key = detectStorageKey();
+    localStorage.setItem(key, t);
     const resolved: ResolvedTheme =
       t === 'system' ? getSystemTheme() : t;
     applyTheme(resolved);
@@ -40,7 +55,8 @@ export const useThemeStore = create<ThemeStore>((set, get) => ({
   },
 
   initTheme() {
-    const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
+    const key = detectStorageKey();
+    const stored = getStoredTheme(key);
     const theme: Theme = stored ?? 'light';
     const resolved: ResolvedTheme =
       theme === 'system' ? getSystemTheme() : theme;

@@ -1,20 +1,15 @@
-import { AdminSidebar } from '@/components/admin/AdminSidebar';
-import { DashboardShell } from '@/components/admin/DashboardShell';
-import { PreferencesHydrator } from '@/components/admin/PreferencesHydrator';
-import { Toaster } from '@/components/ui/Toaster';
+import type { Metadata } from 'next';
+
 import './assets/admin.css';
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+};
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <>
-      <AdminSidebar />
-      <PreferencesHydrator />
-      <DashboardShell>{children}</DashboardShell>
-      <Toaster />
-    </>
-  );
+  return children;
 }

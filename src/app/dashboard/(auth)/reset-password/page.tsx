@@ -54,7 +54,7 @@ function ResetPasswordForm() {
           This password reset link is invalid or has expired.
         </p>
         <Link
-          href="/forgot-password"
+          href="/dashboard/forgot-password"
           className="mt-4 inline-block text-sm font-medium text-(--color-brand-600) hover:text-(--color-brand-500)"
         >
           Request a new reset link
@@ -71,7 +71,7 @@ function ResetPasswordForm() {
           Your password has been reset successfully. You can now sign in with your new password.
         </p>
         <Link
-          href="/login"
+          href="/dashboard/login"
           className="btn btn-primary mt-4 inline-block rounded-md px-4 py-2 text-sm font-medium"
         >
           Sign In

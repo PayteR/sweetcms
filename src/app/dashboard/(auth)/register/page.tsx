@@ -6,6 +6,10 @@ import { useRouter } from 'next/navigation';
 
 import { signUp } from '@/lib/auth-client';
 
+const registrationEnabled =
+  process.env.NEXT_PUBLIC_ADMIN_REGISTRATION_ENABLED === 'true' ||
+  process.env.NEXT_PUBLIC_ADMIN_REGISTRATION_ENABLED === '1';
+
 export default function RegisterPage() {
   const router = useRouter();
   const [name, setName] = useState('');
@@ -13,6 +17,23 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  if (!registrationEnabled) {
+    return (
+      <div className="auth-register-card rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm">
+        <h1 className="text-2xl font-bold text-(--text-primary)">Registration Disabled</h1>
+        <p className="mt-3 text-sm text-(--text-secondary)">
+          Admin registration is currently disabled. Contact your administrator for access.
+        </p>
+        <Link
+          href="/dashboard/login"
+          className="mt-6 inline-block text-sm font-medium text-(--color-brand-600) hover:text-(--color-brand-500)"
+        >
+          Back to Sign In
+        </Link>
+      </div>
+    );
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -113,7 +134,7 @@ export default function RegisterPage() {
 
       <p className="auth-register-alt-action mt-6 text-center text-sm text-(--text-muted)">
         Already have an account?{' '}
-        <Link href="/login" className="font-medium text-(--color-brand-600) hover:text-(--color-brand-500)">
+        <Link href="/dashboard/login" className="font-medium text-(--color-brand-600) hover:text-(--color-brand-500)">
           Sign in
         </Link>
       </p>

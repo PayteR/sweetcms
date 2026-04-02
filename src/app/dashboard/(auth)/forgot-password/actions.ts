@@ -12,7 +12,7 @@ export async function requestReset(email: string): Promise<ResetResult> {
     await auth.api.requestPasswordReset({
       body: {
         email,
-        redirectTo: '/reset-password',
+        redirectTo: '/dashboard/reset-password',
       },
     });
     return { success: true };

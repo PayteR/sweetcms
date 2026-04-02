@@ -1,7 +1,4 @@
-import '@/engine/styles/tokens-public.css';
-import '@/engine/styles/content.css';
-
-export default function AuthLayout({
+export default function DashboardAuthLayout({
   children,
 }: {
   children: React.ReactNode;

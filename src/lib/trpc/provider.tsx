@@ -23,7 +23,7 @@ function handleAuthError(error: unknown) {
   if (typeof window === 'undefined') return;
   const trpcError = error as { data?: { code?: string } } | undefined;
   if (trpcError?.data?.code === 'UNAUTHORIZED') {
-    window.location.href = '/login';
+    window.location.href = '/dashboard/login';
   }
 }
 

@@ -46,6 +46,9 @@ const envSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.url(),
   NEXT_PUBLIC_SITE_NAME: z.string().min(1).default('SweetCMS'),
 
+  // Admin registration
+  NEXT_PUBLIC_ADMIN_REGISTRATION_ENABLED: z.coerce.boolean().default(false),
+
   // Server role
   SERVER_ROLE: z.enum(['all', 'frontend', 'api', 'worker']).default('all'),
   PORT: z.string().regex(/^\d+$/).default('3000'),

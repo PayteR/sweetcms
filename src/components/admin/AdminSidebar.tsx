@@ -10,6 +10,7 @@ import { useBlankTranslations } from '@/lib/translations';
 import { signOut, useSession } from '@/lib/auth-client';
 import { useSidebarStore } from '@/store/sidebar-store';
 import { useThemeStore } from '@/store/theme-store';
+import { usePreferencesStore } from '@/engine/store/preferences-store';
 import { siteConfig } from '@/config/site';
 import { navigation, isNavGroup, getActiveSectionId, flatNavItems } from '@/config/admin-nav';
 import type { NavChild } from '@/config/admin-nav';
@@ -99,16 +100,18 @@ export function AdminSidebar() {
   );
   const hasLevel2 = activeItem && isNavGroup(activeItem);
 
-  // Theme cycling
+  // Theme cycling — persist to DB for cross-device sync
+  const preferencesSet = usePreferencesStore((s) => s.set);
   function cycleTheme() {
     const idx = themeOrder.indexOf(theme);
     const next = themeOrder[(idx + 1) % themeOrder.length];
     setTheme(next);
+    preferencesSet('theme.admin', next);
   }
 
   async function handleSignOut() {
     await signOut();
-    router.push('/login');
+    router.push('/dashboard/login');
   }
 
   const userRole = (session?.user as Record<string, unknown> | undefined)?.role as string | undefined;

@@ -10,6 +10,22 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+
+  // Redirect old auth URLs to new dashboard auth paths
+  async redirects() {
+    return [
+      {
+        source: '/forgot-password',
+        destination: '/dashboard/forgot-password',
+        permanent: true,
+      },
+      {
+        source: '/reset-password',
+        destination: '/dashboard/reset-password',
+        permanent: true,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

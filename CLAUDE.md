@@ -128,10 +128,11 @@ WordPress-style universal taxonomy with config-driven declarations.
 ```
 src/
 ├── app/
-│   ├── (auth)/           — login, register, forgot-password, reset-password
 │   ├── (public)/         — public-facing content
 │   │   ├── blog/         — blog list page
+│   │   ├── login/        — customer login placeholder
 │   │   ├── portfolio/    — portfolio list page
+│   │   ├── register/     — customer registration placeholder
 │   │   ├── search/       — content search page
 │   │   └── [...slug]/    — catch-all CMS route (pages, posts, categories, tags, portfolio)
 │   ├── api/
@@ -144,16 +145,24 @@ src/
 │   │   ├── uploads/      — file serving (static uploads)
 │   │   └── v1/           — REST API v1 (posts, categories, tags, menus)
 │   ├── dashboard/        — admin panel
-│   │   ├── cms/
-│   │   │   ├── [section]/ — CMS list/edit pages (pages, blog, categories, tags, landing pages)
-│   │   │   ├── activity/  — audit activity log
-│   │   │   ├── calendar/  — content calendar view
-│   │   │   ├── menus/     — menu management
-│   │   │   └── redirects/ — slug redirect management
-│   │   ├── forms/        — form builder & submissions
-│   │   ├── media/        — media library
-│   │   ├── settings/     — site settings, custom-fields, email-templates, import, job-queue, webhooks
-│   │   └── users/        — user management
+│   │   ├── (auth)/       — admin auth (no sidebar)
+│   │   │   ├── login/
+│   │   │   ├── register/
+│   │   │   ├── forgot-password/
+│   │   │   └── reset-password/
+│   │   ├── (panel)/      — admin panel (sidebar + shell)
+│   │   │   ├── cms/
+│   │   │   │   ├── [section]/ — CMS list/edit pages
+│   │   │   │   ├── activity/  — audit activity log
+│   │   │   │   ├── calendar/  — content calendar view
+│   │   │   │   ├── menus/     — menu management
+│   │   │   │   └── redirects/ — slug redirect management
+│   │   │   ├── forms/        — form builder & submissions
+│   │   │   ├── media/        — media library
+│   │   │   ├── settings/     — site settings, custom-fields, email-templates, import, job-queue, webhooks
+│   │   │   └── users/        — user management
+│   │   └── assets/       — admin CSS
+│   ├── robots.ts         — robots.txt (disallows /dashboard/)
 │   └── sitemap.ts        — dynamic sitemap generation
 ├── components/
 │   ├── admin/            — PostForm, CategoryForm, PortfolioForm, TermForm, CmsListView, AdminSidebar, DashboardShell, StatCard, RecentActivity, GA4Widget, TranslationBar, shortcodes/
@@ -347,12 +356,18 @@ Many-to-many via `cms_term_relationships` (polymorphic). CMS router `create`/`up
 
 PostForm includes: category checkbox selector + tag autocomplete input (`TagInput`) in sidebar. Tags support create-on-enter via `tags.getOrCreate` mutation.
 
-### Auth Pages
+### Auth Pages (Admin)
 
-- `/login` — email/password sign in with "Forgot password?" link
-- `/register` — sign up with name, email, password
-- `/forgot-password` — request password reset (server action → `auth.api.requestPasswordReset`)
-- `/reset-password?token=...` — set new password via `authClient.resetPassword`
+Admin auth lives under `/dashboard/` (no sidebar, centered card layout):
+
+- `/dashboard/login` — email/password sign in with "Forgot password?" link
+- `/dashboard/register` — sign up (gated by `NEXT_PUBLIC_ADMIN_REGISTRATION_ENABLED`, default: `false`)
+- `/dashboard/forgot-password` — request password reset (server action → `auth.api.requestPasswordReset`)
+- `/dashboard/reset-password?token=...` — set new password via `authClient.resetPassword`
+
+Customer-facing `/login` and `/register` are placeholder pages. Old `/forgot-password` and `/reset-password` permanently redirect to dashboard equivalents.
+
+Proxy (`src/proxy.ts`) allows dashboard auth paths without session cookie; all other `/dashboard/*` paths redirect to `/dashboard/login`.
 
 ### Email System
 
