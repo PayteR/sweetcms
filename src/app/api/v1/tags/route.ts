@@ -24,60 +24,67 @@ export async function GET(request: Request) {
     );
   }
 
-  const url = new URL(request.url);
-  const page = Math.max(
-    1,
-    parseInt(url.searchParams.get('page') ?? '1', 10)
-  );
-  const pageSize = Math.min(
-    100,
-    Math.max(1, parseInt(url.searchParams.get('pageSize') ?? '20', 10))
-  );
-  const lang = url.searchParams.get('lang') ?? undefined;
-  const taxonomyId = url.searchParams.get('taxonomyId') ?? undefined;
-  const offset = (page - 1) * pageSize;
+  try {
+    const url = new URL(request.url);
+    const page = Math.max(
+      1,
+      parseInt(url.searchParams.get('page') ?? '1', 10)
+    );
+    const pageSize = Math.min(
+      100,
+      Math.max(1, parseInt(url.searchParams.get('pageSize') ?? '20', 10))
+    );
+    const lang = url.searchParams.get('lang') ?? undefined;
+    const taxonomyId = url.searchParams.get('taxonomyId') ?? undefined;
+    const offset = (page - 1) * pageSize;
 
-  const conditions = [
-    eq(cmsTerms.status, ContentStatus.PUBLISHED),
-    isNull(cmsTerms.deletedAt),
-  ];
-  if (lang) conditions.push(eq(cmsTerms.lang, lang));
-  if (taxonomyId) conditions.push(eq(cmsTerms.taxonomyId, taxonomyId));
+    const conditions = [
+      eq(cmsTerms.status, ContentStatus.PUBLISHED),
+      isNull(cmsTerms.deletedAt),
+    ];
+    if (lang) conditions.push(eq(cmsTerms.lang, lang));
+    if (taxonomyId) conditions.push(eq(cmsTerms.taxonomyId, taxonomyId));
 
-  const where = and(...conditions);
+    const where = and(...conditions);
 
-  const [tags, countResult] = await Promise.all([
-    db
-      .select({
-        id: cmsTerms.id,
-        taxonomyId: cmsTerms.taxonomyId,
-        name: cmsTerms.name,
-        slug: cmsTerms.slug,
-        lang: cmsTerms.lang,
-        order: cmsTerms.order,
-        createdAt: cmsTerms.createdAt,
-        updatedAt: cmsTerms.updatedAt,
-      })
-      .from(cmsTerms)
-      .where(where)
-      .orderBy(asc(cmsTerms.order))
-      .limit(pageSize)
-      .offset(offset),
-    db.select({ count: drizzleCount() }).from(cmsTerms).where(where),
-  ]);
+    const [tags, countResult] = await Promise.all([
+      db
+        .select({
+          id: cmsTerms.id,
+          taxonomyId: cmsTerms.taxonomyId,
+          name: cmsTerms.name,
+          slug: cmsTerms.slug,
+          lang: cmsTerms.lang,
+          order: cmsTerms.order,
+          createdAt: cmsTerms.createdAt,
+          updatedAt: cmsTerms.updatedAt,
+        })
+        .from(cmsTerms)
+        .where(where)
+        .orderBy(asc(cmsTerms.order))
+        .limit(pageSize)
+        .offset(offset),
+      db.select({ count: drizzleCount() }).from(cmsTerms).where(where),
+    ]);
 
-  const total = countResult[0]?.count ?? 0;
+    const total = countResult[0]?.count ?? 0;
 
-  return NextResponse.json(
-    {
-      data: tags,
-      meta: {
-        total,
-        page,
-        pageSize,
-        totalPages: Math.ceil(total / pageSize),
+    return NextResponse.json(
+      {
+        data: tags,
+        meta: {
+          total,
+          page,
+          pageSize,
+          totalPages: Math.ceil(total / pageSize),
+        },
       },
-    },
-    { headers: apiHeaders() }
-  );
+      { headers: apiHeaders() }
+    );
+  } catch {
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500, headers: apiHeaders() }
+    );
+  }
 }

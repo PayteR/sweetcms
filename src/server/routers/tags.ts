@@ -19,6 +19,7 @@ import {
   resolveTagsForPosts,
 } from '@/engine/crud/taxonomy-helpers';
 import { slugify } from '@/engine/lib/slug';
+import { logAudit } from '@/engine/lib/audit';
 import {
   createTRPCRouter,
   publicProcedure,
@@ -174,6 +175,15 @@ export const tagsRouter = createTRPCRouter({
         })
         .returning();
 
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id,
+        action: 'tag.create',
+        entityType: 'tag',
+        entityId: tag!.id,
+        entityTitle: input.name,
+      });
+
       return tag!;
     }),
 
@@ -229,6 +239,15 @@ export const tagsRouter = createTRPCRouter({
         .set({ ...updates, updatedAt: new Date() })
         .where(eq(cmsTerms.id, id));
 
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id,
+        action: 'tag.update',
+        entityType: 'tag',
+        entityId: id,
+        entityTitle: existing.name,
+      });
+
       return { success: true };
     }),
 
@@ -237,6 +256,13 @@ export const tagsRouter = createTRPCRouter({
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       await softDelete(ctx.db, crudCols, input.id);
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id,
+        action: 'tag.delete',
+        entityType: 'tag',
+        entityId: input.id,
+      });
       return { success: true };
     }),
 
@@ -245,6 +271,13 @@ export const tagsRouter = createTRPCRouter({
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       await softRestore(ctx.db, crudCols, input.id);
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id,
+        action: 'tag.restore',
+        entityType: 'tag',
+        entityId: input.id,
+      });
       return { success: true };
     }),
 
@@ -254,6 +287,13 @@ export const tagsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       await permanentDelete(ctx.db, crudCols, input.id, 'tag', async (tx) => {
         await deleteTermRelationshipsByTerm(tx, input.id, TAXONOMY_ID);
+      });
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id,
+        action: 'tag.permanentDelete',
+        entityType: 'tag',
+        entityId: input.id,
       });
       return { success: true };
     }),
@@ -502,6 +542,14 @@ export const tagsRouter = createTRPCRouter({
             isNull(cmsTerms.deletedAt)
           )
         );
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id,
+        action: 'tag.bulkDelete',
+        entityType: 'tag',
+        entityId: 'bulk',
+        metadata: { ids: input.ids },
+      });
       return { count: input.ids.length };
     }),
 
@@ -515,6 +563,14 @@ export const tagsRouter = createTRPCRouter({
           await deleteTermRelationshipsByTerm(tx, id, TAXONOMY_ID);
         });
       }
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id,
+        action: 'tag.bulkPermanentDelete',
+        entityType: 'tag',
+        entityId: 'bulk',
+        metadata: { ids: input.ids },
+      });
       return { count: input.ids.length };
     }),
 
@@ -547,6 +603,15 @@ export const tagsRouter = createTRPCRouter({
         .set({ status: input.status, updatedAt: new Date() })
         .where(eq(cmsTerms.id, input.id));
 
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id,
+        action: 'tag.updateStatus',
+        entityType: 'tag',
+        entityId: input.id,
+        metadata: { status: input.status },
+      });
+
       return { success: true };
     }),
 
@@ -564,6 +629,14 @@ export const tagsRouter = createTRPCRouter({
             eq(cmsTerms.taxonomyId, TAXONOMY_ID)
           )
         );
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id,
+        action: 'tag.bulkPublish',
+        entityType: 'tag',
+        entityId: 'bulk',
+        metadata: { ids: input.ids },
+      });
       return { count: input.ids.length };
     }),
 

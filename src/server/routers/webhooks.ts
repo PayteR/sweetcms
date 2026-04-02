@@ -4,6 +4,7 @@ import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { cmsWebhooks } from '@/server/db/schema';
+import { logAudit } from '@/engine/lib/audit';
 import { createTRPCRouter, sectionProcedure } from '../trpc';
 
 const settingsProcedure = sectionProcedure('settings');
@@ -58,6 +59,15 @@ export const webhooksRouter = createTRPCRouter({
         })
         .returning();
 
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id,
+        action: 'webhook.create',
+        entityType: 'webhook',
+        entityId: hook!.id,
+        entityTitle: input.name,
+      });
+
       return hook!;
     }),
 
@@ -90,6 +100,14 @@ export const webhooksRouter = createTRPCRouter({
         .set({ ...updates, updatedAt: new Date() })
         .where(eq(cmsWebhooks.id, id));
 
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id,
+        action: 'webhook.update',
+        entityType: 'webhook',
+        entityId: id,
+      });
+
       return { success: true };
     }),
 
@@ -108,6 +126,15 @@ export const webhooksRouter = createTRPCRouter({
       }
 
       await ctx.db.delete(cmsWebhooks).where(eq(cmsWebhooks.id, input.id));
+
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id,
+        action: 'webhook.delete',
+        entityType: 'webhook',
+        entityId: input.id,
+      });
+
       return { success: true };
     }),
 

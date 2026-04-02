@@ -4,7 +4,7 @@ import { z } from 'zod';
 import crypto from 'crypto';
 
 import { env } from '@/lib/env';
-import { createLogger } from '@/lib/logger';
+import { createLogger } from '@/engine/lib/logger';
 import { cmsCategories } from '@/server/db/schema';
 import { createFieldTranslator } from '@/server/translation/translate-fields';
 import { ContentStatus } from '@/engine/types/cms';
@@ -146,7 +146,7 @@ export const categoriesRouter = createTRPCRouter({
         publishedAt: z.string().datetime().optional(),
         translationGroup: z.string().uuid().optional(),
         fallbackToDefault: z.boolean().optional(),
-        jsonLd: z.string().optional(),
+        jsonLd: z.string().max(10000).optional(),
         tagIds: z.array(z.string().uuid()).max(50).optional(),
       })
     )
@@ -490,7 +490,7 @@ export const categoriesRouter = createTRPCRouter({
         publishedAt: z.string().datetime().optional().nullable(),
         translationGroup: z.string().uuid().optional().nullable(),
         fallbackToDefault: z.boolean().optional().nullable(),
-        jsonLd: z.string().optional().nullable(),
+        jsonLd: z.string().max(10000).optional().nullable(),
         tagIds: z.array(z.string().uuid()).max(50).optional(),
       })
     )

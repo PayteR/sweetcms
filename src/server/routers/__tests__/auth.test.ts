@@ -18,6 +18,10 @@ vi.mock('@/server/middleware/rate-limit', () => ({
   applyRateLimit: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock('@/engine/lib/audit', () => ({
+  logAudit: vi.fn(),
+}));
+
 vi.mock('@/engine/policy', () => ({
   Policy: {
     for: vi.fn().mockReturnValue({

@@ -6,6 +6,7 @@ import { user, session, cmsUserPreferences } from '@/server/db/schema';
 import { ROLES, Role, isSuperAdmin } from '@/engine/policy';
 import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
 import { anonymizeUser } from '@/server/utils/gdpr';
+import { logAudit } from '@/engine/lib/audit';
 import { createTRPCRouter, protectedProcedure, sectionProcedure, superadminProcedure } from '../trpc';
 
 const usersProcedure = sectionProcedure('users');
@@ -119,6 +120,15 @@ export const usersRouter = createTRPCRouter({
         .set({ role: input.role, updatedAt: new Date() })
         .where(eq(user.id, input.id));
 
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id,
+        action: 'user.updateRole',
+        entityType: 'user',
+        entityId: input.id,
+        metadata: { from: target.role, to: input.role },
+      });
+
       return { success: true };
     }),
 
@@ -157,6 +167,15 @@ export const usersRouter = createTRPCRouter({
         })
         .where(eq(user.id, input.id));
 
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id,
+        action: 'user.ban',
+        entityType: 'user',
+        entityId: input.id,
+        metadata: { reason: input.reason },
+      });
+
       return { success: true };
     }),
 
@@ -173,6 +192,14 @@ export const usersRouter = createTRPCRouter({
           updatedAt: new Date(),
         })
         .where(eq(user.id, input.id));
+
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id,
+        action: 'user.unban',
+        entityType: 'user',
+        entityId: input.id,
+      });
 
       return { success: true };
     }),
@@ -236,6 +263,15 @@ export const usersRouter = createTRPCRouter({
         .update(user)
         .set(updates)
         .where(eq(user.id, input.id));
+
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id,
+        action: 'user.update',
+        entityType: 'user',
+        entityId: input.id,
+        metadata: { fields: Object.keys(updates).filter((k) => k !== 'updatedAt') },
+      });
 
       return { success: true };
     }),

@@ -4,6 +4,7 @@ import { eq, and, ne } from 'drizzle-orm';
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '../trpc';
 import { auth } from '@/lib/auth';
 import { user, session, account } from '@/server/db/schema/auth';
+import { logAudit } from '@/engine/lib/audit';
 
 export const authRouter = createTRPCRouter({
   getSession: publicProcedure.query(({ ctx }) => {
@@ -90,6 +91,14 @@ export const authRouter = createTRPCRouter({
         updatedAt: new Date(),
       })
       .where(eq(user.id, userId));
+
+    logAudit({
+      db: ctx.db,
+      userId,
+      action: 'auth.deleteAccount',
+      entityType: 'user',
+      entityId: userId,
+    });
 
     return { success: true };
   }),

@@ -1,11 +1,6 @@
-export interface OptionDefinition {
-  key: string;
-  label: string;
-  description?: string;
-  group: string;
-  type: 'text' | 'url' | 'number' | 'boolean' | 'textarea' | 'json';
-  defaultValue: string | number | boolean;
-}
+import type { OptionDefinition } from '@/engine/config/options';
+
+export type { OptionDefinition } from '@/engine/config/options';
 
 export const GROUP_LABELS: Record<string, string> = {
   general: 'General',

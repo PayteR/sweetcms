@@ -7,6 +7,7 @@ import { getStorage } from '@/server/storage';
 import { slugifyFilename } from '@/engine/lib/slug';
 import { FileType } from '@/engine/types/cms';
 import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
+import { logAudit } from '@/engine/lib/audit';
 import {
   createTRPCRouter,
   publicProcedure,
@@ -120,6 +121,15 @@ export const mediaRouter = createTRPCRouter({
         })
         .returning();
 
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id,
+        action: 'media.upload',
+        entityType: 'media',
+        entityId: media!.id,
+        entityTitle: safeFilename,
+      });
+
       return media!;
     }),
 
@@ -146,6 +156,15 @@ export const mediaRouter = createTRPCRouter({
         .update(cmsMedia)
         .set({ deletedAt: new Date() })
         .where(eq(cmsMedia.id, input.id));
+
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id,
+        action: 'media.delete',
+        entityType: 'media',
+        entityId: input.id,
+        entityTitle: existing.filename,
+      });
 
       return { success: true };
     }),

@@ -12,7 +12,7 @@ import { useBlankTranslations } from '@/lib/translations';
 import { ContentStatus, PostType } from '@/engine/types/cms';
 import { toast } from '@/store/toast-store';
 import { DEFAULT_LOCALE, LOCALES, LOCALE_LABELS } from '@/lib/constants';
-import { convertUTCToLocal, convertLocalToUTC } from '@/lib/datetime';
+import { convertUTCToLocal, convertLocalToUTC } from '@/engine/lib/datetime';
 import { useCmsFormState } from '@/engine/hooks/useCmsFormState';
 import { useLinkPicker } from '@/engine/hooks/useLinkPicker';
 import { useLinkValidation } from '@/engine/hooks/useLinkValidation';

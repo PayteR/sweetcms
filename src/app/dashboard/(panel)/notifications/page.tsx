@@ -3,7 +3,7 @@
 import { useBlankTranslations } from '@/lib/translations';
 import { trpc } from '@/lib/trpc/client';
 import { cn } from '@/lib/utils';
-import { formatRelativeTime } from '@/lib/datetime';
+import { formatRelativeTime } from '@/engine/lib/datetime';
 import { Bell, Check, Trash2 } from 'lucide-react';
 
 export default function NotificationsPage() {

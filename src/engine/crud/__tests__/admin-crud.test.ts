@@ -83,7 +83,7 @@ function makeDb() {
     },
   };
 
-  const transactionMock = vi.fn().mockImplementation(async (fn: (tx: typeof tx) => Promise<void>) => {
+  const transactionMock = vi.fn().mockImplementation(async (fn: (tx: unknown) => Promise<void>) => {
     await fn(tx);
   });
 

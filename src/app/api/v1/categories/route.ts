@@ -24,66 +24,73 @@ export async function GET(request: Request) {
     );
   }
 
-  const url = new URL(request.url);
-  const page = Math.max(
-    1,
-    parseInt(url.searchParams.get('page') ?? '1', 10)
-  );
-  const pageSize = Math.min(
-    100,
-    Math.max(1, parseInt(url.searchParams.get('pageSize') ?? '20', 10))
-  );
-  const lang = url.searchParams.get('lang') ?? undefined;
-  const offset = (page - 1) * pageSize;
+  try {
+    const url = new URL(request.url);
+    const page = Math.max(
+      1,
+      parseInt(url.searchParams.get('page') ?? '1', 10)
+    );
+    const pageSize = Math.min(
+      100,
+      Math.max(1, parseInt(url.searchParams.get('pageSize') ?? '20', 10))
+    );
+    const lang = url.searchParams.get('lang') ?? undefined;
+    const offset = (page - 1) * pageSize;
 
-  const conditions = [
-    eq(cmsCategories.status, ContentStatus.PUBLISHED),
-    isNull(cmsCategories.deletedAt),
-  ];
-  if (lang) conditions.push(eq(cmsCategories.lang, lang));
+    const conditions = [
+      eq(cmsCategories.status, ContentStatus.PUBLISHED),
+      isNull(cmsCategories.deletedAt),
+    ];
+    if (lang) conditions.push(eq(cmsCategories.lang, lang));
 
-  const where = and(...conditions);
+    const where = and(...conditions);
 
-  const [categories, countResult] = await Promise.all([
-    db
-      .select({
-        id: cmsCategories.id,
-        name: cmsCategories.name,
-        slug: cmsCategories.slug,
-        lang: cmsCategories.lang,
-        title: cmsCategories.title,
-        text: cmsCategories.text,
-        icon: cmsCategories.icon,
-        metaDescription: cmsCategories.metaDescription,
-        seoTitle: cmsCategories.seoTitle,
-        order: cmsCategories.order,
-        publishedAt: cmsCategories.publishedAt,
-        createdAt: cmsCategories.createdAt,
-        updatedAt: cmsCategories.updatedAt,
-      })
-      .from(cmsCategories)
-      .where(where)
-      .orderBy(asc(cmsCategories.order))
-      .limit(pageSize)
-      .offset(offset),
-    db
-      .select({ count: drizzleCount() })
-      .from(cmsCategories)
-      .where(where),
-  ]);
+    const [categories, countResult] = await Promise.all([
+      db
+        .select({
+          id: cmsCategories.id,
+          name: cmsCategories.name,
+          slug: cmsCategories.slug,
+          lang: cmsCategories.lang,
+          title: cmsCategories.title,
+          text: cmsCategories.text,
+          icon: cmsCategories.icon,
+          metaDescription: cmsCategories.metaDescription,
+          seoTitle: cmsCategories.seoTitle,
+          order: cmsCategories.order,
+          publishedAt: cmsCategories.publishedAt,
+          createdAt: cmsCategories.createdAt,
+          updatedAt: cmsCategories.updatedAt,
+        })
+        .from(cmsCategories)
+        .where(where)
+        .orderBy(asc(cmsCategories.order))
+        .limit(pageSize)
+        .offset(offset),
+      db
+        .select({ count: drizzleCount() })
+        .from(cmsCategories)
+        .where(where),
+    ]);
 
-  const total = countResult[0]?.count ?? 0;
+    const total = countResult[0]?.count ?? 0;
 
-  return NextResponse.json(
-    {
-      data: categories,
-      meta: {
-        total,
-        page,
-        pageSize,
-        totalPages: Math.ceil(total / pageSize),
+    return NextResponse.json(
+      {
+        data: categories,
+        meta: {
+          total,
+          page,
+          pageSize,
+          totalPages: Math.ceil(total / pageSize),
+        },
       },
-    },
-    { headers: apiHeaders() }
-  );
+      { headers: apiHeaders() }
+    );
+  } catch {
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500, headers: apiHeaders() }
+    );
+  }
 }

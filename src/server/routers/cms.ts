@@ -6,7 +6,7 @@ import crypto from 'crypto';
 import { getContentTypeByPostType } from '@/config/cms';
 import { env } from '@/lib/env';
 import { LOCALES } from '@/lib/constants';
-import { createLogger } from '@/lib/logger';
+import { createLogger } from '@/engine/lib/logger';
 import {
   SEO_OVERRIDE_ROUTES,
   SEO_OVERRIDE_SLUGS,
@@ -206,7 +206,7 @@ export const cmsRouter = createTRPCRouter({
         seoTitle: z.string().max(100).optional(),
         featuredImage: z.string().max(1024).optional(),
         featuredImageAlt: z.string().max(500).optional(),
-        jsonLd: z.string().optional(),
+        jsonLd: z.string().max(10000).optional(),
         noindex: z.boolean().default(false),
         publishedAt: z.string().datetime().optional(),
         translationGroup: z.string().uuid().optional(),
@@ -299,7 +299,7 @@ export const cmsRouter = createTRPCRouter({
         seoTitle: z.string().max(100).optional().nullable(),
         featuredImage: z.string().max(1024).optional().nullable(),
         featuredImageAlt: z.string().max(500).optional().nullable(),
-        jsonLd: z.string().optional().nullable(),
+        jsonLd: z.string().max(10000).optional().nullable(),
         noindex: z.boolean().optional(),
         publishedAt: z.string().datetime().optional().nullable(),
         translationGroup: z.string().uuid().optional().nullable(),

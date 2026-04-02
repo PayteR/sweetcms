@@ -29,7 +29,8 @@ export const customFieldsRouter = createTRPCRouter({
     return ctx.db
       .select()
       .from(cmsCustomFieldDefinitions)
-      .orderBy(asc(cmsCustomFieldDefinitions.sortOrder));
+      .orderBy(asc(cmsCustomFieldDefinitions.sortOrder))
+      .limit(500);
   }),
 
   /** Get a single field definition */
@@ -230,7 +231,10 @@ export const customFieldsRouter = createTRPCRouter({
       z.object({
         contentType: z.string().max(30),
         contentId: z.string().uuid(),
-        values: z.record(z.string(), z.unknown()),
+        values: z.record(z.string(), z.unknown()).refine(
+          (obj) => Object.keys(obj).length <= 100,
+          { message: 'Max 100 fields per save' }
+        ),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -285,7 +289,8 @@ export const customFieldsRouter = createTRPCRouter({
       const all = await ctx.db
         .select()
         .from(cmsCustomFieldDefinitions)
-        .orderBy(asc(cmsCustomFieldDefinitions.sortOrder));
+        .orderBy(asc(cmsCustomFieldDefinitions.sortOrder))
+        .limit(500);
 
       return all.filter((def) => {
         const types = def.contentTypes as string[];

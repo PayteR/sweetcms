@@ -2,7 +2,7 @@
 
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
-import { formatRelativeTime } from '@/lib/datetime';
+import { formatRelativeTime } from '@/engine/lib/datetime';
 
 export default function RecentActivity() {
   const __ = useBlankTranslations();

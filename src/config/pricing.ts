@@ -1,13 +1,6 @@
-export interface PricingPlan {
-  id: string;
-  name: string;
-  description: string;
-  priceMonthly: string;
-  priceYearly: string;
-  features: string[];
-  cta: string;
-  popular?: boolean;
-}
+import type { PricingPlan, PricingFaq } from '@/engine/config/pricing';
+
+export type { PricingPlan, PricingFaq } from '@/engine/config/pricing';
 
 export const PRICING_PLANS: PricingPlan[] = [
   {
@@ -63,11 +56,6 @@ export const PRICING_PLANS: PricingPlan[] = [
     cta: 'Contact Sales',
   },
 ];
-
-export interface PricingFaq {
-  question: string;
-  answer: string;
-}
 
 export const PRICING_FAQ: PricingFaq[] = [
   {

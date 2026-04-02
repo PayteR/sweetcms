@@ -5,7 +5,7 @@ import { Bell } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { cn } from '@/lib/utils';
-import { formatRelativeTime } from '@/lib/datetime';
+import { formatRelativeTime } from '@/engine/lib/datetime';
 
 export function NotificationBell() {
   const __ = useBlankTranslations();

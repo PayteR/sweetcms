@@ -137,9 +137,6 @@ Add new types by extending the `CONTENT_TYPES` array — no core code changes ne
 All SaaS features are opt-in. The CMS works standalone without any of these:
 
 ```env
-# Organizations (default: true)
-NEXT_PUBLIC_ORG_ENABLED=true
-
 # Stripe billing (disabled without STRIPE_SECRET_KEY)
 STRIPE_SECRET_KEY=sk_...
 STRIPE_WEBHOOK_SECRET=whsec_...
@@ -151,6 +148,8 @@ WS_ENABLED=true
 # Customer registration (default: true)
 NEXT_PUBLIC_REGISTRATION_ENABLED=true
 ```
+
+Organizations are included by default (Better Auth plugin). If you don't need multi-tenancy, remove the org schema, router, and UI — see CLAUDE.md for the full list of files.
 
 ## Scripts
 

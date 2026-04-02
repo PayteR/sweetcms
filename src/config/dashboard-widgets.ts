@@ -1,11 +1,6 @@
-export interface DashboardWidgetDef {
-  id: string;
-  label: string;
-  colSpan: number;       // 1–12 default column span
-  minSpan: number;       // minimum allowed
-  maxSpan: number;       // maximum allowed
-  defaultVisible: boolean;
-}
+import type { DashboardWidgetDef } from '@/engine/config/dashboard-widgets';
+
+export type { DashboardWidgetDef } from '@/engine/config/dashboard-widgets';
 
 export const DASHBOARD_WIDGETS: DashboardWidgetDef[] = [
   { id: 'content-status', label: 'Content Status', colSpan: 6, minSpan: 4, maxSpan: 12, defaultVisible: true },

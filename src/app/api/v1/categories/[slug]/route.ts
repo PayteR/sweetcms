@@ -28,44 +28,51 @@ export async function GET(request: Request, { params }: RouteParams) {
     );
   }
 
-  const { slug } = await params;
+  try {
+    const { slug } = await params;
 
-  const url = new URL(request.url);
-  const lang = url.searchParams.get('lang') ?? undefined;
+    const url = new URL(request.url);
+    const lang = url.searchParams.get('lang') ?? undefined;
 
-  const conditions = [
-    eq(cmsCategories.slug, slug),
-    eq(cmsCategories.status, ContentStatus.PUBLISHED),
-    isNull(cmsCategories.deletedAt),
-  ];
-  if (lang) conditions.push(eq(cmsCategories.lang, lang));
+    const conditions = [
+      eq(cmsCategories.slug, slug),
+      eq(cmsCategories.status, ContentStatus.PUBLISHED),
+      isNull(cmsCategories.deletedAt),
+    ];
+    if (lang) conditions.push(eq(cmsCategories.lang, lang));
 
-  const [category] = await db
-    .select({
-      id: cmsCategories.id,
-      name: cmsCategories.name,
-      slug: cmsCategories.slug,
-      lang: cmsCategories.lang,
-      title: cmsCategories.title,
-      text: cmsCategories.text,
-      icon: cmsCategories.icon,
-      metaDescription: cmsCategories.metaDescription,
-      seoTitle: cmsCategories.seoTitle,
-      order: cmsCategories.order,
-      publishedAt: cmsCategories.publishedAt,
-      createdAt: cmsCategories.createdAt,
-      updatedAt: cmsCategories.updatedAt,
-    })
-    .from(cmsCategories)
-    .where(and(...conditions))
-    .limit(1);
+    const [category] = await db
+      .select({
+        id: cmsCategories.id,
+        name: cmsCategories.name,
+        slug: cmsCategories.slug,
+        lang: cmsCategories.lang,
+        title: cmsCategories.title,
+        text: cmsCategories.text,
+        icon: cmsCategories.icon,
+        metaDescription: cmsCategories.metaDescription,
+        seoTitle: cmsCategories.seoTitle,
+        order: cmsCategories.order,
+        publishedAt: cmsCategories.publishedAt,
+        createdAt: cmsCategories.createdAt,
+        updatedAt: cmsCategories.updatedAt,
+      })
+      .from(cmsCategories)
+      .where(and(...conditions))
+      .limit(1);
 
-  if (!category) {
+    if (!category) {
+      return NextResponse.json(
+        { error: 'Not found' },
+        { status: 404, headers: apiHeaders() }
+      );
+    }
+
+    return NextResponse.json({ data: category }, { headers: apiHeaders() });
+  } catch {
     return NextResponse.json(
-      { error: 'Not found' },
-      { status: 404, headers: apiHeaders() }
+      { error: 'Internal server error' },
+      { status: 500, headers: apiHeaders() }
     );
   }
-
-  return NextResponse.json({ data: category }, { headers: apiHeaders() });
 }

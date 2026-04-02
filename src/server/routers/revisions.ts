@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 import { cmsPosts, cmsCategories, cmsContentRevisions } from '@/server/db/schema';
 import { getRevisions } from '@/engine/crud/content-revisions';
+import { logAudit } from '@/engine/lib/audit';
 import { createTRPCRouter, sectionProcedure } from '../trpc';
 
 const contentProcedure = sectionProcedure('content');
@@ -150,6 +151,15 @@ export const revisionsRouter = createTRPCRouter({
           message: `Unknown content type: ${revision.contentType}`,
         });
       }
+
+      logAudit({
+        db: ctx.db,
+        userId: ctx.session.user.id,
+        action: 'revision.restore',
+        entityType: revision.contentType,
+        entityId: revision.contentId,
+        metadata: { revisionId: input.id },
+      });
 
       return { success: true };
     }),

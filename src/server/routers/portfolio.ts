@@ -4,7 +4,7 @@ import { z } from 'zod';
 import crypto from 'crypto';
 
 import { env } from '@/lib/env';
-import { createLogger } from '@/lib/logger';
+import { createLogger } from '@/engine/lib/logger';
 import { cmsPortfolio, cmsTermRelationships } from '@/server/db/schema';
 import { createFieldTranslator } from '@/server/translation/translate-fields';
 import { ContentStatus } from '@/engine/types/cms';

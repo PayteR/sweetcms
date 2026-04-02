@@ -103,7 +103,7 @@ vi.mock('@/lib/constants', () => ({
   DEFAULT_LOCALE: 'en',
 }));
 
-vi.mock('@/lib/logger', () => ({
+vi.mock('@/engine/lib/logger', () => ({
   createLogger: vi.fn().mockReturnValue({
     info: vi.fn(),
     error: vi.fn(),
@@ -309,7 +309,7 @@ describe('cmsRouter', () => {
   // =========================================================================
   describe('counts', () => {
     it('returns status counts for a post type', async () => {
-      const mockCounts = { all: 10, published: 5, draft: 3, scheduled: 1, trashed: 1 };
+      const mockCounts = { all: 10, published: 5, draft: 3, scheduled: 1, trash: 1 };
       vi.mocked(buildStatusCounts).mockResolvedValue(mockCounts);
 
       const ctx = createMockCtx();
@@ -322,7 +322,7 @@ describe('cmsRouter', () => {
 
     it('passes the correct type filter to buildStatusCounts', async () => {
       vi.mocked(buildStatusCounts).mockResolvedValue({
-        all: 0, published: 0, draft: 0, scheduled: 0, trashed: 0,
+        all: 0, published: 0, draft: 0, scheduled: 0, trash: 0,
       });
 
       const ctx = createMockCtx();
@@ -346,9 +346,9 @@ describe('cmsRouter', () => {
       ctx.db._chains.select.limit.mockResolvedValue([MOCK_POST]);
 
       vi.mocked(getTermRelationships).mockResolvedValue([
-        { objectId: MOCK_POST.id, termId: 'c1c1c1c1-0000-4000-a000-000000000001', taxonomyId: 'category' },
-        { objectId: MOCK_POST.id, termId: 'd1d1d1d1-0000-4000-a000-000000000001', taxonomyId: 'tag' },
-        { objectId: MOCK_POST.id, termId: 'd1d1d1d1-0000-4000-a000-000000000002', taxonomyId: 'tag' },
+        { termId: 'c1c1c1c1-0000-4000-a000-000000000001', taxonomyId: 'category' },
+        { termId: 'd1d1d1d1-0000-4000-a000-000000000001', taxonomyId: 'tag' },
+        { termId: 'd1d1d1d1-0000-4000-a000-000000000002', taxonomyId: 'tag' },
       ]);
 
       const caller = cmsRouter.createCaller(ctx as never);

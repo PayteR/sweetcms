@@ -1,7 +1,7 @@
 import { TRPCError } from '@trpc/server';
 
 import { env } from '@/lib/env';
-import { createLogger } from '@/lib/logger';
+import { createLogger } from '@/engine/lib/logger';
 
 const logger = createLogger('DeepLClient');
 

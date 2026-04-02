@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc/client';
-import { formatRelativeTime } from '@/lib/datetime';
+import { formatRelativeTime } from '@/engine/lib/datetime';
 
 export default function AccountSecurityPage() {
   const [currentPassword, setCurrentPassword] = useState('');
