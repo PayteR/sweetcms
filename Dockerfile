@@ -35,7 +35,6 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./
 COPY --from=builder /app/tsconfig.json ./
 COPY --from=builder /app/server.ts ./
-COPY --from=builder /app/sentry.*.config.ts ./
 COPY --from=builder /app/src/proxy.ts ./src/proxy.ts
 COPY --from=builder /app/next.config.ts ./
 COPY --from=builder /app/drizzle.config.ts ./
@@ -56,6 +55,10 @@ ENV NODE_ENV=production \
     SERVER_ROLE=all \
     PORT=3000
 
+COPY docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
+
 EXPOSE 3000
 
+ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["bun", "run", "server.ts"]

@@ -83,8 +83,14 @@ export class NowPaymentsProvider implements PaymentProvider {
     const plan = getPlan(params.planId);
     if (!plan) throw new Error(`Plan not found: ${params.planId}`);
 
-    const priceCents = plan.priceYearly;
-    if (priceCents <= 0) throw new Error('Cannot checkout free plan with crypto');
+    const originalPriceCents = plan.priceYearly;
+    if (originalPriceCents <= 0) throw new Error('Cannot checkout free plan with crypto');
+
+    // Use discounted price if available
+    const priceCents = params.finalPriceCents ?? originalPriceCents;
+    if (priceCents <= 0) throw new Error('Discounted price cannot be zero for crypto payments');
+
+    const discountAmountCents = originalPriceCents - priceCents;
 
     // Create local transaction record
     const [tx] = await db
@@ -97,6 +103,7 @@ export class NowPaymentsProvider implements PaymentProvider {
         status: TransactionStatus.PENDING,
         planId: params.planId,
         interval: params.interval,
+        discountAmountCents: discountAmountCents > 0 ? discountAmountCents : 0,
       })
       .returning({ id: saasPaymentTransactions.id });
 
@@ -124,6 +131,11 @@ export class NowPaymentsProvider implements PaymentProvider {
     if (!response.ok) {
       const error = await response.text();
       logger.error('NOWPayments invoice creation failed', { error, orderId });
+      // Clean up orphaned transaction
+      await db
+        .update(saasPaymentTransactions)
+        .set({ status: TransactionStatus.FAILED, updatedAt: new Date() })
+        .where(eq(saasPaymentTransactions.id, orderId));
       throw new Error(`NOWPayments API error: ${response.status}`);
     }
 

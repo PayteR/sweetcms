@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PLANS, getPlan, getPlanByStripePriceId, getFreePlan } from '../plans';
+import { PLANS, getPlan, getPlanByProviderPriceId, getProviderPriceId, getFreePlan } from '../plans';
 
 describe('PLANS', () => {
   it('has at least 4 plans defined', () => {
@@ -16,8 +16,7 @@ describe('PLANS', () => {
     expect(free).toBeDefined();
     expect(free!.priceMonthly).toBe(0);
     expect(free!.priceYearly).toBe(0);
-    expect(free!.stripePriceIdMonthly).toBeNull();
-    expect(free!.stripePriceIdYearly).toBeNull();
+    expect(Object.keys(free!.providerPrices).length).toBe(0);
   });
 
   it('all plans have required feature keys', () => {
@@ -73,41 +72,61 @@ describe('getPlan', () => {
   });
 });
 
-describe('getPlanByStripePriceId', () => {
-  it('finds plan by monthly price ID', () => {
-    // Set env var for testing
+describe('getPlanByProviderPriceId', () => {
+  it('finds plan by Stripe monthly price ID', () => {
     const starterPlan = PLANS.find((p) => p.id === 'starter');
-    if (starterPlan?.stripePriceIdMonthly) {
-      const found = getPlanByStripePriceId(starterPlan.stripePriceIdMonthly);
-      expect(found).toBeDefined();
-      expect(found!.id).toBe('starter');
+    const stripePrices = starterPlan?.providerPrices['stripe'];
+    if (stripePrices) {
+      const monthly = stripePrices.monthly;
+      if (monthly) {
+        const found = getPlanByProviderPriceId('stripe', monthly);
+        expect(found).toBeDefined();
+        expect(found!.id).toBe('starter');
+      }
     }
   });
 
-  it('finds plan by yearly price ID', () => {
+  it('finds plan by Stripe yearly price ID', () => {
     const starterPlan = PLANS.find((p) => p.id === 'starter');
-    if (starterPlan?.stripePriceIdYearly) {
-      const found = getPlanByStripePriceId(starterPlan.stripePriceIdYearly);
-      expect(found).toBeDefined();
-      expect(found!.id).toBe('starter');
+    const stripePrices = starterPlan?.providerPrices['stripe'];
+    if (stripePrices) {
+      const yearly = stripePrices.yearly;
+      if (yearly) {
+        const found = getPlanByProviderPriceId('stripe', yearly);
+        expect(found).toBeDefined();
+        expect(found!.id).toBe('starter');
+      }
     }
   });
 
   it('returns undefined for non-existent price ID', () => {
-    expect(getPlanByStripePriceId('price_nonexistent_123')).toBeUndefined();
+    expect(getPlanByProviderPriceId('stripe', 'price_nonexistent_123')).toBeUndefined();
   });
 
-  it('returns undefined for a completely unknown price ID', () => {
-    expect(getPlanByStripePriceId('price_totally_unknown_xyz')).toBeUndefined();
+  it('returns undefined for unknown provider', () => {
+    expect(getPlanByProviderPriceId('unknown_provider', 'price_123')).toBeUndefined();
+  });
+});
+
+describe('getProviderPriceId', () => {
+  it('returns Stripe monthly price ID', () => {
+    const plan = getPlan('starter');
+    if (plan) {
+      const priceId = getProviderPriceId(plan, 'stripe', 'monthly');
+      // May be empty string if env var not set
+      expect(typeof priceId === 'string' || priceId === null).toBe(true);
+    }
   });
 
-  it('empty string matches plans with empty string price IDs (env not set)', () => {
-    // When STRIPE_PRICE_* env vars are not set, plans default to ''
-    // so getPlanByStripePriceId('') will match the first plan with ''
-    const result = getPlanByStripePriceId('');
-    // Either undefined (all plans have real price IDs) or matches a plan with ''
-    if (result) {
-      expect(result.stripePriceIdMonthly === '' || result.stripePriceIdYearly === '').toBe(true);
+  it('returns null for free plan', () => {
+    const plan = getFreePlan();
+    expect(getProviderPriceId(plan, 'stripe', 'monthly')).toBeNull();
+  });
+
+  it('returns null for unknown provider', () => {
+    const plan = getPlan('starter');
+    if (plan) {
+      expect(getProviderPriceId(plan, 'unknown', 'monthly')).toBeNull();
     }
   });
 });

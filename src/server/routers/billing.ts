@@ -59,7 +59,7 @@ export const billingRouter = createTRPCRouter({
         });
       }
 
-      const provider = getProvider(input.providerId);
+      const provider = await getProvider(input.providerId);
       if (!provider) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
@@ -98,19 +98,25 @@ export const billingRouter = createTRPCRouter({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Plan not found' });
       }
 
+      const originalPriceCents = input.interval === 'yearly' ? plan.priceYearly : plan.priceMonthly;
+      let resolvedDiscount: import('@/engine/types/payment').DiscountDefinition | undefined;
+      let finalPriceCents: number | undefined;
+
       // Validate discount code if provided
       if (input.discountCode) {
         const validation = await validateCode(
           input.discountCode,
           ctx.session.user.id,
           input.planId,
-          input.interval === 'yearly' ? plan.priceYearly : plan.priceMonthly,
+          originalPriceCents,
         );
         if (!validation.valid) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: validation.message ?? 'Invalid discount code' });
         }
         // Apply the discount (creates usage record)
-        await applyDiscount(input.discountCode, ctx.session.user.id, input.planId);
+        const applied = await applyDiscount(input.discountCode, ctx.session.user.id, input.planId);
+        resolvedDiscount = applied.discount;
+        finalPriceCents = validation.finalPriceCents ?? undefined;
       }
 
       const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
@@ -121,6 +127,9 @@ export const billingRouter = createTRPCRouter({
         interval: input.interval,
         successUrl: `${appUrl}/dashboard/settings/billing?success=true`,
         cancelUrl: `${appUrl}/dashboard/settings/billing?canceled=true`,
+        discount: resolvedDiscount,
+        originalPriceCents,
+        finalPriceCents,
         metadata: {
           userId: ctx.session.user.id,
           ...(input.discountCode && { discountCode: input.discountCode }),
@@ -134,10 +143,10 @@ export const billingRouter = createTRPCRouter({
     .input(
       z.object({
         providerId: z.string().min(1).max(50).default('stripe'),
-      }).default({})
+      })
     )
     .mutation(async ({ ctx, input }) => {
-      const provider = getProvider(input.providerId);
+      const provider = await getProvider(input.providerId);
       if (!provider?.createPortalSession) {
         throw new TRPCError({
           code: 'PRECONDITION_FAILED',
@@ -206,14 +215,36 @@ export const billingRouter = createTRPCRouter({
 
     const totalActive = planDistribution.reduce((sum, p) => sum + Number(p.count), 0);
 
-    // MRR calculation
+    // MRR calculation — query individual subs to determine monthly vs yearly
+    const activeSubs = await ctx.db
+      .select({
+        planId: saasSubscriptions.planId,
+        providerPriceId: saasSubscriptions.providerPriceId,
+        providerId: saasSubscriptions.providerId,
+      })
+      .from(saasSubscriptions)
+      .where(eq(saasSubscriptions.status, 'active'))
+      .limit(10000);
+
     let mrr = 0;
-    for (const dist of planDistribution) {
-      const plan = getPlan(dist.planId);
-      if (plan) {
-        // Approximate: assume mix of monthly + yearly, use monthly price
-        mrr += plan.priceMonthly * Number(dist.count);
+    for (const sub of activeSubs) {
+      const plan = getPlan(sub.planId);
+      if (!plan) continue;
+
+      // Determine if this is a yearly subscription by checking the price ID
+      let isYearly = false;
+      if (sub.providerPriceId && sub.providerId) {
+        const prices = plan.providerPrices[sub.providerId];
+        if (prices) {
+          isYearly = prices.yearly === sub.providerPriceId;
+        }
       }
+      // Non-recurring providers (like nowpayments) are always yearly
+      if (sub.providerId === 'nowpayments') isYearly = true;
+
+      mrr += isYearly
+        ? Math.round(plan.priceYearly / 12)
+        : plan.priceMonthly;
     }
 
     // Churn: canceled in last 30 days

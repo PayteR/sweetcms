@@ -69,11 +69,6 @@ const envSchema = z.object({
   // WebSocket
   WS_ENABLED: z.coerce.boolean().default(true),
 
-  // Sentry (optional — error tracking disabled without DSN)
-  SENTRY_DSN: z.string().optional(),
-  NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
-  SENTRY_ORG: z.string().optional(),
-  SENTRY_PROJECT: z.string().optional(),
 });
 
 // Validate and export

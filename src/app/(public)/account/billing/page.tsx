@@ -7,7 +7,7 @@ export default function AccountBillingPage() {
   const portal = trpc.billing.createPortalSession.useMutation();
 
   const handleManage = async () => {
-    const result = await portal.mutateAsync();
+    const result = await portal.mutateAsync({ providerId: 'stripe' });
     if (result.url) window.location.href = result.url;
   };
 

@@ -25,6 +25,12 @@ export interface CheckoutParams {
   discountCode?: string;
   customerEmail?: string;
   metadata?: Record<string, string>;
+  /** Resolved discount to apply at payment time */
+  discount?: DiscountDefinition;
+  /** Original price in cents (before discount) */
+  originalPriceCents?: number;
+  /** Final price in cents (after discount) */
+  finalPriceCents?: number;
 }
 
 export interface CheckoutResult {

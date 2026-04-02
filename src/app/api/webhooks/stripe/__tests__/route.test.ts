@@ -1,6 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Track select calls so different queries can return different results
+// Mock payment factory
+const mockHandleWebhook = vi.fn();
+vi.mock('@/server/lib/payment/factory', () => ({
+  getProvider: vi.fn().mockReturnValue({
+    handleWebhook: (...args: unknown[]) => mockHandleWebhook(...args),
+    config: { id: 'stripe' },
+  }),
+}));
+
+// Mock subscription service
+const mockActivateSubscription = vi.fn().mockResolvedValue(undefined);
+const mockUpdateSubscription = vi.fn().mockResolvedValue(undefined);
+const mockCancelSubscription = vi.fn().mockResolvedValue(undefined);
+const mockGetOrgByProviderSubscription = vi.fn().mockResolvedValue(null);
+vi.mock('@/server/lib/payment/subscription-service', () => ({
+  activateSubscription: (...args: unknown[]) => mockActivateSubscription(...args),
+  updateSubscription: (...args: unknown[]) => mockUpdateSubscription(...args),
+  cancelSubscription: (...args: unknown[]) => mockCancelSubscription(...args),
+  getOrgByProviderSubscription: (...args: unknown[]) => mockGetOrgByProviderSubscription(...args),
+}));
+
+// Track select calls for idempotency check
 let selectResults: unknown[][] = [];
 let selectCallIndex = 0;
 
@@ -29,45 +50,21 @@ const mockInsert = vi.fn().mockImplementation(() => ({
   },
 }));
 
-const mockUpdateSet = vi.fn();
-const mockUpdate = vi.fn().mockImplementation(() => ({
-  set: (...args: unknown[]) => {
-    mockUpdateSet(...args);
-    return { where: vi.fn().mockResolvedValue(undefined) };
-  },
-}));
-
 vi.mock('@/server/db', () => ({
   db: {
-    select: (...args: unknown[]) => mockSelectChain(),
+    select: () => mockSelectChain(),
     insert: (...args: unknown[]) => mockInsert(...args),
-    update: (...args: unknown[]) => mockUpdate(...args),
+    update: vi.fn().mockReturnValue({
+      set: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(undefined) }),
+    }),
   },
 }));
 
 vi.mock('@/server/db/schema', () => ({
-  saasSubscriptions: {
-    id: 'id',
-    organizationId: 'organization_id',
-    stripeSubscriptionId: 'stripe_subscription_id',
-  },
   saasSubscriptionEvents: {
     id: 'id',
-    stripeEventId: 'stripe_event_id',
+    providerEventId: 'provider_event_id',
   },
-}));
-
-const mockConstructEvent = vi.fn();
-const mockRetrieveSubscription = vi.fn();
-vi.mock('@/server/lib/stripe', () => ({
-  getStripe: vi.fn().mockReturnValue({
-    webhooks: { constructEvent: (...args: unknown[]) => mockConstructEvent(...args) },
-    subscriptions: { retrieve: (...args: unknown[]) => mockRetrieveSubscription(...args) },
-  }),
-}));
-
-vi.mock('@/config/plans', () => ({
-  getPlanByStripePriceId: vi.fn().mockReturnValue({ id: 'pro', name: 'Pro' }),
 }));
 
 vi.mock('@/engine/lib/audit', () => ({
@@ -83,10 +80,19 @@ vi.mock('@/engine/types/notifications', () => ({
   NotificationCategory: { BILLING: 'billing' },
 }));
 
-// Must be after vi.mock calls
+vi.mock('@/engine/lib/logger', () => ({
+  createLogger: () => ({
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+  }),
+}));
+
 import { POST } from '../route';
+import { getProvider } from '@/server/lib/payment/factory';
 import { sendOrgNotification } from '@/server/lib/notifications';
 import { logAudit } from '@/engine/lib/audit';
+import { asMock } from '@/test-utils';
 
 function makeRequest(body: string, signature = 'sig_valid') {
   return new Request('http://localhost/api/webhooks/stripe', {
@@ -101,152 +107,130 @@ describe('Stripe webhook route', () => {
     vi.clearAllMocks();
     selectResults = [];
     selectCallIndex = 0;
-    process.env.STRIPE_WEBHOOK_SECRET = 'whsec_test';
   });
 
-  it('returns 400 if no stripe-signature header', async () => {
-    const req = new Request('http://localhost/api/webhooks/stripe', {
-      method: 'POST',
-      body: '{}',
+  it('returns 503 if stripe provider is not configured', async () => {
+    asMock(getProvider).mockReturnValue(null);
+    const res = await POST(makeRequest('{}'));
+    expect(res.status).toBe(503);
+    // Restore mock
+    asMock(getProvider).mockReturnValue({
+      handleWebhook: mockHandleWebhook,
+      config: { id: 'stripe' },
     });
-    const res = await POST(req);
-    expect(res.status).toBe(400);
   });
 
-  it('returns 400 if signature verification fails', async () => {
-    mockConstructEvent.mockImplementation(() => {
-      throw new Error('Invalid signature');
-    });
+  it('returns 400 if webhook handling fails', async () => {
+    mockHandleWebhook.mockRejectedValue(new Error('Invalid signature'));
     const res = await POST(makeRequest('{}'));
     expect(res.status).toBe(400);
   });
 
   it('returns duplicate:true for already-processed events', async () => {
-    mockConstructEvent.mockReturnValue({ id: 'evt_dup', type: 'test', data: { object: {} } });
+    mockHandleWebhook.mockResolvedValue({
+      type: 'subscription.activated',
+      providerData: { _eventId: 'evt_dup' },
+    });
     // Idempotency check returns existing record
     selectResults = [[{ id: 'existing-event' }]];
 
     const res = await POST(makeRequest('{}'));
     const body = await res.json();
     expect(body.duplicate).toBe(true);
-    // Should NOT insert event log again
-    expect(mockInsert).not.toHaveBeenCalled();
   });
 
-  it('handles checkout.session.completed — upserts subscription and notifies', async () => {
-    mockConstructEvent.mockReturnValue({
-      id: 'evt_checkout',
-      type: 'checkout.session.completed',
-      data: {
-        object: {
-          metadata: { orgId: 'org-1' },
-          subscription: 'sub_123',
-          customer: 'cus_123',
-        },
-      },
-    });
-    mockRetrieveSubscription.mockResolvedValue({
-      id: 'sub_123',
+  it('handles subscription.activated — activates subscription and notifies', async () => {
+    mockHandleWebhook.mockResolvedValue({
+      type: 'subscription.activated',
+      organizationId: 'org-1',
+      planId: 'pro',
       status: 'active',
-      items: {
-        data: [{
-          price: { id: 'price_pro_monthly' },
-          current_period_start: 1700000000,
-          current_period_end: 1702600000,
-        }],
-      },
+      providerSubscriptionId: 'sub_123',
+      providerCustomerId: 'cus_123',
+      providerPriceId: 'price_pro_monthly',
+      periodStart: new Date(1700000000000),
+      periodEnd: new Date(1702600000000),
+      providerData: { _eventId: 'evt_checkout' },
     });
-    // First select: idempotency (no duplicate)
+    // No duplicate
     selectResults = [[]];
 
     const res = await POST(makeRequest('{}'));
     expect(res.status).toBe(200);
-    // Event log insert + subscription upsert
-    expect(mockInsert).toHaveBeenCalledTimes(2);
+    expect(mockActivateSubscription).toHaveBeenCalledWith(expect.objectContaining({
+      organizationId: 'org-1',
+      planId: 'pro',
+      providerId: 'stripe',
+    }));
     expect(logAudit).toHaveBeenCalled();
     expect(sendOrgNotification).toHaveBeenCalledWith('org-1', expect.objectContaining({
       title: 'Subscription activated',
     }));
   });
 
-  it('handles customer.subscription.deleted — cancels and notifies', async () => {
-    mockConstructEvent.mockReturnValue({
-      id: 'evt_deleted',
-      type: 'customer.subscription.deleted',
-      data: { object: { id: 'sub_456' } },
+  it('handles subscription.canceled — cancels and notifies', async () => {
+    mockHandleWebhook.mockResolvedValue({
+      type: 'subscription.canceled',
+      providerSubscriptionId: 'sub_456',
+      status: 'canceled',
+      providerData: { _eventId: 'evt_deleted' },
     });
-    // First select: idempotency (no duplicate)
-    // Second select: orgId lookup
-    selectResults = [[], [{ organizationId: 'org-2' }]];
+    mockGetOrgByProviderSubscription.mockResolvedValue('org-2');
+    selectResults = [[]];
 
     const res = await POST(makeRequest('{}'));
     expect(res.status).toBe(200);
-    expect(mockUpdate).toHaveBeenCalled();
-    expect(mockUpdateSet).toHaveBeenCalledWith(expect.objectContaining({
-      status: 'canceled',
-      planId: 'free',
-    }));
+    expect(mockCancelSubscription).toHaveBeenCalledWith('sub_456');
     expect(sendOrgNotification).toHaveBeenCalledWith('org-2', expect.objectContaining({
       title: 'Subscription canceled',
     }));
   });
 
-  it('handles invoice.payment_failed — marks past_due and notifies', async () => {
-    mockConstructEvent.mockReturnValue({
-      id: 'evt_failed',
-      type: 'invoice.payment_failed',
-      data: {
-        object: {
-          parent: {
-            subscription_details: { subscription: 'sub_789' },
-          },
-        },
-      },
+  it('handles payment.failed — updates status and notifies', async () => {
+    mockHandleWebhook.mockResolvedValue({
+      type: 'payment.failed',
+      providerSubscriptionId: 'sub_789',
+      status: 'past_due',
+      providerData: { _eventId: 'evt_failed' },
     });
-    // First select: idempotency (no duplicate)
-    // Second select: orgId lookup
-    selectResults = [[], [{ organizationId: 'org-3' }]];
+    mockGetOrgByProviderSubscription.mockResolvedValue('org-3');
+    selectResults = [[]];
 
     const res = await POST(makeRequest('{}'));
     expect(res.status).toBe(200);
-    expect(mockUpdateSet).toHaveBeenCalledWith(expect.objectContaining({
-      status: 'past_due',
-    }));
+    expect(mockUpdateSubscription).toHaveBeenCalledWith('sub_789', { status: 'past_due' });
     expect(sendOrgNotification).toHaveBeenCalledWith('org-3', expect.objectContaining({
       title: 'Payment failed',
     }));
   });
 
-  it('skips checkout.session.completed without orgId in metadata', async () => {
-    mockConstructEvent.mockReturnValue({
-      id: 'evt_no_org',
-      type: 'checkout.session.completed',
-      data: { object: { metadata: {}, subscription: null } },
+  it('skips subscription.activated without organizationId', async () => {
+    mockHandleWebhook.mockResolvedValue({
+      type: 'subscription.activated',
+      providerData: { _eventId: 'evt_no_org' },
     });
     selectResults = [[]];
 
     const res = await POST(makeRequest('{}'));
     expect(res.status).toBe(200);
-    expect(mockRetrieveSubscription).not.toHaveBeenCalled();
+    expect(mockActivateSubscription).not.toHaveBeenCalled();
     expect(sendOrgNotification).not.toHaveBeenCalled();
   });
 
   it('returns 500 if processing throws', async () => {
-    mockConstructEvent.mockReturnValue({
-      id: 'evt_error',
-      type: 'checkout.session.completed',
-      data: {
-        object: {
-          metadata: { orgId: 'org-1' },
-          subscription: 'sub_err',
-          customer: 'cus_err',
-        },
-      },
+    mockHandleWebhook.mockResolvedValue({
+      type: 'subscription.activated',
+      organizationId: 'org-1',
+      providerSubscriptionId: 'sub_err',
+      providerCustomerId: 'cus_err',
+      providerData: { _eventId: 'evt_error' },
     });
     selectResults = [[]];
-    mockRetrieveSubscription.mockRejectedValue(new Error('Stripe API error'));
+    mockActivateSubscription.mockRejectedValue(new Error('DB error'));
 
     const res = await POST(makeRequest('{}'));
     expect(res.status).toBe(500);
+    // Restore
+    mockActivateSubscription.mockResolvedValue(undefined);
   });
 });

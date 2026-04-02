@@ -23,9 +23,6 @@ function isConnectionError(error: Error): boolean {
 export default function GlobalError({ error, reset }: Props) {
   useEffect(() => {
     console.error('Application error:', error);
-    import('@sentry/nextjs').then((Sentry) => {
-      Sentry.captureException(error);
-    }).catch(() => {});
   }, [error]);
 
   const isConnection = isConnectionError(error);

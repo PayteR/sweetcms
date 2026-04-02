@@ -1,5 +1,4 @@
 import type { NextConfig } from 'next';
-import { withSentryConfig } from '@sentry/nextjs';
 
 const nextConfig: NextConfig = {
   // Security headers for all routes
@@ -35,12 +34,4 @@ const nextConfig: NextConfig = {
   // in (public)/ — no redirects needed.
 };
 
-export default process.env.SENTRY_DSN
-  ? withSentryConfig(nextConfig, {
-      org: process.env.SENTRY_ORG,
-      project: process.env.SENTRY_PROJECT,
-      silent: !process.env.CI,
-      widenClientFileUpload: true,
-      disableLogger: true,
-    })
-  : nextConfig;
+export default nextConfig;

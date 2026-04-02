@@ -17,7 +17,7 @@ export default function BillingSettingsPage() {
   };
 
   const handleManageBilling = async () => {
-    const result = await portal.mutateAsync();
+    const result = await portal.mutateAsync({ providerId: 'stripe' });
     if (result.url) window.location.href = result.url;
   };
 

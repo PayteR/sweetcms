@@ -83,7 +83,7 @@ export default function DashboardPage() {
           />
           <StatCard
             label={__('MRR')}
-            count={billingStats.data.mrr > 0 ? `$${(billingStats.data.mrr / 100).toFixed(0)}` : '$0'}
+            count={Math.round(billingStats.data.mrr / 100)}
             href="/dashboard/settings/billing"
             icon={TrendingUp}
             color="blue"

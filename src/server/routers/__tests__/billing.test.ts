@@ -1,71 +1,66 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock external dependencies
-vi.mock('@/server/lib/stripe', () => ({
-  getStripe: vi.fn().mockReturnValue(null),
-  createCheckoutSession: vi.fn(),
-  createPortalSession: vi.fn(),
-  getActiveSubscription: vi.fn(),
+// Mock payment factory
+vi.mock('@/server/lib/payment/factory', () => ({
+  getProvider: vi.fn().mockReturnValue(null),
+  getDefaultProvider: vi.fn().mockReturnValue(null),
+  getEnabledProviders: vi.fn().mockReturnValue([]),
+  isBillingEnabled: vi.fn().mockReturnValue(false),
 }));
 
-// Inline plan data inside factory so it works with vitest hoisting and Bun's test runner
+// Mock subscription service
+vi.mock('@/server/lib/payment/subscription-service', () => ({
+  getSubscription: vi.fn().mockResolvedValue(null),
+}));
+
+// Mock discount service
+vi.mock('@/server/lib/payment/discount-service', () => ({
+  validateCode: vi.fn(),
+  applyDiscount: vi.fn(),
+  removeDiscount: vi.fn(),
+  getActiveDiscount: vi.fn().mockResolvedValue(null),
+}));
+
+// Inline plan data inside factory
 vi.mock('@/config/plans', () => {
   const plans = [
     {
       id: 'free',
       name: 'Free',
-      description: 'For personal projects and trying things out',
-      stripePriceIdMonthly: null,
-      stripePriceIdYearly: null,
+      description: 'Free plan',
+      providerPrices: {},
       priceMonthly: 0,
       priceYearly: 0,
       features: { maxMembers: 1, maxStorageMb: 100, customDomain: false, apiAccess: false, prioritySupport: false },
     },
     {
-      id: 'starter',
-      name: 'Starter',
-      description: 'For small teams getting started',
-      stripePriceIdMonthly: 'price_starter_monthly',
-      stripePriceIdYearly: 'price_starter_yearly',
-      priceMonthly: 1900,
-      priceYearly: 19000,
-      features: { maxMembers: 5, maxStorageMb: 1024, customDomain: false, apiAccess: true, prioritySupport: false },
-    },
-    {
       id: 'pro',
       name: 'Pro',
-      description: 'For growing teams that need more',
-      stripePriceIdMonthly: 'price_pro_monthly',
-      stripePriceIdYearly: 'price_pro_yearly',
+      description: 'Pro plan',
+      providerPrices: {
+        stripe: { monthly: 'price_pro_monthly', yearly: 'price_pro_yearly' },
+      },
       priceMonthly: 4900,
       priceYearly: 49000,
+      trialDays: 14,
       features: { maxMembers: 20, maxStorageMb: 10240, customDomain: true, apiAccess: true, prioritySupport: false },
       popular: true,
-    },
-    {
-      id: 'enterprise',
-      name: 'Enterprise',
-      description: 'For large teams with advanced needs',
-      stripePriceIdMonthly: 'price_enterprise_monthly',
-      stripePriceIdYearly: 'price_enterprise_yearly',
-      priceMonthly: 9900,
-      priceYearly: 99000,
-      features: { maxMembers: 100, maxStorageMb: 102400, customDomain: true, apiAccess: true, prioritySupport: true },
     },
   ];
   return {
     PLANS: plans,
-    getPlan: (id: string) => {
-      const plan = plans.find((p) => p.id === id);
-      if (!plan) return undefined;
-      return {
-        ...plan,
-        stripePriceIdMonthly: plan.stripePriceIdMonthly || `price_${id}_monthly`,
-        stripePriceIdYearly: plan.stripePriceIdYearly || `price_${id}_yearly`,
-      };
+    getPlan: (id: string) => plans.find((p) => p.id === id),
+    getPlanByProviderPriceId: (_providerId: string, priceId: string) =>
+      plans.find((p) => {
+        const prices = p.providerPrices['stripe'];
+        if (!prices) return false;
+        return prices.monthly === priceId || prices.yearly === priceId;
+      }),
+    getProviderPriceId: (plan: { providerPrices: Record<string, Record<string, string>> }, providerId: string, interval: string) => {
+      const prices = plan.providerPrices[providerId];
+      if (!prices) return null;
+      return prices[interval] ?? null;
     },
-    getPlanByStripePriceId: (priceId: string) =>
-      plans.find((p) => p.stripePriceIdMonthly === priceId || p.stripePriceIdYearly === priceId),
     getFreePlan: () => plans[0],
   };
 });
@@ -88,7 +83,8 @@ vi.mock('@/server/middleware/rate-limit', () => ({
 
 import { asMock } from '@/test-utils';
 import { billingRouter } from '../billing';
-import { getStripe, getActiveSubscription, createCheckoutSession, createPortalSession } from '@/server/lib/stripe';
+import { isBillingEnabled, getProvider } from '@/server/lib/payment/factory';
+import { getSubscription } from '@/server/lib/payment/subscription-service';
 import { PLANS } from '@/config/plans';
 
 // Helper to create a mock caller context
@@ -118,19 +114,16 @@ describe('billingRouter', () => {
   });
 
   describe('getPlans', () => {
-    it('returns all plans without stripe price IDs', async () => {
+    it('returns all plans without providerPrices', async () => {
       const ctx = createMockCtx();
-
-      // Call the procedure directly
       const caller = billingRouter.createCaller(ctx as never);
       const result = await caller.getPlans();
 
       expect(result).toHaveLength(PLANS.length);
 
-      // Verify stripe IDs are stripped
+      // Verify provider prices are stripped
       for (const plan of result) {
-        expect(plan).not.toHaveProperty('stripePriceIdMonthly');
-        expect(plan).not.toHaveProperty('stripePriceIdYearly');
+        expect(plan).not.toHaveProperty('providerPrices');
       }
     });
 
@@ -150,7 +143,7 @@ describe('billingRouter', () => {
 
   describe('getSubscription', () => {
     it('returns free plan when no subscription exists', async () => {
-      asMock(getActiveSubscription).mockResolvedValue(null as never);
+      asMock(getSubscription).mockResolvedValue(null);
       const ctx = createMockCtx();
       const caller = billingRouter.createCaller(ctx as never);
       const result = await caller.getSubscription();
@@ -162,9 +155,10 @@ describe('billingRouter', () => {
       const sub = {
         id: 'sub-1',
         organizationId: 'org-1',
-        stripeCustomerId: 'cus_123',
-        stripeSubscriptionId: 'sub_123',
-        stripePriceId: 'price_123',
+        providerId: 'stripe',
+        providerCustomerId: 'cus_123',
+        providerSubscriptionId: 'sub_123',
+        providerPriceId: 'price_123',
         planId: 'pro',
         status: 'active',
         currentPeriodStart: null,
@@ -174,7 +168,7 @@ describe('billingRouter', () => {
         createdAt: new Date(),
         updatedAt: new Date(),
       };
-      asMock(getActiveSubscription).mockResolvedValue(sub);
+      asMock(getSubscription).mockResolvedValue(sub);
       const ctx = createMockCtx();
       const caller = billingRouter.createCaller(ctx as never);
       const result = await caller.getSubscription();
@@ -193,8 +187,8 @@ describe('billingRouter', () => {
   });
 
   describe('createCheckoutSession', () => {
-    it('throws when Stripe is not configured', async () => {
-      asMock(getStripe).mockReturnValue(null);
+    it('throws when billing is not configured', async () => {
+      asMock(isBillingEnabled).mockReturnValue(false);
       const ctx = createMockCtx();
       const caller = billingRouter.createCaller(ctx as never);
 
@@ -203,33 +197,42 @@ describe('billingRouter', () => {
       ).rejects.toThrow('Billing is not configured');
     });
 
-    it('throws when plan not found', async () => {
-      asMock(getStripe).mockReturnValue({} as never);
+    it('throws when provider is not available', async () => {
+      asMock(isBillingEnabled).mockReturnValue(true);
+      asMock(getProvider).mockReturnValue(null);
       const ctx = createMockCtx();
-      // Mock member lookup to return owner
-      ctx.db._selectChain.limit.mockResolvedValue([{ role: 'owner' }]);
       const caller = billingRouter.createCaller(ctx as never);
 
       await expect(
-        caller.createCheckoutSession({ planId: 'nonexistent', interval: 'monthly' })
-      ).rejects.toThrow('Plan not found');
+        caller.createCheckoutSession({ planId: 'pro', interval: 'monthly', providerId: 'stripe' })
+      ).rejects.toThrow('Payment provider "stripe" is not available');
     });
 
     it('throws when user is not org owner/admin', async () => {
-      asMock(getStripe).mockReturnValue({} as never);
+      asMock(isBillingEnabled).mockReturnValue(true);
+      asMock(getProvider).mockReturnValue({
+        config: { allowedIntervals: ['monthly', 'yearly'] },
+      });
       const ctx = createMockCtx();
       // Member with 'member' role (not owner/admin)
       ctx.db._selectChain.limit.mockResolvedValue([{ role: 'member' }]);
       const caller = billingRouter.createCaller(ctx as never);
 
       await expect(
-        caller.createCheckoutSession({ planId: 'pro', interval: 'monthly' })
+        caller.createCheckoutSession({ planId: 'pro', interval: 'monthly', providerId: 'stripe' })
       ).rejects.toThrow('Only org owners/admins can manage billing');
     });
 
     it('returns checkout URL on success', async () => {
-      asMock(getStripe).mockReturnValue({} as never);
-      asMock(createCheckoutSession).mockResolvedValue('https://checkout.stripe.com/sess_123');
+      const mockProvider = {
+        config: { allowedIntervals: ['monthly', 'yearly'] },
+        createCheckout: vi.fn().mockResolvedValue({
+          url: 'https://checkout.stripe.com/sess_123',
+          providerId: 'stripe',
+        }),
+      };
+      asMock(isBillingEnabled).mockReturnValue(true);
+      asMock(getProvider).mockReturnValue(mockProvider);
 
       const ctx = createMockCtx();
       ctx.db._selectChain.limit.mockResolvedValue([{ role: 'owner' }]);
@@ -238,30 +241,36 @@ describe('billingRouter', () => {
       const result = await caller.createCheckoutSession({
         planId: 'pro',
         interval: 'monthly',
+        providerId: 'stripe',
       });
 
-      expect(result).toEqual({ url: 'https://checkout.stripe.com/sess_123' });
+      expect(result).toEqual({ url: 'https://checkout.stripe.com/sess_123', providerId: 'stripe' });
     });
   });
 
   describe('createPortalSession', () => {
-    it('throws when Stripe is not configured', async () => {
-      asMock(getStripe).mockReturnValue(null);
+    it('throws when provider has no portal support', async () => {
+      asMock(getProvider).mockReturnValue({
+        config: {},
+      });
       const ctx = createMockCtx();
       const caller = billingRouter.createCaller(ctx as never);
 
-      await expect(caller.createPortalSession()).rejects.toThrow(
-        'Billing is not configured'
-      );
+      await expect(
+        caller.createPortalSession({ providerId: 'nowpayments' })
+      ).rejects.toThrow('Portal session not supported for this provider');
     });
 
     it('returns portal URL on success', async () => {
-      asMock(getStripe).mockReturnValue({} as never);
-      asMock(createPortalSession).mockResolvedValue('https://billing.stripe.com/portal_123');
+      const mockProvider = {
+        config: {},
+        createPortalSession: vi.fn().mockResolvedValue('https://billing.stripe.com/portal_123'),
+      };
+      asMock(getProvider).mockReturnValue(mockProvider);
 
       const ctx = createMockCtx();
       const caller = billingRouter.createCaller(ctx as never);
-      const result = await caller.createPortalSession();
+      const result = await caller.createPortalSession({ providerId: 'stripe' });
 
       expect(result).toEqual({ url: 'https://billing.stripe.com/portal_123' });
     });

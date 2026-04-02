@@ -1,4 +1,4 @@
-import type { PlanDefinition, ProviderPriceIds } from '@/engine/types/billing';
+import type { PlanDefinition } from '@/engine/types/billing';
 
 export const PLANS: PlanDefinition[] = [
   {
@@ -25,7 +25,8 @@ export const PLANS: PlanDefinition[] = [
         monthly: process.env.STRIPE_PRICE_STARTER_MONTHLY ?? '',
         yearly: process.env.STRIPE_PRICE_STARTER_YEARLY ?? '',
       },
-      nowpayments: { yearly: process.env.STRIPE_PRICE_STARTER_YEARLY ? '' : undefined },
+      // NOWPayments uses plan.priceYearly directly — no provider-specific price IDs
+      nowpayments: { yearly: '' },
     },
     priceMonthly: 1900, // $19
     priceYearly: 19000, // $190
@@ -47,7 +48,7 @@ export const PLANS: PlanDefinition[] = [
         monthly: process.env.STRIPE_PRICE_PRO_MONTHLY ?? '',
         yearly: process.env.STRIPE_PRICE_PRO_YEARLY ?? '',
       },
-      nowpayments: { yearly: process.env.STRIPE_PRICE_PRO_YEARLY ? '' : undefined },
+      nowpayments: { yearly: '' },
     },
     priceMonthly: 4900, // $49
     priceYearly: 49000, // $490
@@ -70,7 +71,7 @@ export const PLANS: PlanDefinition[] = [
         monthly: process.env.STRIPE_PRICE_ENTERPRISE_MONTHLY ?? '',
         yearly: process.env.STRIPE_PRICE_ENTERPRISE_YEARLY ?? '',
       },
-      nowpayments: { yearly: process.env.STRIPE_PRICE_ENTERPRISE_YEARLY ? '' : undefined },
+      nowpayments: { yearly: '' },
     },
     priceMonthly: 9900, // $99
     priceYearly: 99000, // $990
@@ -95,8 +96,8 @@ export function getPlanByProviderPriceId(
 ): PlanDefinition | undefined {
   return PLANS.find((p) => {
     const prices = p.providerPrices[providerId];
-    if (!prices || typeof prices === 'boolean') return false;
-    return (prices as ProviderPriceIds).monthly === priceId || (prices as ProviderPriceIds).yearly === priceId;
+    if (!prices) return false;
+    return prices.monthly === priceId || prices.yearly === priceId;
   });
 }
 
@@ -107,8 +108,8 @@ export function getProviderPriceId(
   interval: 'monthly' | 'yearly'
 ): string | null {
   const prices = plan.providerPrices[providerId];
-  if (!prices || typeof prices === 'boolean') return null;
-  return (prices as ProviderPriceIds)[interval] ?? null;
+  if (!prices) return null;
+  return prices[interval] ?? null;
 }
 
 export function getFreePlan(): PlanDefinition {

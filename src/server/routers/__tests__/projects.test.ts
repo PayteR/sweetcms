@@ -2,9 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/auth', () => ({
   auth: {
-    api: {
-      getSession: vi.fn().mockResolvedValue(null),
-    },
+    api: { getSession: vi.fn().mockResolvedValue(null) },
   },
 }));
 
@@ -24,215 +22,267 @@ import { asMock } from '@/test-utils';
 import { projectsRouter } from '../projects';
 import { logAudit } from '@/engine/lib/audit';
 
-// Helper to build a mock DB with chainable select + insert + update
-function createMockDb() {
-  const returningMock = vi.fn().mockResolvedValue([]);
-  const whereMock = vi.fn().mockReturnValue({ returning: returningMock, limit: vi.fn().mockResolvedValue([]) });
-  const setMock = vi.fn().mockReturnValue({ where: whereMock, returning: returningMock });
-  const valuesMock = vi.fn().mockReturnValue({ returning: returningMock });
-  const fromMock = vi.fn().mockReturnValue({ where: whereMock, orderBy: vi.fn().mockReturnValue({ limit: vi.fn().mockReturnValue({ offset: vi.fn().mockResolvedValue([]) }) }) });
-  const selectMock = vi.fn().mockReturnValue({ from: fromMock });
+const TEST_UUID = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
+
+/** Builds a mock Drizzle chain. Call `.resolve(data)` to set what the terminal method returns. */
+function chain(terminal = 'limit') {
+  const result = { data: [] as unknown[] };
+  const terminalFn = vi.fn(() => Promise.resolve(result.data));
+
+  // Build chain bottom-up so each level returns the next
+  const methods: Record<string, ReturnType<typeof vi.fn>> = {};
+  const order =
+    terminal === 'returning'
+      ? ['select', 'from', 'where', 'returning']
+      : terminal === 'offset'
+        ? ['select', 'from', 'where', 'orderBy', 'limit', 'offset']
+        : ['select', 'from', 'where', 'limit'];
+
+  let current: unknown = terminalFn;
+  for (let i = order.length - 1; i >= 0; i--) {
+    const fn = vi.fn(() => current);
+    methods[order[i]!] = fn;
+    current = { [order[i + 1] ?? '']: current, ...spreadRemaining(order, i, methods) };
+  }
 
   return {
-    select: selectMock,
-    insert: vi.fn().mockReturnValue({ values: valuesMock }),
-    update: vi.fn().mockReturnValue({ set: setMock }),
-    _mocks: { selectMock, fromMock, whereMock, valuesMock, returningMock, setMock },
+    head: methods[order[0]!]!,
+    resolve(data: unknown[]) {
+      result.data = data;
+      return this;
+    },
   };
 }
 
-function createMockCtx(overrides: Record<string, unknown> = {}) {
+function spreadRemaining(
+  order: string[],
+  fromIdx: number,
+  methods: Record<string, ReturnType<typeof vi.fn>>,
+) {
+  const out: Record<string, unknown> = {};
+  for (let j = fromIdx + 2; j < order.length; j++) {
+    out[order[j]!] = methods[order[j]!];
+  }
+  return out;
+}
+
+/**
+ * Creates a mock DB where `.select()` calls return results in sequence.
+ * Each entry in `selectResults` feeds one `db.select()` call chain.
+ */
+function mockDb({
+  selectResults = [] as unknown[][],
+  insertResult = [] as unknown[],
+  updateResult = [] as unknown[],
+} = {}) {
+  let selectIdx = 0;
+
   return {
-    session: {
-      user: { id: 'user-1', email: 'test@test.com', role: 'admin' },
-    },
-    db: createMockDb(),
+    select: vi.fn(() => {
+      const data = selectResults[selectIdx++] ?? [];
+      return {
+        from: vi.fn(() => ({
+          where: vi.fn((c: unknown) => {
+            // Support both Promise.all parallel queries (count) and chained queries
+            return {
+              limit: vi.fn(() => Promise.resolve(data)),
+              orderBy: vi.fn(() => ({
+                limit: vi.fn(() => ({
+                  offset: vi.fn(() => Promise.resolve(data)),
+                })),
+              })),
+              // For count queries called directly via Promise.all
+              then: (resolve: (v: unknown) => void) => Promise.resolve(data).then(resolve),
+            };
+          }),
+        })),
+      };
+    }),
+    insert: vi.fn(() => ({
+      values: vi.fn(() => ({
+        returning: vi.fn(() => Promise.resolve(insertResult)),
+      })),
+    })),
+    update: vi.fn(() => ({
+      set: vi.fn(() => ({
+        where: vi.fn(() => ({
+          returning: vi.fn(() => Promise.resolve(updateResult)),
+        })),
+      })),
+    })),
+  };
+}
+
+function ctx(overrides: Record<string, unknown> = {}) {
+  return {
+    session: { user: { id: 'user-1', email: 'test@test.com', role: 'admin' } },
+    db: mockDb(),
     headers: new Headers(),
     activeOrganizationId: 'org-1',
     ...overrides,
   };
 }
 
+function caller(c: ReturnType<typeof ctx>) {
+  return projectsRouter.createCaller(c as never);
+}
+
+// ─── Tests ────────────────────────────────────────────────────────────────
+
 describe('projectsRouter', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+  beforeEach(() => vi.clearAllMocks());
 
-  describe('list', () => {
-    it('throws when no active organization', async () => {
-      const ctx = createMockCtx({ activeOrganizationId: null });
-      const caller = projectsRouter.createCaller(ctx as never);
+  // ── requireOrg guard ────────────────────────────────────────────────────
 
-      await expect(caller.list()).rejects.toThrow('No active organization selected');
-    });
+  it.each(['list', 'create', 'get', 'update', 'delete'] as const)(
+    '%s throws when no active organization',
+    async (procedure) => {
+      const c = ctx({ activeOrganizationId: null });
 
-    it('throws when user is not a member', async () => {
-      const ctx = createMockCtx();
-      // First select call is requireMember — returns empty (not a member)
-      const limitMock = vi.fn().mockResolvedValue([]);
-      const whereMock = vi.fn().mockReturnValue({ limit: limitMock });
-      const fromMock = vi.fn().mockReturnValue({ where: whereMock });
-      ctx.db.select = vi.fn().mockReturnValue({ from: fromMock });
+      const input =
+        procedure === 'list'
+          ? undefined
+          : procedure === 'create'
+            ? { name: 'X' }
+            : { id: TEST_UUID, ...(procedure === 'update' ? { name: 'X' } : {}) };
 
-      const caller = projectsRouter.createCaller(ctx as never);
-      await expect(caller.list()).rejects.toThrow('Not a member of this organization');
-    });
-  });
-
-  describe('create', () => {
-    it('throws when no active organization', async () => {
-      const ctx = createMockCtx({ activeOrganizationId: null });
-      const caller = projectsRouter.createCaller(ctx as never);
-
-      await expect(
-        caller.create({ name: 'Test Project' }),
-      ).rejects.toThrow('No active organization selected');
-    });
-
-    it('creates a project and logs audit', async () => {
-      const ctx = createMockCtx();
-      const project = { id: 'proj-1', name: 'Test Project', organizationId: 'org-1' };
-
-      // requireMember returns a member
-      let selectCallCount = 0;
-      ctx.db.select = vi.fn().mockImplementation(() => {
-        selectCallCount++;
-        if (selectCallCount === 1) {
-          // requireMember
-          return {
-            from: vi.fn().mockReturnValue({
-              where: vi.fn().mockReturnValue({
-                limit: vi.fn().mockResolvedValue([{ id: 'member-1' }]),
-              }),
-            }),
-          };
-        }
-        // count query for list
-        return {
-          from: vi.fn().mockReturnValue({
-            where: vi.fn().mockResolvedValue([{ count: 0 }]),
-          }),
-        };
-      });
-
-      // insert returns project
-      ctx.db.insert = vi.fn().mockReturnValue({
-        values: vi.fn().mockReturnValue({
-          returning: vi.fn().mockResolvedValue([project]),
-        }),
-      });
-
-      const caller = projectsRouter.createCaller(ctx as never);
-      const result = await caller.create({ name: 'Test Project' });
-
-      expect(result).toEqual(project);
-      expect(asMock(logAudit)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          action: 'project.create',
-          entityType: 'project',
-          entityId: 'proj-1',
-        }),
+      await expect((caller(c) as Record<string, (i?: unknown) => Promise<unknown>>)[procedure](input)).rejects.toThrow(
+        'No active organization selected',
       );
+    },
+  );
+
+  // ── requireMember guard ─────────────────────────────────────────────────
+
+  it('throws when user is not a member', async () => {
+    const c = ctx({
+      db: mockDb({ selectResults: [[]] }), // empty = not a member
     });
+
+    await expect(caller(c).list()).rejects.toThrow('Not a member of this organization');
   });
 
-  describe('get', () => {
-    it('throws when project not found', async () => {
-      const ctx = createMockCtx();
-      let selectCallCount = 0;
-      ctx.db.select = vi.fn().mockImplementation(() => {
-        selectCallCount++;
-        if (selectCallCount === 1) {
-          return {
-            from: vi.fn().mockReturnValue({
-              where: vi.fn().mockReturnValue({
-                limit: vi.fn().mockResolvedValue([{ id: 'member-1' }]),
-              }),
-            }),
-          };
-        }
-        return {
-          from: vi.fn().mockReturnValue({
-            where: vi.fn().mockReturnValue({
-              limit: vi.fn().mockResolvedValue([]),
-            }),
-          }),
-        };
-      });
+  // ── list ────────────────────────────────────────────────────────────────
 
-      const caller = projectsRouter.createCaller(ctx as never);
-      await expect(
-        caller.get({ id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' }),
-      ).rejects.toThrow('Project not found');
+  it('list returns paginated results', async () => {
+    const projects = [{ id: 'p1', name: 'Project 1' }];
+    const c = ctx({
+      db: mockDb({
+        selectResults: [
+          [{ id: 'member-1' }], // requireMember
+          projects,              // results query
+          [{ count: 1 }],       // count query
+        ],
+      }),
     });
+
+    const result = await caller(c).list({ page: 1, pageSize: 20 });
+    expect(result.results).toEqual(projects);
+    expect(result.total).toBe(1);
   });
 
-  describe('delete', () => {
-    it('soft-deletes and logs audit', async () => {
-      const ctx = createMockCtx();
-      // requireMember
-      ctx.db.select = vi.fn().mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([{ id: 'member-1' }]),
-          }),
-        }),
-      });
+  // ── create ──────────────────────────────────────────────────────────────
 
-      // update returns the deleted project
-      ctx.db.update = vi.fn().mockReturnValue({
-        set: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            returning: vi.fn().mockResolvedValue([{ id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' }]),
-          }),
-        }),
-      });
-
-      const caller = projectsRouter.createCaller(ctx as never);
-      const result = await caller.delete({ id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' });
-
-      expect(result).toEqual({ success: true });
-      expect(asMock(logAudit)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          action: 'project.delete',
-          entityType: 'project',
-        }),
-      );
+  it('create inserts project and logs audit', async () => {
+    const project = { id: 'proj-1', name: 'Test', organizationId: 'org-1' };
+    const c = ctx({
+      db: mockDb({
+        selectResults: [[{ id: 'member-1' }]],
+        insertResult: [project],
+      }),
     });
 
-    it('throws when project not found', async () => {
-      const ctx = createMockCtx();
-      ctx.db.select = vi.fn().mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([{ id: 'member-1' }]),
-          }),
-        }),
-      });
+    const result = await caller(c).create({ name: 'Test' });
 
-      ctx.db.update = vi.fn().mockReturnValue({
-        set: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            returning: vi.fn().mockResolvedValue([]),
-          }),
-        }),
-      });
-
-      const caller = projectsRouter.createCaller(ctx as never);
-      await expect(
-        caller.delete({ id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11' }),
-      ).rejects.toThrow('Project not found');
-    });
+    expect(result).toEqual(project);
+    expect(asMock(logAudit)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'project.create',
+        entityType: 'project',
+        entityId: 'proj-1',
+      }),
+    );
   });
 
-  describe('update', () => {
-    it('throws when no active organization', async () => {
-      const ctx = createMockCtx({ activeOrganizationId: null });
-      const caller = projectsRouter.createCaller(ctx as never);
+  // ── get ─────────────────────────────────────────────────────────────────
 
-      await expect(
-        caller.update({ id: 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', name: 'Updated' }),
-      ).rejects.toThrow('No active organization selected');
+  it('get throws when project not found', async () => {
+    const c = ctx({
+      db: mockDb({
+        selectResults: [
+          [{ id: 'member-1' }], // requireMember
+          [],                    // project not found
+        ],
+      }),
     });
+
+    await expect(caller(c).get({ id: TEST_UUID })).rejects.toThrow('Project not found');
+  });
+
+  // ── update ──────────────────────────────────────────────────────────────
+
+  it('update returns updated project and logs audit', async () => {
+    const updated = { id: TEST_UUID, name: 'Updated' };
+    const c = ctx({
+      db: mockDb({
+        selectResults: [[{ id: 'member-1' }]],
+        updateResult: [updated],
+      }),
+    });
+
+    const result = await caller(c).update({ id: TEST_UUID, name: 'Updated' });
+
+    expect(result).toEqual(updated);
+    expect(asMock(logAudit)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'project.update',
+        entityType: 'project',
+        entityId: TEST_UUID,
+      }),
+    );
+  });
+
+  it('update throws when project not found', async () => {
+    const c = ctx({
+      db: mockDb({
+        selectResults: [[{ id: 'member-1' }]],
+        updateResult: [],
+      }),
+    });
+
+    await expect(caller(c).update({ id: TEST_UUID, name: 'X' })).rejects.toThrow('Project not found');
+  });
+
+  // ── delete ──────────────────────────────────────────────────────────────
+
+  it('delete soft-deletes and logs audit', async () => {
+    const c = ctx({
+      db: mockDb({
+        selectResults: [[{ id: 'member-1' }]],
+        updateResult: [{ id: TEST_UUID }],
+      }),
+    });
+
+    const result = await caller(c).delete({ id: TEST_UUID });
+
+    expect(result).toEqual({ success: true });
+    expect(asMock(logAudit)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'project.delete',
+        entityType: 'project',
+        entityId: TEST_UUID,
+      }),
+    );
+  });
+
+  it('delete throws when project not found', async () => {
+    const c = ctx({
+      db: mockDb({
+        selectResults: [[{ id: 'member-1' }]],
+        updateResult: [],
+      }),
+    });
+
+    await expect(caller(c).delete({ id: TEST_UUID })).rejects.toThrow('Project not found');
   });
 });

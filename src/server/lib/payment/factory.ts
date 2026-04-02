@@ -6,7 +6,7 @@ const providerCache = new Map<string, PaymentProvider>();
 /**
  * Get a payment provider by ID. Lazy-initializes and caches instances.
  */
-export function getProvider(id: string): PaymentProvider | null {
+export async function getProvider(id: string): Promise<PaymentProvider | null> {
   if (providerCache.has(id)) return providerCache.get(id)!;
 
   let provider: PaymentProvider | null = null;
@@ -14,14 +14,13 @@ export function getProvider(id: string): PaymentProvider | null {
   switch (id) {
     case 'stripe': {
       if (!process.env.STRIPE_SECRET_KEY) return null;
-      // Lazy import to avoid loading Stripe SDK when not needed
-      const { StripeProvider } = require('./stripe-provider') as typeof import('./stripe-provider');
+      const { StripeProvider } = await import('./stripe-provider');
       provider = new StripeProvider();
       break;
     }
     case 'nowpayments': {
       if (!process.env.NOWPAYMENTS_API_KEY) return null;
-      const { NowPaymentsProvider } = require('./nowpayments-provider') as typeof import('./nowpayments-provider');
+      const { NowPaymentsProvider } = await import('./nowpayments-provider');
       provider = new NowPaymentsProvider();
       break;
     }
@@ -36,7 +35,7 @@ export function getProvider(id: string): PaymentProvider | null {
 /**
  * Get the default (first enabled) provider.
  */
-export function getDefaultProvider(): PaymentProvider | null {
+export async function getDefaultProvider(): Promise<PaymentProvider | null> {
   const configs = getEnabledProviderConfigs();
   if (configs.length === 0) return null;
   return getProvider(configs[0]!.id);

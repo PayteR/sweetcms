@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import type { PricingPlan } from '@/config/pricing';
 
-export function PricingToggle({ plans }: { plans: PricingPlan[] }) {
+export function PricingToggle({ plans, cryptoEnabled = false }: { plans: PricingPlan[]; cryptoEnabled?: boolean }) {
   const [yearly, setYearly] = useState(false);
 
   return (
@@ -93,6 +93,13 @@ export function PricingToggle({ plans }: { plans: PricingPlan[] }) {
             >
               {plan.cta}
             </a>
+            {cryptoEnabled && yearly && plan.priceYearly !== '$0' && (
+              <p className="mt-2 text-center text-xs text-(--text-muted)">
+                <span className="inline-flex items-center gap-1 rounded-full bg-(--surface-secondary) px-2 py-0.5">
+                  ₿ Pay with Crypto
+                </span>
+              </p>
+            )}
           </div>
         ))}
       </div>

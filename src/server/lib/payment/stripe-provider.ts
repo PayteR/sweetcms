@@ -1,8 +1,8 @@
 import type Stripe from 'stripe';
 import type { PaymentProvider, CheckoutParams, CheckoutResult, WebhookEvent } from '@/engine/types/payment';
+import { DiscountType } from '@/engine/types/payment';
 import { getStripe, requireStripe, getOrCreateStripeCustomer } from '@/server/lib/stripe';
-import { getPlanByProviderPriceId, getPlan } from '@/config/plans';
-import { getProviderPriceId } from '@/config/plans';
+import { getPlanByProviderPriceId, getPlan, getProviderPriceId } from '@/config/plans';
 
 export class StripeProvider implements PaymentProvider {
   config = {
@@ -38,9 +38,28 @@ export class StripeProvider implements PaymentProvider {
       },
     };
 
-    // Add trial period if plan has trialDays
-    if (plan.trialDays && plan.trialDays > 0) {
+    // Apply discount at the Stripe level
+    if (params.discount) {
+      const coupon = await this.createAdHocCoupon(stripe, params.discount, params.originalPriceCents);
+      if (coupon) {
+        sessionParams.discounts = [{ coupon: coupon.id }];
+      }
+
+      // Trial discounts: override trial period
+      if (params.discount.type === DiscountType.TRIAL || params.discount.type === DiscountType.FREE_TRIAL) {
+        const trialDays = params.discount.trialDays ?? plan.trialDays;
+        if (trialDays && trialDays > 0) {
+          sessionParams.subscription_data = {
+            trial_period_days: trialDays,
+          };
+        }
+      }
+    }
+
+    // Add default trial period if plan has trialDays and no discount-driven trial
+    if (!sessionParams.subscription_data?.trial_period_days && plan.trialDays && plan.trialDays > 0) {
       sessionParams.subscription_data = {
+        ...sessionParams.subscription_data,
         trial_period_days: plan.trialDays,
       };
     }
@@ -72,8 +91,11 @@ export class StripeProvider implements PaymentProvider {
       process.env.STRIPE_WEBHOOK_SECRET
     );
 
-    // Include event.id in providerData for idempotency
-    const baseProviderData = { id: event.id, ...(event.data.object as unknown as Record<string, unknown>) };
+    // _eventId is a dedicated key for idempotency — must not collide with Stripe object fields
+    const baseProviderData: Record<string, unknown> = {
+      _eventId: event.id,
+      _eventType: event.type,
+    };
 
     switch (event.type) {
       case 'checkout.session.completed': {
@@ -165,6 +187,58 @@ export class StripeProvider implements PaymentProvider {
     });
 
     return session.url;
+  }
+
+  /**
+   * Create a one-time Stripe coupon from our discount definition.
+   * Returns null for discount types that don't translate to Stripe coupons (e.g. trial-only).
+   */
+  private async createAdHocCoupon(
+    stripe: Stripe,
+    discount: import('@/engine/types/payment').DiscountDefinition,
+    originalPriceCents?: number,
+  ): Promise<Stripe.Coupon | null> {
+    switch (discount.type) {
+      case DiscountType.PERCENTAGE:
+        if (!discount.value) return null;
+        return stripe.coupons.create({
+          percent_off: discount.value,
+          duration: 'once',
+        });
+
+      case DiscountType.FIXED_PRICE: {
+        // Fixed price = "pay this amount instead". Convert to amount_off.
+        if (discount.value === undefined || !originalPriceCents) return null;
+        const amountOff = originalPriceCents - discount.value;
+        if (amountOff <= 0) return null;
+        return stripe.coupons.create({
+          amount_off: amountOff,
+          currency: 'usd',
+          duration: 'once',
+        });
+      }
+
+      case DiscountType.TRIAL:
+        // Trial with reduced price for first period — use amount_off
+        if (discount.trialPriceCents !== undefined && originalPriceCents) {
+          const amountOff = originalPriceCents - discount.trialPriceCents;
+          if (amountOff > 0) {
+            return stripe.coupons.create({
+              amount_off: amountOff,
+              currency: 'usd',
+              duration: 'once',
+            });
+          }
+        }
+        return null;
+
+      case DiscountType.FREE_TRIAL:
+        // Free trial is handled via trial_period_days, no coupon needed
+        return null;
+
+      default:
+        return null;
+    }
   }
 
   async refund(transactionId: string, amountCents?: number): Promise<boolean> {

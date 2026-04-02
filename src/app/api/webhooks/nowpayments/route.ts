@@ -10,7 +10,7 @@ import { createLogger } from '@/engine/lib/logger';
 const logger = createLogger('nowpayments-webhook');
 
 export async function POST(request: Request) {
-  const provider = getProvider('nowpayments');
+  const provider = await getProvider('nowpayments');
   if (!provider) {
     return NextResponse.json({ error: 'NOWPayments not configured' }, { status: 503 });
   }

@@ -17,7 +17,7 @@ import { createLogger } from '@/engine/lib/logger';
 const logger = createLogger('stripe-webhook');
 
 export async function POST(request: Request) {
-  const stripeProvider = getProvider('stripe');
+  const stripeProvider = await getProvider('stripe');
   if (!stripeProvider) {
     return NextResponse.json({ error: 'Billing not configured' }, { status: 503 });
   }
@@ -33,11 +33,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 });
   }
 
-  // Idempotency check via raw Stripe event ID from providerData
-  const stripeEventId = (event.providerData as Record<string, unknown>)?.id as string | undefined;
+  // Idempotency check via _eventId set by the Stripe provider
+  const stripeEventId = (event.providerData as Record<string, unknown>)?._eventId as string | undefined;
   if (!stripeEventId) {
-    // Fallback: try to extract from the original request
-    // For Stripe, the event ID is always available in providerData
     return NextResponse.json({ error: 'Missing event ID' }, { status: 400 });
   }
 

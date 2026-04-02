@@ -33,8 +33,12 @@ export interface PlanDefinition {
   id: string;
   name: string;
   description: string;
-  /** Provider-specific price IDs: { stripe: { monthly, yearly }, nowpayments: { yearly: true } } */
-  providerPrices: Record<string, ProviderPriceIds | boolean>;
+  /**
+   * Provider-specific price IDs.
+   * Stripe: { monthly: 'price_xxx', yearly: 'price_yyy' }
+   * NOWPayments (no price IDs): { yearly: '' } — empty string = available at plan.priceYearly
+   */
+  providerPrices: Record<string, ProviderPriceIds>;
   priceMonthly: number; // in cents
   priceYearly: number; // in cents
   trialDays?: number;

@@ -9,6 +9,8 @@ export const metadata: Metadata = {
 };
 
 export default function PricingPage() {
+  const cryptoEnabled = !!process.env.NOWPAYMENTS_API_KEY;
+
   return (
     <main className="container mx-auto px-4 py-16 max-w-6xl">
       <div className="text-center mb-12">
@@ -18,7 +20,7 @@ export default function PricingPage() {
         </p>
       </div>
 
-      <PricingToggle plans={PRICING_PLANS} />
+      <PricingToggle plans={PRICING_PLANS} cryptoEnabled={cryptoEnabled} />
 
       <section className="mt-24">
         <h2 className="text-2xl font-bold text-center mb-8">

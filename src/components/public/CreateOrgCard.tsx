@@ -24,7 +24,7 @@ export function CreateOrgCard() {
     try {
       const org = await createOrg.mutateAsync({ name: trimmed, slug });
       await setActive.mutateAsync({ organizationId: (org as { id: string }).id });
-      router.push('/dashboard');
+      router.push('/account');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     }
