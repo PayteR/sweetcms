@@ -26,11 +26,11 @@ SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack: Nex
 
 ### Engine / Project Boundary
 
-`src/engine/` contains reusable CMS infrastructure — do not modify per-project. It is a `git subtree` from `sweetcms-engine` repo (`github.com/sweetai/sweetcms-engine`).
+`src/engine/` contains reusable CMS infrastructure — do not modify per-project. It is a `git subtree` from `sweetcms-engine` repo (`github.com/PayteR/sweetcms-engine`).
 
 **Engine subtree commands:**
-- Pull updates: `git subtree pull --prefix=src/engine https://github.com/sweetai/sweetcms-engine.git main --squash`
-- Push changes: `git subtree push --prefix=src/engine https://github.com/sweetai/sweetcms-engine.git main`
+- Pull updates: `git subtree pull --prefix=src/engine git@github.com:PayteR/sweetcms-engine.git main --squash`
+- Push changes: `git subtree push --prefix=src/engine git@github.com:PayteR/sweetcms-engine.git main`
 
 `src/config/`, `src/server/`, `src/app/`, `src/components/admin/` (forms) are project-specific — customize freely.
 

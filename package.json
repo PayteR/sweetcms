@@ -16,8 +16,8 @@
     "promote": "bun run src/scripts/promote.ts",
     "change-password": "bun run src/scripts/change-password.ts",
     "test": "vitest",
-    "engine:push": "git subtree push --prefix=src/engine https://github.com/sweetcms/engine.git main",
-    "engine:pull": "git subtree pull --prefix=src/engine https://github.com/sweetcms/engine.git main --squash"
+    "engine:push": "git subtree push --prefix=src/engine git@github.com:PayteR/sweetcms-engine.git main",
+    "engine:pull": "git subtree pull --prefix=src/engine git@github.com:PayteR/sweetcms-engine.git main --squash"
   },
   "dependencies": {
     "@better-fetch/fetch": "^1.1.21",
