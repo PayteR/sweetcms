@@ -48,7 +48,7 @@ SweetCMS is an open-source, AI agent-driven T3 SaaS starter with integrated CMS:
 
 **Procedure types:** `publicProcedure`, `protectedProcedure`, `staffProcedure`, `sectionProcedure(section)`, `superadminProcedure`.
 
-**Routers (`src/server/routers/_app.ts`):** `analytics`, `audit`, `auth`, `billing`, `categories`, `cms`, `contentSearch`, `customFields`, `forms`, `import`, `jobQueue`, `media`, `menus`, `notifications`, `options`, `organizations`, `portfolio`, `redirects`, `revisions`, `showcase`, `tags`, `users`, `webhooks`.
+**Routers (`src/server/routers/_app.ts`):** `analytics`, `audit`, `auth`, `billing`, `categories`, `cms`, `comments`, `contentSearch`, `customFields`, `forms`, `import`, `jobQueue`, `media`, `menus`, `notifications`, `options`, `organizations`, `portfolio`, `reactions`, `redirects`, `revisions`, `showcase`, `tags`, `users`, `webhooks`.
 
 ### Database
 
@@ -61,6 +61,8 @@ PostgreSQL only. All CMS tables prefixed `cms_`. UUID primary keys via `gen_rand
 - `cms_categories` — standalone category table (rich: SEO, content, icon, jsonLd)
 - `cms_portfolio` — portfolio items (custom table: clientName, projectUrl, techStack jsonb, completedAt, featuredImage, SEO fields, revision history)
 - `cms_showcase` — swipeable showcase cards (custom table: cardType enum video/image/richtext, mediaUrl, thumbnailUrl, sortOrder, SEO fields, revision history)
+- `cms_reactions` — polymorphic like/dislike reactions (userId text, contentType varchar, contentId uuid, reactionType like/dislike). Unique on (userId, contentType, contentId). Generic — works with any content type
+- `cms_comments` — polymorphic comments with threading (userId text, contentType varchar, contentId uuid, parentId for replies, body, status, soft-delete). Generic — works with any content type
 - `cms_terms` — universal taxonomy terms (simple: name, slug, lang, status, order). Used for tags; extensible for future taxonomies
 - `cms_term_relationships` — polymorphic M:N (objectId, termId, taxonomyId). Links posts to categories AND tags. `taxonomyId` discriminator: `'category'` → termId points to `cms_categories.id`, `'tag'` → termId points to `cms_terms.id`. No FK on termId (app-level enforcement)
 - `cms_content_revisions` — JSONB snapshots for revision history
@@ -194,7 +196,7 @@ src/
 │   └── sitemap.ts        — dynamic sitemap generation
 ├── components/
 │   ├── admin/            — PostForm, CategoryForm, PortfolioForm, ShowcaseForm, TermForm, CmsListView, AdminSidebar, DashboardWidgetGrid, QuickActionsWidget, TaxonomyOverview, shortcodes/
-│   ├── public/           — ContactForm, UserMenu, SocialLoginButtons, CreateOrgCard, ShowcaseFeed, RefCookieCapture
+│   ├── public/           — ContactForm, UserMenu, SocialLoginButtons, CreateOrgCard, ShowcaseFeed, ShowcaseActionBar, CommentPanel, RefCookieCapture
 │   └── ui/               — ConfirmDialog (re-export)
 ├── config/               — cms.ts (content types), taxonomies.ts (taxonomy declarations), admin-nav.ts (navigation data), plans.ts (billing plans), pricing.ts (pricing display), site.ts (site config)
 ├── engine/
@@ -210,10 +212,10 @@ src/
 ├── lib/                  — auth, auth-client, constants, env, locale (re-export), locale-server (re-export), password, translations (re-export), trpc, utils
 ├── scripts/              — init.ts, promote.ts, change-password.ts, migrate-html-to-markdown.ts, schedule-jobs.ts
 ├── server/
-│   ├── db/schema/        — auth, cms, categories, portfolio, showcase, terms, term-relationships, media, menu, webhooks, audit, custom-fields, forms, organization, billing, notifications
+│   ├── db/schema/        — auth, cms, categories, portfolio, showcase, reactions (reactions + comments), terms, term-relationships, media, menu, webhooks, audit, custom-fields, forms, organization, billing, notifications
 │   ├── jobs/             — email queue (BullMQ + nodemailer), content queue
 │   ├── lib/              — stripe, ws (WebSocket server), notifications
-│   ├── routers/          — analytics, audit, auth, billing, categories, cms, content-search, custom-fields, forms, import, job-queue, media, menus, notifications, options, organizations, portfolio, redirects, revisions, showcase, tags, users, webhooks
+│   ├── routers/          — analytics, audit, auth, billing, categories, cms, comments, content-search, custom-fields, forms, import, job-queue, media, menus, notifications, options, organizations, portfolio, reactions, redirects, revisions, showcase, tags, users, webhooks
 │   └── storage/          — pluggable storage (filesystem, S3-compatible)
 ├── store/                — toast-store (re-export)
 ```

@@ -82,7 +82,7 @@ export default function DashboardPage() {
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard
             label={__('Active Subscriptions')}
-            count={billingStats.data.totalActiveSubscriptions}
+            count={billingStats.data.totalActive}
             href={adminPanel.settingsBilling}
             icon={CreditCard}
             color="green"
@@ -96,7 +96,7 @@ export default function DashboardPage() {
           />
           <StatCard
             label={__('Churn (30d)')}
-            count={billingStats.data.churnLast30Days}
+            count={billingStats.data.churn.canceled30d}
             href={adminPanel.settingsBilling}
             icon={Users}
             color="orange"

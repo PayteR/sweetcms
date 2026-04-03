@@ -8,6 +8,8 @@ import { cn } from '@/lib/utils';
 interface SubscriptionsTableProps {
   from?: string;
   to?: string;
+  planFilter?: string;
+  statusFilter?: string;
 }
 
 const PLAN_NAMES: Record<string, string> = {
@@ -17,47 +19,42 @@ const PLAN_NAMES: Record<string, string> = {
   enterprise: 'Enterprise',
 };
 
-const STATUS_OPTIONS = ['active', 'trialing', 'past_due', 'canceled', 'unpaid'] as const;
-
 function statusBadgeClass(status: string): string {
   switch (status) {
     case 'active':
       return 'badge badge-published';
     case 'trialing':
       return 'badge badge-scheduled';
+    case 'past_due':
+      return 'badge badge-scheduled';
     case 'canceled':
     case 'unpaid':
       return 'badge badge-draft';
-    case 'past_due':
-      return 'badge';
     default:
       return 'badge';
   }
 }
 
-export function SubscriptionsTable({ from, to }: SubscriptionsTableProps) {
+export function SubscriptionsTable({ from, to, planFilter, statusFilter }: SubscriptionsTableProps) {
   const __ = useBlankTranslations();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
-  const [status, setStatus] = useState('');
-  const [planId, setPlanId] = useState('');
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
 
-  // Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Reset page on filter change
-  useEffect(() => { setPage(1); }, [debouncedSearch, status, planId, pageSize, from, to]);
+  // Reset page on any filter change
+  useEffect(() => { setPage(1); }, [debouncedSearch, planFilter, statusFilter, pageSize, from, to]);
 
   const { data, isLoading } = trpc.billing.listSubscriptions.useQuery({
     page,
     pageSize,
-    status: status || undefined,
-    planId: planId || undefined,
+    status: statusFilter || undefined,
+    planId: planFilter || undefined,
     from: from || undefined,
     to: to || undefined,
     search: debouncedSearch || undefined,
@@ -70,36 +67,21 @@ export function SubscriptionsTable({ from, to }: SubscriptionsTableProps) {
   const showTo = Math.min(page * pageSize, total);
 
   return (
-    <div className="card p-0">
-      {/* Filters */}
-      <div className={cn('flex flex-wrap items-center gap-3 p-4 border-b border-[var(--border-default)]')}>
+    <div className="card overflow-hidden">
+      <div className="widget-header">
+        <h2 className="font-semibold text-(--text-primary)">{__('Active Subscriptions')}</h2>
+      </div>
+
+      {/* Search + page size */}
+      <div className="flex flex-wrap items-center gap-3 p-4 border-b border-(--border-primary)">
         <input
           type="text"
-          className="search-input"
+          className="search-input max-w-80"
           placeholder={__('Search organizations...')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
-        <select
-          className="filter-select"
-          value={planId}
-          onChange={(e) => setPlanId(e.target.value)}
-        >
-          <option value="">{__('All Plans')}</option>
-          {Object.entries(PLAN_NAMES).map(([id, name]) => (
-            <option key={id} value={id}>{__(name)}</option>
-          ))}
-        </select>
-        <select
-          className="filter-select"
-          value={status}
-          onChange={(e) => setStatus(e.target.value)}
-        >
-          <option value="">{__('All Statuses')}</option>
-          {STATUS_OPTIONS.map((s) => (
-            <option key={s} value={s}>{__(s.charAt(0).toUpperCase() + s.slice(1).replace('_', ' '))}</option>
-          ))}
-        </select>
+        <div className="flex-1" />
         <select
           className="filter-select"
           value={pageSize}
@@ -113,7 +95,7 @@ export function SubscriptionsTable({ from, to }: SubscriptionsTableProps) {
 
       {/* Table */}
       {isLoading ? (
-        <div className="p-8 text-center text-[var(--text-muted)]">{__('Loading...')}</div>
+        <div className="p-8 text-center text-(--text-muted)">{__('Loading...')}</div>
       ) : results.length === 0 ? (
         <div className="empty-state">{__('No subscriptions found.')}</div>
       ) : (
@@ -135,11 +117,8 @@ export function SubscriptionsTable({ from, to }: SubscriptionsTableProps) {
                   <td className="td">{sub.orgName ?? sub.organizationId}</td>
                   <td className="td">{PLAN_NAMES[sub.planId] ?? sub.planId}</td>
                   <td className="td">
-                    <span
-                      className={statusBadgeClass(sub.status)}
-                      style={sub.status === 'past_due' ? { backgroundColor: 'oklch(0.75 0.15 70)', color: '#fff' } : undefined}
-                    >
-                      {__(sub.status.charAt(0).toUpperCase() + sub.status.slice(1).replace('_', ' '))}
+                    <span className={statusBadgeClass(sub.status)}>
+                      {sub.status.charAt(0).toUpperCase() + sub.status.slice(1).replace('_', ' ')}
                     </span>
                   </td>
                   <td className="td">{sub.providerId ?? '—'}</td>
@@ -161,7 +140,7 @@ export function SubscriptionsTable({ from, to }: SubscriptionsTableProps) {
       {/* Pagination */}
       {total > 0 && (
         <div className="pagination">
-          <span className="text-sm text-[var(--text-muted)]">
+          <span className="text-sm text-(--text-muted)">
             {__('Showing')} {showFrom} {__('to')} {showTo} {__('of')} {total} {__('results')}
           </span>
           <div className="flex gap-2">

@@ -1,6 +1,7 @@
 'use client';
 
-import { useRef, useState, useEffect, useMemo } from 'react';
+import { useRef, useState, useEffect, useMemo, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useBlankTranslations } from '@/lib/translations';
 import { trpc } from '@/lib/trpc/client';
 import { cn } from '@/lib/utils';
@@ -9,6 +10,9 @@ import { SubscriptionsTable } from './components/SubscriptionsTable';
 import { ChurnedSubscriptionsTable } from './components/ChurnedSubscriptionsTable';
 import { DiscountCodesTable } from './components/DiscountCodesTable';
 import { RevenueChart } from './components/RevenueChart';
+import { RecentTransactionsTable } from './components/RecentTransactionsTable';
+
+// ─── Date helpers (pure — no mutation) ──────────────────────────────────────
 
 const DATE_PRESETS = [
   { label: '7 days', days: 7 },
@@ -19,18 +23,55 @@ const DATE_PRESETS = [
   { label: 'All time', days: 0 },
 ] as const;
 
-function toISOStart(date: Date): string {
-  return new Date(date.setHours(0, 0, 0, 0)).toISOString();
+const PLAN_OPTIONS = [
+  { value: '', label: 'All Plans' },
+  { value: 'free', label: 'Free' },
+  { value: 'starter', label: 'Starter' },
+  { value: 'pro', label: 'Pro' },
+  { value: 'enterprise', label: 'Enterprise' },
+] as const;
+
+const STATUS_OPTIONS = [
+  { value: '', label: 'All Statuses' },
+  { value: 'active', label: 'Active' },
+  { value: 'trialing', label: 'Trialing' },
+  { value: 'past_due', label: 'Past Due' },
+  { value: 'canceled', label: 'Canceled' },
+  { value: 'unpaid', label: 'Unpaid' },
+] as const;
+
+function toISOStart(dateStr: string): string {
+  const d = new Date(dateStr);
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
 }
 
-function toISOEnd(date: Date): string {
-  return new Date(date.setHours(23, 59, 59, 999)).toISOString();
+function toISOEnd(dateStr: string): string {
+  const d = new Date(dateStr);
+  d.setHours(23, 59, 59, 999);
+  return d.toISOString();
 }
+
+function daysAgoISO(days: number): string {
+  const d = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString();
+}
+
+function nowISO(): string {
+  const d = new Date();
+  d.setHours(23, 59, 59, 999);
+  return d.toISOString();
+}
+
+// ─── Component ──────────────────────────────────────────────────────────────
 
 export default function BillingDashboardPage() {
   const __ = useBlankTranslations();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-  // ─── Sticky filter bar ────────────────────────────────────────────────────
+  // ─── Sticky filter bar ──────────────────────────────────────────────────
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [isStuck, setIsStuck] = useState(false);
 
@@ -38,52 +79,55 @@ export default function BillingDashboardPage() {
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry) setIsStuck(!entry.isIntersecting);
-      },
+      ([entry]) => { if (entry) setIsStuck(!entry.isIntersecting); },
       { threshold: 0 }
     );
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, []);
 
-  // ─── Date range filter ────────────────────────────────────────────────────
-  const [preset, setPreset] = useState(30);
-  const [customFrom, setCustomFrom] = useState('');
-  const [customTo, setCustomTo] = useState('');
+  // ─── URL-persisted filters ──────────────────────────────────────────────
+  const initialPreset = Number(searchParams.get('days') ?? 30);
+  const initialPlan = searchParams.get('plan') ?? '';
+  const initialStatus = searchParams.get('status') ?? '';
+  const initialCustomFrom = searchParams.get('from') ?? '';
+  const initialCustomTo = searchParams.get('to') ?? '';
+
+  const [preset, setPreset] = useState(initialPreset === -1 ? -1 : initialPreset);
+  const [planFilter, setPlanFilter] = useState(initialPlan);
+  const [statusFilter, setStatusFilter] = useState(initialStatus);
+  const [customFrom, setCustomFrom] = useState(initialCustomFrom);
+  const [customTo, setCustomTo] = useState(initialCustomTo);
   const isCustom = preset === -1;
 
+  // Persist filters to URL
+  const syncURL = useCallback(() => {
+    const params = new URLSearchParams();
+    if (preset !== 30) params.set('days', String(preset));
+    if (planFilter) params.set('plan', planFilter);
+    if (statusFilter) params.set('status', statusFilter);
+    if (isCustom && customFrom) params.set('from', customFrom);
+    if (isCustom && customTo) params.set('to', customTo);
+    const qs = params.toString();
+    router.replace(`?${qs}`, { scroll: false });
+  }, [preset, planFilter, statusFilter, customFrom, customTo, isCustom, router]);
+
+  useEffect(() => { syncURL(); }, [syncURL]);
+
+  // ─── Compute date range ─────────────────────────────────────────────────
   const { from, to } = useMemo(() => {
     if (isCustom) {
       return {
-        from: customFrom ? toISOStart(new Date(customFrom)) : undefined,
-        to: customTo ? toISOEnd(new Date(customTo)) : undefined,
+        from: customFrom ? toISOStart(customFrom) : undefined,
+        to: customTo ? toISOEnd(customTo) : undefined,
       };
     }
-    if (preset === 0) return { from: undefined, to: undefined }; // All time
-    const now = new Date();
-    const start = new Date(now.getTime() - preset * 24 * 60 * 60 * 1000);
-    return { from: toISOStart(start), to: toISOEnd(now) };
+    if (preset === 0) return { from: undefined, to: undefined };
+    return { from: daysAgoISO(preset), to: nowISO() };
   }, [preset, customFrom, customTo, isCustom]);
 
-  // ─── Summary data ─────────────────────────────────────────────────────────
-  const { data: summary, isLoading: summaryLoading } = trpc.billing.getSummary.useQuery({ from, to });
-
-  // ─── Customer-facing subscription (for self-service section) ──────────────
-  const { data: subscription } = trpc.billing.getSubscription.useQuery();
-  const { data: plans } = trpc.billing.getPlans.useQuery();
-  const checkout = trpc.billing.createCheckoutSession.useMutation();
-  const portal = trpc.billing.createPortalSession.useMutation();
-
-  const handleUpgrade = async (planId: string) => {
-    const result = await checkout.mutateAsync({ planId, interval: 'monthly' });
-    if (result.url) window.location.href = result.url;
-  };
-
-  const handleManageBilling = async () => {
-    const result = await portal.mutateAsync({ providerId: 'stripe' });
-    if (result.url) window.location.href = result.url;
-  };
+  // ─── Data ───────────────────────────────────────────────────────────────
+  const { data: stats, isLoading: statsLoading } = trpc.billing.getStats.useQuery({ from, to });
 
   return (
     <div className="mx-auto max-w-320">
@@ -91,36 +135,31 @@ export default function BillingDashboardPage() {
       <div className="mb-6">
         <h1 className="h2">{__('Subscriptions')}</h1>
         <p className="mt-1 text-sm text-(--text-secondary)">
-          {__('Manage subscriptions, monitor revenue, and track churn.')}
+          {__('Monitor revenue, track churn, and manage subscriptions.')}
         </p>
       </div>
 
       {/* Sentinel for sticky detection */}
       <div ref={sentinelRef} className="h-0" />
 
-      {/* Sticky filter bar */}
+      {/* ─── Sticky filter bar ─────────────────────────────────────────── */}
       <div
         className={cn(
           'sticky top-0 z-50 -mx-6 px-6 py-3 flex flex-wrap items-center gap-3',
-          'transition-[background-color,border-color] duration-200',
+          'transition-[background-color,border-color,box-shadow] duration-200',
           isStuck
             ? 'bg-(--surface-primary) border-b border-b-(--border-primary) shadow-sm'
             : 'border-b border-transparent'
         )}
       >
-        {/* Date preset selector */}
+        {/* Date preset */}
         <select
           value={preset}
-          onChange={(e) => {
-            const v = Number(e.target.value);
-            setPreset(v);
-          }}
+          onChange={(e) => setPreset(Number(e.target.value))}
           className="filter-select"
         >
           {DATE_PRESETS.map((p) => (
-            <option key={p.days} value={p.days}>
-              {__(p.label)}
-            </option>
+            <option key={p.days} value={p.days}>{__(p.label)}</option>
           ))}
           <option value={-1}>{__('Custom range')}</option>
         </select>
@@ -145,9 +184,31 @@ export default function BillingDashboardPage() {
           </>
         )}
 
+        {/* Plan filter */}
+        <select
+          value={planFilter}
+          onChange={(e) => setPlanFilter(e.target.value)}
+          className="filter-select"
+        >
+          {PLAN_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{__(o.label)}</option>
+          ))}
+        </select>
+
+        {/* Status filter */}
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="filter-select"
+        >
+          {STATUS_OPTIONS.map((o) => (
+            <option key={o.value} value={o.value}>{__(o.label)}</option>
+          ))}
+        </select>
+
         <div className="flex-1" />
 
-        {/* Active range display */}
+        {/* Active range label */}
         {!isCustom && preset > 0 && (
           <span className="text-xs text-(--text-muted)">
             {__('Last')} {preset} {__('days')}
@@ -158,96 +219,42 @@ export default function BillingDashboardPage() {
         )}
       </div>
 
-      {/* Summary KPIs */}
+      {/* ─── Summary KPIs ──────────────────────────────────────────────── */}
       <div className="mt-6">
-        <SubscriptionSummary data={summary} isLoading={summaryLoading} />
+        <SubscriptionSummary data={stats} isLoading={statsLoading} />
       </div>
 
-      {/* Revenue chart */}
+      {/* ─── Revenue chart ─────────────────────────────────────────────── */}
       <div className="mt-6">
         <RevenueChart from={from} to={to} />
       </div>
 
-      {/* Subscriptions list */}
+      {/* ─── Recent transactions ───────────────────────────────────────── */}
       <div className="mt-6">
-        <div className="widget-header">
-          <h2 className="font-semibold text-(--text-primary)">{__('Active Subscriptions')}</h2>
-        </div>
-        <SubscriptionsTable from={from} to={to} />
+        <RecentTransactionsTable
+          transactions={stats?.recentTransactions}
+          isLoading={statsLoading}
+        />
       </div>
 
-      {/* Churned subscriptions */}
+      {/* ─── Active subscriptions ──────────────────────────────────────── */}
       <div className="mt-6">
-        <div className="widget-header">
-          <h2 className="font-semibold text-(--text-primary)">{__('Churned Subscriptions')}</h2>
-        </div>
+        <SubscriptionsTable
+          from={from}
+          to={to}
+          planFilter={planFilter}
+          statusFilter={statusFilter}
+        />
+      </div>
+
+      {/* ─── Churned subscriptions ─────────────────────────────────────── */}
+      <div className="mt-6">
         <ChurnedSubscriptionsTable from={from} to={to} />
       </div>
 
-      {/* Discount codes overview */}
-      <div className="mt-6">
+      {/* ─── Discount codes ────────────────────────────────────────────── */}
+      <div className="mt-6 mb-8">
         <DiscountCodesTable />
-      </div>
-
-      {/* Self-service billing section */}
-      <div className="mt-8 mb-6">
-        <div className="widget-header">
-          <h2 className="font-semibold text-(--text-primary)">{__('Your Organization Billing')}</h2>
-        </div>
-        <div className="card p-6 mt-2">
-          <div className="flex items-center gap-3 mb-4">
-            <span className="text-xl font-bold capitalize">
-              {subscription?.planId ?? 'free'}
-            </span>
-            <span
-              className={cn(
-                'badge',
-                subscription?.status === 'active' ? 'badge-published' : 'badge-draft'
-              )}
-            >
-              {subscription?.status ?? 'active'}
-            </span>
-          </div>
-          {subscription?.planId !== 'free' && (
-            <button onClick={handleManageBilling} className="btn btn-secondary btn-sm">
-              {__('Manage Billing')}
-            </button>
-          )}
-        </div>
-
-        {plans && (
-          <div className="card p-6 mt-4">
-            <h3 className="font-semibold mb-4">{__('Available Plans')}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {plans.map((plan) => (
-                <div
-                  key={plan.id}
-                  className="border border-(--border-primary) rounded-lg p-4"
-                >
-                  <h4 className="font-medium">{plan.name}</h4>
-                  <p className="text-sm text-(--text-secondary) mt-1">{plan.description}</p>
-                  <p className="text-lg font-bold mt-2">
-                    ${plan.priceMonthly / 100}/mo
-                  </p>
-                  {plan.id !== subscription?.planId && plan.id !== 'free' && (
-                    <button
-                      onClick={() => handleUpgrade(plan.id)}
-                      className="btn btn-primary btn-sm mt-3"
-                      disabled={checkout.isPending}
-                    >
-                      {__('Upgrade')}
-                    </button>
-                  )}
-                  {plan.id === subscription?.planId && (
-                    <span className="inline-block mt-3 text-sm text-(--text-secondary)">
-                      {__('Current plan')}
-                    </span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

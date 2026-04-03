@@ -528,18 +528,19 @@ describe('billingRouter', () => {
   // =========================================================================
   describe('getStats', () => {
     /**
-     * Helper: build a select mock that returns different rows per call index.
+     * Helper: build a select mock for getStats.
      *
-     * The billing getStats query uses the following terminal patterns:
-     *   - Query 1: .select.from.where.groupBy(col)           → groupBy is terminal
-     *   - Query 2: .select.from.where.groupBy(c1, c2, c3)   → groupBy is terminal
-     *   - Query 3: .select.from.where                        → where is terminal
-     *   - Query 4: .select.from.orderBy.limit                → limit is terminal
-     *   - Query 5: .select.from.where                        → where is terminal
-     *
-     * `where` must return an object with both `.groupBy` (a Promise) and the
-     * object itself must be awaitable (thenable) for queries 3 & 5 where `where`
-     * is the terminal. We achieve this by returning a thenable plain object.
+     * getStats makes 10 sequential DB calls:
+     *  1. planDistribution       (.select.from.where.groupBy)
+     *  2. activeSubGroups (MRR)  (.select.from.where.groupBy)
+     *  3. trialing count         (.select.from.where)
+     *  4. canceled30d count      (.select.from.where)
+     *  5. pastDue count          (.select.from.where)
+     *  6. unpaid count           (.select.from.where)
+     *  7. totalEver count        (.select.from — no where!)
+     *  8. totalRevenue sum       (.select.from.where)
+     *  9. recentTransactions     (.select.from.leftJoin.orderBy.limit)
+     * 10. activeDiscountCodes    (.select.from.where)
      */
     function buildStatsDb(responses: unknown[][]) {
       let callIndex = 0;
@@ -547,29 +548,24 @@ describe('billingRouter', () => {
         const rows = responses[callIndex] ?? [];
         callIndex++;
 
-        // groupBy is the terminal for queries 1 & 2 — returns a resolved Promise
         const groupByMock = vi.fn().mockResolvedValue(rows);
-        // limit is the terminal for query 4
         const limitMock = vi.fn().mockResolvedValue(rows);
-        const orderByForWhereMock = vi.fn().mockReturnValue({ limit: limitMock });
-
-        // where() returns a "thenable" object (has .then) AND has .groupBy/.orderBy/.limit
-        // This allows both `await db.select.from.where(...)` and
-        // `await db.select.from.where(...).groupBy(...)` to work.
-        const makeWhere = () => ({
-          then: (resolve: (v: unknown) => unknown) => Promise.resolve(rows).then(resolve),
-          groupBy: groupByMock,
-          orderBy: orderByForWhereMock,
-          limit: limitMock,
-        });
-        const whereMock = vi.fn().mockImplementation(makeWhere);
-
-        // orderBy is used by query 4 (recentTransactions): .from.orderBy.limit
         const orderByMock = vi.fn().mockReturnValue({ limit: limitMock });
 
+        const makeThenable = () => ({
+          then: (resolve: (v: unknown) => unknown) => Promise.resolve(rows).then(resolve),
+          groupBy: groupByMock,
+          orderBy: orderByMock,
+          limit: limitMock,
+        });
+        const whereMock = vi.fn().mockImplementation(makeThenable);
+        const leftJoinMock = vi.fn().mockReturnValue({ orderBy: orderByMock, where: whereMock });
+
         const fromMock = vi.fn().mockReturnValue({
+          then: (resolve: (v: unknown) => unknown) => Promise.resolve(rows).then(resolve),
           where: whereMock,
           orderBy: orderByMock,
+          leftJoin: leftJoinMock,
         });
 
         return { from: fromMock };
@@ -578,30 +574,38 @@ describe('billingRouter', () => {
       return { select: selectMock, insert: vi.fn(), update: vi.fn(), delete: vi.fn() };
     }
 
-    it('returns billing stats with expected shape', async () => {
-      const db = buildStatsDb([
-        // 1st select: planDistribution
-        [{ planId: 'pro', count: 2 }, { planId: 'free', count: 5 }],
-        // 2nd select: activeSubGroups for MRR
-        [{ planId: 'pro', providerId: 'stripe', providerPriceId: 'price_pro_monthly', count: 2 }],
-        // 3rd select: churn count
-        [{ count: 1 }],
-        // 4th select: recentTransactions
-        [],
-        // 5th select: activeDiscountCodes
-        [{ count: 3 }],
-      ]);
+    /** Standard 10-response array for getStats with zero values */
+    const ZERO_STATS: unknown[][] = [
+      [],             // 1. planDistribution
+      [],             // 2. activeSubGroups
+      [{ count: 0 }], // 3. trialing
+      [{ count: 0 }], // 4. canceled30d
+      [{ count: 0 }], // 5. pastDue
+      [{ count: 0 }], // 6. unpaid
+      [{ count: 0 }], // 7. totalEver
+      [{ total: 0 }], // 8. totalRevenue
+      [],             // 9. recentTransactions
+      [{ count: 0 }], // 10. activeDiscountCodes
+    ];
 
+    it('returns billing stats with expected shape', async () => {
+      const responses = [...ZERO_STATS];
+      responses[0] = [{ planId: 'pro', count: 2 }, { planId: 'free', count: 5 }];
+      responses[1] = [{ planId: 'pro', providerId: 'stripe', providerPriceId: 'price_pro_monthly', count: 2 }];
+      responses[3] = [{ count: 1 }]; // canceled30d
+      responses[9] = [{ count: 3 }]; // activeDiscountCodes
+
+      const db = buildStatsDb(responses);
       const ctx = createMockCtx({ db });
       const caller = billingRouter.createCaller(ctx as never);
       const result = await caller.getStats();
 
       expect(result).toMatchObject({
-        totalActiveSubscriptions: 7, // 2 pro + 5 free
+        totalActive: 7,
         planDistribution: expect.arrayContaining([
           expect.objectContaining({ planId: 'pro', count: 2 }),
         ]),
-        churnLast30Days: 1,
+        churn: expect.objectContaining({ canceled30d: 1 }),
         recentTransactions: [],
         activeDiscountCodes: 3,
       });
@@ -609,15 +613,11 @@ describe('billingRouter', () => {
     });
 
     it('calculates MRR correctly for monthly subscribers', async () => {
-      // 2 pro monthly at $49/month = $98/month = 9800 cents
-      const db = buildStatsDb([
-        [{ planId: 'pro', count: 2 }],
-        [{ planId: 'pro', providerId: 'stripe', providerPriceId: 'price_pro_monthly', count: 2 }],
-        [{ count: 0 }],
-        [],
-        [{ count: 0 }],
-      ]);
+      const responses = [...ZERO_STATS];
+      responses[0] = [{ planId: 'pro', count: 2 }];
+      responses[1] = [{ planId: 'pro', providerId: 'stripe', providerPriceId: 'price_pro_monthly', count: 2 }];
 
+      const db = buildStatsDb(responses);
       const ctx = createMockCtx({ db });
       const caller = billingRouter.createCaller(ctx as never);
       const result = await caller.getStats();
@@ -626,38 +626,26 @@ describe('billingRouter', () => {
     });
 
     it('calculates MRR correctly for yearly subscribers (divided by 12)', async () => {
-      // 1 pro yearly at $490/year → MRR = $490/12 ≈ 40.83 → 40 cents × 1
-      const db = buildStatsDb([
-        [{ planId: 'pro', count: 1 }],
-        [{ planId: 'pro', providerId: 'stripe', providerPriceId: 'price_pro_yearly', count: 1 }],
-        [{ count: 0 }],
-        [],
-        [{ count: 0 }],
-      ]);
+      const responses = [...ZERO_STATS];
+      responses[0] = [{ planId: 'pro', count: 1 }];
+      responses[1] = [{ planId: 'pro', providerId: 'stripe', providerPriceId: 'price_pro_yearly', count: 1 }];
 
+      const db = buildStatsDb(responses);
       const ctx = createMockCtx({ db });
       const caller = billingRouter.createCaller(ctx as never);
       const result = await caller.getStats();
 
-      // Math.round(49000 / 12) = 4083 cents
-      expect(result.mrr).toBe(Math.round(49000 / 12));
+      expect(result.mrr).toBe(Math.round(49000 / 12)); // 4083 cents
     });
 
     it('returns zero MRR when no active subscriptions', async () => {
-      const db = buildStatsDb([
-        [],  // planDistribution
-        [],  // activeSubGroups
-        [{ count: 0 }],
-        [],
-        [{ count: 0 }],
-      ]);
-
+      const db = buildStatsDb([...ZERO_STATS]);
       const ctx = createMockCtx({ db });
       const caller = billingRouter.createCaller(ctx as never);
       const result = await caller.getStats();
 
       expect(result.mrr).toBe(0);
-      expect(result.totalActiveSubscriptions).toBe(0);
+      expect(result.totalActive).toBe(0);
     });
   });
 });

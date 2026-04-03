@@ -18,6 +18,15 @@ vi.mock('@/engine/lib/audit', () => ({
   logAudit: vi.fn(),
 }));
 
+vi.mock('@/lib/env', () => ({
+  env: {
+    DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
+    BETTER_AUTH_SECRET: 'test-secret',
+    NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
+    DEEPL_API_KEY: '',
+  },
+}));
+
 import { asMock } from '@/test-utils';
 import { projectsRouter } from '../projects';
 import { logAudit } from '@/engine/lib/audit';

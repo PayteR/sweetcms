@@ -4,6 +4,7 @@ import { auditRouter } from './audit';
 import { authRouter } from './auth';
 import { billingRouter } from './billing';
 import { categoriesRouter } from './categories';
+import { commentsRouter } from './comments';
 import { cmsRouter } from './cms';
 import { contentSearchRouter } from './content-search';
 import { customFieldsRouter } from './custom-fields';
@@ -14,6 +15,7 @@ import { mediaRouter } from './media';
 import { menusRouter } from './menus';
 import { optionsRouter } from './options';
 import { portfolioRouter } from './portfolio';
+import { reactionsRouter } from './reactions';
 import { showcaseRouter } from './showcase';
 import { redirectsRouter } from './redirects';
 import { revisionsRouter } from './revisions';
@@ -37,6 +39,7 @@ export const appRouter = createTRPCRouter({
   auth: authRouter,
   billing: billingRouter,
   cms: cmsRouter,
+  comments: commentsRouter,
   categories: categoriesRouter,
   contentSearch: contentSearchRouter,
   discountCodes: discountCodesRouter,
@@ -50,6 +53,7 @@ export const appRouter = createTRPCRouter({
   notifications: notificationsRouter,
   organizations: organizationsRouter,
   portfolio: portfolioRouter,
+  reactions: reactionsRouter,
   showcase: showcaseRouter,
   projects: projectsRouter,
   redirects: redirectsRouter,

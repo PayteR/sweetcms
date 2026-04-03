@@ -79,6 +79,9 @@ export function ChurnedSubscriptionsTable({ from, to }: ChurnedSubscriptionsTabl
 
   return (
     <div className="card overflow-hidden">
+      <div className="widget-header">
+        <h2 className="font-semibold text-(--text-primary)">{__('Churned Subscriptions')}</h2>
+      </div>
       {/* Tab bar */}
       <div className="status-tabs">
         {tabs.map((tab) => (

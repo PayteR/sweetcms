@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { eq, and, desc, sql, gte, lte, inArray, isNotNull, or } from 'drizzle-orm';
+import { eq, and, desc, sql, gte, lte, inArray } from 'drizzle-orm';
 import { createTRPCRouter, protectedProcedure, sectionProcedure } from '../trpc';
 import { getProvider, isBillingEnabled, getEnabledProviders } from '@/server/lib/payment/factory';
 import { getSubscription } from '@/engine/lib/payment/subscription-service';
@@ -16,7 +16,6 @@ import {
   saasSubscriptions,
   saasPaymentTransactions,
   saasDiscountCodes,
-  saasDiscountUsages,
 } from '@/server/db/schema';
 import { organization } from '@/server/db/schema/organization';
 import { getStats as getCachedStats } from '@/engine/lib/stats-cache';
@@ -280,93 +279,147 @@ export const billingRouter = createTRPCRouter({
 
   // ─── Admin billing stats ─────────────────────────────────────────────────
 
-  getStats: billingAdminProcedure.query(async ({ ctx }) => {
-    return getCachedStats('billing:stats', async () => {
-      // Active subscriptions by plan
-      const planDistribution = await ctx.db
-        .select({
-          planId: saasSubscriptions.planId,
-          count: sql<number>`count(*)`.as('count'),
-        })
-        .from(saasSubscriptions)
-        .where(eq(saasSubscriptions.status, 'active'))
-        .groupBy(saasSubscriptions.planId);
+  getStats: billingAdminProcedure
+    .input(
+      z.object({
+        from: z.string().datetime().optional(),
+        to: z.string().datetime().optional(),
+      }).optional()
+    )
+    .query(async ({ ctx, input }) => {
+      const from = input?.from;
+      const to = input?.to;
+      const cacheKey = `billing:stats:${from ?? 'all'}:${to ?? 'all'}`;
 
-      const totalActive = planDistribution.reduce((sum, p) => sum + Number(p.count), 0);
+      return getCachedStats(cacheKey, async () => {
+        const dateConditions = [];
+        if (from) dateConditions.push(gte(saasSubscriptions.createdAt, new Date(from)));
+        if (to) dateConditions.push(lte(saasSubscriptions.createdAt, new Date(to)));
 
-      // MRR calculation — group by plan+provider+priceId to avoid fetching individual rows
-      const activeSubGroups = await ctx.db
-        .select({
-          planId: saasSubscriptions.planId,
-          providerId: saasSubscriptions.providerId,
-          providerPriceId: saasSubscriptions.providerPriceId,
-          count: sql<number>`count(*)`.as('count'),
-        })
-        .from(saasSubscriptions)
-        .where(eq(saasSubscriptions.status, 'active'))
-        .groupBy(
-          saasSubscriptions.planId,
-          saasSubscriptions.providerId,
-          saasSubscriptions.providerPriceId,
-        );
+        // Active subscriptions by plan
+        const planDistribution = await ctx.db
+          .select({
+            planId: saasSubscriptions.planId,
+            count: sql<number>`count(*)`.as('count'),
+          })
+          .from(saasSubscriptions)
+          .where(and(eq(saasSubscriptions.status, 'active'), ...dateConditions))
+          .groupBy(saasSubscriptions.planId);
 
-      let mrr = 0;
-      for (const group of activeSubGroups) {
-        const plan = getPlan(group.planId);
-        if (!plan) continue;
+        const totalActive = planDistribution.reduce((sum, p) => sum + Number(p.count), 0);
 
-        // Determine if this is a yearly subscription by checking the price ID
-        let isYearly = false;
-        if (group.providerPriceId && group.providerId) {
-          const prices = plan.providerPrices[group.providerId];
-          if (prices) {
-            isYearly = prices.yearly === group.providerPriceId;
+        // MRR calculation — group by plan+provider+priceId to avoid fetching individual rows
+        const activeSubGroups = await ctx.db
+          .select({
+            planId: saasSubscriptions.planId,
+            providerId: saasSubscriptions.providerId,
+            providerPriceId: saasSubscriptions.providerPriceId,
+            count: sql<number>`count(*)`.as('count'),
+          })
+          .from(saasSubscriptions)
+          .where(eq(saasSubscriptions.status, 'active'))
+          .groupBy(
+            saasSubscriptions.planId,
+            saasSubscriptions.providerId,
+            saasSubscriptions.providerPriceId,
+          );
+
+        let mrr = 0;
+        for (const group of activeSubGroups) {
+          const plan = getPlan(group.planId);
+          if (!plan) continue;
+          let isYearly = false;
+          if (group.providerPriceId && group.providerId) {
+            const prices = plan.providerPrices[group.providerId];
+            if (prices) isYearly = prices.yearly === group.providerPriceId;
           }
+          if (group.providerId === 'nowpayments') isYearly = true;
+          const centsPerSub = isYearly
+            ? Math.round(plan.priceYearly / 12)
+            : plan.priceMonthly;
+          mrr += centsPerSub * Number(group.count);
         }
-        // Non-recurring providers (like nowpayments) are always yearly
-        if (group.providerId === 'nowpayments') isYearly = true;
 
-        const centsPerSub = isYearly
-          ? Math.round(plan.priceYearly / 12)
-          : plan.priceMonthly;
-        mrr += centsPerSub * Number(group.count);
-      }
+        // Trialing
+        const [trialingResult] = await ctx.db
+          .select({ count: sql<number>`count(*)`.as('count') })
+          .from(saasSubscriptions)
+          .where(eq(saasSubscriptions.status, 'trialing'));
 
-      // Churn: canceled in last 30 days
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-      const [churnResult] = await ctx.db
-        .select({ count: sql<number>`count(*)`.as('count') })
-        .from(saasSubscriptions)
-        .where(
-          and(
-            eq(saasSubscriptions.status, 'canceled'),
-            gte(saasSubscriptions.updatedAt, thirtyDaysAgo),
-          )
-        );
+        // Churn metrics
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const [canceledResult] = await ctx.db
+          .select({ count: sql<number>`count(*)`.as('count') })
+          .from(saasSubscriptions)
+          .where(and(eq(saasSubscriptions.status, 'canceled'), gte(saasSubscriptions.updatedAt, thirtyDaysAgo)));
 
-      // Recent transactions
-      const recentTransactions = await ctx.db
-        .select()
-        .from(saasPaymentTransactions)
-        .orderBy(desc(saasPaymentTransactions.createdAt))
-        .limit(10);
+        const [pastDueResult] = await ctx.db
+          .select({ count: sql<number>`count(*)`.as('count') })
+          .from(saasSubscriptions)
+          .where(eq(saasSubscriptions.status, 'past_due'));
 
-      // Active discount codes count
-      const [discountResult] = await ctx.db
-        .select({ count: sql<number>`count(*)`.as('count') })
-        .from(saasDiscountCodes)
-        .where(eq(saasDiscountCodes.isActive, true));
+        const [unpaidResult] = await ctx.db
+          .select({ count: sql<number>`count(*)`.as('count') })
+          .from(saasSubscriptions)
+          .where(eq(saasSubscriptions.status, 'unpaid'));
 
-      return {
-        totalActiveSubscriptions: totalActive,
-        mrr,
-        planDistribution,
-        churnLast30Days: Number(churnResult?.count ?? 0),
-        recentTransactions,
-        activeDiscountCodes: Number(discountResult?.count ?? 0),
-      };
-    });
-  }),
+        const [totalEverResult] = await ctx.db
+          .select({ count: sql<number>`count(*)`.as('count') })
+          .from(saasSubscriptions);
+
+        const totalEver = Number(totalEverResult?.count ?? 0);
+        const canceledCount = Number(canceledResult?.count ?? 0);
+        const churnRate = totalEver > 0 ? Math.round((canceledCount / totalEver) * 10000) / 100 : 0;
+
+        // Total revenue
+        const [revenueResult] = await ctx.db
+          .select({ total: sql<number>`coalesce(sum(${saasPaymentTransactions.amountCents}), 0)`.as('total') })
+          .from(saasPaymentTransactions)
+          .where(eq(saasPaymentTransactions.status, 'successful'));
+
+        // Recent transactions with org names
+        const recentTransactions = await ctx.db
+          .select({
+            id: saasPaymentTransactions.id,
+            organizationId: saasPaymentTransactions.organizationId,
+            orgName: organization.name,
+            providerId: saasPaymentTransactions.providerId,
+            amountCents: saasPaymentTransactions.amountCents,
+            currency: saasPaymentTransactions.currency,
+            status: saasPaymentTransactions.status,
+            planId: saasPaymentTransactions.planId,
+            interval: saasPaymentTransactions.interval,
+            createdAt: saasPaymentTransactions.createdAt,
+          })
+          .from(saasPaymentTransactions)
+          .leftJoin(organization, eq(saasPaymentTransactions.organizationId, organization.id))
+          .orderBy(desc(saasPaymentTransactions.createdAt))
+          .limit(10);
+
+        // Active discount codes count
+        const [discountResult] = await ctx.db
+          .select({ count: sql<number>`count(*)`.as('count') })
+          .from(saasDiscountCodes)
+          .where(eq(saasDiscountCodes.isActive, true));
+
+        return {
+          totalActive,
+          mrr,
+          trialing: Number(trialingResult?.count ?? 0),
+          planDistribution: planDistribution.map((p) => ({ planId: p.planId, count: Number(p.count) })),
+          churn: {
+            canceled30d: canceledCount,
+            pastDue: Number(pastDueResult?.count ?? 0),
+            unpaid: Number(unpaidResult?.count ?? 0),
+            totalEver,
+            churnRate,
+          },
+          totalRevenue: Number(revenueResult?.total ?? 0),
+          recentTransactions,
+          activeDiscountCodes: Number(discountResult?.count ?? 0),
+        };
+      }, 120);
+    }),
 
   // ─── Admin: list subscriptions ──────────────────────────────────────────────
 
@@ -620,109 +673,4 @@ export const billingRouter = createTRPCRouter({
       }));
     }),
 
-  // ─── Admin: subscription summary with churn metrics ─────────────────────────
-
-  getSummary: billingAdminProcedure
-    .input(
-      z.object({
-        from: z.string().datetime().optional(),
-        to: z.string().datetime().optional(),
-      })
-    )
-    .query(async ({ ctx, input }) => {
-      const dateConditions = [];
-      if (input.from) dateConditions.push(gte(saasSubscriptions.createdAt, new Date(input.from)));
-      if (input.to) dateConditions.push(lte(saasSubscriptions.createdAt, new Date(input.to)));
-
-      // Active subs by plan
-      const planDist = await ctx.db
-        .select({
-          planId: saasSubscriptions.planId,
-          count: sql<number>`count(*)`.as('count'),
-        })
-        .from(saasSubscriptions)
-        .where(and(eq(saasSubscriptions.status, 'active'), ...dateConditions))
-        .groupBy(saasSubscriptions.planId);
-
-      const totalActive = planDist.reduce((s, p) => s + Number(p.count), 0);
-
-      // MRR
-      const activeSubGroups = await ctx.db
-        .select({
-          planId: saasSubscriptions.planId,
-          providerId: saasSubscriptions.providerId,
-          providerPriceId: saasSubscriptions.providerPriceId,
-          count: sql<number>`count(*)`.as('count'),
-        })
-        .from(saasSubscriptions)
-        .where(eq(saasSubscriptions.status, 'active'))
-        .groupBy(saasSubscriptions.planId, saasSubscriptions.providerId, saasSubscriptions.providerPriceId);
-
-      let mrr = 0;
-      for (const group of activeSubGroups) {
-        const plan = getPlan(group.planId);
-        if (!plan) continue;
-        let isYearly = false;
-        if (group.providerPriceId && group.providerId) {
-          const prices = plan.providerPrices[group.providerId];
-          if (prices) isYearly = prices.yearly === group.providerPriceId;
-        }
-        if (group.providerId === 'nowpayments') isYearly = true;
-        const centsPerSub = isYearly ? Math.round(plan.priceYearly / 12) : plan.priceMonthly;
-        mrr += centsPerSub * Number(group.count);
-      }
-
-      // Trialing
-      const [trialingResult] = await ctx.db
-        .select({ count: sql<number>`count(*)`.as('count') })
-        .from(saasSubscriptions)
-        .where(eq(saasSubscriptions.status, 'trialing'));
-
-      // Churn metrics
-      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-      const [canceledResult] = await ctx.db
-        .select({ count: sql<number>`count(*)`.as('count') })
-        .from(saasSubscriptions)
-        .where(and(eq(saasSubscriptions.status, 'canceled'), gte(saasSubscriptions.updatedAt, thirtyDaysAgo)));
-
-      const [pastDueResult] = await ctx.db
-        .select({ count: sql<number>`count(*)`.as('count') })
-        .from(saasSubscriptions)
-        .where(eq(saasSubscriptions.status, 'past_due'));
-
-      const [unpaidResult] = await ctx.db
-        .select({ count: sql<number>`count(*)`.as('count') })
-        .from(saasSubscriptions)
-        .where(eq(saasSubscriptions.status, 'unpaid'));
-
-      // Total ever subscribed (non-free)
-      const [totalEverResult] = await ctx.db
-        .select({ count: sql<number>`count(*)`.as('count') })
-        .from(saasSubscriptions);
-
-      const totalEver = Number(totalEverResult?.count ?? 0);
-      const canceledCount = Number(canceledResult?.count ?? 0);
-      const churnRate = totalEver > 0 ? Math.round((canceledCount / totalEver) * 10000) / 100 : 0;
-
-      // Total revenue
-      const [revenueResult] = await ctx.db
-        .select({ total: sql<number>`coalesce(sum(${saasPaymentTransactions.amountCents}), 0)`.as('total') })
-        .from(saasPaymentTransactions)
-        .where(eq(saasPaymentTransactions.status, 'successful'));
-
-      return {
-        totalActive,
-        mrr,
-        trialing: Number(trialingResult?.count ?? 0),
-        planDistribution: planDist.map((p) => ({ planId: p.planId, count: Number(p.count) })),
-        churn: {
-          canceled30d: canceledCount,
-          pastDue: Number(pastDueResult?.count ?? 0),
-          unpaid: Number(unpaidResult?.count ?? 0),
-          totalEver,
-          churnRate,
-        },
-        totalRevenue: Number(revenueResult?.total ?? 0),
-      };
-    }),
 });

@@ -4,8 +4,12 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronDown, ChevronUp, Play } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import { trpc } from '@/lib/trpc/client';
+import { useSession } from '@/lib/auth-client';
 import { ShortcodeRenderer } from '@/engine/components/ShortcodeRenderer';
 import { SHORTCODE_COMPONENTS } from '@/config/shortcodes';
+import { ShowcaseActionBar } from './ShowcaseActionBar';
+import { CommentPanel } from './CommentPanel';
 
 interface ShowcaseItem {
   id: string;
@@ -121,6 +125,24 @@ function RichTextCard({ item }: { item: ShowcaseItem }) {
 export function ShowcaseFeed({ items }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [commentPanelId, setCommentPanelId] = useState<string | null>(null);
+  const { data: session } = useSession();
+
+  const itemIds = items.map((i) => i.id);
+
+  // Batch fetch reactions and comments for all items
+  const { data: reactionCounts } = trpc.reactions.getBatchCounts.useQuery(
+    { contentType: 'showcase', contentIds: itemIds },
+    { enabled: itemIds.length > 0 }
+  );
+  const { data: commentCounts } = trpc.comments.batchCounts.useQuery(
+    { contentType: 'showcase', contentIds: itemIds },
+    { enabled: itemIds.length > 0 }
+  );
+  const { data: userReactions } = trpc.reactions.getUserBatchReactions.useQuery(
+    { contentType: 'showcase', contentIds: itemIds },
+    { enabled: itemIds.length > 0 && !!session }
+  );
 
   const scrollToIndex = useCallback((index: number) => {
     const container = containerRef.current;
@@ -155,6 +177,7 @@ export function ShowcaseFeed({ items }: Props) {
   }, [items]);
 
   useEffect(() => {
+    if (commentPanelId) return; // Don't intercept keys when panel is open
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'ArrowDown' || e.key === 'j') {
         e.preventDefault();
@@ -166,7 +189,7 @@ export function ShowcaseFeed({ items }: Props) {
     }
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentIndex, items.length, scrollToIndex]);
+  }, [currentIndex, items.length, scrollToIndex, commentPanelId]);
 
   if (items.length === 0) {
     return (
@@ -182,26 +205,45 @@ export function ShowcaseFeed({ items }: Props) {
         ref={containerRef}
         className="showcase-feed h-dvh snap-y snap-mandatory overflow-y-scroll"
       >
-        {items.map((item, index) => (
-          <div
-            key={item.id}
-            data-index={index}
-            className="h-dvh w-full snap-start snap-always"
-          >
-            {item.cardType === 'video' ? (
-              <VideoCard item={item} isActive={index === currentIndex} />
-            ) : item.cardType === 'image' ? (
-              <ImageCard item={item} />
-            ) : (
-              <RichTextCard item={item} />
-            )}
-          </div>
-        ))}
+        {items.map((item, index) => {
+          const counts = reactionCounts?.[item.id] ?? { likes: 0, dislikes: 0 };
+          const cCount = commentCounts?.[item.id] ?? 0;
+          const uReaction = userReactions?.[item.id] ?? null;
+
+          return (
+            <div
+              key={item.id}
+              data-index={index}
+              className="relative h-dvh w-full snap-start snap-always"
+            >
+              {item.cardType === 'video' ? (
+                <VideoCard item={item} isActive={index === currentIndex} />
+              ) : item.cardType === 'image' ? (
+                <ImageCard item={item} />
+              ) : (
+                <RichTextCard item={item} />
+              )}
+
+              {/* Action bar — right side */}
+              <div className="absolute bottom-24 right-4 z-20 sm:right-6">
+                <ShowcaseActionBar
+                  itemId={item.id}
+                  contentType="showcase"
+                  likes={counts.likes}
+                  dislikes={counts.dislikes}
+                  commentCount={cCount}
+                  userReaction={uReaction}
+                  onCommentClick={() => setCommentPanelId(item.id)}
+                />
+              </div>
+            </div>
+          );
+        })}
       </div>
 
-      {/* Navigation */}
+      {/* Navigation dots — left side */}
       {items.length > 1 && (
-        <div className="fixed right-4 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-1.5 sm:right-6">
+        <div className="fixed left-4 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-1.5 sm:left-6">
           <button
             onClick={() => scrollToIndex(Math.max(currentIndex - 1, 0))}
             disabled={currentIndex === 0}
@@ -230,6 +272,14 @@ export function ShowcaseFeed({ items }: Props) {
           </button>
         </div>
       )}
+
+      {/* Comment panel */}
+      <CommentPanel
+        contentType="showcase"
+        contentId={commentPanelId ?? ''}
+        open={!!commentPanelId}
+        onClose={() => setCommentPanelId(null)}
+      />
     </div>
   );
 }

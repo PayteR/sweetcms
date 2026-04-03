@@ -10,9 +10,9 @@ interface RevenueChartProps {
   to?: string;
 }
 
-const BRAND = 'oklch(0.65 0.25 350)';
-const ACCENT = 'oklch(0.65 0.2 303)';
-const GRID = 'oklch(0.4 0 0 / 0.15)';
+const BRAND = '#e54580';
+const ACCENT = '#a855f7';
+const GRID = 'rgba(100, 100, 100, 0.15)';
 
 interface TooltipPayloadEntry {
   dataKey: string;
@@ -54,7 +54,7 @@ export function RevenueChart({ from, to }: RevenueChartProps) {
     return (
       <div className="card">
         <div className="widget-header"><h3>{__('Revenue Over Time')}</h3></div>
-        <div className={cn('animate-pulse')} style={{ height: 400, background: 'oklch(0.5 0 0 / 0.08)', borderRadius: 8 }} />
+        <div className={cn('animate-pulse')} style={{ height: 400, background: 'rgba(128, 128, 128, 0.08)', borderRadius: 8 }} />
       </div>
     );
   }
