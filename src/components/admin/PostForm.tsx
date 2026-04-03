@@ -2,9 +2,30 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Save, Eye, Loader2, ImageIcon, X } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Loader2, ImageIcon, X, History } from 'lucide-react';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 
 import type { ContentTypeDeclaration } from '@/config/cms';
+import {
+  MAIN_PANELS,
+  SIDEBAR_PANELS,
+  DEFAULT_MAIN_ORDER,
+  DEFAULT_SIDEBAR_ORDER,
+  DEFAULT_HIDDEN_PANELS,
+} from '@/config/post-form-panels';
 import { adminPanel } from '@/config/routes';
 import { useSession } from '@/lib/auth-client';
 import { trpc } from '@/lib/trpc/client';
@@ -19,6 +40,7 @@ import { useLinkPicker } from '@/engine/hooks/useLinkPicker';
 import { useLinkValidation } from '@/engine/hooks/useLinkValidation';
 import { useCmsAutosave } from '@/engine/hooks/useCmsAutosave';
 import { useKeyboardShortcuts } from '@/engine/hooks/useKeyboardShortcuts';
+import { usePreferencesStore } from '@/engine/store/preferences-store';
 import AutosaveIndicator from '@/engine/components/AutosaveIndicator';
 import AutosaveRecoveryBanner from '@/engine/components/AutosaveRecoveryBanner';
 import BrokenLinksBanner from '@/engine/components/BrokenLinksBanner';
@@ -27,7 +49,6 @@ import { CustomFieldsEditor, type CustomFieldsEditorHandle } from '@/engine/comp
 import { FallbackRadio } from '@/engine/components/FallbackRadio';
 import InternalLinkDialog from '@/engine/components/InternalLinkDialog';
 import { MediaPickerDialog } from '@/engine/components/MediaPickerDialog';
-import { PostAttachments } from '@/engine/components/PostAttachments';
 import { RevisionHistory } from '@/engine/components/RevisionHistory';
 import { RichTextEditor } from '@/engine/components/RichTextEditor';
 import { shortcodeConfig } from '@/lib/shortcodes/config';
@@ -36,6 +57,11 @@ import { SEOFields } from '@/engine/components/SEOFields';
 import { SeoPreviewCard } from '@/engine/components/SeoPreviewCard';
 import { TagInput } from '@/engine/components/TagInput';
 import { TranslationBar } from '@/engine/components/TranslationBar';
+import { SortableFormPanel, SortableFormWrapper, FormPanel } from './SortableFormPanel';
+import { PostFormConfig } from './PostFormConfig';
+
+/** Panels that render their own .card wrapper — use SortableFormWrapper (no double-card) */
+const SELF_WRAPPING_PANELS = new Set(['seo-preview', 'custom-fields']);
 
 interface PostFormData extends Record<string, unknown> {
   title: string;
@@ -71,6 +97,8 @@ export function PostForm({ contentType, postId }: Props) {
   // UI-only state (not part of form data)
   const [slugManual, setSlugManual] = useState(false);
   const [showMediaPicker, setShowMediaPicker] = useState(false);
+  const [showContentMediaPicker, setShowContentMediaPicker] = useState(false);
+  const [showRevisions, setShowRevisions] = useState(false);
 
   // Fetch existing post (wait for session to avoid UNAUTHORIZED on first render)
   const existingPost = trpc.cms.get.useQuery(
@@ -98,6 +126,12 @@ export function PostForm({ contentType, postId }: Props) {
   const pageTree = trpc.cms.getPageTree.useQuery(
     { lang: postLang },
     { enabled: isPageType && !!session }
+  );
+
+  // Revision count for Status panel link
+  const revisionCount = trpc.revisions.count.useQuery(
+    { contentType: 'post', contentId: postId! },
+    { enabled: !!postId && !!session },
   );
 
   const post = existingPost.data;
@@ -309,6 +343,291 @@ export function PostForm({ contentType, postId }: Props) {
     );
   }
 
+  // ── Panel preferences ───────────────────────────────────────
+  const mainPanelOrder = usePreferencesStore((s) =>
+    (s.data['postForm.mainPanelOrder'] as string[] | undefined) ?? DEFAULT_MAIN_ORDER,
+  );
+  const sidebarPanelOrder = usePreferencesStore((s) =>
+    (s.data['postForm.sidebarPanelOrder'] as string[] | undefined) ?? DEFAULT_SIDEBAR_ORDER,
+  );
+  const hiddenPanels = usePreferencesStore((s) =>
+    (s.data['postForm.hiddenPanels'] as string[] | undefined) ?? DEFAULT_HIDDEN_PANELS,
+  );
+  const setPreference = usePreferencesStore((s) => s.set);
+
+  const dndSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  // Build ordered panel IDs, filtering hidden ones
+  const mainAllIds = MAIN_PANELS.map((p) => p.id);
+  const orderedMainIds = [
+    ...mainPanelOrder.filter((id) => mainAllIds.includes(id)),
+    ...mainAllIds.filter((id) => !mainPanelOrder.includes(id)),
+  ].filter((id) => !hiddenPanels.includes(id));
+
+  const sidebarAllIds = SIDEBAR_PANELS.map((p) => p.id);
+  const orderedSidebarIds = [
+    ...sidebarPanelOrder.filter((id) => sidebarAllIds.includes(id)),
+    ...sidebarAllIds.filter((id) => !sidebarPanelOrder.includes(id)),
+  ].filter((id) => !hiddenPanels.includes(id));
+
+  function handleMainDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const fullOrder = [
+      ...mainPanelOrder.filter((id) => mainAllIds.includes(id)),
+      ...mainAllIds.filter((id) => !mainPanelOrder.includes(id)),
+    ];
+    const oldIdx = fullOrder.indexOf(active.id as string);
+    const newIdx = fullOrder.indexOf(over.id as string);
+    if (oldIdx === -1 || newIdx === -1) return;
+    const newOrder = [...fullOrder];
+    newOrder.splice(oldIdx, 1);
+    newOrder.splice(newIdx, 0, active.id as string);
+    setPreference('postForm.mainPanelOrder', newOrder);
+  }
+
+  function handleSidebarDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const fullOrder = [
+      ...sidebarPanelOrder.filter((id) => sidebarAllIds.includes(id)),
+      ...sidebarAllIds.filter((id) => !sidebarPanelOrder.includes(id)),
+    ];
+    const oldIdx = fullOrder.indexOf(active.id as string);
+    const newIdx = fullOrder.indexOf(over.id as string);
+    if (oldIdx === -1 || newIdx === -1) return;
+    const newOrder = [...fullOrder];
+    newOrder.splice(oldIdx, 1);
+    newOrder.splice(newIdx, 0, active.id as string);
+    setPreference('postForm.sidebarPanelOrder', newOrder);
+  }
+
+  // ── Panel renderers (main column) ──────────────────────────
+  const mainPanelRenderers: Record<string, () => React.ReactNode> = {
+    seo: () => (
+      <SEOFields
+        seoTitle={formData.seoTitle}
+        metaDescription={formData.metaDescription}
+        noindex={formData.noindex}
+        onSeoTitleChange={(v) => handleChange('seoTitle', v)}
+        onMetaDescriptionChange={(v) => handleChange('metaDescription', v)}
+        onNoindexChange={(v) => handleChange('noindex', v)}
+        fieldErrors={fieldErrors}
+      />
+    ),
+    'seo-preview': () => (
+      <SeoPreviewCard
+        title={formData.seoTitle || formData.title}
+        description={formData.metaDescription}
+        slug={formData.slug}
+        urlPrefix={contentType.urlPrefix}
+        featuredImage={formData.featuredImage || undefined}
+      />
+    ),
+    'custom-fields': () => (
+      <CustomFieldsEditor
+        ref={customFieldsRef}
+        contentType={contentType.id}
+        contentId={postId}
+        isAuthenticated={!!session}
+      />
+    ),
+    'json-ld': () =>
+      contentType.postFormFields?.jsonLd ? (
+        <textarea
+          value={formData.jsonLd}
+          onChange={(e) => handleChange('jsonLd', e.target.value)}
+          rows={6}
+          className="textarea font-mono"
+          placeholder='{"@context": "https://schema.org", ...}'
+        />
+      ) : null,
+  };
+
+  // ── Panel renderers (sidebar) ──────────────────────────────
+  const sidebarPanelRenderers: Record<string, () => React.ReactNode> = {
+    language: () => (
+      <div className="space-y-4">
+        {post && translationSiblings.data ? (
+          <TranslationBar
+            currentLang={formData.lang}
+            translations={translationSiblings.data}
+            adminSlug={contentType.adminSlug}
+            translationAvailable={translationAvailableQuery.data?.available ?? false}
+            locales={LOCALES}
+            localeLabels={LOCALE_LABELS}
+            editUrl={(id, _lang) => adminPanel.cmsItem(contentType.adminSlug, id)}
+            onDuplicate={async (targetLang, autoTranslate) => {
+              const result = await duplicateAsTranslation.mutateAsync({
+                id: post.id,
+                targetLang,
+                autoTranslate,
+              });
+              router.push(adminPanel.cmsItem(contentType.adminSlug, result.id));
+            }}
+          />
+        ) : (
+          <div>
+            <label className="block text-sm font-medium text-(--text-secondary)">
+              {__('Language')}
+            </label>
+            <select
+              value={formData.lang}
+              onChange={(e) => handleChange('lang', e.target.value)}
+              disabled={!isNew}
+              className="select mt-1 w-full disabled:bg-(--surface-secondary)"
+            >
+              {LOCALES.map((l) => (
+                <option key={l} value={l}>{LOCALE_LABELS[l]}</option>
+              ))}
+            </select>
+          </div>
+        )}
+        {post && (
+          <FallbackRadio
+            value={formData.fallbackToDefault}
+            onChange={(v) => handleChange('fallbackToDefault', v)}
+            ct={contentType}
+          />
+        )}
+      </div>
+    ),
+    'parent-page': () =>
+      isPageType ? (
+        <select
+          value={formData.parentId ?? ''}
+          onChange={(e) => handleChange('parentId', e.target.value || null)}
+          className="select w-full"
+        >
+          <option value="">{__('None (top level)')}</option>
+          {(pageTree.data ?? [])
+            .filter((p) => p.id !== postId)
+            .map((p) => (
+              <option key={p.id} value={p.id}>
+                {'— '.repeat(p.depth)}{p.title}
+              </option>
+            ))}
+        </select>
+      ) : null,
+    categories: () => (
+      <div className="max-h-48 space-y-1.5 overflow-y-auto">
+        {categoriesList.isLoading ? (
+          <Loader2 className="h-4 w-4 animate-spin text-(--text-muted)" />
+        ) : (categoriesList.data?.results ?? []).length === 0 ? (
+          <p className="text-xs text-(--text-muted)">{__('No categories yet.')}</p>
+        ) : (
+          (categoriesList.data?.results ?? []).map((cat) => (
+            <label key={cat.id} className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={formData.categoryIds.includes(cat.id)}
+                onChange={() => toggleCategory(cat.id)}
+                className="rounded border-(--border-primary)"
+              />
+              {cat.name}
+            </label>
+          ))
+        )}
+      </div>
+    ),
+    tags: () => (
+      <TagInput
+        selectedTagIds={formData.tagIds}
+        onChange={(v) => handleChange('tagIds', v)}
+        lang={formData.lang}
+      />
+    ),
+    'featured-image': () =>
+      contentType.postFormFields?.featuredImage ? (
+        <div className="space-y-3">
+          {formData.featuredImage ? (
+            <div className="post-form-image-preview relative">
+              <img
+                src={formData.featuredImage}
+                alt={formData.featuredImageAlt || 'Preview'}
+                className="h-32 w-full rounded-md border border-(--border-primary) object-cover"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  handleChange('featuredImage', '');
+                  handleChange('featuredImageAlt', '');
+                }}
+                className="absolute right-1 top-1 rounded bg-(--surface-primary)/90 p-1 shadow-sm hover:bg-(--surface-primary)"
+              >
+                <X className="h-3.5 w-3.5 text-(--text-secondary)" />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowMediaPicker(true)}
+              className="flex w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-(--border-primary) px-4 py-6 text-sm text-(--text-muted) hover:border-(--border-primary) hover:text-(--text-secondary)"
+            >
+              <ImageIcon className="h-5 w-5" />
+              {__('Select Image')}
+            </button>
+          )}
+          {formData.featuredImage && (
+            <div className="post-form-image-actions flex gap-2">
+              <button
+                type="button"
+                onClick={() => setShowMediaPicker(true)}
+                className="text-xs text-(--color-brand-600) hover:text-(--color-brand-700)"
+              >
+                {__('Change')}
+              </button>
+            </div>
+          )}
+          {formData.featuredImage && (
+            <div>
+              <label className="block text-sm font-medium text-(--text-secondary)">
+                {__('Alt Text')}
+              </label>
+              <input
+                type="text"
+                value={formData.featuredImageAlt}
+                onChange={(e) => handleChange('featuredImageAlt', e.target.value)}
+                className="input mt-1"
+                placeholder={__('Describe the image')}
+              />
+            </div>
+          )}
+        </div>
+      ) : null,
+  };
+
+  // Panel label lookup
+  const panelLabels: Record<string, string> = Object.fromEntries(
+    [...MAIN_PANELS, ...SIDEBAR_PANELS].map((p) => [p.id, __(p.label)]),
+  );
+
+  // Panels that render their own .card wrapper — use SortableFormWrapper (no double-card)
+
+  // ── Render a sortable panel by ID ──────────────────────────
+  function renderSortablePanel(id: string, renderers: Record<string, () => React.ReactNode>) {
+    const render = renderers[id];
+    if (!render) return null;
+    const content = render();
+    if (content === null) return null;
+
+    if (SELF_WRAPPING_PANELS.has(id)) {
+      return (
+        <SortableFormWrapper key={id} id={id}>
+          {content}
+        </SortableFormWrapper>
+      );
+    }
+    return (
+      <SortableFormPanel key={id} id={id} title={panelLabels[id] ?? id}>
+        {content}
+      </SortableFormPanel>
+    );
+  }
+
   if (!isNew && existingPost.isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -338,6 +657,7 @@ export function PostForm({ contentType, postId }: Props) {
       </div>
       <div className="flex items-center gap-2">
         <AutosaveIndicator lastAutosaveAt={lastAutosaveAt} isDirty={isDirty} />
+        <PostFormConfig />
         {existingPost.data?.previewToken && (
           <a
             href={`${contentType.urlPrefix}${formData.slug}?preview=${existingPost.data.previewToken}`}
@@ -392,40 +712,45 @@ export function PostForm({ contentType, postId }: Props) {
         <div className="post-form-layout grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Main content — 2/3 */}
           <div className="post-form-main space-y-6 lg:col-span-2">
-            {/* Title */}
-            <div className="card p-6">
-              <label className="block text-sm font-medium text-(--text-secondary)">
-                {__('Title')}
-              </label>
+            {/* Title + Slug — bare inputs, no card */}
+            <div>
               <input
                 type="text"
                 required
                 value={formData.title}
                 onChange={(e) => handleChange('title', e.target.value)}
-                className="input mt-1"
+                className="w-full border-none bg-transparent text-2xl font-bold text-(--text-primary) placeholder:text-(--text-muted) outline-none"
                 placeholder={__('{label} title', { label: contentType.label })}
               />
-
-              <label className="mt-3 block text-sm font-medium text-(--text-secondary)">
-                {__('Slug')}
-              </label>
-              <input
-                type="text"
-                value={formData.slug}
-                onChange={(e) => {
-                  handleChange('slug', e.target.value);
-                  setSlugManual(true);
-                }}
-                className="input mt-1 font-mono"
-                placeholder="url-slug"
-              />
+              <div className="mt-1 flex items-center gap-1.5 text-sm text-(--text-muted)">
+                <span className="shrink-0">/</span>
+                <input
+                  type="text"
+                  value={formData.slug}
+                  onChange={(e) => {
+                    handleChange('slug', e.target.value);
+                    setSlugManual(true);
+                  }}
+                  className="w-full border-none bg-transparent font-mono text-sm text-(--text-muted) placeholder:text-(--text-muted) outline-none hover:text-(--text-secondary) focus:text-(--text-secondary)"
+                  placeholder="url-slug"
+                />
+              </div>
             </div>
 
-            {/* Content — Rich Text Editor */}
-            <div className="card p-6">
-              <label className="mb-2 block text-sm font-medium text-(--text-secondary)">
-                {__('Content')}
-              </label>
+            {/* Fixed: Content */}
+            <FormPanel
+              title={__('Content')}
+              headerActions={
+                <button
+                  type="button"
+                  onClick={() => setShowContentMediaPicker(true)}
+                  className="flex items-center gap-1.5 rounded px-2 py-1 text-xs font-medium text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary) transition-colors"
+                >
+                  <ImageIcon className="h-3.5 w-3.5" />
+                  {__('Add Media')}
+                </button>
+              }
+            >
               <RichTextEditor
                 content={formData.content}
                 onChange={(v) => handleChange('content', v)}
@@ -437,75 +762,23 @@ export function PostForm({ contentType, postId }: Props) {
                 shortcodes={shortcodeConfig}
                 onAiTransform={aiTransform}
               />
-            </div>
+            </FormPanel>
 
-            {/* SEO */}
-            <div className="card p-6">
-              <h3 className="h2">{__('SEO')}</h3>
-              <div className="mt-4 space-y-4">
-                <SEOFields
-                  seoTitle={formData.seoTitle}
-                  metaDescription={formData.metaDescription}
-                  noindex={formData.noindex}
-                  onSeoTitleChange={(v) => handleChange('seoTitle', v)}
-                  onMetaDescriptionChange={(v) => handleChange('metaDescription', v)}
-                  onNoindexChange={(v) => handleChange('noindex', v)}
-                  fieldErrors={fieldErrors}
-                />
-              </div>
-            </div>
-
-            {/* SEO Preview */}
-            <SeoPreviewCard
-              title={formData.seoTitle || formData.title}
-              description={formData.metaDescription}
-              slug={formData.slug}
-              urlPrefix={contentType.urlPrefix}
-              featuredImage={formData.featuredImage || undefined}
-            />
-
-            {/* Custom Fields */}
-            <CustomFieldsEditor
-              ref={customFieldsRef}
-              contentType={contentType.id}
-              contentId={postId}
-              isAuthenticated={!!session}
-            />
-
-            {/* Revision History */}
-            {!isNew && postId && (
-              <RevisionHistory
-                contentType="post"
-                contentId={postId}
-                currentData={formData}
-                onRestored={() => existingPost.refetch()}
-              />
-            )}
-
-            {/* Attachments */}
-            <PostAttachments postId={postId} />
-
-            {/* JSON-LD */}
-            {contentType.postFormFields?.jsonLd && (
-              <div className="card p-6">
-                <h3 className="h2">{__('Structured Data (JSON-LD)')}</h3>
-                <textarea
-                  value={formData.jsonLd}
-                  onChange={(e) => handleChange('jsonLd', e.target.value)}
-                  rows={6}
-                  className="textarea mt-3 font-mono"
-                  placeholder='{"@context": "https://schema.org", ...}'
-                />
-              </div>
-            )}
+            {/* Sortable main panels */}
+            <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={handleMainDragEnd}>
+              <SortableContext items={orderedMainIds} strategy={verticalListSortingStrategy}>
+                <div className="space-y-6">
+                  {orderedMainIds.map((id) => renderSortablePanel(id, mainPanelRenderers))}
+                </div>
+              </SortableContext>
+            </DndContext>
           </div>
 
           {/* Sidebar — 1/3 */}
           <div className="post-form-sidebar space-y-6">
-            {/* Status & Scheduling */}
-            <div className="card p-6">
-              <h3 className="h2">{__('Status')}</h3>
-              <div className="mt-4 space-y-4">
+            {/* Fixed: Status */}
+            <FormPanel title={__('Status')}>
+              <div className="space-y-4">
                 <div className="field-group">
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Status')}
@@ -516,12 +789,8 @@ export function PostForm({ contentType, postId }: Props) {
                     className="select mt-1 w-full"
                   >
                     <option value={ContentStatus.DRAFT}>{__('Draft')}</option>
-                    <option value={ContentStatus.PUBLISHED}>
-                      {__('Published')}
-                    </option>
-                    <option value={ContentStatus.SCHEDULED}>
-                      {__('Scheduled')}
-                    </option>
+                    <option value={ContentStatus.PUBLISHED}>{__('Published')}</option>
+                    <option value={ContentStatus.SCHEDULED}>{__('Scheduled')}</option>
                   </select>
                 </div>
 
@@ -537,188 +806,65 @@ export function PostForm({ contentType, postId }: Props) {
                   />
                 </div>
 
-                <div className="field-group">
-                  {post && translationSiblings.data ? (
-                    <TranslationBar
-                      currentLang={formData.lang}
-                      translations={translationSiblings.data}
-                      adminSlug={contentType.adminSlug}
-                      translationAvailable={translationAvailableQuery.data?.available ?? false}
-                      locales={LOCALES}
-                      localeLabels={LOCALE_LABELS}
-                      editUrl={(id, _lang) => adminPanel.cmsItem(contentType.adminSlug, id)}
-                      onDuplicate={async (targetLang, autoTranslate) => {
-                        const result = await duplicateAsTranslation.mutateAsync({
-                          id: post.id,
-                          targetLang,
-                          autoTranslate,
-                        });
-                        router.push(adminPanel.cmsItem(contentType.adminSlug, result.id));
-                      }}
-                    />
-                  ) : (
-                    <div>
-                      <label className="block text-sm font-medium text-(--text-secondary)">
-                        {__('Language')}
-                      </label>
-                      <select
-                        value={formData.lang}
-                        onChange={(e) => handleChange('lang', e.target.value)}
-                        disabled={!isNew}
-                        className="select mt-1 w-full disabled:bg-(--surface-secondary)"
-                      >
-                        {LOCALES.map((l) => (
-                          <option key={l} value={l}>{LOCALE_LABELS[l]}</option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-                </div>
-
-                {post && (
-                  <FallbackRadio
-                    value={formData.fallbackToDefault}
-                    onChange={(v) => handleChange('fallbackToDefault', v)}
-                    ct={contentType}
-                  />
+                {/* Revisions link */}
+                {!isNew && postId && (
+                  <button
+                    type="button"
+                    onClick={() => setShowRevisions(true)}
+                    className="flex items-center gap-2 text-sm text-(--text-muted) hover:text-(--text-secondary) transition-colors"
+                  >
+                    <History className="h-4 w-4" />
+                    {__('Revisions')}
+                    {(revisionCount.data ?? 0) > 0 && (
+                      <span className="rounded-full bg-(--surface-inset) px-2 py-0.5 text-xs">
+                        {revisionCount.data}
+                      </span>
+                    )}
+                  </button>
                 )}
               </div>
-            </div>
+            </FormPanel>
 
-            {/* Parent Page (pages only) */}
-            {isPageType && (
-              <div className="card p-6">
-                <h3 className="h2">{__('Parent Page')}</h3>
-                <select
-                  value={formData.parentId ?? ''}
-                  onChange={(e) => handleChange('parentId', e.target.value || null)}
-                  className="select mt-3 w-full"
-                >
-                  <option value="">{__('None (top level)')}</option>
-                  {(pageTree.data ?? [])
-                    .filter((p) => p.id !== postId)
-                    .map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {'— '.repeat(p.depth)}{p.title}
-                      </option>
-                    ))}
-                </select>
-              </div>
-            )}
-
-            {/* Categories */}
-            <div className="card p-6">
-              <h3 className="h2">{__('Categories')}</h3>
-              <div className="mt-3 max-h-48 space-y-1.5 overflow-y-auto">
-                {categoriesList.isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin text-(--text-muted)" />
-                ) : (categoriesList.data?.results ?? []).length === 0 ? (
-                  <p className="text-xs text-(--text-muted)">
-                    {__('No categories yet.')}
-                  </p>
-                ) : (
-                  (categoriesList.data?.results ?? []).map((cat) => (
-                    <label
-                      key={cat.id}
-                      className="flex items-center gap-2 text-sm"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={formData.categoryIds.includes(cat.id)}
-                        onChange={() => toggleCategory(cat.id)}
-                        className="rounded border-(--border-primary)"
-                      />
-                      {cat.name}
-                    </label>
-                  ))
-                )}
-              </div>
-            </div>
-
-            {/* Tags */}
-            <div className="card p-6">
-              <h3 className="h2">{__('Tags')}</h3>
-              <div className="mt-3">
-                <TagInput
-                  selectedTagIds={formData.tagIds}
-                  onChange={(v) => handleChange('tagIds', v)}
-                  lang={formData.lang}
-                />
-              </div>
-            </div>
-
-            {/* Featured Image */}
-            {contentType.postFormFields?.featuredImage && (
-              <div className="card p-6">
-                <h3 className="h2">{__('Featured Image')}</h3>
-                <div className="mt-4 space-y-3">
-                  {formData.featuredImage ? (
-                    <div className="post-form-image-preview relative">
-                      <img
-                        src={formData.featuredImage}
-                        alt={formData.featuredImageAlt || 'Preview'}
-                        className="h-32 w-full rounded-md border border-(--border-primary) object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          handleChange('featuredImage', '');
-                          handleChange('featuredImageAlt', '');
-                        }}
-                        className="absolute right-1 top-1 rounded bg-(--surface-primary)/90 p-1 shadow-sm hover:bg-(--surface-primary)"
-                      >
-                        <X className="h-3.5 w-3.5 text-(--text-secondary)" />
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => setShowMediaPicker(true)}
-                      className="flex w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-(--border-primary) px-4 py-6 text-sm text-(--text-muted) hover:border-(--border-primary) hover:text-(--text-secondary)"
-                    >
-                      <ImageIcon className="h-5 w-5" />
-                      {__('Select Image')}
-                    </button>
-                  )}
-                  {formData.featuredImage && (
-                    <div className="post-form-image-actions flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setShowMediaPicker(true)}
-                        className="text-xs text-(--color-brand-600) hover:text-(--color-brand-700)"
-                      >
-                        {__('Change')}
-                      </button>
-                    </div>
-                  )}
-                  {formData.featuredImage && (
-                    <div>
-                      <label className="block text-sm font-medium text-(--text-secondary)">
-                        {__('Alt Text')}
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.featuredImageAlt}
-                        onChange={(e) => handleChange('featuredImageAlt', e.target.value)}
-                        className="input mt-1"
-                        placeholder={__('Describe the image')}
-                      />
-                    </div>
-                  )}
+            {/* Sortable sidebar panels */}
+            <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={handleSidebarDragEnd}>
+              <SortableContext items={orderedSidebarIds} strategy={verticalListSortingStrategy}>
+                <div className="space-y-6">
+                  {orderedSidebarIds.map((id) => renderSortablePanel(id, sidebarPanelRenderers))}
                 </div>
-              </div>
-            )}
+              </SortableContext>
+            </DndContext>
           </div>
         </div>
       </form>
 
-      {/* Media Picker Dialog */}
+      {/* Revisions Dialog */}
+      {showRevisions && !isNew && postId && (
+        <RevisionHistory
+          contentType="post"
+          contentId={postId}
+          currentData={formData}
+          onRestored={() => existingPost.refetch()}
+          dialogOnly
+          onClose={() => setShowRevisions(false)}
+        />
+      )}
+
+      {/* Media Picker — Featured Image */}
       <MediaPickerDialog
         open={showMediaPicker}
         onClose={() => setShowMediaPicker(false)}
         onSelect={(url, alt) => {
           handleChange('featuredImage', url);
           if (alt) handleChange('featuredImageAlt', alt);
+        }}
+      />
+
+      {/* Media Picker — Insert into Content */}
+      <MediaPickerDialog
+        open={showContentMediaPicker}
+        onClose={() => setShowContentMediaPicker(false)}
+        onSelect={(url) => {
+          editorRef.current?.replaceSelection(`![](${url})`);
         }}
       />
 

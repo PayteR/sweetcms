@@ -714,7 +714,7 @@ export function RichTextEditor({
         />
 
         {/* Editor / Source */}
-        <div className="editor-content flex-1 overflow-auto">
+        <div className={cn('editor-content flex-1', mode === 'wysiwyg' ? 'overflow-auto' : 'overflow-hidden')}>
           {mode === 'wysiwyg' ? (
             <EditorContent
               editor={editor}
@@ -729,7 +729,7 @@ export function RichTextEditor({
                 lastEmittedContent.current = e.target.value;
                 onChangeRef.current(e.target.value);
               }}
-              className="tiptap-source-textarea h-full min-h-[300px] w-full resize-none border-none bg-transparent px-4 py-3 font-mono text-[13px] leading-relaxed text-inherit outline-none"
+              className="tiptap-source-textarea h-full w-full resize-none border-none bg-transparent px-4 py-3 font-mono text-[13px] leading-relaxed text-inherit outline-none"
               style={{ tabSize: 2 }}
             />
           )}

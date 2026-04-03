@@ -16,9 +16,13 @@ interface Props {
   contentId: string;
   currentData: Record<string, unknown>;
   onRestored?: () => void;
+  /** When true, auto-opens the dialog on mount and hides the trigger card. */
+  dialogOnly?: boolean;
+  /** Called when the dialog is closed (relevant when dialogOnly is true). */
+  onClose?: () => void;
 }
 
-export function RevisionHistory({ contentType, contentId, currentData, onRestored }: Props) {
+export function RevisionHistory({ contentType, contentId, currentData, onRestored, dialogOnly, onClose }: Props) {
   const __ = useBlankTranslations();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [isOpen, setIsOpen] = useState(false);
@@ -59,7 +63,8 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
     dialogRef.current?.close();
     setIsOpen(false);
     setSelectedIndex(0);
-  }, []);
+    onClose?.();
+  }, [onClose]);
 
   useEffect(() => {
     if (isOpen) {
@@ -67,31 +72,22 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
     }
   }, [isOpen]);
 
+  // Auto-open dialog when rendered in dialogOnly mode
+  useEffect(() => {
+    if (dialogOnly && !isOpen) {
+      openDialog();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only on mount
+  }, [dialogOnly]);
+
   function handleRestore() {
     if (!restoreTarget) return;
     restore.mutate({ id: restoreTarget });
     setRestoreTarget(null);
   }
 
-  return (
-    <div className="card p-6">
-      <button
-        type="button"
-        onClick={openDialog}
-        className="flex w-full items-center gap-2"
-      >
-        <h3 className="h2 flex items-center gap-2">
-          <History className="h-4 w-4" />
-          {__('Revisions')}
-          {(revisionCount ?? 0) > 0 && (
-            <span className="rounded-full bg-(--surface-secondary) px-2 py-0.5 text-xs text-(--text-muted)">
-              {revisionCount}
-            </span>
-          )}
-        </h3>
-      </button>
-
-      {isOpen && (
+  // ── Dialog JSX (shared between card mode and dialogOnly mode) ──
+  const dialogElement = isOpen ? (
         <dialog
           ref={dialogRef}
           onClose={closeDialog}
@@ -254,7 +250,31 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
             </Dialog.Footer>
           </Dialog>
         </dialog>
-      )}
+  ) : null;
+
+  // In dialogOnly mode, skip the card trigger — just render the dialog
+  if (dialogOnly) {
+    return <>{dialogElement}</>;
+  }
+
+  return (
+    <div className="card p-6">
+      <button
+        type="button"
+        onClick={openDialog}
+        className="flex w-full items-center gap-2"
+      >
+        <h3 className="h2 flex items-center gap-2">
+          <History className="h-4 w-4" />
+          {__('Revisions')}
+          {(revisionCount ?? 0) > 0 && (
+            <span className="rounded-full bg-(--surface-secondary) px-2 py-0.5 text-xs text-(--text-muted)">
+              {revisionCount}
+            </span>
+          )}
+        </h3>
+      </button>
+      {dialogElement}
     </div>
   );
 }
