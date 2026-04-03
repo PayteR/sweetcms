@@ -61,6 +61,8 @@ export interface DialogProps {
   autoFocus?: boolean;
   /** Specific element to receive initial focus */
   initialFocusRef?: RefObject<HTMLElement | null>;
+  /** Dramatic zoom-from-click-point animation (default: false — uses subtle scale) */
+  zoomFromClick?: boolean;
   children: ReactNode;
 }
 
@@ -74,9 +76,10 @@ function DialogRoot({
   closeOnEscape = true,
   autoFocus = true,
   initialFocusRef,
+  zoomFromClick = false,
   children,
 }: DialogProps) {
-  const { panelRef, animateOpen } = useOverlay({
+  const { panelRef, animateOpen, transformOrigin } = useOverlay({
     open,
     onClose,
     closeOnEscape,
@@ -105,10 +108,12 @@ function DialogRoot({
           ref={panelRef}
           className={cn(
             'overlay-dialog-panel',
+            zoomFromClick && 'overlay-zoom-origin',
             resolved.panel,
             sizeClasses[size],
             className,
           )}
+          style={zoomFromClick && transformOrigin ? { transformOrigin } : undefined}
         >
           {children}
         </div>

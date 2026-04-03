@@ -20,6 +20,7 @@ import { localePath } from '@/lib/locale';
 import type { Locale } from '@/lib/constants';
 import { adminRoutes, contentRoutes, apiRoutes } from '@/config/routes';
 import { RefCookieCapture } from '@/components/public/RefCookieCapture';
+import { AuthDialogs } from '@/components/public/AuthDialogs';
 
 async function getPublishedCategories(locale: Locale) {
   try {
@@ -151,6 +152,7 @@ export default async function PublicLayout({
         </div>
       </header>
 
+      <AuthDialogs />
       <main className="flex-1">{children}</main>
 
       {/* ═══ Footer ═══ */}

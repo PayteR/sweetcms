@@ -5,12 +5,15 @@ import Link from 'next/link';
 import { useSession, signOut } from '@/lib/auth-client';
 import { User, Settings, Shield, CreditCard, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { publicAuthRoutes, accountRoutes } from '@/config/routes';
+import { accountRoutes } from '@/config/routes';
+import { useAuthDialogStore } from '@/store/auth-dialog-store';
 
 export function UserMenu() {
   const { data: session, isPending } = useSession();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const openLoginDialog = useAuthDialogStore((s) => s.openLoginDialog);
+  const openRegisterDialog = useAuthDialogStore((s) => s.openRegisterDialog);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -26,12 +29,20 @@ export function UserMenu() {
 
   if (!session?.user) {
     return (
-      <Link
-        href={publicAuthRoutes.login}
-        className="text-sm font-medium text-(--color-brand-500) hover:underline"
-      >
-        Sign In
-      </Link>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={openLoginDialog}
+          className="text-sm font-medium text-(--text-primary) hover:text-(--color-brand-500) transition-colors"
+        >
+          Sign In
+        </button>
+        <button
+          onClick={openRegisterDialog}
+          className="text-sm font-medium px-3 py-1.5 rounded-lg bg-(--color-brand-500) text-white hover:bg-(--color-brand-600) transition-colors"
+        >
+          Sign Up
+        </button>
+      </div>
     );
   }
 

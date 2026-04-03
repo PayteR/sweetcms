@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type RefObject } from 'react';
+import { getClickOrigin } from '@/engine/lib/click-origin';
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])';
@@ -26,6 +27,8 @@ export interface UseOverlayReturn<T extends HTMLElement> {
   panelRef: RefObject<T | null>;
   /** Deferred open state for CSS transition classes (true 1 frame after `open`) */
   animateOpen: boolean;
+  /** CSS transform-origin value based on last click position */
+  transformOrigin: string | undefined;
 }
 
 /**
@@ -50,9 +53,17 @@ export function useOverlay<T extends HTMLElement = HTMLDivElement>({
   const [animateOpen, setAnimateOpen] = useState(false);
   const onCloseRef = useRef(onClose);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const originRef = useRef<string | undefined>(undefined);
 
   // Keep onClose ref current — avoids effect re-runs on inline callbacks
   onCloseRef.current = onClose;
+
+  // Capture click origin when dialog opens (before animation starts)
+  useEffect(() => {
+    if (open) {
+      originRef.current = getClickOrigin();
+    }
+  }, [open]);
 
   // Defer CSS open class by 1 frame so mount-to-open transitions animate correctly
   useEffect(() => {
@@ -136,5 +147,5 @@ export function useOverlay<T extends HTMLElement = HTMLDivElement>({
     };
   }, [open, closeOnEscape, autoFocus, initialFocusRef]);
 
-  return { panelRef, animateOpen };
+  return { panelRef, animateOpen, transformOrigin: originRef.current };
 }

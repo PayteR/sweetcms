@@ -7,7 +7,14 @@ import { signIn } from '@/lib/auth-client';
 import { SocialLoginButtons } from '@/components/public/SocialLoginButtons';
 import { publicAuthRoutes, accountRoutes } from '@/config/routes';
 
-export function LoginForm() {
+export interface LoginFormProps {
+  /** Called after successful login (dialog mode). If not provided, redirects to callbackUrl. */
+  onSuccess?: () => void;
+  /** Called when user clicks "Sign up" (dialog mode). If not provided, renders a Link. */
+  onSwitchToRegister?: () => void;
+}
+
+export function LoginForm({ onSuccess, onSwitchToRegister }: LoginFormProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') ?? accountRoutes.home;
@@ -25,6 +32,8 @@ export function LoginForm() {
       const result = await signIn.email({ email, password });
       if (result.error) {
         setError(result.error.message ?? 'Invalid email or password');
+      } else if (onSuccess) {
+        onSuccess();
       } else {
         router.push(callbackUrl);
       }
@@ -37,7 +46,7 @@ export function LoginForm() {
 
   return (
     <div>
-      <SocialLoginButtons callbackUrl={callbackUrl} />
+      <SocialLoginButtons callbackUrl={onSuccess ? undefined : callbackUrl} />
 
       <div className="flex items-center gap-3 my-6">
         <div className="flex-1 border-t border-(--border-primary)" />
@@ -53,9 +62,9 @@ export function LoginForm() {
         )}
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
+          <label htmlFor="login-email" className="block text-sm font-medium mb-1">Email</label>
           <input
-            id="email"
+            id="login-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -67,13 +76,13 @@ export function LoginForm() {
 
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label htmlFor="password" className="block text-sm font-medium">Password</label>
+            <label htmlFor="login-password" className="block text-sm font-medium">Password</label>
             <Link href={publicAuthRoutes.forgotPassword} className="text-xs text-(--color-brand-500) hover:underline">
               Forgot password?
             </Link>
           </div>
           <input
-            id="password"
+            id="login-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -94,9 +103,15 @@ export function LoginForm() {
 
       <p className="text-center text-sm text-(--text-secondary) mt-6">
         Don&apos;t have an account?{' '}
-        <Link href={publicAuthRoutes.register} className="text-(--color-brand-500) hover:underline">
-          Sign up
-        </Link>
+        {onSwitchToRegister ? (
+          <button type="button" onClick={onSwitchToRegister} className="text-(--color-brand-500) hover:underline">
+            Sign up
+          </button>
+        ) : (
+          <Link href={publicAuthRoutes.register} className="text-(--color-brand-500) hover:underline">
+            Sign up
+          </Link>
+        )}
       </p>
     </div>
   );

@@ -11,8 +11,7 @@ import { toast } from '@/store/toast-store';
 
 interface Props {
   contentType: string;
-  contentId: string;
-  open: boolean;
+  contentId: string | null;
   onClose: () => void;
 }
 
@@ -183,53 +182,77 @@ function CommentItem({ comment, currentUserId, contentType, contentId, depth = 0
   );
 }
 
-export function CommentPanel({ contentType, contentId, open, onClose }: Props) {
+export function CommentPanel({ contentType, contentId, onClose }: Props) {
   const { data: session } = useSession();
   const [newComment, setNewComment] = useState('');
   const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const utils = trpc.useUtils();
 
+  // Track the "active" contentId so we can keep showing content during exit animation
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [visible, setVisible] = useState(false);
+
+  const isOpen = contentId !== null;
+  const displayId = activeId ?? contentId;
+
+  // Enter: set activeId and trigger slide-up
+  // Exit: slide down, then clear activeId
+  useEffect(() => {
+    if (isOpen && contentId) {
+      setActiveId(contentId);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setVisible(true));
+      });
+    } else if (!isOpen && visible) {
+      setVisible(false);
+      const timer = setTimeout(() => setActiveId(null), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, contentId]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const comments = trpc.comments.list.useQuery(
-    { contentType, contentId, pageSize: 50 },
-    { enabled: open }
+    { contentType, contentId: displayId!, pageSize: 50 },
+    { enabled: !!displayId }
   );
 
   const createComment = trpc.comments.create.useMutation({
     onSuccess: () => {
       setNewComment('');
-      utils.comments.list.invalidate({ contentType, contentId });
+      if (displayId) {
+        utils.comments.list.invalidate({ contentType, contentId: displayId });
+      }
       utils.comments.batchCounts.invalidate();
     },
     onError: (err) => toast.error(err.message),
   });
 
   function handleSubmit() {
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || !displayId) return;
     createComment.mutate({
       contentType,
-      contentId,
+      contentId: displayId,
       body: newComment.trim(),
     });
   }
 
   // Close on escape
   useEffect(() => {
-    if (!open) return;
+    if (!isOpen) return;
     function handleKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose();
     }
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [open, onClose]);
+  }, [isOpen, onClose]);
 
   // Prevent body scroll when open
   useEffect(() => {
-    if (open) {
+    if (isOpen) {
       document.body.style.overflow = 'hidden';
       return () => { document.body.style.overflow = ''; };
     }
-  }, [open]);
+  }, [isOpen]);
 
   const handleBackdropClick = useCallback(
     (e: React.MouseEvent) => {
@@ -238,17 +261,8 @@ export function CommentPanel({ contentType, contentId, open, onClose }: Props) {
     [onClose]
   );
 
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    if (open) {
-      // Trigger enter animation on next frame
-      requestAnimationFrame(() => setVisible(true));
-    }
-    return () => setVisible(false);
-  }, [open]);
-
-  if (!open) return null;
+  // Nothing to show
+  if (!activeId) return null;
 
   const totalComments = comments.data?.total ?? 0;
 
@@ -307,7 +321,7 @@ export function CommentPanel({ contentType, contentId, open, onClose }: Props) {
                   comment={comment}
                   currentUserId={session?.user?.id ?? null}
                   contentType={contentType}
-                  contentId={contentId}
+                  contentId={activeId}
                 />
               ))}
             </div>

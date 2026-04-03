@@ -84,6 +84,18 @@
     opacity: 1;
   }
 
+  /* Dramatic zoom-from-click variant — opt-in via class */
+  .overlay-dialog-panel.overlay-zoom-origin {
+    transform: scale(0.3);
+    transition: transform 250ms cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 200ms ease;
+  }
+
+  .overlay-dialog-open .overlay-dialog-panel.overlay-zoom-origin {
+    transform: scale(1);
+    opacity: 1;
+  }
+
   .overlay-dialog-header {
     display: flex;
     align-items: center;

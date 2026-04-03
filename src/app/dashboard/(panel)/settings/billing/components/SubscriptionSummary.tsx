@@ -82,7 +82,7 @@ export function SubscriptionSummary({ data, isLoading }: SubscriptionSummaryProp
 
       {/* Plan Distribution */}
       <div className="card p-4">
-        <div className="h2 mb-3">{__('Plan Distribution')}</div>
+        <div className="font-semibold text-sm text-(--text-secondary) mb-3 uppercase tracking-wide">{__('Plan Distribution')}</div>
         {isLoading ? (
           <div className="flex flex-col gap-2">
             <Skeleton className="h-5 w-full" />
@@ -105,7 +105,7 @@ export function SubscriptionSummary({ data, isLoading }: SubscriptionSummaryProp
 
       {/* Churn Metrics */}
       <div className="card p-4">
-        <div className="h2 mb-3">{__('Churn Metrics')}</div>
+        <div className="font-semibold text-sm text-(--text-secondary) mb-3 uppercase tracking-wide">{__('Churn Metrics')}</div>
         {isLoading ? (
           <div className="flex flex-col gap-2">
             {Array.from({ length: 5 }).map((_, i) => (

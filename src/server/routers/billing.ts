@@ -20,6 +20,8 @@ import {
 import { organization } from '@/server/db/schema/organization';
 import { getStats as getCachedStats } from '@/engine/lib/stats-cache';
 import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
+import { saasAffiliates, saasReferrals } from '@/server/db/schema/affiliates';
+import { user } from '@/server/db/schema/auth';
 
 function requireOrg(activeOrganizationId: string | null | undefined): string {
   if (!activeOrganizationId) {
@@ -552,50 +554,53 @@ export const billingRouter = createTRPCRouter({
         ? and(...conditions, inArray(saasSubscriptions.organizationId, orgIdFilter))
         : and(...conditions);
 
-      const [countResult] = await ctx.db
-        .select({ count: sql<number>`count(*)`.as('count') })
-        .from(saasSubscriptions)
-        .where(searchCondition);
-
-      const rows = await ctx.db
-        .select({
-          id: saasSubscriptions.id,
-          organizationId: saasSubscriptions.organizationId,
-          orgName: organization.name,
-          planId: saasSubscriptions.planId,
-          status: saasSubscriptions.status,
-          providerId: saasSubscriptions.providerId,
-          cancelAtPeriodEnd: saasSubscriptions.cancelAtPeriodEnd,
-          currentPeriodEnd: saasSubscriptions.currentPeriodEnd,
-          createdAt: saasSubscriptions.createdAt,
-          updatedAt: saasSubscriptions.updatedAt,
-        })
-        .from(saasSubscriptions)
-        .leftJoin(organization, eq(saasSubscriptions.organizationId, organization.id))
-        .where(searchCondition)
-        .orderBy(desc(saasSubscriptions.updatedAt))
-        .limit(pageSize)
-        .offset((page - 1) * pageSize);
-
-      // Get counts per churn type (for tab badges)
+      // Run list, count, and type counts in parallel
       const baseConditions = [];
       if (input.from) baseConditions.push(gte(saasSubscriptions.updatedAt, new Date(input.from)));
       if (input.to) baseConditions.push(lte(saasSubscriptions.updatedAt, new Date(input.to)));
       if (orgIdFilter) baseConditions.push(inArray(saasSubscriptions.organizationId, orgIdFilter));
 
-      const typeCountRows = await ctx.db
-        .select({
-          status: saasSubscriptions.status,
-          count: sql<number>`count(*)`.as('count'),
-        })
-        .from(saasSubscriptions)
-        .where(
-          and(
-            inArray(saasSubscriptions.status, ['canceled', 'past_due', 'unpaid']),
-            ...baseConditions,
+      const [countResult, rows, typeCountRows] = await Promise.all([
+        ctx.db
+          .select({ count: sql<number>`count(*)`.as('count') })
+          .from(saasSubscriptions)
+          .where(searchCondition)
+          .then((r) => r[0]),
+
+        ctx.db
+          .select({
+            id: saasSubscriptions.id,
+            organizationId: saasSubscriptions.organizationId,
+            orgName: organization.name,
+            planId: saasSubscriptions.planId,
+            status: saasSubscriptions.status,
+            providerId: saasSubscriptions.providerId,
+            cancelAtPeriodEnd: saasSubscriptions.cancelAtPeriodEnd,
+            currentPeriodEnd: saasSubscriptions.currentPeriodEnd,
+            createdAt: saasSubscriptions.createdAt,
+            updatedAt: saasSubscriptions.updatedAt,
+          })
+          .from(saasSubscriptions)
+          .leftJoin(organization, eq(saasSubscriptions.organizationId, organization.id))
+          .where(searchCondition)
+          .orderBy(desc(saasSubscriptions.updatedAt))
+          .limit(pageSize)
+          .offset((page - 1) * pageSize),
+
+        ctx.db
+          .select({
+            status: saasSubscriptions.status,
+            count: sql<number>`count(*)`.as('count'),
+          })
+          .from(saasSubscriptions)
+          .where(
+            and(
+              inArray(saasSubscriptions.status, ['canceled', 'past_due', 'unpaid']),
+              ...baseConditions,
+            )
           )
-        )
-        .groupBy(saasSubscriptions.status);
+          .groupBy(saasSubscriptions.status),
+      ]);
 
       const typeCounts = { canceled: 0, past_due: 0, unpaid: 0 };
       for (const row of typeCountRows) {
@@ -673,4 +678,63 @@ export const billingRouter = createTRPCRouter({
       }));
     }),
 
+  // ─── Admin: affiliate overview ──────────────────────────────────────────────
+
+  getAffiliateStats: billingAdminProcedure.query(async ({ ctx }) => {
+    return getCachedStats('billing:affiliates', async () => {
+      const [
+        [activeResult],
+        [totalReferralsResult],
+        [convertedResult],
+        [totalEarningsResult],
+        topAffiliates,
+      ] = await Promise.all([
+        ctx.db
+          .select({ count: sql<number>`count(*)`.as('count') })
+          .from(saasAffiliates)
+          .where(eq(saasAffiliates.status, 'active')),
+        ctx.db
+          .select({ count: sql<number>`coalesce(sum(${saasAffiliates.totalReferrals}), 0)`.as('count') })
+          .from(saasAffiliates),
+        ctx.db
+          .select({ count: sql<number>`count(*)`.as('count') })
+          .from(saasReferrals)
+          .where(eq(saasReferrals.status, 'converted')),
+        ctx.db
+          .select({ total: sql<number>`coalesce(sum(${saasAffiliates.totalEarningsCents}), 0)`.as('total') })
+          .from(saasAffiliates),
+        ctx.db
+          .select({
+            id: saasAffiliates.id,
+            code: saasAffiliates.code,
+            userName: user.name,
+            userEmail: user.email,
+            commissionPercent: saasAffiliates.commissionPercent,
+            totalReferrals: saasAffiliates.totalReferrals,
+            totalEarningsCents: saasAffiliates.totalEarningsCents,
+            status: saasAffiliates.status,
+          })
+          .from(saasAffiliates)
+          .leftJoin(user, eq(saasAffiliates.userId, user.id))
+          .where(eq(saasAffiliates.status, 'active'))
+          .orderBy(desc(saasAffiliates.totalEarningsCents))
+          .limit(10),
+      ]);
+
+      const totalReferrals = Number(totalReferralsResult?.count ?? 0);
+      const converted = Number(convertedResult?.count ?? 0);
+      const conversionRate = totalReferrals > 0
+        ? Math.round((converted / totalReferrals) * 10000) / 100
+        : 0;
+
+      return {
+        activeAffiliates: Number(activeResult?.count ?? 0),
+        totalReferrals,
+        convertedReferrals: converted,
+        conversionRate,
+        totalEarningsCents: Number(totalEarningsResult?.total ?? 0),
+        topAffiliates,
+      };
+    }, 120);
+  }),
 });

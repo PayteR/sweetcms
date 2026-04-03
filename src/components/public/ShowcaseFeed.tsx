@@ -40,7 +40,7 @@ function parseVideoEmbed(url: string): { provider: 'youtube' | 'vimeo' | 'unknow
 
 function CardOverlay({ title, description }: { title: string; description?: string }) {
   return (
-    <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-6 pb-8 pt-24 sm:px-10 sm:pb-12">
+    <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent px-6 pb-8 pr-20 pt-24 sm:px-10 sm:pb-12 sm:pr-24">
       <h2 className="text-2xl font-bold leading-tight text-white drop-shadow-lg sm:text-4xl">
         {title}
       </h2>
@@ -276,14 +276,11 @@ export function ShowcaseFeed({ items }: Props) {
       )}
 
       {/* Comment panel */}
-      {commentPanelId && (
-        <CommentPanel
-          contentType="showcase"
-          contentId={commentPanelId}
-          open
-          onClose={() => setCommentPanelId(null)}
-        />
-      )}
+      <CommentPanel
+        contentType="showcase"
+        contentId={commentPanelId}
+        onClose={() => setCommentPanelId(null)}
+      />
     </div>
   );
 }

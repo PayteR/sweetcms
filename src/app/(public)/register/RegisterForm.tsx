@@ -7,7 +7,14 @@ import { signUp } from '@/lib/auth-client';
 import { SocialLoginButtons } from '@/components/public/SocialLoginButtons';
 import { accountRoutes, publicAuthRoutes } from '@/config/routes';
 
-export function RegisterForm() {
+export interface RegisterFormProps {
+  /** Called after successful registration (dialog mode). If not provided, redirects. */
+  onSuccess?: () => void;
+  /** Called when user clicks "Sign in" (dialog mode). If not provided, renders a Link. */
+  onSwitchToLogin?: () => void;
+}
+
+export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const plan = searchParams.get('plan');
@@ -26,6 +33,8 @@ export function RegisterForm() {
       const result = await signUp.email({ name, email, password });
       if (result.error) {
         setError(result.error.message ?? 'Registration failed');
+      } else if (onSuccess) {
+        onSuccess();
       } else {
         router.push(plan ? `${accountRoutes.home}?plan=${plan}` : accountRoutes.home);
       }
@@ -38,7 +47,7 @@ export function RegisterForm() {
 
   return (
     <div>
-      <SocialLoginButtons callbackUrl={accountRoutes.home} />
+      <SocialLoginButtons callbackUrl={onSuccess ? undefined : accountRoutes.home} />
 
       <div className="flex items-center gap-3 my-6">
         <div className="flex-1 border-t border-(--border-primary)" />
@@ -54,9 +63,9 @@ export function RegisterForm() {
         )}
 
         <div>
-          <label htmlFor="name" className="block text-sm font-medium mb-1">Name</label>
+          <label htmlFor="register-name" className="block text-sm font-medium mb-1">Name</label>
           <input
-            id="name"
+            id="register-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -67,9 +76,9 @@ export function RegisterForm() {
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
+          <label htmlFor="register-email" className="block text-sm font-medium mb-1">Email</label>
           <input
-            id="email"
+            id="register-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -80,9 +89,9 @@ export function RegisterForm() {
         </div>
 
         <div>
-          <label htmlFor="password" className="block text-sm font-medium mb-1">Password</label>
+          <label htmlFor="register-password" className="block text-sm font-medium mb-1">Password</label>
           <input
-            id="password"
+            id="register-password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -94,8 +103,8 @@ export function RegisterForm() {
         </div>
 
         <div className="flex items-start gap-2">
-          <input id="terms" type="checkbox" required className="mt-1" />
-          <label htmlFor="terms" className="text-xs text-(--text-secondary)">
+          <input id="register-terms" type="checkbox" required className="mt-1" />
+          <label htmlFor="register-terms" className="text-xs text-(--text-secondary)">
             I agree to the{' '}
             <Link href="/terms" className="text-(--color-brand-500) hover:underline">Terms of Service</Link>
             {' '}and{' '}
@@ -114,9 +123,15 @@ export function RegisterForm() {
 
       <p className="text-center text-sm text-(--text-secondary) mt-6">
         Already have an account?{' '}
-        <Link href={publicAuthRoutes.login} className="text-(--color-brand-500) hover:underline">
-          Sign in
-        </Link>
+        {onSwitchToLogin ? (
+          <button type="button" onClick={onSwitchToLogin} className="text-(--color-brand-500) hover:underline">
+            Sign in
+          </button>
+        ) : (
+          <Link href={publicAuthRoutes.login} className="text-(--color-brand-500) hover:underline">
+            Sign in
+          </Link>
+        )}
       </p>
     </div>
   );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { cn } from '@/lib/utils';
@@ -37,6 +38,7 @@ function statusBadgeClass(status: string): string {
 
 export function SubscriptionsTable({ from, to, planFilter, statusFilter }: SubscriptionsTableProps) {
   const __ = useBlankTranslations();
+  const router = useRouter();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
   const [search, setSearch] = useState('');
@@ -113,7 +115,7 @@ export function SubscriptionsTable({ from, to, planFilter, statusFilter }: Subsc
             </thead>
             <tbody>
               {results.map((sub) => (
-                <tr key={sub.id} className="tr">
+                <tr key={sub.id} className="tr cursor-pointer" onClick={() => router.push(`/dashboard/organizations?org=${sub.organizationId}`)}>
                   <td className="td">{sub.orgName ?? sub.organizationId}</td>
                   <td className="td">{PLAN_NAMES[sub.planId] ?? sub.planId}</td>
                   <td className="td">

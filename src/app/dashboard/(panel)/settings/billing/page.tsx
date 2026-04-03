@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useEffect, useMemo, useCallback } from 'react';
+import { Suspense, useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useBlankTranslations } from '@/lib/translations';
 import { trpc } from '@/lib/trpc/client';
@@ -11,6 +11,7 @@ import { ChurnedSubscriptionsTable } from './components/ChurnedSubscriptionsTabl
 import { DiscountCodesTable } from './components/DiscountCodesTable';
 import { RevenueChart } from './components/RevenueChart';
 import { RecentTransactionsTable } from './components/RecentTransactionsTable';
+import { AffiliateOverview } from './components/AffiliateOverview';
 
 // ─── Date helpers (pure — no mutation) ──────────────────────────────────────
 
@@ -64,9 +65,19 @@ function nowISO(): string {
   return d.toISOString();
 }
 
-// ─── Component ──────────────────────────────────────────────────────────────
+// ─── Suspense wrapper ───────────────────────────────────────────────────────
 
 export default function BillingDashboardPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-(--text-muted)">Loading...</div>}>
+      <BillingDashboardContent />
+    </Suspense>
+  );
+}
+
+// ─── Dashboard content ──────────────────────────────────────────────────────
+
+function BillingDashboardContent() {
   const __ = useBlankTranslations();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -253,8 +264,13 @@ export default function BillingDashboardPage() {
       </div>
 
       {/* ─── Discount codes ────────────────────────────────────────────── */}
-      <div className="mt-6 mb-8">
+      <div className="mt-6">
         <DiscountCodesTable />
+      </div>
+
+      {/* ─── Affiliate overview ────────────────────────────────────────── */}
+      <div className="mt-6 mb-8">
+        <AffiliateOverview />
       </div>
     </div>
   );
