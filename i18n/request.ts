@@ -9,9 +9,18 @@ export default getRequestConfig(async () => {
     ? (raw as Locale)
     : DEFAULT_LOCALE;
 
+  // Graceful import: if JSON hasn't been generated yet (fresh clone before
+  // running `bun generate-po && bun transform:po`), fall back to empty messages.
+  let messages = {};
+  try {
+    messages = (await import(`../locales/build/${locale}.json`)).default;
+  } catch {
+    // JSON not generated yet — translations will fall back to English keys.
+  }
+
   return {
     locale,
-    messages: (await import(`../locales/build/${locale}.json`)).default,
+    messages,
 
     // Graceful fallback: return the raw key instead of crashing on missing translations.
     // In dev this logs a warning; in prod it silently falls back to the key string.

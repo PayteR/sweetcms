@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sweetcms\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-03T19:02:30.287Z\n"
-"PO-Revision-Date: 2026-04-03T19:02:30.287Z\n"
+"POT-Creation-Date: 2026-04-03T19:28:29.516Z\n"
+"PO-Revision-Date: 2026-04-03T19:28:29.516Z\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: es\n"
 "Language: es\n"
@@ -12,10 +12,10 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/config/dashboard-widgets.tsx:31
-msgid "Recent Activity"
-msgstr "Recent Activity"
+#. REMOVED FROM CODE - PRESERVED FOR REFERENCE
+#~ msgid "Recent Activity"
+#~ msgstr "Recent Activity"
 
-#: src/config/dashboard-widgets.tsx:38
-msgid "View all"
-msgstr "View all"
+#. REMOVED FROM CODE - PRESERVED FOR REFERENCE
+#~ msgid "View all"
+#~ msgstr "View all"

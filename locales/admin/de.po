@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sweetcms\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-03T19:23:57.041Z\n"
-"PO-Revision-Date: 2026-04-03T19:23:57.041Z\n"
+"POT-Creation-Date: 2026-04-03T19:28:29.524Z\n"
+"PO-Revision-Date: 2026-04-03T19:28:29.524Z\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: de\n"
 "Language: de\n"
@@ -2384,6 +2384,14 @@ msgstr "Edit Tag"
 #: src/components/admin/TermForm.tsx:243
 msgid "Tag name"
 msgstr "Tag name"
+
+#: src/config/dashboard-widgets.tsx:31
+msgid "Recent Activity"
+msgstr "Recent Activity"
+
+#: src/config/dashboard-widgets.tsx:38
+msgid "View all"
+msgstr "View all"
 
 #: src/engine/components/AutosaveIndicator.tsx:39
 msgid "Autosaved"

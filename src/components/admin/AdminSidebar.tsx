@@ -18,6 +18,7 @@ import type { NavChild } from '@/config/admin-nav';
 import { CommandPalette, useCommandPaletteShortcut } from '@/engine/components/CommandPalette';
 import { NotificationBell } from '@/engine/components/NotificationBell';
 import { OrgSwitcher } from '@/engine/components/OrgSwitcher';
+import { TokenBalance } from '@/engine/components/TokenBalance';
 
 /* ── Helpers ── */
 
@@ -159,9 +160,12 @@ export function AdminSidebar() {
     });
   }
 
+  const activeOrgId = (session?.session as Record<string, unknown> | undefined)?.activeOrganizationId as string | undefined;
+
   function renderRailBottom() {
     return (
       <>
+        <TokenBalance orgId={activeOrgId} href={adminPanel.settingsBilling} />
         <NotificationBell notificationsHref={adminPanel.notifications} />
         <button
           type="button"

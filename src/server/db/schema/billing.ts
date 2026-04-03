@@ -116,3 +116,40 @@ export const saasDiscountUsages = pgTable('saas_discount_usages', {
   removedAt: timestamp('removed_at'),
   transactionId: text('transaction_id'),
 });
+
+// ─── saas_token_balances ────────────────────────────────────────────────────
+// Per-organization token/credit balances for usage-based billing.
+
+export const saasTokenBalances = pgTable('saas_token_balances', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id')
+    .notNull()
+    .unique()
+    .references(() => organization.id, { onDelete: 'cascade' }),
+  balance: integer('balance').notNull().default(0),
+  lifetimeAdded: integer('lifetime_added').notNull().default(0),
+  lifetimeUsed: integer('lifetime_used').notNull().default(0),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+});
+
+// ─── saas_token_transactions ────────────────────────────────────────────────
+// Ledger of every token credit/debit for auditability.
+
+export const saasTokenTransactions = pgTable('saas_token_transactions', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  organizationId: text('organization_id')
+    .notNull()
+    .references(() => organization.id, { onDelete: 'cascade' }),
+  amount: integer('amount').notNull(), // positive = credit, negative = debit
+  balanceAfter: integer('balance_after').notNull(),
+  reason: varchar('reason', { length: 100 }).notNull(), // 'purchase', 'usage', 'refund', 'bonus', 'adjustment'
+  metadata: jsonb('metadata'), // e.g. { feature: 'ai-generate', inputTokens: 500 }
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (t) => [
+  index('saas_token_tx_org_idx').on(t.organizationId, t.createdAt),
+]);

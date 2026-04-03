@@ -78,18 +78,24 @@ const ALL_TABLES = [
 
 // ─── Step 1: Ensure .env ──────────────────────────────────────────────────────
 
-function ensureEnvFile() {
+/**
+ * Returns true if .env already existed (ready to proceed).
+ * Returns false if .env was just created (must restart for Bun to load it).
+ */
+function ensureEnvFile(): boolean {
   if (fs.existsSync(ENV_PATH)) {
-    log('✅', '.env file exists.');
-    return;
+    return true;
   }
 
   if (fs.existsSync(ENV_EXAMPLE_PATH)) {
     fs.copyFileSync(ENV_EXAMPLE_PATH, ENV_PATH);
-    log('📄', 'Created .env from .env.example. Please review and update it.');
-  } else {
-    log('⚠️', 'No .env or .env.example found. You may need to create .env manually.');
+    log('📄', 'Created .env from .env.example.');
+    log('📝', 'Review the file, then re-run: bun run init');
+    return false;
   }
+
+  log('⚠️', 'No .env or .env.example found. Create .env with DATABASE_URL, then re-run.');
+  return false;
 }
 
 // ─── Step 2: Create database ──────────────────────────────────────────────────
@@ -353,8 +359,10 @@ async function main() {
   console.log('  ╚═══════════════════════════════╝');
   console.log('');
 
-  // Step 1: Ensure .env
-  ensureEnvFile();
+  // Step 1: Ensure .env (Bun loads .env at startup — if we just created it, must restart)
+  if (!ensureEnvFile()) {
+    process.exit(0);
+  }
 
   // Step 2: Create database
   await ensureDatabase();

@@ -17,11 +17,9 @@ const LOCALES = ['en', 'es', 'de'];
 // Paths that classify a file as "admin" (everything else → public)
 const ADMIN_PATH_PREFIXES = [
   'src/app/dashboard/',
-  'src/app/dashboard\\',
   'src/components/admin/',
-  'src/components/admin\\',
+  'src/config/',
   'src/engine/',
-  'src/engine\\',
 ];
 
 function isAdminFile(filePath) {

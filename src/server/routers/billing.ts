@@ -22,6 +22,13 @@ import { getStats as getCachedStats } from '@/engine/lib/stats-cache';
 import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
 import { saasAffiliates, saasReferrals } from '@/server/db/schema/affiliates';
 import { user } from '@/server/db/schema/auth';
+import {
+  getTokenBalance,
+  getTokenBalanceRecord,
+  addTokens,
+  deductTokens,
+  getTokenTransactions,
+} from '@/engine/lib/payment/token-service';
 
 function requireOrg(activeOrganizationId: string | null | undefined): string {
   if (!activeOrganizationId) {
@@ -737,4 +744,54 @@ export const billingRouter = createTRPCRouter({
       };
     }, 120);
   }),
+
+  // ─── Token balance (customer-facing) ────────────────────────────────────
+
+  getTokenBalance: protectedProcedure.query(async ({ ctx }) => {
+    const orgId = requireOrg(ctx.activeOrganizationId);
+    const record = await getTokenBalanceRecord(orgId);
+    return {
+      balance: record?.balance ?? 0,
+      lifetimeAdded: record?.lifetimeAdded ?? 0,
+      lifetimeUsed: record?.lifetimeUsed ?? 0,
+    };
+  }),
+
+  getTokenTransactions: protectedProcedure
+    .input(z.object({ limit: z.number().int().min(1).max(100).default(20) }))
+    .query(async ({ ctx, input }) => {
+      const orgId = requireOrg(ctx.activeOrganizationId);
+      return getTokenTransactions(orgId, input.limit);
+    }),
+
+  // ─── Token admin mutations ──────────────────────────────────────────────
+
+  addTokens: billingAdminProcedure
+    .input(z.object({
+      organizationId: z.string().uuid(),
+      amount: z.number().int().min(1).max(1_000_000),
+      reason: z.string().min(1).max(100),
+    }))
+    .mutation(async ({ input }) => {
+      const balance = await addTokens(input.organizationId, input.amount, input.reason);
+      return { balance };
+    }),
+
+  deductTokens: billingAdminProcedure
+    .input(z.object({
+      organizationId: z.string().uuid(),
+      amount: z.number().int().min(1).max(1_000_000),
+      reason: z.string().min(1).max(100),
+    }))
+    .mutation(async ({ input }) => {
+      try {
+        const balance = await deductTokens(input.organizationId, input.amount, input.reason);
+        return { balance };
+      } catch (err) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: err instanceof Error ? err.message : 'Failed to deduct tokens',
+        });
+      }
+    }),
 });

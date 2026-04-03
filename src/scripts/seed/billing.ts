@@ -376,5 +376,53 @@ export async function seedBilling(
   }
   log('\u2705', `${NUM_AFFILIATES} affiliates created.`);
 
+  // ─── 7. Token balances ──────────────────────────────────────────────
+  log('\uD83E\uDE99', `Creating token balances for ${NUM_ORGS} organizations...`);
+
+  const {
+    saasTokenBalances,
+    saasTokenTransactions,
+  } = await import('../../server/db/schema/billing');
+
+  for (let i = 0; i < orgIds.length; i++) {
+    const balance = faker.number.int({ min: 50, max: 5000 });
+    const lifetimeAdded = balance + faker.number.int({ min: 100, max: 3000 });
+    const lifetimeUsed = lifetimeAdded - balance;
+
+    await db.insert(saasTokenBalances).values({
+      id: uuid(),
+      organizationId: orgIds[i]!,
+      balance,
+      lifetimeAdded,
+      lifetimeUsed,
+      createdAt: faker.date.past({ years: 1 }),
+      updatedAt: faker.date.recent({ days: 7 }),
+    }).onConflictDoNothing();
+
+    // A few ledger entries
+    const txCount = faker.number.int({ min: 3, max: 8 });
+    let runningBalance = 0;
+    for (let t = 0; t < txCount; t++) {
+      const isCredit = t === 0 || faker.datatype.boolean(0.3);
+      const amount = isCredit
+        ? faker.number.int({ min: 100, max: 2000 })
+        : -faker.number.int({ min: 10, max: 200 });
+      runningBalance = Math.max(0, runningBalance + amount);
+
+      await db.insert(saasTokenTransactions).values({
+        id: uuid(),
+        organizationId: orgIds[i]!,
+        amount,
+        balanceAfter: runningBalance,
+        reason: isCredit
+          ? pick(['purchase', 'bonus', 'refund'])
+          : pick(['usage', 'ai-generate', 'api-call']),
+        metadata: !isCredit ? { feature: pick(['ai-generate', 'image-resize', 'translation', 'export']) } : null,
+        createdAt: daysAgo(Math.round((t / txCount) * 60)),
+      });
+    }
+  }
+  log('\u2705', `Token balances and ${NUM_ORGS * 5} ledger entries created.`);
+
   return { userIds, orgIds };
 }

@@ -1,0 +1,166 @@
+import { eq, sql } from 'drizzle-orm';
+import { db } from '@/server/db';
+import { saasTokenBalances, saasTokenTransactions } from '@/server/db/schema';
+import { createLogger } from '@/engine/lib/logger';
+
+const logger = createLogger('token-service');
+
+// ─── WS broadcast (lazy import to avoid circular deps) ──────────────────────
+
+let _sendToOrg: ((orgId: string, type: string, payload: unknown) => void) | undefined;
+
+async function broadcastBalance(orgId: string, balance: number) {
+  try {
+    if (!_sendToOrg) {
+      const ws = await import('@/server/lib/ws');
+      _sendToOrg = ws.sendToOrg;
+    }
+    _sendToOrg(orgId, 'token_balance_update', { balance, orgId, timestamp: new Date().toISOString() });
+  } catch {
+    // WS not available (e.g., worker process) — silently skip
+  }
+}
+
+// ─── Public API ─────────────────────────────────────────────────────────────
+
+/**
+ * Get token balance for an organization. Returns 0 if no balance record exists.
+ */
+export async function getTokenBalance(orgId: string): Promise<number> {
+  const [row] = await db
+    .select({ balance: saasTokenBalances.balance })
+    .from(saasTokenBalances)
+    .where(eq(saasTokenBalances.organizationId, orgId))
+    .limit(1);
+  return row?.balance ?? 0;
+}
+
+/**
+ * Get full token balance record including lifetime stats.
+ */
+export async function getTokenBalanceRecord(orgId: string) {
+  const [row] = await db
+    .select()
+    .from(saasTokenBalances)
+    .where(eq(saasTokenBalances.organizationId, orgId))
+    .limit(1);
+  return row ?? null;
+}
+
+/**
+ * Add tokens (credit). Used for purchases, bonuses, refunds.
+ * Returns the new balance.
+ */
+export async function addTokens(
+  orgId: string,
+  amount: number,
+  reason: string,
+  metadata?: Record<string, unknown>,
+): Promise<number> {
+  if (amount <= 0) throw new Error('addTokens amount must be positive');
+
+  const newBalance = await db.transaction(async (tx) => {
+    // Upsert balance
+    const [row] = await tx
+      .insert(saasTokenBalances)
+      .values({
+        organizationId: orgId,
+        balance: amount,
+        lifetimeAdded: amount,
+      })
+      .onConflictDoUpdate({
+        target: saasTokenBalances.organizationId,
+        set: {
+          balance: sql`${saasTokenBalances.balance} + ${amount}`,
+          lifetimeAdded: sql`${saasTokenBalances.lifetimeAdded} + ${amount}`,
+          updatedAt: new Date(),
+        },
+      })
+      .returning({ balance: saasTokenBalances.balance });
+
+    const balance = row!.balance;
+
+    // Ledger entry
+    await tx.insert(saasTokenTransactions).values({
+      organizationId: orgId,
+      amount,
+      balanceAfter: balance,
+      reason,
+      metadata: metadata ?? null,
+    });
+
+    return balance;
+  });
+
+  logger.info('Tokens added', { orgId, amount, reason, newBalance });
+  broadcastBalance(orgId, newBalance);
+  return newBalance;
+}
+
+/**
+ * Deduct tokens (debit). Used for feature usage, API calls, etc.
+ * Returns the new balance, or throws if insufficient.
+ */
+export async function deductTokens(
+  orgId: string,
+  amount: number,
+  reason: string,
+  metadata?: Record<string, unknown>,
+): Promise<number> {
+  if (amount <= 0) throw new Error('deductTokens amount must be positive');
+
+  const newBalance = await db.transaction(async (tx) => {
+    // Check current balance
+    const [row] = await tx
+      .select({ balance: saasTokenBalances.balance })
+      .from(saasTokenBalances)
+      .where(eq(saasTokenBalances.organizationId, orgId))
+      .limit(1);
+
+    const current = row?.balance ?? 0;
+    if (current < amount) {
+      throw new Error(`Insufficient tokens: have ${current}, need ${amount}`);
+    }
+
+    // Deduct
+    const [updated] = await tx
+      .update(saasTokenBalances)
+      .set({
+        balance: sql`${saasTokenBalances.balance} - ${amount}`,
+        lifetimeUsed: sql`${saasTokenBalances.lifetimeUsed} + ${amount}`,
+        updatedAt: new Date(),
+      })
+      .where(eq(saasTokenBalances.organizationId, orgId))
+      .returning({ balance: saasTokenBalances.balance });
+
+    const balance = updated!.balance;
+
+    // Ledger entry
+    await tx.insert(saasTokenTransactions).values({
+      organizationId: orgId,
+      amount: -amount,
+      balanceAfter: balance,
+      reason,
+      metadata: metadata ?? null,
+    });
+
+    return balance;
+  });
+
+  logger.info('Tokens deducted', { orgId, amount, reason, newBalance });
+  broadcastBalance(orgId, newBalance);
+  return newBalance;
+}
+
+/**
+ * Get recent token transactions for an organization.
+ */
+export async function getTokenTransactions(orgId: string, limit = 20) {
+  const { desc } = await import('drizzle-orm');
+  return db
+    .select()
+    .from(saasTokenTransactions)
+    .where(eq(saasTokenTransactions.organizationId, orgId))
+    .orderBy(desc(saasTokenTransactions.createdAt))
+    .limit(limit);
+}
