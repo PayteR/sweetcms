@@ -12,9 +12,11 @@ export interface RegisterFormProps {
   onSuccess?: () => void;
   /** Called when user clicks "Sign in" (dialog mode). If not provided, renders a Link. */
   onSwitchToLogin?: () => void;
+  /** Override callbackUrl for social login (dialog mode: pass current pathname so OAuth returns here) */
+  socialCallbackUrl?: string;
 }
 
-export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps = {}) {
+export function RegisterForm({ onSuccess, onSwitchToLogin, socialCallbackUrl }: RegisterFormProps = {}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const plan = searchParams.get('plan');
@@ -47,7 +49,7 @@ export function RegisterForm({ onSuccess, onSwitchToLogin }: RegisterFormProps =
 
   return (
     <div>
-      <SocialLoginButtons callbackUrl={onSuccess ? undefined : accountRoutes.home} />
+      <SocialLoginButtons callbackUrl={socialCallbackUrl ?? accountRoutes.home} />
 
       <div className="flex items-center gap-3 my-6">
         <div className="flex-1 border-t border-(--border-primary)" />

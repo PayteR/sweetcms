@@ -8,7 +8,7 @@ As an EU-based platform, {{SITE_NAME}}, operated by {{COMPANY_NAME}}, complies w
 
 **Provider:** {{COMPANY_NAME}}
 **Address:** {{COMPANY_ADDRESS}}
-**ICO:** {{COMPANY_ID}}
+**Registration Number:** {{COMPANY_ID}}
 **Contact:** [{{CONTACT_EMAIL}}](mailto:{{CONTACT_EMAIL}})
 
 **2. Point of Contact**

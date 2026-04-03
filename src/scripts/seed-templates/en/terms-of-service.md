@@ -4,13 +4,13 @@
 
 **1. Introduction**
 
-{{SITE_NAME}} (the "Service") is operated by {{COMPANY_NAME}}, a company registered in Slovakia, address: {{COMPANY_ADDRESS}} (hereinafter "we", "us", or "our").
+{{SITE_NAME}} (the "Service") is operated by {{COMPANY_NAME}}, address: {{COMPANY_ADDRESS}} (hereinafter "we", "us", or "our").
 
 {{SITE_NAME}} is an online platform that provides digital services and content (collectively, the "Services"). Parts of the Services may require you to create a user account.
 
 These Terms of Service (the "TOS") set forth the legally binding terms for your use of the Service. By accessing and/or using the Service, you agree to be bound by these TOS and all other Terms and Policies published on {{SITE_URL}}. If you do not agree, please stop using the Service immediately.
 
-The Service is intended for personal and non-commercial use only. You agree not to use the Service for any illegal or unauthorized purpose.
+You agree not to use the Service for any illegal or unauthorized purpose.
 
 For purposes of the TOS, "you" and "your" means you as the user of the Service.
 
@@ -22,7 +22,7 @@ a) Use our Services in a way that infringes, misappropriates, or violates anyone
 
 b) Modify, copy, lease, sell, or distribute any of our Services.
 
-c) Attempt to or assist anyone to reverse engineer, decompile, or discover the source code or underlying components of our Services, including our models, algorithms, or systems (except to the extent this restriction is prohibited by applicable law).
+c) Attempt to or assist anyone to reverse engineer, decompile, or discover the source code or underlying components of our Services (except to the extent this restriction is prohibited by applicable law).
 
 d) Automatically or programmatically extract data or Content from the Services.
 
@@ -200,9 +200,9 @@ It is your responsibility to ensure that anything you select for use or download
 
 **14. Governing Law and Dispute Resolution**
 
-These TOS shall be governed by and construed in accordance with the laws of the Slovak Republic without giving effect to its conflict of law provisions, regardless of your location. If you are a consumer residing in the European Union, you also enjoy the protection afforded to you by the mandatory provisions of the law of your country of residence.
+These TOS shall be governed by and construed in accordance with the laws of {{COMPANY_JURISDICTION}} without giving effect to its conflict of law provisions, regardless of your location. If you are a consumer residing in the European Union, you also enjoy the protection afforded to you by the mandatory provisions of the law of your country of residence.
 
-Any dispute arising out of or in connection with the TOS, including any question regarding their existence, validity, or termination, shall be referred to and finally resolved by the courts of the Slovak Republic. If you are a consumer in the EU, you may also bring proceedings in the courts of your country of residence.
+Any dispute arising out of or in connection with the TOS, including any question regarding their existence, validity, or termination, shall be referred to and finally resolved by the courts of {{COMPANY_JURISDICTION}}. If you are a consumer in the EU, you may also bring proceedings in the courts of your country of residence.
 
 You may also use the EU Online Dispute Resolution platform at https://ec.europa.eu/consumers/odr.
 

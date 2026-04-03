@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense } from 'react';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Dialog } from '@/engine/components/Dialog';
 import { useAuthDialogStore } from '@/store/auth-dialog-store';
 import { LoginForm } from '@/app/(public)/login/LoginForm';
@@ -9,6 +9,7 @@ import { RegisterForm } from '@/app/(public)/register/RegisterForm';
 
 function LoginDialogInner() {
   const router = useRouter();
+  const pathname = usePathname();
   const { showLoginDialog, closeDialog, openRegisterDialog } = useAuthDialogStore();
 
   const handleSuccess = () => {
@@ -17,11 +18,15 @@ function LoginDialogInner() {
   };
 
   return (
-    <Dialog open={showLoginDialog} onClose={closeDialog} size="sm" zoomFromClick >
+    <Dialog open={showLoginDialog} onClose={closeDialog} size="sm" zoomFromClick>
       <Dialog.Header onClose={closeDialog}>Sign In</Dialog.Header>
       <Dialog.Body>
         <Suspense fallback={null}>
-          <LoginForm onSuccess={handleSuccess} onSwitchToRegister={openRegisterDialog} />
+          <LoginForm
+            onSuccess={handleSuccess}
+            onSwitchToRegister={openRegisterDialog}
+            socialCallbackUrl={pathname}
+          />
         </Suspense>
       </Dialog.Body>
     </Dialog>
@@ -30,6 +35,7 @@ function LoginDialogInner() {
 
 function RegisterDialogInner() {
   const router = useRouter();
+  const pathname = usePathname();
   const { showRegisterDialog, closeDialog, openLoginDialog } = useAuthDialogStore();
 
   const registrationEnabled = process.env.NEXT_PUBLIC_REGISTRATION_ENABLED !== 'false';
@@ -40,12 +46,16 @@ function RegisterDialogInner() {
   };
 
   return (
-    <Dialog open={showRegisterDialog} onClose={closeDialog} size="sm" zoomFromClick >
+    <Dialog open={showRegisterDialog} onClose={closeDialog} size="sm" zoomFromClick>
       <Dialog.Header onClose={closeDialog}>Create Account</Dialog.Header>
       <Dialog.Body>
         {registrationEnabled ? (
           <Suspense fallback={null}>
-            <RegisterForm onSuccess={handleSuccess} onSwitchToLogin={openLoginDialog} />
+            <RegisterForm
+              onSuccess={handleSuccess}
+              onSwitchToLogin={openLoginDialog}
+              socialCallbackUrl={pathname}
+            />
           </Suspense>
         ) : (
           <p className="text-(--text-secondary) text-sm">

@@ -2,7 +2,7 @@
 
 **Date of Revision:** {{CURRENT_DATE}}
 
-{{SITE_NAME}} (the "Service") is operated by {{COMPANY_NAME}}, a company registered in Slovakia, address: {{COMPANY_ADDRESS}}. {{SITE_NAME}} is an online platform that provides digital services and content. Parts of the Services may require you to create a user account.
+{{SITE_NAME}} (the "Service") is operated by {{COMPANY_NAME}}, address: {{COMPANY_ADDRESS}}. {{SITE_NAME}} is an online platform that provides digital services and content. Parts of the Services may require you to create a user account.
 
 We are committed to respecting your privacy, and these Services will always be provided with your consent. In this document, we provide clear information on how your data is processed when you visit the Website and use our Services.
 
@@ -34,7 +34,7 @@ The data controller for the purposes of the General Data Protection Regulation (
 
 **{{COMPANY_NAME}}**
 {{COMPANY_ADDRESS}}
-ICO: {{COMPANY_ID}}
+Registration Number: {{COMPANY_ID}}
 Email: {{CONTACT_EMAIL}}
 
 The data controller is responsible for determining the purposes and means of processing your Personal Data. If you have any questions about this Privacy Policy, including any requests to exercise your legal rights, please contact us at the email address above.
@@ -219,11 +219,7 @@ You can withdraw consent by contacting us at {{CONTACT_EMAIL}}.
 
 You have the right to lodge a complaint with a supervisory authority, in particular in the EU Member State of your habitual residence, place of work, or place of the alleged infringement.
 
-The supervisory authority for Slovakia is:
-
-**Urad na ochranu osobnych udajov Slovenskej republiky**
-Hranicna 12, 820 07 Bratislava, Slovakia
-https://dataprotection.gov.sk
+You can find the contact details of your local supervisory authority at: https://edpb.europa.eu/about-edpb/about-edpb/members_en
 
 **14. Data Retention**
 

@@ -12,7 +12,7 @@ SweetCMS is an open-source, AI agent-driven T3 SaaS starter with integrated CMS:
 
 - **Package manager:** `bun`
 - **Dev server:** `bun run dev` — custom server with Turbopack (port 3000)
-- **First-time setup:** `bun run init` — creates DB, runs migrations, creates superadmin, seeds defaults (3 pages, 4 blog posts, 3 categories, 4 tags, 2 portfolio items, 3 showcase items)
+- **First-time setup:** `bun run init` — creates DB, runs migrations, creates superadmin, prompts for company info (used in legal page templates), seeds defaults (13 pages incl. 10 legal templates, 101 blog posts, 6 categories, 12 tags, 4 portfolio items, 5 showcase items, 12 placeholder images)
 - **Promote user:** `bun run promote <email>` — promote user to superadmin
 - **Change password:** `bun run change-password <email>` — change a user's password
 - **Entry point:** `src/app/` (Next.js App Router with locale-prefix routing)

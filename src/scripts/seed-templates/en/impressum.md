@@ -1,6 +1,6 @@
 # Impressum (Legal Notice)
 
-**Information pursuant to Section 5 TMG (German Telemedia Act) and applicable EU regulations**
+**Information pursuant to applicable EU commercial and media regulations**
 
 **Company:**
 {{COMPANY_NAME}}
@@ -11,10 +11,10 @@
 **Contact:**
 Email: [{{CONTACT_EMAIL}}](mailto:{{CONTACT_EMAIL}})
 
-**Commercial Register:**
-ICO: {{COMPANY_ID}}
+**Registration Number:**
+{{COMPANY_ID}}
 
-**Responsible for content pursuant to Section 18(2) MStV:**
+**Responsible for content:**
 {{COMPANY_NAME}}
 {{COMPANY_ADDRESS}}
 
