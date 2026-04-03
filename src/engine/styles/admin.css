@@ -39,19 +39,29 @@
   }
 
   /*
-   * Per-section width overrides — data-section is auto-derived from the URL.
-   * Examples:
-   *   /dashboard            → data-section="home"
-   *   /dashboard/cms/pages  → data-section="cms-pages"
-   *   /dashboard/cms/blog   → data-section="cms-blog"
-   *   /dashboard/media      → data-section="media"
-   *   /dashboard/users      → data-section="users"
-   *   /dashboard/settings   → data-section="settings"
+   * Per-section width overrides — data-section holds space-separated tokens
+   * auto-derived from the URL. Use [attr~="token"] to match any token.
+   *
+   * Mapping:
+   *   /dashboard                       → "home"
+   *   /dashboard/cms/pages             → "cms pages"
+   *   /dashboard/cms/pages/new         → "cms pages new"
+   *   /dashboard/cms/pages/edit/:id    → "cms pages edit"
+   *   /dashboard/cms/blog              → "cms blog"
+   *   /dashboard/media                 → "media"
+   *   /dashboard/users                 → "users"
+   *   /dashboard/settings/billing      → "settings billing"
+   *
+   * Selector examples:
+   *   [data-section~="cms"]                            — all CMS sections
+   *   [data-section~="pages"]                          — pages list + edit + new
+   *   [data-section~="edit"]                           — all edit views
+   *   [data-section~="cms"][data-section~="edit"]      — CMS edit views only
    *
    * Uncomment or add overrides as needed:
-   *   .dashboard-shell-content[data-section="cms-pages"] { --content-max-width: 90rem; }
-   *   .dashboard-shell-content[data-section="cms-blog"]  { --content-max-width: 90rem; }
-   *   .dashboard-shell-content[data-section="media"]     { --content-max-width: 100%; }
+   *   .dashboard-shell-content[data-section~="cms"]    { --content-max-width: 90rem; }
+   *   .dashboard-shell-content[data-section~="edit"]   { --content-max-width: 60rem; }
+   *   .dashboard-shell-content[data-section~="media"]  { --content-max-width: 100%; }
    */
 
   /* ===================== Cards ===================== */
