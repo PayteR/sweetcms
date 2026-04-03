@@ -1,5 +1,3 @@
-'use client';
-
 import { parseShortcodes } from '@/engine/lib/shortcodes-parser';
 import { markdownToHtml } from '@/engine/lib/markdown';
 
