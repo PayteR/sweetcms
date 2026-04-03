@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useContext, type ReactNode, type RefObject } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -91,7 +92,7 @@ function DialogRoot({
     ? { ...ADMIN_CLASSES, ...classNames }
     : ADMIN_CLASSES;
 
-  return (
+  const dialog = (
     <DialogClassContext.Provider value={resolved}>
       <div
         className={cn('overlay-dialog', animateOpen && 'overlay-dialog-open')}
@@ -120,6 +121,12 @@ function DialogRoot({
       </div>
     </DialogClassContext.Provider>
   );
+
+  // Portal to document.body to escape stacking contexts (transform, overflow, etc.)
+  if (typeof document !== 'undefined') {
+    return createPortal(dialog, document.body);
+  }
+  return dialog;
 }
 
 /* ── Compound sub-components ── */

@@ -738,11 +738,11 @@ export function PostForm({ contentType, postId }: Props) {
               </div>
             </div>
 
-            {/* Add Media button */}
+            {/* Add Media */}
             <button
               type="button"
               onClick={() => setShowContentMediaPicker(true)}
-              className="btn btn-secondary btn-sm"
+              className="flex items-center gap-1.5 text-sm text-(--text-muted) hover:text-(--text-secondary) transition-colors"
             >
               <ImageIcon className="h-4 w-4" />
               {__('Add Media')}
