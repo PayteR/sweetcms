@@ -31,9 +31,9 @@ import {
   DEFAULT_WIDGET_ORDER,
   DEFAULT_HIDDEN_WIDGETS,
 } from '@/config/dashboard-widgets';
-import GA4Widget from '@/components/admin/GA4Widget';
-import RecentActivity from '@/components/admin/RecentActivity';
-import ContentStatusWidget from '@/components/admin/ContentStatusWidget';
+import GA4Widget from '@/engine/components/GA4Widget';
+import RecentActivity from '@/engine/components/RecentActivity';
+import ContentStatusWidget from '@/engine/components/ContentStatusWidget';
 import QuickActionsWidget from '@/components/admin/QuickActionsWidget';
 
 // ── Widget component type ──────────────────────────────────
@@ -65,11 +65,16 @@ function RecentActivityWidget({ dragHandle }: { dragHandle?: ReactNode }) {
   );
 }
 
+// ── GA4 wrapper (injects settingsHref) ─────────────────────
+function GA4WidgetWrapper({ dragHandle }: { dragHandle?: ReactNode }) {
+  return <GA4Widget dragHandle={dragHandle} settingsHref={adminPanel.settings} />;
+}
+
 // ── Widget lookup ──────────────────────────────────────────
 const WIDGET_MAP: Record<string, WidgetComponent> = {
   'content-status': ContentStatusWidget,
   'quick-actions': QuickActionsWidget,
-  'ga4': GA4Widget,
+  'ga4': GA4WidgetWrapper,
   'recent-activity': RecentActivityWidget,
 };
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useBlankTranslations } from '@/engine/lib/translations';
 import { formatRelativeTime } from '@/engine/lib/datetime';
 
 export default function RecentActivity() {

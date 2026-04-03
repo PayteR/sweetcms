@@ -2,8 +2,8 @@ import Link from 'next/link';
 import { Rss } from 'lucide-react';
 
 import { PostType } from '@/engine/types/cms';
-import { PostCard } from '@/components/public/PostCard';
-import { TagCloud } from '@/components/public/TagCloud';
+import { PostCard } from '@/engine/components/PostCard';
+import { TagCloud } from '@/engine/components/TagCloud';
 import { localePath } from '@/lib/locale';
 import { getLocale } from '@/lib/locale-server';
 import { getCachedTag, getCachedTRPC } from '../data';

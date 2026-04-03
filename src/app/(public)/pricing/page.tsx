@@ -1,7 +1,8 @@
 import { Metadata } from 'next';
 import { PRICING_PLANS, PRICING_FAQ } from '@/config/pricing';
-import { PricingToggle } from '@/components/public/PricingToggle';
-import { FaqAccordion } from '@/components/public/FaqAccordion';
+import { PricingToggle } from '@/engine/components/PricingToggle';
+import { FaqAccordion } from '@/engine/components/FaqAccordion';
+import { publicAuthRoutes } from '@/config/routes';
 
 export const metadata: Metadata = {
   title: 'Pricing',
@@ -20,7 +21,7 @@ export default function PricingPage() {
         </p>
       </div>
 
-      <PricingToggle plans={PRICING_PLANS} cryptoEnabled={cryptoEnabled} />
+      <PricingToggle plans={PRICING_PLANS} cryptoEnabled={cryptoEnabled} registerHref={publicAuthRoutes.register} />
 
       <section className="mt-24">
         <h2 className="text-2xl font-bold text-center mb-8">

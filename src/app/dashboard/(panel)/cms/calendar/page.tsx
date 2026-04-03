@@ -1,7 +1,8 @@
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 
-import { ContentCalendar } from '@/components/admin/ContentCalendar';
+import { ContentCalendar } from '@/engine/components/ContentCalendar';
+import { adminPanel } from '@/config/routes';
 
 export default function CalendarPage() {
   return (
@@ -12,7 +13,7 @@ export default function CalendarPage() {
         </div>
       }
     >
-      <ContentCalendar />
+      <ContentCalendar editUrlBuilder={(section, id) => adminPanel.cmsItem(section, id)} />
     </Suspense>
   );
 }

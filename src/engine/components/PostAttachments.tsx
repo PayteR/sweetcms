@@ -14,13 +14,13 @@ import {
 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useBlankTranslations } from '@/engine/lib/translations';
 import { FileType } from '@/engine/types/cms';
-import { apiRoutes } from '@/config/routes';
-import { toast } from '@/store/toast-store';
+import { toast } from '@/engine/store/toast-store';
 
 interface Props {
   postId: string | undefined;
+  uploadEndpoint?: string;
 }
 
 const FILE_TYPE_ICONS: Record<number, React.ElementType> = {
@@ -49,7 +49,7 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function PostAttachments({ postId }: Props) {
+export function PostAttachments({ postId, uploadEndpoint = '/api/upload' }: Props) {
   const __ = useBlankTranslations();
   const utils = trpc.useUtils();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -97,7 +97,7 @@ export function PostAttachments({ postId }: Props) {
         const formData = new FormData();
         formData.append('file', file);
 
-        const res = await fetch(apiRoutes.upload, {
+        const res = await fetch(uploadEndpoint, {
           method: 'POST',
           body: formData,
         });
@@ -124,7 +124,7 @@ export function PostAttachments({ postId }: Props) {
         if (fileInputRef.current) fileInputRef.current.value = '';
       }
     },
-    [postId, addAttachment]
+    [postId, addAttachment, uploadEndpoint]
   );
 
   if (!postId) {

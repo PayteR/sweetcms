@@ -90,7 +90,7 @@ async function main() {
         console.log('Dunning worker ready (daily at 8 AM)');
       }
     } else {
-      const { startDbQueueWorker, enqueueTask } = await import('./src/server/jobs/db-queue');
+      const { startDbQueueWorker, enqueueTask } = await import('./src/engine/lib/db-queue');
 
       // Seed initial dunning task (idempotent — pollAndProcess skips if one is already pending)
       await enqueueTask('dunning', { action: 'check' }).catch(() => {});
@@ -120,7 +120,7 @@ async function main() {
 
     // Recover stale DB queue tasks on startup
     try {
-      const { recoverStaleTasks } = await import('./src/server/jobs/db-queue');
+      const { recoverStaleTasks } = await import('./src/engine/lib/db-queue');
       const recovered = await recoverStaleTasks();
       if (recovered > 0) console.log(`Recovered ${recovered} stale DB queue tasks`);
     } catch {

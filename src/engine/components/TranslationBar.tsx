@@ -5,10 +5,8 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Copy, Languages, Loader2, Plus } from 'lucide-react';
 
-import { type Locale, LOCALES, LOCALE_LABELS } from '@/lib/constants';
-import { adminPanel } from '@/config/routes';
-import { useBlankTranslations } from '@/lib/translations';
-import { toast } from '@/store/toast-store';
+import { useBlankTranslations } from '@/engine/lib/translations';
+import { toast } from '@/engine/store/toast-store';
 import { cn } from '@/lib/utils';
 
 interface Translation {
@@ -22,11 +20,15 @@ interface TranslationBarProps {
   translations: Translation[];
   adminSlug: string;
   translationAvailable?: boolean;
-  onDuplicate: (targetLang: Locale, autoTranslate: boolean) => Promise<void>;
+  onDuplicate: (targetLang: string, autoTranslate: boolean) => Promise<void>;
+  locales: readonly string[];
+  localeLabels: Record<string, string>;
+  editUrl: (id: string, lang: string) => string;
 }
 
 export function TranslationBar({
   currentLang, translations, adminSlug, translationAvailable, onDuplicate,
+  locales, localeLabels, editUrl,
 }: TranslationBarProps) {
   const __ = useBlankTranslations();
   const [duplicating, setDuplicating] = useState<string | null>(null);
@@ -34,7 +36,7 @@ export function TranslationBar({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const existingLangs = new Set([currentLang, ...translations.map((t) => t.lang)]);
-  const missingLangs = LOCALES.filter((l) => !existingLangs.has(l));
+  const missingLangs = locales.filter((l) => !existingLangs.has(l));
 
   useEffect(() => {
     if (!dropdownLang) return;
@@ -54,7 +56,7 @@ export function TranslationBar({
     };
   }, [dropdownLang]);
 
-  const handleDuplicate = async (lang: Locale, autoTranslate: boolean) => {
+  const handleDuplicate = async (lang: string, autoTranslate: boolean) => {
     setDropdownLang(null);
     setDuplicating(lang);
     try {
@@ -73,16 +75,16 @@ export function TranslationBar({
       </label>
       <div className="translation-chips flex flex-wrap items-center gap-2">
         <span className="rounded-md bg-(--color-brand-600) px-3 py-1 text-sm font-medium text-white">
-          {LOCALE_LABELS[currentLang as Locale] ?? currentLang}
+          {localeLabels[currentLang] ?? currentLang}
         </span>
 
         {translations.map((t) => (
           <Link
             key={t.lang}
-            href={adminPanel.cmsItem(adminSlug, t.id)}
+            href={editUrl(t.id, t.lang)}
             className="rounded-md border border-(--border-primary) px-3 py-1 text-sm text-(--text-secondary) transition-colors hover:border-(--color-brand-500) hover:text-(--text-primary)"
           >
-            {LOCALE_LABELS[t.lang as Locale] ?? t.lang}
+            {localeLabels[t.lang] ?? t.lang}
           </Link>
         ))}
 
@@ -112,7 +114,7 @@ export function TranslationBar({
               ) : (
                 <Plus size={14} />
               )}
-              {LOCALE_LABELS[lang]}
+              {localeLabels[lang] ?? lang}
             </button>
 
             {dropdownLang === lang && (

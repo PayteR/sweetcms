@@ -3,17 +3,17 @@ import { TRPCError } from '@trpc/server';
 import { eq, and, desc, sql, gte } from 'drizzle-orm';
 import { createTRPCRouter, protectedProcedure, sectionProcedure } from '../trpc';
 import { getProvider, isBillingEnabled, getEnabledProviders } from '@/server/lib/payment/factory';
-import { getSubscription } from '@/server/lib/payment/subscription-service';
+import { getSubscription } from '@/engine/lib/payment/subscription-service';
 import {
   validateCode,
   applyDiscount,
   removeDiscount,
   getActiveDiscount,
-} from '@/server/lib/payment/discount-service';
+} from '@/engine/lib/payment/discount-service';
 import { PLANS, getPlan } from '@/config/plans';
 import { member } from '@/server/db/schema';
 import { saasSubscriptions, saasPaymentTransactions, saasDiscountCodes } from '@/server/db/schema';
-import { getStats as getCachedStats } from '@/server/lib/stats-cache';
+import { getStats as getCachedStats } from '@/engine/lib/stats-cache';
 
 function requireOrg(activeOrganizationId: string | null | undefined): string {
   if (!activeOrganizationId) {

@@ -1,6 +1,6 @@
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { DashboardShell } from '@/engine/components/DashboardShell';
-import { PreferencesHydrator } from '@/components/admin/PreferencesHydrator';
+import { PreferencesHydrator } from '@/engine/components/PreferencesHydrator';
 import { Toaster } from '@/engine/components/Toaster';
 import { navigation } from '@/config/admin-nav';
 

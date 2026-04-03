@@ -27,14 +27,14 @@ import { CustomFieldsEditor, type CustomFieldsEditorHandle } from '@/engine/comp
 import { FallbackRadio } from '@/engine/components/FallbackRadio';
 import InternalLinkDialog from '@/engine/components/InternalLinkDialog';
 import { MediaPickerDialog } from '@/engine/components/MediaPickerDialog';
-import { PostAttachments } from './PostAttachments';
+import { PostAttachments } from '@/engine/components/PostAttachments';
 import { RevisionHistory } from '@/engine/components/RevisionHistory';
 import { RichTextEditor } from '@/engine/components/RichTextEditor';
 import { shortcodeConfig } from '@/lib/shortcodes/config';
 import { SEOFields } from '@/engine/components/SEOFields';
 import { SeoPreviewCard } from '@/engine/components/SeoPreviewCard';
 import { TagInput } from '@/engine/components/TagInput';
-import { TranslationBar } from './TranslationBar';
+import { TranslationBar } from '@/engine/components/TranslationBar';
 
 interface PostFormData extends Record<string, unknown> {
   title: string;
@@ -562,6 +562,9 @@ export function PostForm({ contentType, postId }: Props) {
                       translations={translationSiblings.data}
                       adminSlug={contentType.adminSlug}
                       translationAvailable={translationAvailableQuery.data?.available ?? false}
+                      locales={LOCALES}
+                      localeLabels={LOCALE_LABELS}
+                      editUrl={(id, _lang) => adminPanel.cmsItem(contentType.adminSlug, id)}
                       onDuplicate={async (targetLang, autoTranslate) => {
                         const result = await duplicateAsTranslation.mutateAsync({
                           id: post.id,

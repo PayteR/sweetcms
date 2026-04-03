@@ -5,7 +5,7 @@ import { cmsCategories, cmsPosts, cmsTermRelationships } from '@/server/db/schem
 import { ContentStatus } from '@/engine/types/cms';
 import { and, count, eq, isNull } from 'drizzle-orm';
 import { serverTRPC } from '@/lib/trpc/server';
-import { localePath } from '@/lib/locale';
+import { localePath } from '@/engine/lib/locale';
 import { DEFAULT_LOCALE } from '@/lib/constants';
 import type { Locale } from '@/lib/constants';
 

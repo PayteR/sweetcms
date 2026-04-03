@@ -1,4 +1,4 @@
-import { ShortcodeRenderer } from '@/components/public/ShortcodeRenderer';
+import { ShortcodeRenderer } from '@/engine/components/ShortcodeRenderer';
 import { getLocale } from '@/lib/locale-server';
 import { getCachedPortfolio } from '../data';
 

@@ -9,12 +9,12 @@ vi.mock('@/server/lib/payment/factory', () => ({
 }));
 
 // Mock subscription service
-vi.mock('@/server/lib/payment/subscription-service', () => ({
+vi.mock('@/engine/lib/payment/subscription-service', () => ({
   getSubscription: vi.fn().mockResolvedValue(null),
 }));
 
 // Mock discount service
-vi.mock('@/server/lib/payment/discount-service', () => ({
+vi.mock('@/engine/lib/payment/discount-service', () => ({
   validateCode: vi.fn(),
   applyDiscount: vi.fn(),
   removeDiscount: vi.fn(),
@@ -84,7 +84,7 @@ vi.mock('@/engine/lib/trpc-rate-limit', () => ({
 import { asMock } from '@/test-utils';
 import { billingRouter } from '../billing';
 import { isBillingEnabled, getProvider } from '@/server/lib/payment/factory';
-import { getSubscription } from '@/server/lib/payment/subscription-service';
+import { getSubscription } from '@/engine/lib/payment/subscription-service';
 import { PLANS } from '@/config/plans';
 
 // Helper to create a mock caller context

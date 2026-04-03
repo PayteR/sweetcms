@@ -4,9 +4,8 @@ import { useState, type ReactNode } from 'react';
 import { BarChart3, Eye, Users, ExternalLink, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
-import { adminPanel } from '@/config/routes';
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useBlankTranslations } from '@/engine/lib/translations';
 import { cn } from '@/lib/utils';
 
 /* ── Simple SVG line chart (no external chart library) ───────────────────── */
@@ -157,7 +156,13 @@ const PERIODS = [
 
 /* ── Main widget ─────────────────────────────────────────────────────────── */
 
-export default function GA4Widget({ dragHandle }: { dragHandle?: ReactNode }) {
+export default function GA4Widget({
+  dragHandle,
+  settingsHref,
+}: {
+  dragHandle?: ReactNode;
+  settingsHref?: string;
+}) {
   const __ = useBlankTranslations();
   const [period, setPeriod] = useState<'7' | '30' | '90'>('30');
 
@@ -184,13 +189,15 @@ export default function GA4Widget({ dragHandle }: { dragHandle?: ReactNode }) {
           <p className="text-sm text-(--text-secondary)">
             {__('Connect Google Analytics to see page views, sessions, and top pages.')}
           </p>
-          <Link
-            href={adminPanel.settings}
-            className="btn btn-primary mt-2"
-          >
-            <ExternalLink className="h-4 w-4" />
-            {__('Configure in Settings')}
-          </Link>
+          {settingsHref && (
+            <Link
+              href={settingsHref}
+              className="btn btn-primary mt-2"
+            >
+              <ExternalLink className="h-4 w-4" />
+              {__('Configure in Settings')}
+            </Link>
+          )}
         </div>
       </div>
     );

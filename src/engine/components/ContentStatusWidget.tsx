@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useBlankTranslations } from '@/engine/lib/translations';
 import { PostType } from '@/engine/types/cms';
 
 export default function ContentStatusWidget({ dragHandle }: { dragHandle?: ReactNode }) {

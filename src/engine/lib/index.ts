@@ -16,3 +16,5 @@ export { anonymizeUser, exportUserData } from './gdpr';
 export { localePath } from './locale';
 export { getLocale } from './locale-server';
 export { useWebSocket, useChannel } from './ws-client';
+export { WS_CHANNELS } from './ws-channels';
+export { getStats, invalidateStats, clearStatsCache } from './stats-cache';

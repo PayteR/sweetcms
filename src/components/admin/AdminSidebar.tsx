@@ -12,12 +12,12 @@ import { useSidebarStore } from '@/engine/store/sidebar-store';
 import { useThemeStore } from '@/engine/store/theme-store';
 import { usePreferencesStore } from '@/engine/store/preferences-store';
 import { siteConfig } from '@/config/site';
-import { adminRoutes } from '@/config/routes';
+import { adminRoutes, adminPanel } from '@/config/routes';
 import { navigation, isNavGroup, getActiveSectionId, flatNavItems } from '@/config/admin-nav';
 import type { NavChild } from '@/config/admin-nav';
 import { CommandPalette, useCommandPaletteShortcut } from '@/engine/components/CommandPalette';
-import { NotificationBell } from '@/components/admin/NotificationBell';
-import { OrgSwitcher } from '@/components/admin/OrgSwitcher';
+import { NotificationBell } from '@/engine/components/NotificationBell';
+import { OrgSwitcher } from '@/engine/components/OrgSwitcher';
 
 /* ── Helpers ── */
 
@@ -162,7 +162,7 @@ export function AdminSidebar() {
   function renderRailBottom() {
     return (
       <>
-        <NotificationBell />
+        <NotificationBell notificationsHref={adminPanel.notifications} />
         <button
           type="button"
           title={__('Search')}
@@ -270,7 +270,7 @@ export function AdminSidebar() {
         <Link href={adminRoutes.home} className="rail-logo">
           {logoLetter}
         </Link>
-        <OrgSwitcher />
+        <OrgSwitcher manageOrgsHref={adminPanel.organizations} />
         <div className="rail-nav">
           {renderRailNav()}
         </div>
@@ -334,7 +334,7 @@ export function AdminSidebar() {
               <Link href={adminRoutes.home} onClick={closeSidebar} className="rail-logo">
                 {logoLetter}
               </Link>
-              <OrgSwitcher />
+              <OrgSwitcher manageOrgsHref={adminPanel.organizations} />
               <div className="rail-nav">
                 {renderRailNav()}
               </div>

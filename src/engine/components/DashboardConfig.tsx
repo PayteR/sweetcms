@@ -19,11 +19,24 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Eye, EyeOff, Settings2 } from 'lucide-react';
 
-import { useBlankTranslations } from '@/lib/translations';
+import { useBlankTranslations } from '@/engine/lib/translations';
 import { cn } from '@/lib/utils';
 import { SlideOver } from '@/engine/components/SlideOver';
-import { DASHBOARD_WIDGETS, DEFAULT_WIDGET_ORDER, DEFAULT_HIDDEN_WIDGETS } from '@/config/dashboard-widgets';
 import { usePreferencesStore } from '@/engine/store/preferences-store';
+
+interface WidgetDef {
+  id: string;
+  label: string;
+  colSpan: number;
+  minSpan: number;
+  maxSpan: number;
+}
+
+interface DashboardConfigProps {
+  widgets: WidgetDef[];
+  defaultOrder: string[];
+  defaultHidden: string[];
+}
 
 // ── Common span presets ────────────────────────────────────
 const SPAN_OPTIONS = [4, 6, 8, 12] as const;
@@ -130,12 +143,22 @@ function SortableWidgetRow({
 }
 
 // ── Dashboard Config SlideOver content (only mounted when open) ──
-function DashboardConfigPanel({ __}: { __: (s: string) => string }) {
+function DashboardConfigPanel({
+  widgets,
+  defaultOrder,
+  defaultHidden,
+  __,
+}: {
+  widgets: WidgetDef[];
+  defaultOrder: string[];
+  defaultHidden: string[];
+  __: (s: string) => string;
+}) {
   const widgetOrder = usePreferencesStore((s) =>
-    (s.data['dashboard.widgetOrder'] as string[] | undefined) ?? DEFAULT_WIDGET_ORDER
+    (s.data['dashboard.widgetOrder'] as string[] | undefined) ?? defaultOrder
   );
   const hiddenWidgets = usePreferencesStore((s) =>
-    (s.data['dashboard.hiddenWidgets'] as string[] | undefined) ?? DEFAULT_HIDDEN_WIDGETS
+    (s.data['dashboard.hiddenWidgets'] as string[] | undefined) ?? defaultHidden
   );
   const widgetSpans = usePreferencesStore((s) =>
     (s.data['dashboard.widgetSpans'] as Record<string, number> | undefined) ?? EMPTY_SPANS
@@ -148,13 +171,13 @@ function DashboardConfigPanel({ __}: { __: (s: string) => string }) {
   );
 
   // Build ordered list — include any widgets not in the saved order at the end
-  const allIds = DASHBOARD_WIDGETS.map((w) => w.id);
+  const allIds = widgets.map((w) => w.id);
   const orderedIds = [
     ...widgetOrder.filter((id) => allIds.includes(id)),
     ...allIds.filter((id) => !widgetOrder.includes(id)),
   ];
 
-  const widgetMap = Object.fromEntries(DASHBOARD_WIDGETS.map((w) => [w.id, w]));
+  const widgetMap = Object.fromEntries(widgets.map((w) => [w.id, w]));
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -221,7 +244,7 @@ function DashboardConfigPanel({ __}: { __: (s: string) => string }) {
 }
 
 // ── Dashboard Config Button + SlideOver ─────────────────────
-export function DashboardConfig() {
+export function DashboardConfig({ widgets, defaultOrder, defaultHidden }: DashboardConfigProps) {
   const __ = useBlankTranslations();
   const [open, setOpen] = useState(false);
 
@@ -237,7 +260,14 @@ export function DashboardConfig() {
       </button>
 
       <SlideOver open={open} onClose={() => setOpen(false)} title={__('Dashboard Layout')} width="sm">
-        {open && <DashboardConfigPanel __={__} />}
+        {open && (
+          <DashboardConfigPanel
+            widgets={widgets}
+            defaultOrder={defaultOrder}
+            defaultHidden={defaultHidden}
+            __={__}
+          />
+        )}
       </SlideOver>
     </>
   );

@@ -20,8 +20,8 @@ import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Plus, Trash2, Loader2, ChevronRight } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
-import { toast } from '@/store/toast-store';
+import { useBlankTranslations } from '@/engine/lib/translations';
+import { toast } from '@/engine/store/toast-store';
 
 interface MenuItem {
   id: string;

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { localePath } from '@/lib/locale';
+import { localePath } from '@/engine/lib/locale';
 import { DEFAULT_LOCALE } from '@/lib/constants';
 import type { Locale } from '@/lib/constants';
 

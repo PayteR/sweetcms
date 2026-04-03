@@ -3,8 +3,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Check, Loader2 } from 'lucide-react';
 
-import { LOCALES, type Locale } from '@/lib/constants';
-import { useBlankTranslations } from '@/lib/translations';
+import { useBlankTranslations } from '@/engine/lib/translations';
 import { trpc } from '@/lib/trpc/client';
 import { Dialog } from '@/engine/components/Dialog';
 
@@ -19,19 +18,17 @@ interface Props {
   onClose: () => void;
   onConfirm: (selected: SelectedRoute[]) => void;
   isPending: boolean;
+  locales?: readonly string[];
+  localeLabels?: Record<string, string>;
 }
-
-const LOCALE_LABELS: Record<Locale, string> = {
-  en: 'EN',
-  es: 'ES',
-  de: 'DE',
-};
 
 export function SeoOverridesDialog({
   open,
   onClose,
   onConfirm,
   isPending,
+  locales = [],
+  localeLabels = {},
 }: Props) {
   const __ = useBlankTranslations();
   const [checked, setChecked] = useState<Record<string, boolean>>({});
@@ -102,7 +99,7 @@ export function SeoOverridesDialog({
   const selected = useMemo(() => {
     const result: SelectedRoute[] = [];
     for (const route of routes) {
-      for (const lang of LOCALES) {
+      for (const lang of locales) {
         if (route.locales[lang]) continue;
         if (isChecked(route.slug, lang)) {
           result.push({ slug: route.slug, label: route.label, lang });
@@ -110,7 +107,7 @@ export function SeoOverridesDialog({
       }
     }
     return result;
-  }, [routes, isChecked]);
+  }, [routes, isChecked, locales]);
 
   const handleConfirm = useCallback(() => {
     if (selected.length > 0) {
@@ -137,13 +134,13 @@ export function SeoOverridesDialog({
                   <th className="px-3 py-2 text-left text-xs font-medium text-(--text-secondary)">
                     {__('Slug')}
                   </th>
-                  {LOCALES.map((lang) => (
+                  {locales.map((lang) => (
                     <th
                       key={lang}
                       className="px-3 py-2 text-center text-xs font-medium text-(--text-secondary)"
                     >
                       <div className="flex flex-col items-center gap-1">
-                        <span>{LOCALE_LABELS[lang]}</span>
+                        <span>{localeLabels[lang] ?? lang}</span>
                         <input
                           type="checkbox"
                           checked={isLangAllChecked(lang)}
@@ -167,7 +164,7 @@ export function SeoOverridesDialog({
                     <td className="px-3 py-2 font-mono text-xs text-(--text-secondary)">
                       /{route.slug}
                     </td>
-                    {LOCALES.map((lang) => {
+                    {locales.map((lang) => {
                       const exists = route.locales[lang];
                       return (
                         <td key={lang} className="px-3 py-2 text-center">

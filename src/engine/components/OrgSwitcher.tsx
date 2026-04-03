@@ -3,12 +3,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { Building2, ChevronDown, Plus } from 'lucide-react';
 
-import { adminPanel } from '@/config/routes';
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useBlankTranslations } from '@/engine/lib/translations';
 import { cn } from '@/lib/utils';
 
-export function OrgSwitcher() {
+interface OrgSwitcherProps {
+  manageOrgsHref?: string;
+}
+
+export function OrgSwitcher({ manageOrgsHref }: OrgSwitcherProps) {
   const __ = useBlankTranslations();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -63,14 +66,18 @@ export function OrgSwitcher() {
               {org.orgName}
             </button>
           ))}
-          <hr className="my-1 border-(--border-primary)" />
-          <a
-            href={adminPanel.organizations}
-            className="sidebar-link flex items-center gap-1.5 w-full text-left text-xs px-3 py-2"
-          >
-            <Plus size={14} />
-            {__('Manage organizations')}
-          </a>
+          {manageOrgsHref && (
+            <>
+              <hr className="my-1 border-(--border-primary)" />
+              <a
+                href={manageOrgsHref}
+                className="sidebar-link flex items-center gap-1.5 w-full text-left text-xs px-3 py-2"
+              >
+                <Plus size={14} />
+                {__('Manage organizations')}
+              </a>
+            </>
+          )}
         </div>
       )}
     </div>

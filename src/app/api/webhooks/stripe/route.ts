@@ -8,8 +8,8 @@ import {
   updateSubscription,
   cancelSubscription,
   getOrgByProviderSubscription,
-} from '@/server/lib/payment/subscription-service';
-import { finalizeUsage } from '@/server/lib/payment/discount-service';
+} from '@/engine/lib/payment/subscription-service';
+import { finalizeUsage } from '@/engine/lib/payment/discount-service';
 import { getPlanByProviderPriceId } from '@/config/plans';
 import { logAudit } from '@/engine/lib/audit';
 import { sendOrgNotification } from '@/server/lib/notifications';
@@ -17,7 +17,7 @@ import { NotificationType, NotificationCategory } from '@/engine/types/notificat
 import { createLogger } from '@/engine/lib/logger';
 import { adminPanel } from '@/config/routes';
 import { recordConversion } from '@/server/lib/affiliates';
-import { invalidateStats } from '@/server/lib/stats-cache';
+import { invalidateStats } from '@/engine/lib/stats-cache';
 
 const logger = createLogger('stripe-webhook');
 

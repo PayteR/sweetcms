@@ -6,7 +6,8 @@ import { Save, Loader2, CheckCircle2, XCircle, Globe, RotateCcw } from 'lucide-r
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
-import { SeoOverridesDialog } from '@/components/admin/SeoOverridesDialog';
+import { SeoOverridesDialog } from '@/engine/components/SeoOverridesDialog';
+import { LOCALES, LOCALE_LABELS } from '@/lib/constants';
 import { GROUP_LABELS } from '@/config/options-registry';
 
 interface OptionItem {
@@ -320,6 +321,8 @@ export default function SettingsPage() {
         onClose={() => setSeoDialogOpen(false)}
         onConfirm={(selected) => createSeoOverrides.mutate({ routes: selected })}
         isPending={createSeoOverrides.isPending}
+        locales={LOCALES}
+        localeLabels={LOCALE_LABELS}
       />
     </div>
   );

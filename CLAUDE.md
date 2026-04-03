@@ -34,11 +34,11 @@ SweetCMS is an open-source, AI agent-driven T3 SaaS starter with integrated CMS:
 
 `src/config/`, `src/server/`, `src/app/`, `src/components/admin/` (forms) are project-specific — customize freely.
 
-**Engine provides:** config interfaces + factory helpers + admin-nav helpers, types (PostType, ContentStatus, shortcodes), RBAC policy, CRUD utils (admin-crud, drizzle-utils, taxonomy-helpers, cms-helpers, content-revisions, slug-redirects, page-seo), lib utils (slug, markdown, audit, webhooks, logger, datetime, redis, rate-limit, trpc-rate-limit, api-auth, seo-routes, ga4, gdpr, queue, ws-client, translations, shortcodes-parser, shortcode-utils, locale, locale-server), hooks (form state, list state, autosave, bulk actions, useLocale), shared components (CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPickerDialog, CustomFieldsEditor, RevisionHistory, BulkActionBar, CommandPalette, SlideOver, ConfirmDialog, Toaster, InternalLinkDialog, FallbackRadio, DashboardShell, LocaleLink, LanguageSwitcher), styles (tokens, admin CSS), stores (preferences-store, sidebar-store, toast-store, theme-store), test-utils (asMock).
+**Engine provides:** config interfaces + factory helpers + admin-nav helpers, types (PostType, ContentStatus, shortcodes), RBAC policy, CRUD utils (admin-crud, drizzle-utils, taxonomy-helpers, cms-helpers, content-revisions, slug-redirects, page-seo), lib utils (slug, markdown, audit, webhooks, logger, datetime, redis, rate-limit, trpc-rate-limit, api-auth, seo-routes, ga4, gdpr, queue, ws-client, translations, shortcodes-parser, shortcode-utils, locale, locale-server, db-queue, queue-adapter), payment services (subscription-service, discount-service, feature-gate), hooks (form state, list state, autosave, bulk actions, useLocale), shared components (CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPickerDialog, CustomFieldsEditor, RevisionHistory, BulkActionBar, CommandPalette, SlideOver, ConfirmDialog, Toaster, InternalLinkDialog, FallbackRadio, DashboardShell, LocaleLink, LanguageSwitcher), styles (tokens, admin CSS), stores (preferences-store, sidebar-store, toast-store, theme-store), test-utils (asMock).
 
 **Project provides:** content type data (`src/config/cms.ts`), taxonomy data (`src/config/taxonomies.ts`), admin navigation data (`src/config/admin-nav.ts`), DB schema, tRPC routers, form components (PostForm, CategoryForm, etc.), routes, public UI.
 
-**Import rule:** project imports from `@/engine/*`. Engine accepts cross-boundary imports from `@/server/db`, `@/lib/trpc/client`, `@/lib/utils`, `@/lib/constants`.
+**Import rule:** project imports from `@/engine/*`. Engine accepts cross-boundary imports from `@/server/db`, `@/server/db/schema/*`, `@/lib/trpc/client`, `@/lib/trpc/server`, `@/lib/utils`, `@/lib/constants`, `@/config/plans`.
 
 **To rebrand:** (1) In `tokens.css`: find-replace `350` with your brand hue and `303` with your accent hue in the brand/accent scales; update `--brand-hue` and `--accent-hue` in `:root`; optionally change gray hue `260`/`265`; update `--gradient-brand` L/C values; edit the semantic defaults (surfaces, text, borders, shadows) in `:root` and `html.dark`. (2) To diverge the public frontend: add overrides in `tokens-public.css`. (3) To diverge the admin panel: add overrides in `tokens-admin.css`. (4) Update hardcoded `260` in dark surface tokens and in `admin.css` (rail, L2 panel backgrounds).
 
@@ -176,30 +176,29 @@ src/
 │   ├── robots.ts         — robots.txt (disallows /dashboard/, /api/webhooks/, /api/health)
 │   └── sitemap.ts        — dynamic sitemap generation
 ├── components/
-│   ├── admin/            — PostForm, CategoryForm, PortfolioForm, TermForm, CmsListView, AdminSidebar, DashboardShell, StatCard, RecentActivity, GA4Widget, TranslationBar, OrgSwitcher, NotificationBell, shortcodes/
-│   ├── public/           — ContactForm, DynamicNav, LanguageSwitcher, LocaleLink, PostCard, ShortcodeRenderer, TagCloud, UserMenu, PricingToggle, FaqAccordion, SocialLoginButtons, AccountSidebar, shortcodes/
-│   └── ui/               — ConfirmDialog, Toaster
-├── config/               — cms.ts (content types), taxonomies.ts (taxonomy declarations), plans.ts (billing plans), pricing.ts (pricing display), site.ts (site config)
+│   ├── admin/            — PostForm, CategoryForm, PortfolioForm, TermForm, CmsListView, AdminSidebar, DashboardWidgetGrid, QuickActionsWidget, TaxonomyOverview, shortcodes/
+│   ├── public/           — ContactForm, UserMenu, SocialLoginButtons, CreateOrgCard, RefCookieCapture
+│   └── ui/               — ConfirmDialog (re-export)
+├── config/               — cms.ts (content types), taxonomies.ts (taxonomy declarations), admin-nav.ts (navigation data), plans.ts (billing plans), pricing.ts (pricing display), site.ts (site config)
 ├── engine/
-│   ├── config/           — ContentTypeDeclaration, TaxonomyDeclaration interfaces + factory helpers
-│   ├── crud/             — admin-crud, taxonomy-helpers, cms-helpers, content-revisions, slug-redirects
-│   ├── hooks/            — useCmsFormState, useCmsAutosave, useListViewState, useBulkActions, etc.
+│   ├── config/           — ContentTypeDeclaration, TaxonomyDeclaration interfaces + factory helpers, admin-nav helpers
+│   ├── crud/             — admin-crud, drizzle-utils, taxonomy-helpers, cms-helpers, content-revisions, slug-redirects, page-seo
+│   ├── hooks/            — useCmsFormState, useCmsAutosave, useListViewState, useBulkActions, useLocale, etc.
 │   ├── policy/           — Role, Policy, Capability, isSuperAdmin
-│   ├── components/       — CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPickerDialog, CommandPalette, SlideOver, etc.
-│   ├── lib/              — slug, markdown, audit, webhooks, logger, datetime, redis, rate-limit
-│   ├── types/            — PostType, ContentStatus, FileType, ContentSnapshot, organization, billing, realtime, notifications
+│   ├── components/       — CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPickerDialog, CommandPalette, SlideOver, ConfirmDialog, Toaster, InternalLinkDialog, FallbackRadio, DashboardShell, LocaleLink, LanguageSwitcher, PreferencesHydrator, MenuBuilder, RecentActivity, ContentStatusWidget, MobileMenu, ThemeToggle, NotificationBell, PostAttachments, GA4Widget, OrgSwitcher, ContentCalendar, TranslationBar, SeoOverridesDialog, DashboardConfig, PostCard, TagCloud, DynamicNav, BlogSidebar, ShortcodeRenderer, FaqAccordion, AccountSidebar, PricingToggle, shortcodes/
+│   ├── lib/              — slug, markdown, audit, webhooks, logger, datetime, redis, rate-limit, trpc-rate-limit, api-auth, seo-routes, ga4, gdpr, queue, ws-client, ws-channels, stats-cache, translations, shortcodes-parser, shortcode-utils, locale, locale-server
+│   ├── store/            — preferences-store, sidebar-store, toast-store, theme-store
+│   ├── types/            — PostType, ContentStatus, FileType, ContentSnapshot, shortcodes, organization, billing, realtime, notifications
 │   └── styles/           — tokens.css (OKLCH design tokens), admin.css, admin-table.css, content.css
-├── lib/                  — auth, auth-client, constants, env, locale, locale-server, password, translations, trpc, useLocale, utils, ws-client
+├── lib/                  — auth, auth-client, constants, env, locale (re-export), locale-server (re-export), password, translations (re-export), trpc, utils
 ├── scripts/              — init.ts, promote.ts, change-password.ts, migrate-html-to-markdown.ts, schedule-jobs.ts
 ├── server/
 │   ├── db/schema/        — auth, cms, categories, portfolio, terms, term-relationships, media, menu, webhooks, audit, custom-fields, forms, organization, billing, notifications
-│   ├── jobs/             — email queue (BullMQ + nodemailer)
-│   ├── lib/              — stripe, ws (WebSocket server), ws-channels, notifications
-│   ├── middleware/        — rate-limit (tRPC rate limiting)
+│   ├── jobs/             — email queue (BullMQ + nodemailer), content queue
+│   ├── lib/              — stripe, ws (WebSocket server), notifications
 │   ├── routers/          — analytics, audit, auth, billing, categories, cms, content-search, custom-fields, forms, import, job-queue, media, menus, notifications, options, organizations, portfolio, redirects, revisions, tags, users, webhooks
-│   ├── storage/          — pluggable storage (filesystem, S3-compatible)
-│   └── utils/            — api-auth, ga4, gdpr, page-seo, seo-routes
-├── store/                — toast-store, theme-store, sidebar-store (Zustand)
+│   └── storage/          — pluggable storage (filesystem, S3-compatible)
+├── store/                — toast-store (re-export)
 ```
 
 ### User Roles & Permissions

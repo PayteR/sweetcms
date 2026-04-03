@@ -32,7 +32,7 @@ import { shortcodeConfig } from '@/lib/shortcodes/config';
 import { SEOFields } from '@/engine/components/SEOFields';
 import { SeoPreviewCard } from '@/engine/components/SeoPreviewCard';
 import { TagInput } from '@/engine/components/TagInput';
-import { TranslationBar } from './TranslationBar';
+import { TranslationBar } from '@/engine/components/TranslationBar';
 
 interface CategoryFormData extends Record<string, unknown> {
   name: string;
@@ -498,6 +498,9 @@ export function CategoryForm({ categoryId }: Props) {
                       translations={translationSiblings.data}
                       adminSlug="categories"
                       translationAvailable={translationAvailableQuery.data?.available ?? false}
+                      locales={LOCALES}
+                      localeLabels={LOCALE_LABELS}
+                      editUrl={(id, _lang) => adminPanel.cmsItem('categories', id)}
                       onDuplicate={async (targetLang, autoTranslate) => {
                         const result = await duplicateAsTranslation.mutateAsync({
                           id: cat.id,

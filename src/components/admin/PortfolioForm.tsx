@@ -33,7 +33,7 @@ import { shortcodeConfig } from '@/lib/shortcodes/config';
 import { SEOFields } from '@/engine/components/SEOFields';
 import { SeoPreviewCard } from '@/engine/components/SeoPreviewCard';
 import { TagInput } from '@/engine/components/TagInput';
-import { TranslationBar } from './TranslationBar';
+import { TranslationBar } from '@/engine/components/TranslationBar';
 
 interface PortfolioFormData extends Record<string, unknown> {
   name: string;
@@ -620,6 +620,9 @@ export function PortfolioForm({ portfolioId }: Props) {
                       translations={translationSiblings.data}
                       adminSlug="portfolio"
                       translationAvailable={translationAvailableQuery.data?.available ?? false}
+                      locales={LOCALES}
+                      localeLabels={LOCALE_LABELS}
+                      editUrl={(id, _lang) => adminPanel.cmsItem('portfolio', id)}
                       onDuplicate={async (targetLang, autoTranslate) => {
                         const result = await duplicateAsTranslation.mutateAsync({
                           id: item.id,

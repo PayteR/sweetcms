@@ -9,7 +9,8 @@ import { useBlankTranslations } from '@/lib/translations';
 import { PostType } from '@/engine/types/cms';
 import { adminPanel } from '@/config/routes';
 import StatCard from '@/engine/components/StatCard';
-import { DashboardConfig } from '@/components/admin/DashboardConfig';
+import { DashboardConfig } from '@/engine/components/DashboardConfig';
+import { DASHBOARD_WIDGETS, DEFAULT_WIDGET_ORDER, DEFAULT_HIDDEN_WIDGETS } from '@/config/dashboard-widgets';
 import { DashboardWidgetGrid } from '@/components/admin/DashboardWidgetGrid';
 
 export default function DashboardPage() {
@@ -30,7 +31,11 @@ export default function DashboardPage() {
           <h1 className="text-2xl font-bold text-(--text-primary)">{__('Dashboard')}</h1>
           <p className="mt-2 text-(--text-secondary)">{__('Welcome to SweetCMS admin panel.')}</p>
         </div>
-        <DashboardConfig />
+        <DashboardConfig
+          widgets={DASHBOARD_WIDGETS}
+          defaultOrder={DEFAULT_WIDGET_ORDER}
+          defaultHidden={DEFAULT_HIDDEN_WIDGETS}
+        />
       </div>
 
       {/* Stat cards — always visible, not reorderable */}

@@ -3,15 +3,15 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/server/db';
 import { saasSubscriptionEvents } from '@/server/db/schema';
 import { getProvider } from '@/server/lib/payment/factory';
-import { activateSubscription } from '@/server/lib/payment/subscription-service';
-import { finalizeUsage } from '@/server/lib/payment/discount-service';
+import { activateSubscription } from '@/engine/lib/payment/subscription-service';
+import { finalizeUsage } from '@/engine/lib/payment/discount-service';
 import { logAudit } from '@/engine/lib/audit';
 import { sendOrgNotification } from '@/server/lib/notifications';
 import { NotificationType, NotificationCategory } from '@/engine/types/notifications';
 import { createLogger } from '@/engine/lib/logger';
 import { adminPanel } from '@/config/routes';
 import { recordConversion } from '@/server/lib/affiliates';
-import { invalidateStats } from '@/server/lib/stats-cache';
+import { invalidateStats } from '@/engine/lib/stats-cache';
 
 const logger = createLogger('nowpayments-webhook');
 

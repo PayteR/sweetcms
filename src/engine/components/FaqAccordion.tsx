@@ -1,8 +1,15 @@
 'use client';
 
-import type { PricingFaq } from '@/config/pricing';
+interface FaqItem {
+  question: string;
+  answer: string;
+}
 
-export function FaqAccordion({ faqs }: { faqs: PricingFaq[] }) {
+interface FaqAccordionProps {
+  faqs: FaqItem[];
+}
+
+export function FaqAccordion({ faqs }: FaqAccordionProps) {
   return (
     <div className="max-w-3xl mx-auto divide-y divide-(--border-primary)">
       {faqs.map((faq) => (

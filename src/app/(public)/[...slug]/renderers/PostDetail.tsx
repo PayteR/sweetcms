@@ -1,8 +1,8 @@
 import Link from 'next/link';
 
 import { PostType } from '@/engine/types/cms';
-import { PostCard } from '@/components/public/PostCard';
-import { ShortcodeRenderer } from '@/components/public/ShortcodeRenderer';
+import { PostCard } from '@/engine/components/PostCard';
+import { ShortcodeRenderer } from '@/engine/components/ShortcodeRenderer';
 import { localePath } from '@/lib/locale';
 import { getLocale } from '@/lib/locale-server';
 import { getCachedPost, getCachedTRPC } from '../data';

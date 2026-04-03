@@ -23,11 +23,11 @@ import { adminPanel } from '@/config/routes';
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
 import { ContentStatus } from '@/engine/types/cms';
-import { LOCALES } from '@/lib/constants';
+import { LOCALES, LOCALE_LABELS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { toast } from '@/store/toast-store';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { SeoOverridesDialog } from '@/components/admin/SeoOverridesDialog';
+import { SeoOverridesDialog } from '@/engine/components/SeoOverridesDialog';
 import { TaxonomyOverview } from '@/components/admin/TaxonomyOverview';
 import { useListViewState, SortIcon } from '@/engine/hooks/useListViewState';
 import { useBulkSelection } from '@/engine/hooks/useBulkSelection';
@@ -947,6 +947,8 @@ export function CmsListView({ contentType }: Props) {
           );
         }}
         isPending={createSeoOverrides.isPending}
+        locales={LOCALES}
+        localeLabels={LOCALE_LABELS}
       />
     </div>
   );

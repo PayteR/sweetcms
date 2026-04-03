@@ -11,13 +11,13 @@ vi.mock('@/server/lib/payment/factory', () => ({
 
 // Mock subscription service
 const mockActivateSubscription = vi.fn().mockResolvedValue(undefined);
-vi.mock('@/server/lib/payment/subscription-service', () => ({
+vi.mock('@/engine/lib/payment/subscription-service', () => ({
   activateSubscription: (...args: unknown[]) => mockActivateSubscription(...args),
 }));
 
 // Mock discount service
 const mockFinalizeUsage = vi.fn().mockResolvedValue(undefined);
-vi.mock('@/server/lib/payment/discount-service', () => ({
+vi.mock('@/engine/lib/payment/discount-service', () => ({
   finalizeUsage: (...args: unknown[]) => mockFinalizeUsage(...args),
 }));
 

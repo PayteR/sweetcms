@@ -2,10 +2,25 @@
 
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
-import type { PricingPlan } from '@/config/pricing';
-import { publicAuthRoutes } from '@/config/routes';
 
-export function PricingToggle({ plans, cryptoEnabled = false }: { plans: PricingPlan[]; cryptoEnabled?: boolean }) {
+interface PricingPlan {
+  id: string;
+  name: string;
+  description: string;
+  priceMonthly: string;
+  priceYearly: string;
+  features: string[];
+  cta: string;
+  popular?: boolean;
+}
+
+interface PricingToggleProps {
+  plans: PricingPlan[];
+  cryptoEnabled?: boolean;
+  registerHref: string;
+}
+
+export function PricingToggle({ plans, cryptoEnabled = false, registerHref }: PricingToggleProps) {
   const [yearly, setYearly] = useState(false);
 
   return (
@@ -84,7 +99,7 @@ export function PricingToggle({ plans, cryptoEnabled = false }: { plans: Pricing
               ))}
             </ul>
             <a
-              href={plan.id === 'free' ? publicAuthRoutes.register : `${publicAuthRoutes.register}?plan=${plan.id}`}
+              href={plan.id === 'free' ? registerHref : `${registerHref}?plan=${plan.id}`}
               className={cn(
                 'block text-center py-2.5 px-4 rounded-lg font-medium text-sm transition-colors',
                 plan.popular
@@ -97,7 +112,7 @@ export function PricingToggle({ plans, cryptoEnabled = false }: { plans: Pricing
             {cryptoEnabled && yearly && plan.priceYearly !== '$0' && (
               <p className="mt-2 text-center text-xs text-(--text-muted)">
                 <span className="inline-flex items-center gap-1 rounded-full bg-(--surface-secondary) px-2 py-0.5">
-                  ₿ Pay with Crypto
+                  &#x20BF; Pay with Crypto
                 </span>
               </p>
             )}

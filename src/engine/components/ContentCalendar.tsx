@@ -4,9 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
-import { adminPanel } from '@/config/routes';
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useBlankTranslations } from '@/engine/lib/translations';
 import { ContentStatus, PostType } from '@/engine/types/cms';
 import { cn } from '@/lib/utils';
 
@@ -28,7 +27,11 @@ const POST_TYPE_ADMIN_SLUG: Record<number, string> = {
   [PostType.BLOG]: 'blog',
 };
 
-export function ContentCalendar() {
+interface ContentCalendarProps {
+  editUrlBuilder?: (section: string, id: string) => string;
+}
+
+export function ContentCalendar({ editUrlBuilder }: ContentCalendarProps) {
   const __ = useBlankTranslations();
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
@@ -65,10 +68,11 @@ export function ContentCalendar() {
   }
 
   // Resolve admin edit URL
-  function getEditUrl(ev: NonNullable<typeof events.data>[number]) {
-    if (ev.contentType === 'category') return adminPanel.cmsItem('categories', ev.id);
+  function getEditUrl(ev: NonNullable<typeof events.data>[number]): string | null {
+    if (!editUrlBuilder) return null;
+    if (ev.contentType === 'category') return editUrlBuilder('categories', ev.id);
     const adminSlug = (ev.type != null && POST_TYPE_ADMIN_SLUG[ev.type]) || 'blog';
-    return adminPanel.cmsItem(adminSlug, ev.id);
+    return editUrlBuilder(adminSlug, ev.id);
   }
 
   const isToday = (day: number) =>
@@ -129,19 +133,31 @@ export function ContentCalendar() {
                         {day}
                       </span>
                       <div className="space-y-0.5">
-                        {(eventsByDay.get(day) ?? []).slice(0, 3).map(ev => (
-                          <Link
-                            key={`${ev.contentType}-${ev.id}`}
-                            href={getEditUrl(ev)}
-                            className={cn(
-                              'block truncate rounded px-1 py-0.5 text-[10px] font-medium leading-tight',
-                              STATUS_CHIP[ev.status] ?? 'bg-(--surface-secondary) text-(--text-secondary)'
-                            )}
-                            title={ev.title}
-                          >
-                            {ev.title}
-                          </Link>
-                        ))}
+                        {(eventsByDay.get(day) ?? []).slice(0, 3).map(ev => {
+                          const href = getEditUrl(ev);
+                          const chipClass = cn(
+                            'block truncate rounded px-1 py-0.5 text-[10px] font-medium leading-tight',
+                            STATUS_CHIP[ev.status] ?? 'bg-(--surface-secondary) text-(--text-secondary)'
+                          );
+                          return href ? (
+                            <Link
+                              key={`${ev.contentType}-${ev.id}`}
+                              href={href}
+                              className={chipClass}
+                              title={ev.title}
+                            >
+                              {ev.title}
+                            </Link>
+                          ) : (
+                            <span
+                              key={`${ev.contentType}-${ev.id}`}
+                              className={chipClass}
+                              title={ev.title}
+                            >
+                              {ev.title}
+                            </span>
+                          );
+                        })}
                         {(eventsByDay.get(day)?.length ?? 0) > 3 && (
                           <span className="text-[10px] text-(--text-muted) px-1">
                             +{(eventsByDay.get(day)?.length ?? 0) - 3} {__('more')}
