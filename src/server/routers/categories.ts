@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import crypto from 'crypto';
 
@@ -15,7 +15,15 @@ import {
   softDelete,
   softRestore,
   permanentDelete,
+  fetchOrNotFound,
+  generateCopySlug,
+  updateContentStatus,
+  getTranslationSiblings,
+  serializeExport,
+  parsePagination,
+  paginatedResult,
 } from '@/engine/crud/admin-crud';
+import { adminListInput, exportBulkInput } from '@/engine/crud/router-schemas';
 import { updateWithRevision } from '@/engine/crud/cms-helpers';
 import {
   deleteTermRelationshipsByTerm,
@@ -55,17 +63,7 @@ const crudCols = {
 
 export const categoriesRouter = createTRPCRouter({
   list: contentProcedure
-    .input(
-      z.object({
-        search: z.string().max(200).optional(),
-        trashed: z.boolean().optional(),
-        lang: z.string().max(2).optional(),
-        sortBy: z.string().max(50).optional(),
-        sortDir: z.enum(['asc', 'desc']).optional(),
-        page: z.number().int().min(1).optional(),
-        pageSize: z.number().int().min(1).max(100).optional(),
-      })
-    )
+    .input(adminListInput)
     .query(async ({ ctx, input }) => {
       return buildAdminList(
         {
@@ -110,18 +108,9 @@ export const categoriesRouter = createTRPCRouter({
   get: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const [category] = await ctx.db
-        .select()
-        .from(cmsCategories)
-        .where(eq(cmsCategories.id, input.id))
-        .limit(1);
-
-      if (!category) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Category not found',
-        });
-      }
+      const category = await fetchOrNotFound<typeof cmsCategories.$inferSelect>(
+        ctx.db, cmsCategories, input.id, 'Category'
+      );
 
       const rels = await getTermRelationships(ctx.db, category.id, 'tag');
       const tagIds = rels.map((r) => r.termId);
@@ -210,47 +199,14 @@ export const categoriesRouter = createTRPCRouter({
   duplicate: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const [original] = await ctx.db
-        .select()
-        .from(cmsCategories)
-        .where(eq(cmsCategories.id, input.id))
-        .limit(1);
+      const original = await fetchOrNotFound<typeof cmsCategories.$inferSelect>(
+        ctx.db, cmsCategories, input.id, 'Category'
+      );
 
-      if (!original) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Category not found' });
-      }
-
-      // Generate a unique slug for the copy
-      let copySlug = original.slug + '-copy';
-      let attempt = 0;
-      while (attempt < 20) {
-        const suffix = attempt === 0 ? '' : `-${attempt + 1}`;
-        const candidate = original.slug + '-copy' + suffix;
-        const [existing] = await ctx.db
-          .select({ id: cmsCategories.id })
-          .from(cmsCategories)
-          .where(
-            and(
-              eq(cmsCategories.slug, candidate),
-              eq(cmsCategories.lang, original.lang),
-              isNull(cmsCategories.deletedAt)
-            )
-          )
-          .limit(1);
-
-        if (!existing) {
-          copySlug = candidate;
-          break;
-        }
-        attempt++;
-      }
-
-      if (attempt >= 20) {
-        throw new TRPCError({
-          code: 'CONFLICT',
-          message: 'Could not generate a unique slug after 20 attempts',
-        });
-      }
+      const copySlug = await generateCopySlug(
+        ctx.db, cmsCategories, cmsCategories.slug, cmsCategories.deletedAt,
+        original.slug, cmsCategories.lang, original.lang,
+      );
 
       const previewToken = crypto.randomBytes(32).toString('hex');
 
@@ -402,35 +358,16 @@ export const categoriesRouter = createTRPCRouter({
   getTranslationSiblings: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const [cat] = await ctx.db
-        .select({ translationGroup: cmsCategories.translationGroup })
-        .from(cmsCategories)
-        .where(eq(cmsCategories.id, input.id))
-        .limit(1);
-
-      if (!cat?.translationGroup) return [];
-
-      const siblings = await ctx.db
-        .select({ id: cmsCategories.id, lang: cmsCategories.lang, slug: cmsCategories.slug })
-        .from(cmsCategories)
-        .where(
-          and(
-            eq(cmsCategories.translationGroup, cat.translationGroup),
-            ne(cmsCategories.id, input.id),
-            isNull(cmsCategories.deletedAt)
-          )
-        )
-        .limit(20);
-
-      return siblings;
+      return getTranslationSiblings(
+        ctx.db, cmsCategories,
+        cmsCategories.id, cmsCategories.translationGroup, cmsCategories.lang,
+        cmsCategories.slug, cmsCategories.deletedAt, input.id,
+      );
     }),
 
   /** Export specific categories by ID array */
   exportBulk: contentProcedure
-    .input(z.object({
-      ids: z.array(z.string().uuid()).min(1).max(500),
-      format: z.enum(['json', 'csv']),
-    }))
+    .input(exportBulkInput)
     .query(async ({ ctx, input }) => {
       const cats = await ctx.db
         .select({
@@ -450,27 +387,8 @@ export const categoriesRouter = createTRPCRouter({
         .from(cmsCategories)
         .where(inArray(cmsCategories.id, input.ids));
 
-      if (input.format === 'json') {
-        return {
-          data: JSON.stringify(cats, null, 2),
-          contentType: 'application/json',
-        };
-      }
-
       const headers = ['id', 'name', 'slug', 'title', 'status', 'lang', 'metaDescription', 'seoTitle', 'publishedAt', 'createdAt', 'updatedAt', 'text'];
-      const rows = cats.map(c =>
-        headers.map(h => {
-          const val = c[h as keyof typeof c];
-          if (val == null) return '';
-          if (val instanceof Date) return val.toISOString();
-          return String(val).replace(/\t/g, ' ').replace(/\n/g, '\\n');
-        }).join('\t')
-      );
-
-      return {
-        data: [headers.join('\t'), ...rows].join('\n'),
-        contentType: 'text/tab-separated-values',
-      };
+      return serializeExport(cats as Record<string, unknown>[], headers, input.format);
     }),
 
   update: contentProcedure
@@ -579,32 +497,11 @@ export const categoriesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const [existing] = await ctx.db
-        .select({ id: cmsCategories.id, publishedAt: cmsCategories.publishedAt })
-        .from(cmsCategories)
-        .where(eq(cmsCategories.id, input.id))
-        .limit(1);
-
-      if (!existing) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Category not found',
-        });
-      }
-
-      const updates: Record<string, unknown> = {
-        status: input.status,
-        updatedAt: new Date(),
-      };
-
-      if (input.status === ContentStatus.PUBLISHED && !existing.publishedAt) {
-        updates.publishedAt = new Date();
-      }
-
-      await ctx.db
-        .update(cmsCategories)
-        .set(updates)
-        .where(eq(cmsCategories.id, input.id));
+      await updateContentStatus(
+        ctx.db, cmsCategories,
+        cmsCategories.id, cmsCategories.status, cmsCategories.publishedAt, cmsCategories.updatedAt,
+        input.id, input.status, 'Category',
+      );
 
       const action =
         input.status === ContentStatus.PUBLISHED ? 'publish' : 'unpublish';
@@ -684,41 +581,34 @@ export const categoriesRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const offset = (input.page - 1) * input.pageSize;
+      const { page, pageSize, offset } = parsePagination(input, 100);
+
+      const where = and(
+        eq(cmsCategories.lang, input.lang),
+        eq(cmsCategories.status, ContentStatus.PUBLISHED),
+        isNull(cmsCategories.deletedAt)
+      );
 
       const [items, countResult] = await Promise.all([
         ctx.db
           .select()
           .from(cmsCategories)
-          .where(
-            and(
-              eq(cmsCategories.lang, input.lang),
-              eq(cmsCategories.status, ContentStatus.PUBLISHED),
-              isNull(cmsCategories.deletedAt)
-            )
-          )
+          .where(where)
           .orderBy(cmsCategories.order)
           .offset(offset)
-          .limit(input.pageSize),
+          .limit(pageSize),
         ctx.db
           .select({ count: sql<number>`count(*)` })
           .from(cmsCategories)
-          .where(
-            and(
-              eq(cmsCategories.lang, input.lang),
-              eq(cmsCategories.status, ContentStatus.PUBLISHED),
-              isNull(cmsCategories.deletedAt)
-            )
-          ),
+          .where(where),
       ]);
 
       const total = Number(countResult[0]?.count ?? 0);
-      return {
-        results: items.map(({ previewToken: _pt, ...rest }) => rest),
+      return paginatedResult(
+        items.map(({ previewToken: _pt, ...rest }) => rest),
         total,
-        page: input.page,
-        pageSize: input.pageSize,
-        totalPages: Math.ceil(total / input.pageSize),
-      };
+        page,
+        pageSize,
+      );
     }),
 });

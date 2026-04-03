@@ -1,37 +1,19 @@
-import { NextResponse } from 'next/server';
 import { and, eq, isNull } from 'drizzle-orm';
+import { NextResponse } from 'next/server';
 
 import { db } from '@/server/db';
 import { cmsCategories } from '@/server/db/schema';
 import { ContentStatus } from '@/engine/types/cms';
-import {
-  apiHeaders,
-  checkRateLimit,
-  validateApiKey,
-} from '@/engine/lib/api-auth';
+import { withApiRoute } from '@/engine/lib/api-route';
+import { apiHeaders } from '@/engine/lib/api-auth';
 
 interface RouteParams {
   params: Promise<{ slug: string }>;
 }
 
 export async function GET(request: Request, { params }: RouteParams) {
-  if (!(await validateApiKey(request))) {
-    return NextResponse.json(
-      { error: 'Invalid API key' },
-      { status: 401, headers: apiHeaders() }
-    );
-  }
-  if (!(await checkRateLimit(request))) {
-    return NextResponse.json(
-      { error: 'Rate limit exceeded' },
-      { status: 429, headers: apiHeaders() }
-    );
-  }
-
-  try {
+  return withApiRoute(request, async (url) => {
     const { slug } = await params;
-
-    const url = new URL(request.url);
     const lang = url.searchParams.get('lang') ?? undefined;
 
     const conditions = [
@@ -64,15 +46,10 @@ export async function GET(request: Request, { params }: RouteParams) {
     if (!category) {
       return NextResponse.json(
         { error: 'Not found' },
-        { status: 404, headers: apiHeaders() }
+        { status: 404, headers: apiHeaders() },
       );
     }
 
-    return NextResponse.json({ data: category }, { headers: apiHeaders() });
-  } catch {
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500, headers: apiHeaders() }
-    );
-  }
+    return { data: category };
+  });
 }

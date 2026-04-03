@@ -1,6 +1,16 @@
 import type { PlanDefinition } from '@/engine/types/billing';
 
-export const PLANS: PlanDefinition[] = [
+/**
+ * Extended plan definition with display-layer fields used to derive pricing.ts.
+ * displayFeatures: human-readable bullet points shown on the pricing page.
+ * cta: call-to-action button label shown on the pricing card.
+ */
+export interface ExtendedPlanDefinition extends PlanDefinition {
+  displayFeatures: string[];
+  cta: string;
+}
+
+export const PLANS: ExtendedPlanDefinition[] = [
   {
     id: 'free',
     name: 'Free',
@@ -15,6 +25,8 @@ export const PLANS: PlanDefinition[] = [
       apiAccess: false,
       prioritySupport: false,
     },
+    displayFeatures: ['1 team member', '100 MB storage', 'Community support', 'Basic CMS features'],
+    cta: 'Get Started',
   },
   {
     id: 'starter',
@@ -38,6 +50,8 @@ export const PLANS: PlanDefinition[] = [
       apiAccess: true,
       prioritySupport: false,
     },
+    displayFeatures: ['5 team members', '1 GB storage', 'API access', 'Email support', 'All CMS features'],
+    cta: 'Start Free Trial',
   },
   {
     id: 'pro',
@@ -60,6 +74,15 @@ export const PLANS: PlanDefinition[] = [
       apiAccess: true,
       prioritySupport: false,
     },
+    displayFeatures: [
+      '20 team members',
+      '10 GB storage',
+      'Custom domain',
+      'API access',
+      'Priority email support',
+      'Advanced analytics',
+    ],
+    cta: 'Start Free Trial',
     popular: true,
   },
   {
@@ -82,10 +105,20 @@ export const PLANS: PlanDefinition[] = [
       apiAccess: true,
       prioritySupport: true,
     },
+    displayFeatures: [
+      '100 team members',
+      '100 GB storage',
+      'Custom domain',
+      'API access',
+      'Priority support',
+      'SLA guarantee',
+      'SSO',
+    ],
+    cta: 'Contact Sales',
   },
 ];
 
-export function getPlan(id: string): PlanDefinition | undefined {
+export function getPlan(id: string): ExtendedPlanDefinition | undefined {
   return PLANS.find((p) => p.id === id);
 }
 
@@ -93,7 +126,7 @@ export function getPlan(id: string): PlanDefinition | undefined {
 export function getPlanByProviderPriceId(
   providerId: string,
   priceId: string
-): PlanDefinition | undefined {
+): ExtendedPlanDefinition | undefined {
   return PLANS.find((p) => {
     const prices = p.providerPrices[providerId];
     if (!prices) return false;
@@ -112,6 +145,6 @@ export function getProviderPriceId(
   return prices[interval] ?? null;
 }
 
-export function getFreePlan(): PlanDefinition {
+export function getFreePlan(): ExtendedPlanDefinition {
   return PLANS[0]!;
 }

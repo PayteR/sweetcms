@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 import { user, session, cmsUserPreferences } from '@/server/db/schema';
 import { ROLES, Role, isSuperAdmin } from '@/engine/policy';
-import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
+import { parsePagination, paginatedResult, fetchOrNotFound } from '@/engine/crud/admin-crud';
 import { anonymizeUser } from '@/engine/lib/gdpr';
 import { logAudit } from '@/engine/lib/audit';
 import { createTRPCRouter, protectedProcedure, sectionProcedure, superadminProcedure } from '../trpc';
@@ -70,17 +70,7 @@ export const usersRouter = createTRPCRouter({
   get: usersProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
-      const [found] = await ctx.db
-        .select()
-        .from(user)
-        .where(eq(user.id, input.id))
-        .limit(1);
-
-      if (!found) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
-      }
-
-      return found;
+      return fetchOrNotFound<typeof user.$inferSelect>(ctx.db, user, input.id, 'User');
     }),
 
   /** Update user role */

@@ -1,6 +1,7 @@
 // Engine hooks — shared CMS form and list hooks
-export { useCmsFormState } from './useCmsFormState';
+export { useCmsFormState, narrowRecoveredData } from './useCmsFormState';
 export { useCmsAutosave } from './useCmsAutosave';
+export { useSlugAutoGenerate } from './useSlugAutoGenerate';
 export { useListViewState, SortIcon } from './useListViewState';
 export { useBulkSelection } from './useBulkSelection';
 export { useBulkActions } from './useBulkActions';

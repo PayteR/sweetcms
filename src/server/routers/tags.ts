@@ -13,7 +13,9 @@ import {
   permanentDelete,
   parsePagination,
   paginatedResult,
+  fetchOrNotFound,
 } from '@/engine/crud/admin-crud';
+import { adminListInput } from '@/engine/crud/router-schemas';
 import {
   deleteTermRelationshipsByTerm,
   resolveTagsForPosts,
@@ -39,17 +41,7 @@ const crudCols = {
 export const tagsRouter = createTRPCRouter({
   /** Admin: list tags with search, pagination, status tabs */
   list: contentProcedure
-    .input(
-      z.object({
-        search: z.string().max(200).optional(),
-        trashed: z.boolean().optional(),
-        lang: z.string().max(2).optional(),
-        sortBy: z.string().max(50).optional(),
-        sortDir: z.enum(['asc', 'desc']).optional(),
-        page: z.number().int().min(1).optional(),
-        pageSize: z.number().int().min(1).max(100).optional(),
-      })
-    )
+    .input(adminListInput)
     .query(async ({ ctx, input }) => {
       return buildAdminList(
         {
@@ -101,21 +93,10 @@ export const tagsRouter = createTRPCRouter({
   get: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const [tag] = await ctx.db
-        .select()
-        .from(cmsTerms)
-        .where(
-          and(
-            eq(cmsTerms.id, input.id),
-            eq(cmsTerms.taxonomyId, TAXONOMY_ID)
-          )
-        )
-        .limit(1);
-
-      if (!tag) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Tag not found' });
-      }
-      return tag;
+      return fetchOrNotFound<typeof cmsTerms.$inferSelect>(
+        ctx.db, cmsTerms, input.id, 'Tag',
+        [eq(cmsTerms.taxonomyId, TAXONOMY_ID)],
+      );
     }),
 
   /** Get multiple tags by IDs (for resolving selected tags in TagInput) */

@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm';
 import { z } from 'zod';
 import crypto from 'crypto';
 
@@ -15,7 +15,15 @@ import {
   softDelete,
   softRestore,
   permanentDelete,
+  fetchOrNotFound,
+  generateCopySlug,
+  updateContentStatus,
+  getTranslationSiblings,
+  serializeExport,
+  parsePagination,
+  paginatedResult,
 } from '@/engine/crud/admin-crud';
+import { adminListInput, exportBulkInput } from '@/engine/crud/router-schemas';
 import { updateWithRevision } from '@/engine/crud/cms-helpers';
 import {
   deleteAllTermRelationships,
@@ -59,17 +67,7 @@ const crudCols = {
 
 export const portfolioRouter = createTRPCRouter({
   list: contentProcedure
-    .input(
-      z.object({
-        search: z.string().max(200).optional(),
-        trashed: z.boolean().optional(),
-        lang: z.string().max(2).optional(),
-        sortBy: z.string().max(50).optional(),
-        sortDir: z.enum(['asc', 'desc']).optional(),
-        page: z.number().int().min(1).optional(),
-        pageSize: z.number().int().min(1).max(100).optional(),
-      })
-    )
+    .input(adminListInput)
     .query(async ({ ctx, input }) => {
       return buildAdminList(
         {
@@ -114,18 +112,9 @@ export const portfolioRouter = createTRPCRouter({
   get: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const [item] = await ctx.db
-        .select()
-        .from(cmsPortfolio)
-        .where(eq(cmsPortfolio.id, input.id))
-        .limit(1);
-
-      if (!item) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Portfolio item not found',
-        });
-      }
+      const item = await fetchOrNotFound<typeof cmsPortfolio.$inferSelect>(
+        ctx.db, cmsPortfolio, input.id, 'Portfolio item'
+      );
 
       const rels = await getTermRelationships(ctx.db, item.id, 'tag');
       const tagIds = rels.map((r) => r.termId);
@@ -219,46 +208,14 @@ export const portfolioRouter = createTRPCRouter({
   duplicate: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const [original] = await ctx.db
-        .select()
-        .from(cmsPortfolio)
-        .where(eq(cmsPortfolio.id, input.id))
-        .limit(1);
+      const original = await fetchOrNotFound<typeof cmsPortfolio.$inferSelect>(
+        ctx.db, cmsPortfolio, input.id, 'Portfolio item'
+      );
 
-      if (!original) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Portfolio item not found' });
-      }
-
-      let copySlug = original.slug + '-copy';
-      let attempt = 0;
-      while (attempt < 20) {
-        const suffix = attempt === 0 ? '' : `-${attempt + 1}`;
-        const candidate = original.slug + '-copy' + suffix;
-        const [existing] = await ctx.db
-          .select({ id: cmsPortfolio.id })
-          .from(cmsPortfolio)
-          .where(
-            and(
-              eq(cmsPortfolio.slug, candidate),
-              eq(cmsPortfolio.lang, original.lang),
-              isNull(cmsPortfolio.deletedAt)
-            )
-          )
-          .limit(1);
-
-        if (!existing) {
-          copySlug = candidate;
-          break;
-        }
-        attempt++;
-      }
-
-      if (attempt >= 20) {
-        throw new TRPCError({
-          code: 'CONFLICT',
-          message: 'Could not generate a unique slug after 20 attempts',
-        });
-      }
+      const copySlug = await generateCopySlug(
+        ctx.db, cmsPortfolio, cmsPortfolio.slug, cmsPortfolio.deletedAt,
+        original.slug, cmsPortfolio.lang, original.lang,
+      );
 
       const previewToken = crypto.randomBytes(32).toString('hex');
 
@@ -413,34 +370,15 @@ export const portfolioRouter = createTRPCRouter({
   getTranslationSiblings: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const [item] = await ctx.db
-        .select({ translationGroup: cmsPortfolio.translationGroup })
-        .from(cmsPortfolio)
-        .where(eq(cmsPortfolio.id, input.id))
-        .limit(1);
-
-      if (!item?.translationGroup) return [];
-
-      const siblings = await ctx.db
-        .select({ id: cmsPortfolio.id, lang: cmsPortfolio.lang, slug: cmsPortfolio.slug })
-        .from(cmsPortfolio)
-        .where(
-          and(
-            eq(cmsPortfolio.translationGroup, item.translationGroup),
-            ne(cmsPortfolio.id, input.id),
-            isNull(cmsPortfolio.deletedAt)
-          )
-        )
-        .limit(20);
-
-      return siblings;
+      return getTranslationSiblings(
+        ctx.db, cmsPortfolio,
+        cmsPortfolio.id, cmsPortfolio.translationGroup, cmsPortfolio.lang,
+        cmsPortfolio.slug, cmsPortfolio.deletedAt, input.id,
+      );
     }),
 
   exportBulk: contentProcedure
-    .input(z.object({
-      ids: z.array(z.string().uuid()).min(1).max(500),
-      format: z.enum(['json', 'csv']),
-    }))
+    .input(exportBulkInput)
     .query(async ({ ctx, input }) => {
       const items = await ctx.db
         .select({
@@ -464,28 +402,8 @@ export const portfolioRouter = createTRPCRouter({
         .from(cmsPortfolio)
         .where(inArray(cmsPortfolio.id, input.ids));
 
-      if (input.format === 'json') {
-        return {
-          data: JSON.stringify(items, null, 2),
-          contentType: 'application/json',
-        };
-      }
-
       const headers = ['id', 'name', 'slug', 'title', 'status', 'lang', 'clientName', 'projectUrl', 'techStack', 'completedAt', 'metaDescription', 'seoTitle', 'publishedAt', 'createdAt', 'updatedAt', 'text'];
-      const rows = items.map(c =>
-        headers.map(h => {
-          const val = c[h as keyof typeof c];
-          if (val == null) return '';
-          if (val instanceof Date) return val.toISOString();
-          if (Array.isArray(val)) return val.join(', ');
-          return String(val).replace(/\t/g, ' ').replace(/\n/g, '\\n');
-        }).join('\t')
-      );
-
-      return {
-        data: [headers.join('\t'), ...rows].join('\n'),
-        contentType: 'text/tab-separated-values',
-      };
+      return serializeExport(items as Record<string, unknown>[], headers, input.format);
     }),
 
   update: contentProcedure
@@ -602,32 +520,11 @@ export const portfolioRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const [existing] = await ctx.db
-        .select({ id: cmsPortfolio.id, publishedAt: cmsPortfolio.publishedAt })
-        .from(cmsPortfolio)
-        .where(eq(cmsPortfolio.id, input.id))
-        .limit(1);
-
-      if (!existing) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Portfolio item not found',
-        });
-      }
-
-      const updates: Record<string, unknown> = {
-        status: input.status,
-        updatedAt: new Date(),
-      };
-
-      if (input.status === ContentStatus.PUBLISHED && !existing.publishedAt) {
-        updates.publishedAt = new Date();
-      }
-
-      await ctx.db
-        .update(cmsPortfolio)
-        .set(updates)
-        .where(eq(cmsPortfolio.id, input.id));
+      await updateContentStatus(
+        ctx.db, cmsPortfolio,
+        cmsPortfolio.id, cmsPortfolio.status, cmsPortfolio.publishedAt, cmsPortfolio.updatedAt,
+        input.id, input.status, 'Portfolio item',
+      );
 
       const action =
         input.status === ContentStatus.PUBLISHED ? 'publish' : 'unpublish';
@@ -730,7 +627,7 @@ export const portfolioRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
-      const offset = (input.page - 1) * input.pageSize;
+      const { page, pageSize, offset } = parsePagination(input, 100);
 
       const baseConditions = and(
         eq(cmsPortfolio.lang, input.lang),
@@ -779,7 +676,7 @@ export const portfolioRouter = createTRPCRouter({
             .where(baseConditions)
             .orderBy(desc(cmsPortfolio.completedAt))
             .offset(offset)
-            .limit(input.pageSize),
+            .limit(pageSize),
           ctx.db
             .select({ count: sql<number>`count(*)` })
             .from(cmsPortfolio)
@@ -788,13 +685,7 @@ export const portfolioRouter = createTRPCRouter({
         ]);
 
         const total = Number(countResult[0]?.count ?? 0);
-        return {
-          results: items,
-          total,
-          page: input.page,
-          pageSize: input.pageSize,
-          totalPages: Math.ceil(total / input.pageSize),
-        };
+        return paginatedResult(items, total, page, pageSize);
       }
 
       const [items, countResult] = await Promise.all([
@@ -804,7 +695,7 @@ export const portfolioRouter = createTRPCRouter({
           .where(baseConditions)
           .orderBy(desc(cmsPortfolio.completedAt))
           .offset(offset)
-          .limit(input.pageSize),
+          .limit(pageSize),
         ctx.db
           .select({ count: sql<number>`count(*)` })
           .from(cmsPortfolio)
@@ -812,12 +703,11 @@ export const portfolioRouter = createTRPCRouter({
       ]);
 
       const total = Number(countResult[0]?.count ?? 0);
-      return {
-        results: items.map(({ previewToken: _pt, ...rest }) => rest),
+      return paginatedResult(
+        items.map(({ previewToken: _pt, ...rest }) => rest),
         total,
-        page: input.page,
-        pageSize: input.pageSize,
-        totalPages: Math.ceil(total / input.pageSize),
-      };
+        page,
+        pageSize,
+      );
     }),
 });

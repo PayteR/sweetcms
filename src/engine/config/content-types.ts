@@ -40,6 +40,20 @@ export interface ContentTypeDeclaration {
   };
   /** Fallback description for list page metadata */
   listDescription?: string;
+  /**
+   * Optional sitemap config. When present, sitemap.ts will call fetchEntries()
+   * to generate per-locale URL entries for this content type.
+   * Omit to exclude dynamic entries from the sitemap (static pages are handled separately).
+   */
+  sitemapConfig?: {
+    priority: number;
+    changeFrequency: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
+    /**
+     * Fetch all published entries for this content type in a given locale.
+     * Returns slug + updatedAt pairs used to build sitemap URLs.
+     */
+    fetchEntries: (locale: string) => Promise<Array<{ slug: string; updatedAt: Date | null | undefined }>>;
+  };
 }
 
 export function createContentTypeHelpers(types: readonly ContentTypeDeclaration[]) {

@@ -9,6 +9,7 @@ import {
   ensureSlugUnique,
   parsePagination,
   paginatedResult,
+  fetchOrNotFound,
 } from '@/engine/crud/admin-crud';
 import { createTRPCRouter, publicProcedure, sectionProcedure } from '../trpc';
 
@@ -94,16 +95,9 @@ export const formsRouter = createTRPCRouter({
   get: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const [form] = await ctx.db
-        .select()
-        .from(cmsForms)
-        .where(eq(cmsForms.id, input.id))
-        .limit(1);
-
-      if (!form) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Form not found' });
-      }
-      return form;
+      return fetchOrNotFound<typeof cmsForms.$inferSelect>(
+        ctx.db, cmsForms, input.id, 'Form'
+      );
     }),
 
   /** Public: get active form by slug (for rendering on public pages) */
@@ -197,15 +191,9 @@ export const formsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { id, ...updates } = input;
 
-      const [existing] = await ctx.db
-        .select()
-        .from(cmsForms)
-        .where(eq(cmsForms.id, id))
-        .limit(1);
-
-      if (!existing) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Form not found' });
-      }
+      const existing = await fetchOrNotFound<typeof cmsForms.$inferSelect>(
+        ctx.db, cmsForms, id, 'Form'
+      );
 
       if (updates.slug && updates.slug !== existing.slug) {
         await ensureSlugUnique(
@@ -242,15 +230,9 @@ export const formsRouter = createTRPCRouter({
   delete: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const [existing] = await ctx.db
-        .select({ id: cmsForms.id, name: cmsForms.name })
-        .from(cmsForms)
-        .where(eq(cmsForms.id, input.id))
-        .limit(1);
-
-      if (!existing) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Form not found' });
-      }
+      const existing = await fetchOrNotFound<typeof cmsForms.$inferSelect>(
+        ctx.db, cmsForms, input.id, 'Form'
+      );
 
       await ctx.db.delete(cmsForms).where(eq(cmsForms.id, input.id));
 
@@ -302,18 +284,9 @@ export const formsRouter = createTRPCRouter({
   deleteSubmission: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const [existing] = await ctx.db
-        .select({ id: cmsFormSubmissions.id })
-        .from(cmsFormSubmissions)
-        .where(eq(cmsFormSubmissions.id, input.id))
-        .limit(1);
-
-      if (!existing) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Submission not found',
-        });
-      }
+      await fetchOrNotFound<typeof cmsFormSubmissions.$inferSelect>(
+        ctx.db, cmsFormSubmissions, input.id, 'Submission'
+      );
 
       await ctx.db
         .delete(cmsFormSubmissions)
@@ -340,15 +313,9 @@ export const formsRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       // Fetch form for field definitions
-      const [form] = await ctx.db
-        .select()
-        .from(cmsForms)
-        .where(eq(cmsForms.id, input.formId))
-        .limit(1);
-
-      if (!form) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Form not found' });
-      }
+      const form = await fetchOrNotFound<typeof cmsForms.$inferSelect>(
+        ctx.db, cmsForms, input.formId, 'Form'
+      );
 
       const submissions = await ctx.db
         .select()

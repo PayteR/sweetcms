@@ -140,74 +140,7 @@ import {
 } from '@/engine/crud/taxonomy-helpers';
 import { updateWithRevision } from '@/engine/crud/cms-helpers';
 import { logAudit } from '@/engine/lib/audit';
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function createMockDb() {
-  // insert chain: insert().values().returning()
-  const insertReturningMock = vi.fn().mockResolvedValue([]);
-  const insertValuesMock = vi.fn().mockReturnValue({ returning: insertReturningMock });
-  const insertMock = vi.fn().mockReturnValue({ values: insertValuesMock });
-
-  // select chain: select().from().where().orderBy().offset().limit()
-  const selectLimitMock = vi.fn().mockResolvedValue([]);
-  const selectOffsetMock = vi.fn().mockReturnValue({ limit: selectLimitMock });
-  const selectOrderByMock = vi.fn().mockReturnValue({ offset: selectOffsetMock, limit: selectLimitMock });
-  const selectWhereMock = vi.fn().mockReturnValue({
-    orderBy: selectOrderByMock,
-    offset: selectOffsetMock,
-    limit: selectLimitMock,
-  });
-  const selectFromMock = vi.fn().mockReturnValue({
-    where: selectWhereMock,
-    orderBy: selectOrderByMock,
-    limit: selectLimitMock,
-  });
-  const selectMock = vi.fn().mockReturnValue({ from: selectFromMock });
-
-  // update chain: update().set().where()
-  const updateWhereMock = vi.fn().mockResolvedValue(undefined);
-  const updateSetMock = vi.fn().mockReturnValue({ where: updateWhereMock });
-  const updateMock = vi.fn().mockReturnValue({ set: updateSetMock });
-
-  // delete chain: delete().where()
-  const deleteWhereMock = vi.fn().mockResolvedValue(undefined);
-  const deleteMock = vi.fn().mockReturnValue({ where: deleteWhereMock });
-
-  return {
-    select: selectMock,
-    insert: insertMock,
-    update: updateMock,
-    delete: deleteMock,
-    _chains: {
-      select: {
-        from: selectFromMock,
-        where: selectWhereMock,
-        orderBy: selectOrderByMock,
-        offset: selectOffsetMock,
-        limit: selectLimitMock,
-      },
-      insert: { values: insertValuesMock, returning: insertReturningMock },
-      update: { set: updateSetMock, where: updateWhereMock },
-      delete: { where: deleteWhereMock },
-    },
-  };
-}
-
-function createMockCtx(overrides: Record<string, unknown> = {}) {
-  const db = createMockDb();
-  return {
-    session: {
-      user: { id: 'user-1', email: 'editor@test.com', role: 'editor' },
-    },
-    db,
-    headers: new Headers(),
-    activeOrganizationId: null,
-    ...overrides,
-  };
-}
+import { createMockCtx } from './test-helpers';
 
 const MOCK_CATEGORY = {
   id: 'a0a0a0a0-b1b1-4c2c-8d3d-e4e4e4e4e4e4',

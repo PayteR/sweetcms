@@ -12,7 +12,7 @@ import {
   ne,
   sql,
 } from 'drizzle-orm';
-import type { PgColumn, PgTable } from 'drizzle-orm/pg-core';
+import type { PgColumn, PgTable, PgTableWithColumns } from 'drizzle-orm/pg-core';
 
 import type { DbClient, DrizzleDB, DrizzleDBOrTx } from '@/server/db';
 import { getAffectedRows, wordSplitLike } from './drizzle-utils';
@@ -307,5 +307,179 @@ export function paginatedResult<T>(
     page,
     pageSize,
     totalPages: Math.ceil(total / pageSize),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// fetchOrNotFound — fetch single record or throw NOT_FOUND
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetches a single record by ID or throws NOT_FOUND.
+ * Eliminates the repeated select+if(!result) pattern in every router's `get` procedure.
+ */
+export async function fetchOrNotFound<T>(
+  db: DbClient,
+  table: PgTableWithColumns<any>,
+  id: string,
+  entityName: string,
+  extraConditions?: SQL[],
+): Promise<T> {
+  const idCol = (table as any).id as PgColumn;
+  const conditions: SQL[] = [eq(idCol, id)];
+  if (extraConditions) conditions.push(...extraConditions);
+  const [record] = await db
+    .select()
+    .from(table)
+    .where(and(...conditions))
+    .limit(1);
+  if (!record) {
+    throw new TRPCError({ code: 'NOT_FOUND', message: `${entityName} not found` });
+  }
+  return record as T;
+}
+
+// ---------------------------------------------------------------------------
+// generateCopySlug — unique slug for duplicated records
+// ---------------------------------------------------------------------------
+
+/**
+ * Generates a unique copy slug like "my-post-copy", "my-post-copy-2", etc.
+ * Replaces the 20-attempt while-loop duplicated in cms, categories, and portfolio routers.
+ */
+export async function generateCopySlug(
+  db: DbClient,
+  table: PgTableWithColumns<any>,
+  slugCol: PgColumn,
+  deletedAtCol: PgColumn,
+  originalSlug: string,
+  langCol?: PgColumn,
+  lang?: string,
+  maxAttempts = 20,
+): Promise<string> {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const suffix = attempt === 0 ? '' : `-${attempt + 1}`;
+    const candidate = `${originalSlug}-copy${suffix}`;
+    const conditions: SQL[] = [eq(slugCol, candidate), isNull(deletedAtCol)];
+    if (langCol && lang) conditions.push(eq(langCol, lang));
+    const [existing] = await db
+      .select({ id: slugCol })
+      .from(table)
+      .where(and(...conditions))
+      .limit(1);
+    if (!existing) return candidate;
+  }
+  throw new TRPCError({
+    code: 'CONFLICT',
+    message: `Could not generate unique slug after ${maxAttempts} attempts`,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// updateContentStatus — set status with auto publishedAt
+// ---------------------------------------------------------------------------
+
+/**
+ * Updates content status with auto-publishedAt logic.
+ * Replaces the duplicated updateStatus procedure body in categories, portfolio, tags.
+ */
+export async function updateContentStatus(
+  db: DbClient,
+  table: PgTableWithColumns<any>,
+  idCol: PgColumn,
+  statusCol: PgColumn,
+  publishedAtCol: PgColumn,
+  updatedAtCol: PgColumn,
+  id: string,
+  status: number,
+  entityName: string,
+): Promise<void> {
+  const [existing] = await db
+    .select({ id: idCol, publishedAt: publishedAtCol })
+    .from(table)
+    .where(eq(idCol, id))
+    .limit(1);
+  if (!existing) {
+    throw new TRPCError({ code: 'NOT_FOUND', message: `${entityName} not found` });
+  }
+  const updates: Record<string, unknown> = {
+    [statusCol.name]: status,
+    [updatedAtCol.name]: new Date(),
+  };
+  if (status === 1 && !(existing as Record<string, unknown>).publishedAt) {
+    updates[publishedAtCol.name] = new Date();
+  }
+  await db.update(table).set(updates).where(eq(idCol, id));
+}
+
+// ---------------------------------------------------------------------------
+// getTranslationSiblings — fetch sibling translations by translationGroup
+// ---------------------------------------------------------------------------
+
+/**
+ * Gets translation siblings for a content item by its translationGroup.
+ * Replaces the duplicated getTranslationSiblings procedure in cms, categories, portfolio.
+ */
+export async function getTranslationSiblings(
+  db: DbClient,
+  table: PgTableWithColumns<any>,
+  idCol: PgColumn,
+  translationGroupCol: PgColumn,
+  langCol: PgColumn,
+  slugCol: PgColumn,
+  deletedAtCol: PgColumn,
+  id: string,
+): Promise<Array<{ id: string; lang: string; slug: string }>> {
+  const [record] = await db
+    .select({ translationGroup: translationGroupCol })
+    .from(table)
+    .where(eq(idCol, id))
+    .limit(1);
+  if (!(record as Record<string, unknown> | undefined)?.translationGroup) return [];
+  const group = (record as Record<string, unknown>).translationGroup as string;
+  return db
+    .select({ id: idCol, lang: langCol, slug: slugCol })
+    .from(table)
+    .where(
+      and(
+        eq(translationGroupCol, group),
+        ne(idCol, id),
+        isNull(deletedAtCol),
+      ),
+    )
+    .limit(50) as Promise<Array<{ id: string; lang: string; slug: string }>>;
+}
+
+// ---------------------------------------------------------------------------
+// serializeExport — bulk export as JSON or TSV
+// ---------------------------------------------------------------------------
+
+/**
+ * Serializes records for bulk export (JSON or TSV).
+ * Replaces the duplicated export logic in cms, categories and portfolio routers.
+ */
+export function serializeExport(
+  items: Record<string, unknown>[],
+  headers: string[],
+  format: 'json' | 'csv',
+): { data: string; contentType: string } {
+  if (format === 'json') {
+    return { data: JSON.stringify(items, null, 2), contentType: 'application/json' };
+  }
+  const rows = items.map((row) =>
+    headers
+      .map((h) => {
+        const val = row[h];
+        if (val == null) return '';
+        if (val instanceof Date) return val.toISOString();
+        if (Array.isArray(val)) return val.join(', ');
+        if (typeof val === 'object') return JSON.stringify(val);
+        return String(val).replace(/\t/g, ' ').replace(/\n/g, '\\n');
+      })
+      .join('\t'),
+  );
+  return {
+    data: [headers.join('\t'), ...rows].join('\n'),
+    contentType: 'text/tab-separated-values',
   };
 }

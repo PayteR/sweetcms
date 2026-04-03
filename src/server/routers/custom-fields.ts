@@ -86,7 +86,7 @@ export const customFieldsRouter = createTRPCRouter({
 
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id ?? '',
+        userId: ctx.session.user.id,
         action: 'create',
         entityType: 'custom_field',
         entityId: created.id,
@@ -150,7 +150,7 @@ export const customFieldsRouter = createTRPCRouter({
 
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id ?? '',
+        userId: ctx.session.user.id,
         action: 'update',
         entityType: 'custom_field',
         entityId: id,
@@ -175,7 +175,7 @@ export const customFieldsRouter = createTRPCRouter({
 
       logAudit({
         db: ctx.db,
-        userId: ctx.session.user.id ?? '',
+        userId: ctx.session.user.id,
         action: 'delete',
         entityType: 'custom_field',
         entityId: input.id,

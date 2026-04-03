@@ -18,47 +18,17 @@ vi.mock('@/engine/lib/trpc-rate-limit', () => ({
 }));
 
 import { notificationsRouter } from '../notifications';
+import { createMockDb } from './test-helpers';
 
-// Helper to build mock DB with chainable query builders
-function createMockDb() {
-  // For select queries
-  const selectLimitMock = vi.fn().mockResolvedValue([]);
-  const selectOrderByMock = vi.fn().mockReturnValue({ limit: selectLimitMock });
-  const selectWhereMock = vi.fn().mockReturnValue({
-    orderBy: selectOrderByMock,
-    limit: selectLimitMock,
-  });
-  const selectFromMock = vi.fn().mockReturnValue({ where: selectWhereMock });
-  const selectMock = vi.fn().mockReturnValue({ from: selectFromMock });
-
-  // For update queries
-  const updateWhereMock = vi.fn().mockResolvedValue(undefined);
-  const updateSetMock = vi.fn().mockReturnValue({ where: updateWhereMock });
-  const updateMock = vi.fn().mockReturnValue({ set: updateSetMock });
-
-  // For delete queries
-  const deleteWhereMock = vi.fn().mockResolvedValue(undefined);
-  const deleteMock = vi.fn().mockReturnValue({ where: deleteWhereMock });
-
-  return {
-    select: selectMock,
-    update: updateMock,
-    delete: deleteMock,
-    _chains: {
-      select: { from: selectFromMock, where: selectWhereMock, orderBy: selectOrderByMock, limit: selectLimitMock },
-      update: { set: updateSetMock, where: updateWhereMock },
-      delete: { where: deleteWhereMock },
-    },
-  };
-}
-
-function createMockCtx(dbOverrides?: ReturnType<typeof createMockDb>) {
-  const db = dbOverrides ?? createMockDb();
+// Notifications tests use role:'user' and pass pre-built db objects.
+// createMockCtx accepts an optional pre-built db (not overrides record)
+// to keep the existing call-site pattern: createMockCtx(db).
+function createMockCtx(db?: ReturnType<typeof createMockDb>) {
   return {
     session: {
       user: { id: 'user-1', email: 'test@test.com', role: 'user' },
     },
-    db,
+    db: db ?? createMockDb(),
     headers: new Headers(),
     activeOrganizationId: null,
   };

@@ -1,42 +1,15 @@
-import { NextResponse } from 'next/server';
 import { and, count as drizzleCount, desc, eq, isNull } from 'drizzle-orm';
 
 import { db } from '@/server/db';
 import { cmsPosts } from '@/server/db/schema';
 import { ContentStatus } from '@/engine/types/cms';
-import {
-  apiHeaders,
-  checkRateLimit,
-  validateApiKey,
-} from '@/engine/lib/api-auth';
+import { withApiRoute, parseApiPagination, paginatedApiResponse } from '@/engine/lib/api-route';
 
 export async function GET(request: Request) {
-  if (!(await validateApiKey(request))) {
-    return NextResponse.json(
-      { error: 'Invalid API key' },
-      { status: 401, headers: apiHeaders() }
-    );
-  }
-  if (!(await checkRateLimit(request))) {
-    return NextResponse.json(
-      { error: 'Rate limit exceeded' },
-      { status: 429, headers: apiHeaders() }
-    );
-  }
-
-  try {
-    const url = new URL(request.url);
-    const page = Math.max(
-      1,
-      parseInt(url.searchParams.get('page') ?? '1', 10)
-    );
-    const pageSize = Math.min(
-      100,
-      Math.max(1, parseInt(url.searchParams.get('pageSize') ?? '20', 10))
-    );
+  return withApiRoute(request, async (url) => {
+    const { page, pageSize, offset } = parseApiPagination(url);
     const lang = url.searchParams.get('lang') ?? undefined;
     const type = url.searchParams.get('type') ?? undefined;
-    const offset = (page - 1) * pageSize;
 
     const conditions = [
       eq(cmsPosts.status, ContentStatus.PUBLISHED),
@@ -72,23 +45,6 @@ export async function GET(request: Request) {
     ]);
 
     const total = countResult[0]?.count ?? 0;
-
-    return NextResponse.json(
-      {
-        data: posts,
-        meta: {
-          total,
-          page,
-          pageSize,
-          totalPages: Math.ceil(total / pageSize),
-        },
-      },
-      { headers: apiHeaders() }
-    );
-  } catch {
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500, headers: apiHeaders() }
-    );
-  }
+    return paginatedApiResponse(posts, { total, page, pageSize });
+  });
 }

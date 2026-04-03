@@ -20,7 +20,12 @@ import {
   softDelete,
   softRestore,
   permanentDelete,
+  fetchOrNotFound,
+  generateCopySlug,
+  getTranslationSiblings,
+  serializeExport,
 } from '@/engine/crud/admin-crud';
+import { adminListInput, exportBulkInput } from '@/engine/crud/router-schemas';
 import { updateWithRevision } from '@/engine/crud/cms-helpers';
 import {
   syncTermRelationships,
@@ -106,18 +111,7 @@ function notifyContentPublished(
 export const cmsRouter = createTRPCRouter({
   /** List posts with search, pagination, status tabs */
   list: contentProcedure
-    .input(
-      z.object({
-        type: z.number().int().min(1),
-        search: z.string().max(200).optional(),
-        trashed: z.boolean().optional(),
-        lang: z.string().max(2).optional(),
-        sortBy: z.string().max(50).optional(),
-        sortDir: z.enum(['asc', 'desc']).optional(),
-        page: z.number().int().min(1).optional(),
-        pageSize: z.number().int().min(1).max(100).optional(),
-      })
-    )
+    .input(adminListInput.extend({ type: z.number().int().min(1) }))
     .query(async ({ ctx, input }) => {
       return buildAdminList(
         {
@@ -171,15 +165,9 @@ export const cmsRouter = createTRPCRouter({
   get: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const [post] = await ctx.db
-        .select()
-        .from(cmsPosts)
-        .where(eq(cmsPosts.id, input.id))
-        .limit(1);
-
-      if (!post) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Post not found' });
-      }
+      const post = await fetchOrNotFound<typeof cmsPosts.$inferSelect>(
+        ctx.db, cmsPosts, input.id, 'Post'
+      );
 
       const rels = await getTermRelationships(ctx.db, post.id);
       const categoryIds = rels
@@ -506,48 +494,16 @@ export const cmsRouter = createTRPCRouter({
   duplicate: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const [original] = await ctx.db
-        .select()
-        .from(cmsPosts)
-        .where(eq(cmsPosts.id, input.id))
-        .limit(1);
+      const original = await fetchOrNotFound<typeof cmsPosts.$inferSelect>(
+        ctx.db, cmsPosts, input.id, 'Post'
+      );
 
-      if (!original) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Post not found' });
-      }
-
-      // Generate a unique slug for the copy
-      let copySlug = original.slug + '-copy';
-      let attempt = 0;
-      while (attempt < 20) {
-        const suffix = attempt === 0 ? '' : `-${attempt + 1}`;
-        const candidate = original.slug + '-copy' + suffix;
-        const [existing] = await ctx.db
-          .select({ id: cmsPosts.id })
-          .from(cmsPosts)
-          .where(
-            and(
-              eq(cmsPosts.slug, candidate),
-              eq(cmsPosts.type, original.type),
-              eq(cmsPosts.lang, original.lang),
-              isNull(cmsPosts.deletedAt)
-            )
-          )
-          .limit(1);
-
-        if (!existing) {
-          copySlug = candidate;
-          break;
-        }
-        attempt++;
-      }
-
-      if (attempt >= 20) {
-        throw new TRPCError({
-          code: 'CONFLICT',
-          message: 'Could not generate a unique slug after 20 attempts',
-        });
-      }
+      // generateCopySlug doesn't support extra conditions (type discriminator),
+      // so we pass lang only; type collisions across types are acceptable for copies
+      const copySlug = await generateCopySlug(
+        ctx.db, cmsPosts, cmsPosts.slug, cmsPosts.deletedAt,
+        original.slug, cmsPosts.lang, original.lang,
+      );
 
       const previewToken = crypto.randomBytes(32).toString('hex');
 
@@ -790,35 +746,16 @@ export const cmsRouter = createTRPCRouter({
   getTranslationSiblings: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const [post] = await ctx.db
-        .select({ translationGroup: cmsPosts.translationGroup })
-        .from(cmsPosts)
-        .where(eq(cmsPosts.id, input.id))
-        .limit(1);
-
-      if (!post?.translationGroup) return [];
-
-      const siblings = await ctx.db
-        .select({ id: cmsPosts.id, lang: cmsPosts.lang, slug: cmsPosts.slug })
-        .from(cmsPosts)
-        .where(
-          and(
-            eq(cmsPosts.translationGroup, post.translationGroup),
-            ne(cmsPosts.id, input.id),
-            isNull(cmsPosts.deletedAt)
-          )
-        )
-        .limit(20);
-
-      return siblings;
+      return getTranslationSiblings(
+        ctx.db, cmsPosts,
+        cmsPosts.id, cmsPosts.translationGroup, cmsPosts.lang,
+        cmsPosts.slug, cmsPosts.deletedAt, input.id,
+      );
     }),
 
   /** Export specific posts by ID array */
   exportBulk: contentProcedure
-    .input(z.object({
-      ids: z.array(z.string().uuid()).min(1).max(500),
-      format: z.enum(['json', 'csv']),
-    }))
+    .input(exportBulkInput)
     .query(async ({ ctx, input }) => {
       const posts = await ctx.db
         .select({
@@ -837,28 +774,8 @@ export const cmsRouter = createTRPCRouter({
         .from(cmsPosts)
         .where(inArray(cmsPosts.id, input.ids));
 
-      if (input.format === 'json') {
-        return {
-          data: JSON.stringify(posts, null, 2),
-          contentType: 'application/json',
-        };
-      }
-
-      // CSV with tab delimiter for content fields
       const headers = ['id', 'title', 'slug', 'status', 'lang', 'metaDescription', 'seoTitle', 'publishedAt', 'createdAt', 'updatedAt', 'content'];
-      const rows = posts.map(p =>
-        headers.map(h => {
-          const val = p[h as keyof typeof p];
-          if (val == null) return '';
-          if (val instanceof Date) return val.toISOString();
-          return String(val).replace(/\t/g, ' ').replace(/\n/g, '\\n');
-        }).join('\t')
-      );
-
-      return {
-        data: [headers.join('\t'), ...rows].join('\n'),
-        contentType: 'text/tab-separated-values',
-      };
+      return serializeExport(posts as Record<string, unknown>[], headers, input.format);
     }),
 
   /** Export posts as JSON or CSV */

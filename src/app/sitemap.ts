@@ -1,12 +1,13 @@
 import type { MetadataRoute } from 'next';
-import { and, eq, isNull, desc } from 'drizzle-orm';
+import { and, desc, eq, isNull } from 'drizzle-orm';
 
 import { siteConfig } from '@/config/site';
-import { db } from '@/server/db';
-import { cmsPosts, cmsCategories, cmsPortfolio, cmsTerms } from '@/server/db/schema';
-import { ContentStatus, PostType } from '@/engine/types/cms';
+import { CONTENT_TYPES } from '@/config/cms';
 import { LOCALES, DEFAULT_LOCALE } from '@/lib/constants';
 import type { Locale } from '@/lib/constants';
+import { PostType, ContentStatus } from '@/engine/types/cms';
+import { db } from '@/server/db';
+import { cmsPosts, cmsCategories, cmsPortfolio, cmsTerms } from '@/server/db/schema';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +25,83 @@ function buildAlternates(path: string): Record<string, string> {
   }
   return languages;
 }
+
+type SitemapEntry = { slug: string; updatedAt: Date | null | undefined };
+type SitemapFetcher = (locale: string) => Promise<SitemapEntry[]>;
+
+interface SitemapContentConfig {
+  contentTypeId: string;
+  priority: number;
+  changeFrequency: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
+  fetchEntries: SitemapFetcher;
+}
+
+/**
+ * Sitemap fetcher registry — maps content type IDs to their DB queries.
+ * Adding a new content type only requires adding an entry here.
+ */
+const SITEMAP_FETCHERS: SitemapContentConfig[] = [
+  {
+    contentTypeId: 'page',
+    priority: 0.7,
+    changeFrequency: 'weekly',
+    fetchEntries: (locale) =>
+      db
+        .select({ slug: cmsPosts.slug, updatedAt: cmsPosts.updatedAt })
+        .from(cmsPosts)
+        .where(and(eq(cmsPosts.type, PostType.PAGE), eq(cmsPosts.status, ContentStatus.PUBLISHED), eq(cmsPosts.lang, locale), isNull(cmsPosts.deletedAt)))
+        .orderBy(desc(cmsPosts.publishedAt))
+        .limit(1000),
+  },
+  {
+    contentTypeId: 'blog',
+    priority: 0.6,
+    changeFrequency: 'weekly',
+    fetchEntries: (locale) =>
+      db
+        .select({ slug: cmsPosts.slug, updatedAt: cmsPosts.updatedAt })
+        .from(cmsPosts)
+        .where(and(eq(cmsPosts.type, PostType.BLOG), eq(cmsPosts.status, ContentStatus.PUBLISHED), eq(cmsPosts.lang, locale), isNull(cmsPosts.deletedAt)))
+        .orderBy(desc(cmsPosts.publishedAt))
+        .limit(1000),
+  },
+  {
+    contentTypeId: 'category',
+    priority: 0.5,
+    changeFrequency: 'monthly',
+    fetchEntries: (locale) =>
+      db
+        .select({ slug: cmsCategories.slug, updatedAt: cmsCategories.updatedAt })
+        .from(cmsCategories)
+        .where(and(eq(cmsCategories.status, ContentStatus.PUBLISHED), eq(cmsCategories.lang, locale), isNull(cmsCategories.deletedAt)))
+        .orderBy(desc(cmsCategories.publishedAt))
+        .limit(500),
+  },
+  {
+    contentTypeId: 'tag',
+    priority: 0.4,
+    changeFrequency: 'monthly',
+    fetchEntries: (locale) =>
+      db
+        .select({ slug: cmsTerms.slug, updatedAt: cmsTerms.updatedAt })
+        .from(cmsTerms)
+        .where(and(eq(cmsTerms.taxonomyId, 'tag'), eq(cmsTerms.status, ContentStatus.PUBLISHED), eq(cmsTerms.lang, locale), isNull(cmsTerms.deletedAt)))
+        .orderBy(desc(cmsTerms.createdAt))
+        .limit(500),
+  },
+  {
+    contentTypeId: 'portfolio',
+    priority: 0.6,
+    changeFrequency: 'monthly',
+    fetchEntries: (locale) =>
+      db
+        .select({ slug: cmsPortfolio.slug, updatedAt: cmsPortfolio.updatedAt })
+        .from(cmsPortfolio)
+        .where(and(eq(cmsPortfolio.status, ContentStatus.PUBLISHED), eq(cmsPortfolio.lang, locale), isNull(cmsPortfolio.deletedAt)))
+        .orderBy(desc(cmsPortfolio.completedAt))
+        .limit(500),
+  },
+];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [];
@@ -63,141 +141,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     });
   }
 
-  // Published pages — per locale
-  for (const locale of LOCALES) {
-    const pages = await db
-      .select({ slug: cmsPosts.slug, updatedAt: cmsPosts.updatedAt })
-      .from(cmsPosts)
-      .where(
-        and(
-          eq(cmsPosts.type, PostType.PAGE),
-          eq(cmsPosts.status, ContentStatus.PUBLISHED),
-          eq(cmsPosts.lang, locale),
-          isNull(cmsPosts.deletedAt)
-        )
-      )
-      .orderBy(desc(cmsPosts.publishedAt))
-      .limit(1000);
+  // Dynamic content — driven by fetcher registry
+  for (const config of SITEMAP_FETCHERS) {
+    const ct = CONTENT_TYPES.find((c) => c.id === config.contentTypeId);
+    if (!ct) continue;
 
-    for (const page of pages) {
-      const path = `/${page.slug}`;
-      entries.push({
-        url: localeUrl(path, locale),
-        lastModified: page.updatedAt,
-        changeFrequency: 'weekly',
-        priority: 0.7,
-        alternates: { languages: buildAlternates(path) },
-      });
-    }
-  }
+    for (const locale of LOCALES) {
+      const dbEntries = await config.fetchEntries(locale);
 
-  // Published blog posts — per locale
-  for (const locale of LOCALES) {
-    const posts = await db
-      .select({ slug: cmsPosts.slug, updatedAt: cmsPosts.updatedAt })
-      .from(cmsPosts)
-      .where(
-        and(
-          eq(cmsPosts.type, PostType.BLOG),
-          eq(cmsPosts.status, ContentStatus.PUBLISHED),
-          eq(cmsPosts.lang, locale),
-          isNull(cmsPosts.deletedAt)
-        )
-      )
-      .orderBy(desc(cmsPosts.publishedAt))
-      .limit(1000);
+      for (const entry of dbEntries) {
+        const path = ct.urlPrefix === '/' ? `/${entry.slug}` : `${ct.urlPrefix}${entry.slug}`;
 
-    for (const post of posts) {
-      const path = `/blog/${post.slug}`;
-      entries.push({
-        url: localeUrl(path, locale),
-        lastModified: post.updatedAt,
-        changeFrequency: 'weekly',
-        priority: 0.6,
-        alternates: { languages: buildAlternates(path) },
-      });
-    }
-  }
-
-  // Published categories — per locale
-  for (const locale of LOCALES) {
-    const categories = await db
-      .select({ slug: cmsCategories.slug, updatedAt: cmsCategories.updatedAt })
-      .from(cmsCategories)
-      .where(
-        and(
-          eq(cmsCategories.status, ContentStatus.PUBLISHED),
-          eq(cmsCategories.lang, locale),
-          isNull(cmsCategories.deletedAt)
-        )
-      )
-      .orderBy(desc(cmsCategories.publishedAt))
-      .limit(500);
-
-    for (const cat of categories) {
-      const path = `/category/${cat.slug}`;
-      entries.push({
-        url: localeUrl(path, locale),
-        lastModified: cat.updatedAt,
-        changeFrequency: 'monthly',
-        priority: 0.5,
-        alternates: { languages: buildAlternates(path) },
-      });
-    }
-  }
-
-  // Published portfolio items — per locale
-  for (const locale of LOCALES) {
-    const portfolioItems = await db
-      .select({ slug: cmsPortfolio.slug, updatedAt: cmsPortfolio.updatedAt })
-      .from(cmsPortfolio)
-      .where(
-        and(
-          eq(cmsPortfolio.status, ContentStatus.PUBLISHED),
-          eq(cmsPortfolio.lang, locale),
-          isNull(cmsPortfolio.deletedAt)
-        )
-      )
-      .orderBy(desc(cmsPortfolio.completedAt))
-      .limit(500);
-
-    for (const item of portfolioItems) {
-      const path = `/portfolio/${item.slug}`;
-      entries.push({
-        url: localeUrl(path, locale),
-        lastModified: item.updatedAt,
-        changeFrequency: 'monthly',
-        priority: 0.6,
-        alternates: { languages: buildAlternates(path) },
-      });
-    }
-  }
-
-  // Published tags — per locale
-  for (const locale of LOCALES) {
-    const tags = await db
-      .select({ slug: cmsTerms.slug, updatedAt: cmsTerms.updatedAt })
-      .from(cmsTerms)
-      .where(
-        and(
-          eq(cmsTerms.taxonomyId, 'tag'),
-          eq(cmsTerms.status, ContentStatus.PUBLISHED),
-          eq(cmsTerms.lang, locale),
-          isNull(cmsTerms.deletedAt)
-        )
-      )
-      .orderBy(desc(cmsTerms.createdAt))
-      .limit(500);
-
-    for (const tag of tags) {
-      const path = `/tag/${tag.slug}`;
-      entries.push({
-        url: localeUrl(path, locale),
-        lastModified: tag.updatedAt ?? undefined,
-        changeFrequency: 'monthly',
-        priority: 0.4,
-        alternates: { languages: buildAlternates(path) },
-      });
+        entries.push({
+          url: localeUrl(path, locale),
+          lastModified: entry.updatedAt ?? undefined,
+          changeFrequency: config.changeFrequency,
+          priority: config.priority,
+          alternates: { languages: buildAlternates(path) },
+        });
+      }
     }
   }
 

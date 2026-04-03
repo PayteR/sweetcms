@@ -66,3 +66,20 @@ export function useCmsFormState<T extends Record<string, unknown>>(
     handleSaveError,
   };
 }
+
+/**
+ * Type-narrows recovered autosave data to the form's data shape.
+ * Eliminates the per-form `as string` / `as number` cast boilerplate in handleRestore callbacks.
+ */
+export function narrowRecoveredData<T extends Record<string, unknown>>(
+  recovered: Record<string, unknown>,
+  defaults: T,
+): T {
+  const result = { ...defaults };
+  for (const key of Object.keys(defaults)) {
+    if (key in recovered) {
+      (result as Record<string, unknown>)[key] = recovered[key];
+    }
+  }
+  return result;
+}

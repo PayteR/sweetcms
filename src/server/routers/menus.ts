@@ -3,7 +3,7 @@ import { and, asc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { cmsMenus, cmsMenuItems } from '@/server/db/schema';
-import { ensureSlugUnique } from '@/engine/crud/admin-crud';
+import { ensureSlugUnique, fetchOrNotFound } from '@/engine/crud/admin-crud';
 import { logAudit } from '@/engine/lib/audit';
 import {
   createTRPCRouter,
@@ -27,16 +27,7 @@ export const menusRouter = createTRPCRouter({
   get: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const [menu] = await ctx.db
-        .select()
-        .from(cmsMenus)
-        .where(eq(cmsMenus.id, input.id))
-        .limit(1);
-
-      if (!menu) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Menu not found' });
-      }
-      return menu;
+      return fetchOrNotFound<typeof cmsMenus.$inferSelect>(ctx.db, cmsMenus, input.id, 'Menu');
     }),
 
   /** Create a menu */

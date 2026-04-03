@@ -44,32 +44,11 @@ import { asMock } from '@/test-utils';
 import { authRouter } from '../auth';
 import { auth } from '@/lib/auth';
 import { anonymizeUser } from '@/engine/lib/gdpr';
+import { createMockDb } from './test-helpers';
 
-function createMockDb() {
-  const selectLimitMock = vi.fn().mockResolvedValue([]);
-  const selectWhereMock = vi.fn().mockReturnValue({ limit: selectLimitMock });
-  const selectFromMock = vi.fn().mockReturnValue({ where: selectWhereMock });
-  const selectMock = vi.fn().mockReturnValue({ from: selectFromMock });
-
-  const updateWhereMock = vi.fn().mockResolvedValue(undefined);
-  const updateSetMock = vi.fn().mockReturnValue({ where: updateWhereMock });
-  const updateMock = vi.fn().mockReturnValue({ set: updateSetMock });
-
-  const deleteWhereMock = vi.fn().mockResolvedValue(undefined);
-  const deleteMock = vi.fn().mockReturnValue({ where: deleteWhereMock });
-
-  return {
-    select: selectMock,
-    update: updateMock,
-    delete: deleteMock,
-    _chains: {
-      select: { from: selectFromMock, where: selectWhereMock, limit: selectLimitMock },
-      update: { set: updateSetMock, where: updateWhereMock },
-      delete: { where: deleteWhereMock },
-    },
-  };
-}
-
+// Auth tests use role:'user' and email:'test@test.com' — differs from the
+// shared createMockCtx default (editor/editor@test.com). Keep a local version
+// that preserves the auth-specific session shape.
 function createMockCtx(overrides: Record<string, unknown> = {}) {
   return {
     session: {

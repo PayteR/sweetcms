@@ -243,6 +243,15 @@ Always use these instead of manual alternatives:
 - **Audit logging** (`src/engine/lib/audit.ts`): Use `logAudit()` — fire-and-forget, logs errors via logger
 - **Webhooks** (`src/engine/lib/webhooks.ts`): Use `dispatchWebhook()` — fire-and-forget, logs delivery failures via logger
 - **API auth** (`src/engine/lib/api-auth.ts`): Use `validateApiKey()`, `await checkRateLimit()`, `apiHeaders()` for REST API v1 endpoints (note: `checkRateLimit` is now async/Redis-backed)
+- **API route wrapper** (`src/engine/lib/api-route.ts`): Use `withApiRoute(request, handler)` for v1 REST routes — wraps auth + rate-limit + try/catch. Also: `parseApiPagination(url)`, `paginatedApiResponse(data, meta)`
+- **Fetch or 404** (`src/engine/crud/admin-crud.ts`): Use `fetchOrNotFound(db, table, id, entityName)` — select + throw NOT_FOUND. Never inline this pattern
+- **Copy slug** (`src/engine/crud/admin-crud.ts`): Use `generateCopySlug()` for duplicate operations — never inline the 20-attempt loop
+- **Status update** (`src/engine/crud/admin-crud.ts`): Use `updateContentStatus()` — handles auto-publishedAt logic. Never inline
+- **Translation siblings** (`src/engine/crud/admin-crud.ts`): Use `getTranslationSiblings()` — never inline the translationGroup lookup
+- **Bulk export** (`src/engine/crud/admin-crud.ts`): Use `serializeExport(items, headers, format)` for JSON/TSV export
+- **Router Zod schemas** (`src/engine/crud/router-schemas.ts`): Use `adminListInput`, `updateStatusInput`, `duplicateAsTranslationInput`, `exportBulkInput` — never inline these Zod shapes
+- **Slug auto-generation** (`src/engine/hooks/useSlugAutoGenerate.ts`): Use `useSlugAutoGenerate(source, isNew, slugManual, setSlug)` in all form components
+- **Autosave recovery** (`src/engine/hooks/useCmsFormState.ts`): Use `narrowRecoveredData(recovered, defaults)` — never manually cast recovered fields
 - **Slug redirects** (`src/engine/crud/slug-redirects.ts`): Use `resolveSlugRedirect()` to resolve old slugs to current slugs
 - **GDPR** (`src/engine/lib/gdpr.ts`): Use `anonymizeUser()` for user data deletion
 - **Markdown** (`src/engine/lib/markdown.ts`): Use `htmlToMarkdown()` / `markdownToHtml()` — preserve shortcodes through placeholder strategies
@@ -357,7 +366,9 @@ Use `cn()` from `@/lib/utils` for conditional classes — never template literal
 
 `src/app/(public)/[...slug]/` — handles ALL CMS content. Split into focused modules:
 
-- `page.tsx` — thin orchestrator: resolves slug, delegates to renderers, generates metadata
+- `page.tsx` — thin orchestrator: resolves slug, looks up renderer from registry, generates metadata
+- `renderer-registry.ts` — `registerContentRenderer(id, config)` / `getContentRenderer(id)`. Open-closed: adding a content type = registering here, no if/else
+- `register-renderers.tsx` — side-effect module that registers all content type renderers (page, blog, tag, portfolio, category)
 - `resolve.ts` — pure routing helpers: `resolveSlug()`, `buildAlternates()`
 - `queries.ts` — shared DB queries: `getAncestors()`, translation sibling lookups
 - `renderers/PostDetail.tsx` — page + blog post rendering (parallel: tags, related, ancestors)

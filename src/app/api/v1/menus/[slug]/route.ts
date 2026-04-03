@@ -1,13 +1,10 @@
-import { NextResponse } from 'next/server';
 import { asc, eq } from 'drizzle-orm';
+import { NextResponse } from 'next/server';
 
 import { db } from '@/server/db';
 import { cmsMenuItems, cmsMenus } from '@/server/db/schema';
-import {
-  apiHeaders,
-  checkRateLimit,
-  validateApiKey,
-} from '@/engine/lib/api-auth';
+import { withApiRoute } from '@/engine/lib/api-route';
+import { apiHeaders } from '@/engine/lib/api-auth';
 
 interface RouteParams {
   params: Promise<{ slug: string }>;
@@ -38,20 +35,7 @@ function buildTree(
 }
 
 export async function GET(request: Request, { params }: RouteParams) {
-  if (!(await validateApiKey(request))) {
-    return NextResponse.json(
-      { error: 'Invalid API key' },
-      { status: 401, headers: apiHeaders() }
-    );
-  }
-  if (!(await checkRateLimit(request))) {
-    return NextResponse.json(
-      { error: 'Rate limit exceeded' },
-      { status: 429, headers: apiHeaders() }
-    );
-  }
-
-  try {
+  return withApiRoute(request, async (_url) => {
     const { slug } = await params;
 
     const [menu] = await db
@@ -67,7 +51,7 @@ export async function GET(request: Request, { params }: RouteParams) {
     if (!menu) {
       return NextResponse.json(
         { error: 'Not found' },
-        { status: 404, headers: apiHeaders() }
+        { status: 404, headers: apiHeaders() },
       );
     }
 
@@ -86,19 +70,11 @@ export async function GET(request: Request, { params }: RouteParams) {
       .where(eq(cmsMenuItems.menuId, menu.id))
       .orderBy(asc(cmsMenuItems.order));
 
-    return NextResponse.json(
-      {
-        data: {
-          ...menu,
-          items: buildTree(items),
-        },
+    return {
+      data: {
+        ...menu,
+        items: buildTree(items),
       },
-      { headers: apiHeaders() }
-    );
-  } catch {
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500, headers: apiHeaders() }
-    );
-  }
+    };
+  });
 }

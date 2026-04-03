@@ -7,14 +7,14 @@ import { ArrowLeft, Save, Loader2, X } from 'lucide-react';
 import { getContentType } from '@/config/cms';
 import { adminPanel } from '@/config/routes';
 import { trpc } from '@/lib/trpc/client';
-import { slugify } from '@/engine/lib/slug';
 import { useBlankTranslations } from '@/lib/translations';
 import { useSession } from '@/lib/auth-client';
 import { ContentStatus } from '@/engine/types/cms';
 import { toast } from '@/store/toast-store';
 import { DEFAULT_LOCALE, LOCALES, LOCALE_LABELS } from '@/lib/constants';
 import { convertUTCToLocal, convertLocalToUTC } from '@/engine/lib/datetime';
-import { useCmsFormState } from '@/engine/hooks/useCmsFormState';
+import { useCmsFormState, narrowRecoveredData } from '@/engine/hooks/useCmsFormState';
+import { useSlugAutoGenerate } from '@/engine/hooks/useSlugAutoGenerate';
 import { useLinkPicker } from '@/engine/hooks/useLinkPicker';
 import { useLinkValidation } from '@/engine/hooks/useLinkValidation';
 import { useCmsAutosave } from '@/engine/hooks/useCmsAutosave';
@@ -132,12 +132,10 @@ export function PortfolioForm({ portfolioId }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item]);
 
-  useEffect(() => {
-    if (!slugManual && isNew) {
-      handleChange('slug', slugify(formData.name));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.name, slugManual, isNew]);
+  // Auto-generate slug from name (new portfolio items only)
+  useSlugAutoGenerate(formData.name, isNew, slugManual, (s) =>
+    setFormData((prev) => ({ ...prev, slug: s }))
+  );
 
   useEffect(() => {
     if (isNew && !titleManual) {
@@ -217,30 +215,10 @@ export function PortfolioForm({ portfolioId }: Props) {
 
   const handleRestore = useCallback(() => {
     if (!recoveredData) return;
-    const d = recoveredData.formData;
-    setFormData({
-      name: d.name as string,
-      slug: d.slug as string,
-      title: d.title as string,
-      text: d.text as string,
-      status: d.status as number,
-      lang: d.lang as string,
-      metaDescription: d.metaDescription as string,
-      seoTitle: d.seoTitle as string,
-      noindex: d.noindex as boolean,
-      publishedAt: d.publishedAt as string,
-      tagIds: d.tagIds as string[],
-      fallbackToDefault: d.fallbackToDefault as boolean | null,
-      featuredImage: d.featuredImage as string,
-      featuredImageAlt: d.featuredImageAlt as string,
-      clientName: d.clientName as string,
-      projectUrl: d.projectUrl as string,
-      techStack: d.techStack as string[],
-      completedAt: d.completedAt as string,
-    });
+    setFormData(narrowRecoveredData(recoveredData.formData, initialFormData));
     setSlugManual(true);
     acceptRecovery();
-  }, [recoveredData, acceptRecovery, setFormData]);
+  }, [recoveredData, acceptRecovery, setFormData, initialFormData]);
 
   function addTechItem(value: string) {
     const trimmed = value.trim();

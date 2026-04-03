@@ -3,6 +3,8 @@ export {
   softDelete, softRestore, permanentDelete,
   buildAdminList, buildStatusCounts, ensureSlugUnique,
   parsePagination, paginatedResult,
+  fetchOrNotFound, generateCopySlug, updateContentStatus,
+  getTranslationSiblings, serializeExport,
 } from './admin-crud';
 export type { CrudColumns, AdminListInput, AdminListCols, StatusCountCols } from './admin-crud';
 export { updateWithRevision, batchGroupLangs, findTranslations } from './cms-helpers';
@@ -16,3 +18,4 @@ export { createRevision, getRevisions, pickSnapshot } from './content-revisions'
 export { resolveSlugRedirect } from './slug-redirects';
 export { wordSplitLike, getAffectedRows } from './drizzle-utils';
 export { getCodedRouteSEO } from './page-seo';
+export { adminListInput, updateStatusInput, duplicateAsTranslationInput, exportBulkInput } from './router-schemas';

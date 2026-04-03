@@ -1,18 +1,31 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
-import Link from 'next/link';
 
 import { adminPanel } from '@/config/routes';
 import { trpc } from '@/lib/trpc/client';
-import { slugify } from '@/engine/lib/slug';
 import { useBlankTranslations } from '@/lib/translations';
 import { useSession } from '@/lib/auth-client';
 import { ContentStatus } from '@/engine/types/cms';
 import { toast } from '@/store/toast-store';
 import { DEFAULT_LOCALE, LOCALES, LOCALE_LABELS } from '@/lib/constants';
+import { useCmsFormState, narrowRecoveredData } from '@/engine/hooks/useCmsFormState';
+import { useSlugAutoGenerate } from '@/engine/hooks/useSlugAutoGenerate';
+import { useCmsAutosave } from '@/engine/hooks/useCmsAutosave';
+import { useKeyboardShortcuts } from '@/engine/hooks/useKeyboardShortcuts';
+import AutosaveIndicator from '@/engine/components/AutosaveIndicator';
+import AutosaveRecoveryBanner from '@/engine/components/AutosaveRecoveryBanner';
+import CmsFormShell from '@/engine/components/CmsFormShell';
+
+interface TermFormData extends Record<string, unknown> {
+  name: string;
+  slug: string;
+  status: number;
+  lang: string;
+  order: number;
+}
 
 interface Props {
   tagId?: string;
@@ -25,75 +38,135 @@ export function TermForm({ tagId }: Props) {
   const { data: session } = useSession();
   const isNew = !tagId;
 
-  const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
   const [slugManual, setSlugManual] = useState(false);
-  const [status, setStatus] = useState<number>(ContentStatus.PUBLISHED);
-  const [lang, setLang] = useState(DEFAULT_LOCALE);
-  const [order, setOrder] = useState(0);
 
   const existingTag = trpc.tags.get.useQuery(
     { id: tagId! },
     { enabled: !!tagId && !!session }
   );
 
-  useEffect(() => {
-    if (existingTag.data) {
-      const t = existingTag.data;
-      setName(t.name);
-      setSlug(t.slug);
-      setSlugManual(true);
-      setStatus(t.status);
-      setLang(t.lang);
-      setOrder(t.order);
-    }
-  }, [existingTag.data]);
+  const tag = existingTag.data;
 
-  useEffect(() => {
-    if (!slugManual && isNew) {
-      setSlug(slugify(name));
+  const initialFormData: TermFormData = useMemo(() => {
+    if (!tag) {
+      return {
+        name: '',
+        slug: '',
+        status: ContentStatus.PUBLISHED,
+        lang: DEFAULT_LOCALE,
+        order: 0,
+      };
     }
-  }, [name, slugManual, isNew]);
+    return {
+      name: tag.name,
+      slug: tag.slug,
+      status: tag.status,
+      lang: tag.lang,
+      order: tag.order,
+    };
+  }, [tag]);
+
+  const {
+    formData, setFormData,
+    handleChange, handleSaveError,
+  } = useCmsFormState<TermFormData>(initialFormData, 'info');
+
+  // Sync form data when tag loads
+  useEffect(() => {
+    if (tag) {
+      setFormData(initialFormData);
+      setSlugManual(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tag]);
+
+  // Auto-generate slug from name (new tags only)
+  useSlugAutoGenerate(formData.name, isNew, slugManual, (s) =>
+    setFormData((prev) => ({ ...prev, slug: s }))
+  );
 
   const createTag = trpc.tags.create.useMutation({
     onSuccess: (data) => {
+      clearAutosave(formData);
       toast.success(__('Tag created'));
       utils.tags.list.invalidate();
       utils.tags.counts.invalidate();
       router.push(adminPanel.cmsItem('tags', data.id));
     },
-    onError: (err) => toast.error(err.message),
+    onError: (err) => handleSaveError(err, 'Failed to create tag'),
   });
 
   const updateTag = trpc.tags.update.useMutation({
     onSuccess: () => {
+      clearAutosave(formData);
       toast.success(__('Tag updated'));
       utils.tags.list.invalidate();
       existingTag.refetch();
     },
-    onError: (err) => toast.error(err.message),
+    onError: (err) => handleSaveError(err, 'Failed to update tag'),
   });
 
   const isSaving = createTag.isPending || updateTag.isPending;
+
+  const {
+    isDirty,
+    recoveredData,
+    acceptRecovery,
+    dismissRecovery,
+    lastAutosaveAt,
+    clearAutosave,
+  } = useCmsAutosave({
+    contentTypeId: 'tag',
+    contentId: tagId ?? null,
+    formData,
+    initialData: initialFormData,
+    dbUpdatedAt: existingTag.data?.updatedAt ?? null,
+    saving: isSaving,
+    loading: !!tagId && existingTag.isLoading,
+  });
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts(
+    useMemo(
+      () => [
+        {
+          key: 's',
+          ctrl: true,
+          handler: () => {
+            const form = document.getElementById('term-form') as HTMLFormElement;
+            form?.requestSubmit();
+          },
+        },
+      ],
+      []
+    )
+  );
+
+  const handleRestore = useCallback(() => {
+    if (!recoveredData) return;
+    setFormData(narrowRecoveredData(recoveredData.formData, initialFormData));
+    setSlugManual(true);
+    acceptRecovery();
+  }, [recoveredData, acceptRecovery, setFormData, initialFormData]);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     if (isNew) {
       createTag.mutate({
-        name,
-        slug,
-        lang,
-        status,
-        order,
+        name: formData.name,
+        slug: formData.slug,
+        lang: formData.lang,
+        status: formData.status,
+        order: formData.order,
       });
     } else {
       updateTag.mutate({
         id: tagId!,
-        name,
-        slug,
-        status,
-        order,
+        name: formData.name,
+        slug: formData.slug,
+        status: formData.status,
+        order: formData.order,
       });
     }
   }
@@ -106,24 +179,29 @@ export function TermForm({ tagId }: Props) {
     );
   }
 
-  return (
-    <div className="term-form-page">
-      <div className="term-form-header flex items-center justify-between">
-        <div className="term-form-header-left flex items-center gap-3">
-          <Link
-            href={adminPanel.cms('tags')}
-            className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <h1 className="text-2xl font-bold text-(--text-primary)">
-            {isNew ? __('New Tag') : __('Edit Tag')}
-          </h1>
-        </div>
+  const toolbar = (
+    <>
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => {
+            if (window.history.length > 1) router.back();
+            else router.push(adminPanel.cms('tags'));
+          }}
+          className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </button>
+        <h1 className="text-2xl font-bold text-(--text-primary)">
+          {isNew ? __('New Tag') : __('Edit Tag')}
+        </h1>
+      </div>
+      <div className="flex items-center gap-2">
+        <AutosaveIndicator lastAutosaveAt={lastAutosaveAt} isDirty={isDirty} />
         <button
           type="submit"
           form="term-form"
-          disabled={isSaving || !name}
+          disabled={isSaving || !formData.name}
           className="btn btn-primary disabled:opacity-50"
         >
           {isSaving ? (
@@ -134,8 +212,20 @@ export function TermForm({ tagId }: Props) {
           {__('Save')}
         </button>
       </div>
+    </>
+  );
 
-      <form id="term-form" onSubmit={handleSubmit} className="mt-6">
+  return (
+    <CmsFormShell toolbar={toolbar}>
+      {recoveredData && (
+        <AutosaveRecoveryBanner
+          savedAt={recoveredData.savedAt}
+          onRestore={handleRestore}
+          onDismiss={dismissRecovery}
+        />
+      )}
+
+      <form id="term-form" onSubmit={handleSubmit}>
         <div className="term-form-layout grid grid-cols-1 gap-6 lg:grid-cols-3">
           <div className="term-form-main space-y-6 lg:col-span-2">
             <div className="card p-6">
@@ -147,8 +237,8 @@ export function TermForm({ tagId }: Props) {
                   <input
                     type="text"
                     required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    value={formData.name}
+                    onChange={(e) => handleChange('name', e.target.value)}
                     className="input mt-1"
                     placeholder={__('Tag name')}
                   />
@@ -160,9 +250,9 @@ export function TermForm({ tagId }: Props) {
                   <input
                     type="text"
                     required
-                    value={slug}
+                    value={formData.slug}
                     onChange={(e) => {
-                      setSlug(e.target.value);
+                      handleChange('slug', e.target.value);
                       setSlugManual(true);
                     }}
                     className="input mt-1 font-mono"
@@ -179,8 +269,8 @@ export function TermForm({ tagId }: Props) {
               <div className="mt-4 space-y-4">
                 <div>
                   <select
-                    value={status}
-                    onChange={(e) => setStatus(Number(e.target.value))}
+                    value={formData.status}
+                    onChange={(e) => handleChange('status', Number(e.target.value))}
                     className="select w-full"
                   >
                     <option value={ContentStatus.DRAFT}>{__('Draft')}</option>
@@ -195,8 +285,8 @@ export function TermForm({ tagId }: Props) {
                   </label>
                   <input
                     type="number"
-                    value={order}
-                    onChange={(e) => setOrder(Number(e.target.value))}
+                    value={formData.order}
+                    onChange={(e) => handleChange('order', Number(e.target.value))}
                     className="input mt-1"
                   />
                 </div>
@@ -205,9 +295,9 @@ export function TermForm({ tagId }: Props) {
                     {__('Language')}
                   </label>
                   <select
-                    value={lang}
+                    value={formData.lang}
                     disabled={!isNew}
-                    onChange={(e) => setLang(e.target.value)}
+                    onChange={(e) => handleChange('lang', e.target.value)}
                     className="select mt-1 w-full disabled:bg-(--surface-secondary)"
                   >
                     {LOCALES.map((l) => (
@@ -220,6 +310,6 @@ export function TermForm({ tagId }: Props) {
           </div>
         </div>
       </form>
-    </div>
+    </CmsFormShell>
   );
 }

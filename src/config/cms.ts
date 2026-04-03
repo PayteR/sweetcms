@@ -13,8 +13,8 @@ import {
  * 1. Add a config entry here
  * 2. For post-backed types: auto-registered. For others: call registerContentResolver()
  * 3. Add list/detail templates in [...slug]/_templates/
- * 4. Register renderers in [...slug]/registry.tsx
- * 5. Add sitemap route using createCmsSitemapHandler()
+ * 4. Register renderers in [...slug]/register-renderers.tsx
+ * 5. Add sitemapConfig.fetchEntries to include in the sitemap
  */
 
 export type { ContentTypeDeclaration };
