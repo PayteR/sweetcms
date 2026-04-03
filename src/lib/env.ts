@@ -1,6 +1,8 @@
+import 'server-only';
 import { z } from 'zod';
+import { clientEnvSchema } from './env-schema';
 
-const envSchema = z.object({
+const serverEnvSchema = z.object({
   // Database
   DATABASE_URL: z.url(),
 
@@ -37,25 +39,15 @@ const envSchema = z.object({
   S3_BUCKET: z.string().optional(),
   S3_ACCESS_KEY_ID: z.string().optional(),
   S3_SECRET_ACCESS_KEY: z.string().optional(),
-  NEXT_PUBLIC_CDN_URL: z.url().optional().or(z.literal('')),
 
   // Application
   NODE_ENV: z
     .enum(['development', 'production', 'test'])
     .default('development'),
-  NEXT_PUBLIC_APP_URL: z.url(),
-  NEXT_PUBLIC_SITE_NAME: z.string().min(1).default('SweetCMS'),
-
-  // Admin registration
-  NEXT_PUBLIC_ADMIN_REGISTRATION_ENABLED: z.coerce.boolean().default(false),
-
-  // Customer registration
-  NEXT_PUBLIC_REGISTRATION_ENABLED: z.coerce.boolean().default(true),
 
   // Stripe (optional — billing disabled without STRIPE_SECRET_KEY)
   STRIPE_SECRET_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
-  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
 
   // Stripe price IDs (optional — required per-plan when Stripe billing is enabled)
   STRIPE_PRICE_STARTER_MONTHLY: z.string().optional(),
@@ -64,10 +56,6 @@ const envSchema = z.object({
   STRIPE_PRICE_PRO_YEARLY: z.string().optional(),
   STRIPE_PRICE_ENTERPRISE_MONTHLY: z.string().optional(),
   STRIPE_PRICE_ENTERPRISE_YEARLY: z.string().optional(),
-
-  // Social login (public — optional, buttons hidden when absent)
-  NEXT_PUBLIC_GOOGLE_CLIENT_ID: z.string().optional(),
-  NEXT_PUBLIC_DISCORD_CLIENT_ID: z.string().optional(),
 
   // NOWPayments (optional — crypto payments disabled without API key)
   NOWPAYMENTS_API_KEY: z.string().optional(),
@@ -80,8 +68,9 @@ const envSchema = z.object({
 
   // WebSocket
   WS_ENABLED: z.coerce.boolean().default(true),
-
 });
+
+const envSchema = serverEnvSchema.merge(clientEnvSchema);
 
 // Validate and export
 const parsedEnv = envSchema.safeParse(process.env);

@@ -1,5 +1,5 @@
+import 'server-only';
 import type { PlanDefinition } from '@/engine/types/billing';
-import { env } from '@/lib/env';
 
 /**
  * Extended plan definition with display-layer fields used to derive pricing.ts.
@@ -35,8 +35,8 @@ export const PLANS: ExtendedPlanDefinition[] = [
     description: 'For small teams getting started',
     providerPrices: {
       stripe: {
-        monthly: env.STRIPE_PRICE_STARTER_MONTHLY ?? '',
-        yearly: env.STRIPE_PRICE_STARTER_YEARLY ?? '',
+        monthly: process.env.STRIPE_PRICE_STARTER_MONTHLY ?? '',
+        yearly: process.env.STRIPE_PRICE_STARTER_YEARLY ?? '',
       },
       // NOWPayments uses plan.priceYearly directly — no provider-specific price IDs
       nowpayments: { yearly: '' },
@@ -60,8 +60,8 @@ export const PLANS: ExtendedPlanDefinition[] = [
     description: 'For growing teams that need more',
     providerPrices: {
       stripe: {
-        monthly: env.STRIPE_PRICE_PRO_MONTHLY ?? '',
-        yearly: env.STRIPE_PRICE_PRO_YEARLY ?? '',
+        monthly: process.env.STRIPE_PRICE_PRO_MONTHLY ?? '',
+        yearly: process.env.STRIPE_PRICE_PRO_YEARLY ?? '',
       },
       nowpayments: { yearly: '' },
     },
@@ -92,8 +92,8 @@ export const PLANS: ExtendedPlanDefinition[] = [
     description: 'For large teams with advanced needs',
     providerPrices: {
       stripe: {
-        monthly: env.STRIPE_PRICE_ENTERPRISE_MONTHLY ?? '',
-        yearly: env.STRIPE_PRICE_ENTERPRISE_YEARLY ?? '',
+        monthly: process.env.STRIPE_PRICE_ENTERPRISE_MONTHLY ?? '',
+        yearly: process.env.STRIPE_PRICE_ENTERPRISE_YEARLY ?? '',
       },
       nowpayments: { yearly: '' },
     },
