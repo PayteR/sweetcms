@@ -54,6 +54,12 @@ vi.mock('@/engine/crud/admin-crud', () => ({
   softDelete: vi.fn().mockResolvedValue(undefined),
   softRestore: vi.fn().mockResolvedValue(undefined),
   permanentDelete: vi.fn().mockResolvedValue(undefined),
+  fetchOrNotFound: vi.fn(),
+  updateContentStatus: vi.fn().mockResolvedValue(undefined),
+  generateCopySlug: vi.fn().mockResolvedValue('slug-copy'),
+  getTranslationSiblings: vi.fn().mockResolvedValue([]),
+  serializeExport: vi.fn().mockReturnValue({ data: '[]', contentType: 'application/json' }),
+  prepareTranslationCopy: vi.fn().mockResolvedValue({ slug: 'slug-en', translationGroup: 'group-1', previewToken: 'tok' }),
   parsePagination: vi.fn().mockImplementation((input: { page?: number; pageSize?: number }) => {
     const page = input.page ?? 1;
     const pageSize = input.pageSize ?? 100;

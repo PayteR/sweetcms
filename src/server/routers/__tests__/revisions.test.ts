@@ -35,6 +35,25 @@ vi.mock('@/engine/policy', () => ({
   },
 }));
 
+vi.mock('@/engine/crud/admin-crud', () => ({
+  buildAdminList: vi.fn().mockResolvedValue({ results: [], total: 0, page: 1, pageSize: 20, totalPages: 0 }),
+  buildStatusCounts: vi.fn().mockResolvedValue({ all: 0, published: 0, draft: 0, scheduled: 0, trashed: 0 }),
+  parsePagination: vi.fn().mockReturnValue({ page: 1, pageSize: 20, offset: 0 }),
+  paginatedResult: vi.fn().mockImplementation((items: unknown[], total: number, page: number, pageSize: number) => ({
+    results: items, total, page, pageSize, totalPages: Math.ceil(total / pageSize),
+  })),
+  ensureSlugUnique: vi.fn().mockResolvedValue(undefined),
+  fetchOrNotFound: vi.fn(),
+  softDelete: vi.fn().mockResolvedValue(undefined),
+  softRestore: vi.fn().mockResolvedValue(undefined),
+  permanentDelete: vi.fn().mockResolvedValue(undefined),
+  generateCopySlug: vi.fn().mockResolvedValue('slug-copy'),
+  updateContentStatus: vi.fn().mockResolvedValue(undefined),
+  getTranslationSiblings: vi.fn().mockResolvedValue([]),
+  serializeExport: vi.fn().mockReturnValue({ data: '[]', contentType: 'application/json' }),
+  prepareTranslationCopy: vi.fn().mockReturnValue({}),
+}));
+
 vi.mock('@/engine/crud/content-revisions', () => ({
   getRevisions: vi.fn().mockResolvedValue([]),
 }));
@@ -85,8 +104,8 @@ import { createMockCtx } from './test-helpers';
 // Fixtures
 // ---------------------------------------------------------------------------
 
-const REVISION_ID = 'r1r1r1r1-0000-4000-a000-000000000001';
-const CONTENT_ID = 'c0c0c0c0-1111-4222-b333-444444444444';
+const REVISION_ID = 'a1b2c3d4-e5f6-4a7b-8c9d-e0f1a2b3c4d5';
+const CONTENT_ID = 'f1e2d3c4-b5a6-4978-8b9c-a0d1e2f3a4b5';
 
 const MOCK_POST_REVISION = {
   id: REVISION_ID,
@@ -111,7 +130,7 @@ const MOCK_POST_REVISION = {
 };
 
 const MOCK_CATEGORY_REVISION = {
-  id: 'r2r2r2r2-0000-4000-a000-000000000002',
+  id: 'b2c3d4e5-f6a7-4b8c-9d0e-f1a2b3c4d5e6',
   contentType: 'category',
   contentId: CONTENT_ID,
   snapshot: {
@@ -146,7 +165,7 @@ describe('revisionsRouter', () => {
   // =========================================================================
   describe('list', () => {
     it('returns revisions for a content item', async () => {
-      const revisions = [MOCK_POST_REVISION, { ...MOCK_POST_REVISION, id: 'r1r1r1r1-0000-4000-a000-000000000002' }];
+      const revisions = [MOCK_POST_REVISION, { ...MOCK_POST_REVISION, id: 'c3d4e5f6-a7b8-4c9d-ae0f-1a2b3c4d5e6f' }];
       asMock(getRevisions).mockResolvedValue(revisions);
 
       const ctx = createMockCtx();
