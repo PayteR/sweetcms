@@ -15,7 +15,7 @@ import {
 import type { PgColumn, PgTable } from 'drizzle-orm/pg-core';
 
 import type { DbClient, DrizzleDB, DrizzleDBOrTx } from '@/server/db';
-import { getAffectedRows, wordSplitLike } from '@/server/db/drizzle-utils';
+import { getAffectedRows, wordSplitLike } from './drizzle-utils';
 import { cmsContentRevisions, cmsSlugRedirects } from '@/server/db/schema';
 import { ContentStatus } from '@/engine/types/cms';
 

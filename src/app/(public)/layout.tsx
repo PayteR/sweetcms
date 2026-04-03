@@ -1,6 +1,7 @@
 import '@/engine/styles/tokens-public.css';
 import '@/engine/styles/content.css';
 
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { Rss, Search } from 'lucide-react';
 
@@ -93,7 +94,9 @@ export default async function PublicLayout({
 
   return (
     <>
-      <RefCookieCapture />
+      <Suspense fallback={null}>
+        <RefCookieCapture />
+      </Suspense>
       <link
         rel="alternate"
         type="application/rss+xml"

@@ -77,7 +77,7 @@ async function main() {
     const { getRedis } = await import('./src/engine/lib/redis');
     const redis = getRedis();
     if (redis) {
-      const { createQueue, createWorker } = await import('./src/server/jobs/queue');
+      const { createQueue, createWorker } = await import('./src/engine/lib/queue');
       const dunningQueue = createQueue('dunning');
       if (dunningQueue) {
         await dunningQueue.add('check', {}, {
@@ -90,18 +90,32 @@ async function main() {
         console.log('Dunning worker ready (daily at 8 AM)');
       }
     } else {
-      const { startDbQueueWorker } = await import('./src/server/jobs/db-queue');
-      const { enqueueTask } = await import('./src/server/jobs/db-queue');
-      await enqueueTask('dunning', { action: 'check' });
+      const { startDbQueueWorker, enqueueTask } = await import('./src/server/jobs/db-queue');
+
+      // Seed initial dunning task (idempotent — pollAndProcess skips if one is already pending)
+      await enqueueTask('dunning', { action: 'check' }).catch(() => {});
+
       startDbQueueWorker('dunning', async () => {
         const { runDunningChecks } = await import('./src/server/lib/payment/dunning');
         await runDunningChecks();
-        // Re-enqueue for next day
-        await enqueueTask('dunning', { action: 'check' }, {
-          runAfter: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        });
+
+        // Re-enqueue for next day at ~8 AM UTC
+        try {
+          const tomorrow8am = new Date();
+          tomorrow8am.setUTCDate(tomorrow8am.getUTCDate() + 1);
+          tomorrow8am.setUTCHours(8, 0, 0, 0);
+          await enqueueTask('dunning', { action: 'check' }, {
+            runAfter: tomorrow8am,
+          });
+        } catch (err) {
+          // Fallback: re-enqueue for 24h from now so the chain doesn't break
+          console.error('Failed to re-enqueue dunning task, using fallback', err);
+          await enqueueTask('dunning', { action: 'check' }, {
+            runAfter: new Date(Date.now() + 24 * 60 * 60 * 1000),
+          }).catch(() => {});
+        }
       }, 60_000);
-      console.log('Dunning DB queue worker ready');
+      console.log('Dunning DB queue worker ready (daily ~8 AM UTC)');
     }
 
     // Recover stale DB queue tasks on startup
@@ -135,7 +149,7 @@ async function main() {
       }
     }
 
-    const { shutdownAllWorkers } = await import('./src/server/jobs/queue');
+    const { shutdownAllWorkers } = await import('./src/engine/lib/queue');
     await shutdownAllWorkers();
     server.close(() => {
       console.log('Server closed');

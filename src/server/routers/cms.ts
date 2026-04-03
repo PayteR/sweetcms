@@ -10,7 +10,7 @@ import { createLogger } from '@/engine/lib/logger';
 import {
   SEO_OVERRIDE_ROUTES,
   SEO_OVERRIDE_SLUGS,
-} from '@/server/utils/seo-routes';
+} from '@/engine/lib/seo-routes';
 import { cmsPosts, cmsCategories, cmsTerms, cmsTermRelationships, cmsPostAttachments } from '@/server/db/schema';
 import { ContentStatus, PostType } from '@/engine/types/cms';
 import {

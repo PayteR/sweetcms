@@ -2,8 +2,8 @@
 
 import { useCallback, useState } from 'react';
 
-import { useBlankTranslations } from '@/lib/translations';
-import { toast } from '@/store/toast-store';
+import { useBlankTranslations } from '@/engine/lib/translations';
+import { toast } from '@/engine/store/toast-store';
 
 type AccentColor = 'info' | 'warning';
 

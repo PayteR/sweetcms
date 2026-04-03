@@ -11,3 +11,4 @@ export type { EditorHandle } from './useLinkPicker';
 export { useLinkValidation } from './useLinkValidation';
 export { useOverlay } from './useOverlay';
 export type { UseOverlayOptions, UseOverlayReturn } from './useOverlay';
+export { useLocale } from './useLocale';

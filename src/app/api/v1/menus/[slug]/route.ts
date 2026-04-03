@@ -7,7 +7,7 @@ import {
   apiHeaders,
   checkRateLimit,
   validateApiKey,
-} from '@/server/utils/api-auth';
+} from '@/engine/lib/api-auth';
 
 interface RouteParams {
   params: Promise<{ slug: string }>;

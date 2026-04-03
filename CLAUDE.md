@@ -34,13 +34,11 @@ SweetCMS is an open-source, AI agent-driven T3 SaaS starter with integrated CMS:
 
 `src/config/`, `src/server/`, `src/app/`, `src/components/admin/` (forms) are project-specific — customize freely.
 
-**Engine provides:** config interfaces + factory helpers, types (PostType, ContentStatus), RBAC policy, CRUD utils (admin-crud, taxonomy-helpers, cms-helpers, content-revisions, slug-redirects), lib utils (slug, markdown, audit, webhooks, logger, datetime, redis, rate-limit), hooks (form state, list state, autosave, bulk actions), shared components (CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPickerDialog, CustomFieldsEditor, RevisionHistory, BulkActionBar, CommandPalette, SlideOver), styles (tokens, admin CSS).
+**Engine provides:** config interfaces + factory helpers + admin-nav helpers, types (PostType, ContentStatus, shortcodes), RBAC policy, CRUD utils (admin-crud, drizzle-utils, taxonomy-helpers, cms-helpers, content-revisions, slug-redirects, page-seo), lib utils (slug, markdown, audit, webhooks, logger, datetime, redis, rate-limit, trpc-rate-limit, api-auth, seo-routes, ga4, gdpr, queue, ws-client, translations, shortcodes-parser, shortcode-utils, locale, locale-server), hooks (form state, list state, autosave, bulk actions, useLocale), shared components (CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPickerDialog, CustomFieldsEditor, RevisionHistory, BulkActionBar, CommandPalette, SlideOver, ConfirmDialog, Toaster, InternalLinkDialog, FallbackRadio, DashboardShell, LocaleLink, LanguageSwitcher), styles (tokens, admin CSS), stores (preferences-store, sidebar-store, toast-store, theme-store), test-utils (asMock).
 
-**Project provides:** content type data (`src/config/cms.ts`), taxonomy data (`src/config/taxonomies.ts`), DB schema, tRPC routers, form components (PostForm, CategoryForm, etc.), routes, public UI.
+**Project provides:** content type data (`src/config/cms.ts`), taxonomy data (`src/config/taxonomies.ts`), admin navigation data (`src/config/admin-nav.ts`), DB schema, tRPC routers, form components (PostForm, CategoryForm, etc.), routes, public UI.
 
-**Import rule:** project imports from `@/engine/*`. Engine accepts cross-boundary imports from `@/server/db`, `@/lib/trpc/client`, `@/lib/translations`, `@/lib/utils`, `@/store/toast-store`.
-
-**Engine stores:** `src/engine/store/preferences-store.ts` (Zustand preferences with typed keys from `@/engine/types/preferences`).
+**Import rule:** project imports from `@/engine/*`. Engine accepts cross-boundary imports from `@/server/db`, `@/lib/trpc/client`, `@/lib/utils`, `@/lib/constants`.
 
 **To rebrand:** (1) In `tokens.css`: find-replace `350` with your brand hue and `303` with your accent hue in the brand/accent scales; update `--brand-hue` and `--accent-hue` in `:root`; optionally change gray hue `260`/`265`; update `--gradient-brand` L/C values; edit the semantic defaults (surfaces, text, borders, shadows) in `:root` and `html.dark`. (2) To diverge the public frontend: add overrides in `tokens-public.css`. (3) To diverge the admin panel: add overrides in `tokens-admin.css`. (4) Update hardcoded `260` in dark surface tokens and in `admin.css` (rail, L2 panel backgrounds).
 
@@ -240,14 +238,14 @@ Always use these instead of manual alternatives:
 - **Revisions** (`src/engine/crud/content-revisions.ts`): Use `createRevision()`, `getRevisions()`, `pickSnapshot()`
 - **CMS updates** (`src/engine/crud/cms-helpers.ts`): Use `updateWithRevision()` — wraps revision snapshot + slug redirect + update
 - **Slugs** (`src/engine/lib/slug.ts`): `slugify()` for URL slugs, `slugifyFilename()` for uploads. Never inline slug regex
-- **Translations** (`src/lib/translations.ts`): Use `useBlankTranslations()` in admin components. All user-visible text must be wrapped in `__()` so translations can be enabled later
+- **Translations** (`src/engine/lib/translations.ts`): Use `useBlankTranslations()` in admin components. All user-visible text must be wrapped in `__()` so translations can be enabled later
 - **Email** (`src/server/jobs/email`): Use `enqueueEmail()` or `enqueueTemplateEmail()` — never call `sendEmail()` directly. Templates in `emails/` with `{{var}}` placeholders
 - **Logger** (`src/engine/lib/logger.ts`): Use `createLogger(prefix)` for structured logging. JSON in production, human-readable in dev. All fire-and-forget operations must log errors, never silently swallow them
 - **Audit logging** (`src/engine/lib/audit.ts`): Use `logAudit()` — fire-and-forget, logs errors via logger
 - **Webhooks** (`src/engine/lib/webhooks.ts`): Use `dispatchWebhook()` — fire-and-forget, logs delivery failures via logger
-- **API auth** (`src/server/utils/api-auth.ts`): Use `validateApiKey()`, `await checkRateLimit()`, `apiHeaders()` for REST API v1 endpoints (note: `checkRateLimit` is now async/Redis-backed)
+- **API auth** (`src/engine/lib/api-auth.ts`): Use `validateApiKey()`, `await checkRateLimit()`, `apiHeaders()` for REST API v1 endpoints (note: `checkRateLimit` is now async/Redis-backed)
 - **Slug redirects** (`src/engine/crud/slug-redirects.ts`): Use `resolveSlugRedirect()` to resolve old slugs to current slugs
-- **GDPR** (`src/server/utils/gdpr.ts`): Use `anonymizeUser()` for user data deletion
+- **GDPR** (`src/engine/lib/gdpr.ts`): Use `anonymizeUser()` for user data deletion
 - **Markdown** (`src/engine/lib/markdown.ts`): Use `htmlToMarkdown()` / `markdownToHtml()` — preserve shortcodes through placeholder strategies
 - **Relative time** (`src/engine/lib/datetime.ts`): Use `formatRelativeTime(date, locale?)` — locale-aware via `Intl.RelativeTimeFormat`. Also: `convertUTCToLocal()`, `convertLocalToUTC()`
 - **Rate limiting** (`src/engine/lib/rate-limit.ts`): Use `checkRateLimit(redis, key, config)` — sliding window via Redis sorted sets. Fail-open if Redis unavailable
@@ -476,9 +474,9 @@ BullMQ queue with nodemailer transport. Templates in `emails/` directory with HT
 
 **Rate limiting** (`src/engine/lib/rate-limit.ts`): Sliding window via Redis sorted sets (ZADD/ZRANGEBYSCORE). `checkRateLimit(redis, key, config) → { allowed, remaining, retryAfterMs }`. Fail-open if Redis unavailable.
 
-**tRPC middleware** (`src/server/middleware/rate-limit.ts`): Applied to `publicProcedure` (100 req/min per IP) and `protectedProcedure` (200 req/min per user). Throws `TOO_MANY_REQUESTS`.
+**tRPC middleware** (`src/engine/lib/trpc-rate-limit.ts`): Applied to `publicProcedure` (100 req/min per IP) and `protectedProcedure` (200 req/min per user). Throws `TOO_MANY_REQUESTS`.
 
-**REST API**: `src/server/utils/api-auth.ts` — `checkRateLimit()` is now async and Redis-backed. All v1 routes use `await`. OpenAPI spec at `GET /api/v1/openapi`.
+**REST API**: `src/engine/lib/api-auth.ts` — `checkRateLimit()` is now async and Redis-backed. All v1 routes use `await`. OpenAPI spec at `GET /api/v1/openapi`.
 
 **Health check**: `GET /api/health` — checks DB (SELECT 1) and Redis (PING) connectivity. Returns `200 { status: "healthy", uptime, checks }` or `503 { status: "degraded", ... }`. Error details stripped in production. Excluded from robots.txt.
 

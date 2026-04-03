@@ -2,7 +2,7 @@
 
 import { memo, useEffect, useState } from 'react';
 
-import { useBlankTranslations } from '@/lib/translations';
+import { useBlankTranslations } from '@/engine/lib/translations';
 
 interface AutosaveIndicatorProps {
   lastAutosaveAt: number | null;

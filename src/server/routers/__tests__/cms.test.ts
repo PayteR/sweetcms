@@ -112,7 +112,7 @@ vi.mock('@/engine/lib/logger', () => ({
   }),
 }));
 
-vi.mock('@/server/utils/seo-routes', () => ({
+vi.mock('@/engine/lib/seo-routes', () => ({
   SEO_OVERRIDE_ROUTES: [],
   SEO_OVERRIDE_SLUGS: new Set<string>(),
 }));

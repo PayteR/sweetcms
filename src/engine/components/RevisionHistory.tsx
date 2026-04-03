@@ -4,11 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { History, RotateCcw } from 'lucide-react';
 
-import { useBlankTranslations } from '@/lib/translations';
+import { useBlankTranslations } from '@/engine/lib/translations';
 import { computeFieldDiffs } from '@/engine/lib/revision-diff';
 import type { FieldDiff } from '@/engine/lib/revision-diff';
 import { trpc } from '@/lib/trpc/client';
-import { toast } from '@/store/toast-store';
+import { toast } from '@/engine/store/toast-store';
 import { Dialog } from '@/engine/components/Dialog';
 
 interface Props {

@@ -11,6 +11,7 @@ import { NotificationType, NotificationCategory } from '@/engine/types/notificat
 import { createLogger } from '@/engine/lib/logger';
 import { adminPanel } from '@/config/routes';
 import { recordConversion } from '@/server/lib/affiliates';
+import { invalidateStats } from '@/server/lib/stats-cache';
 
 const logger = createLogger('nowpayments-webhook');
 
@@ -99,6 +100,8 @@ export async function POST(request: Request) {
         if (checkoutUserId && amountCents) {
           recordConversion(checkoutUserId, orderId ?? 'unknown', amountCents).catch(() => {});
         }
+
+        invalidateStats('billing');
         break;
       }
 

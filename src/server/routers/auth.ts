@@ -59,7 +59,7 @@ export const authRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
       const mode = input?.mode ?? 'full';
-      const { anonymizeUser } = await import('@/server/utils/gdpr');
+      const { anonymizeUser } = await import('@/engine/lib/gdpr');
 
       try {
         await anonymizeUser(ctx.db, userId, userId, mode);

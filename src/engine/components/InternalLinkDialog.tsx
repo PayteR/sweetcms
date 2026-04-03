@@ -4,7 +4,7 @@ import { memo, useRef, useState, useEffect } from 'react';
 
 import { FileText, FolderOpen, Search, Tag } from 'lucide-react';
 
-import { useBlankTranslations } from '@/lib/translations';
+import { useBlankTranslations } from '@/engine/lib/translations';
 import { trpc } from '@/lib/trpc/client';
 import { cn } from '@/lib/utils';
 import { Dialog } from '@/engine/components/Dialog';

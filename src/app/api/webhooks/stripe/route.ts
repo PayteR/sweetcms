@@ -17,6 +17,7 @@ import { NotificationType, NotificationCategory } from '@/engine/types/notificat
 import { createLogger } from '@/engine/lib/logger';
 import { adminPanel } from '@/config/routes';
 import { recordConversion } from '@/server/lib/affiliates';
+import { invalidateStats } from '@/server/lib/stats-cache';
 
 const logger = createLogger('stripe-webhook');
 
@@ -121,6 +122,8 @@ export async function POST(request: Request) {
             : 0;
           recordConversion(checkoutUserId, event.providerSubscriptionId!, amountCents).catch(() => {});
         }
+
+        invalidateStats('billing');
         break;
       }
 
@@ -135,6 +138,8 @@ export async function POST(request: Request) {
           periodEnd: event.periodEnd,
           cancelAtPeriodEnd: event.cancelAtPeriodEnd,
         });
+
+        invalidateStats('billing');
         break;
       }
 
@@ -144,6 +149,8 @@ export async function POST(request: Request) {
         const orgId = await getOrgByProviderSubscription(event.providerSubscriptionId);
 
         await cancelSubscription(event.providerSubscriptionId);
+
+        invalidateStats('billing');
 
         if (orgId) {
           sendOrgNotification(orgId, {
@@ -165,6 +172,8 @@ export async function POST(request: Request) {
         await updateSubscription(event.providerSubscriptionId, {
           status: 'past_due',
         });
+
+        invalidateStats('billing');
 
         if (failedOrgId) {
           sendOrgNotification(failedOrgId, {

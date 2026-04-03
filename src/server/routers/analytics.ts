@@ -2,7 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
 import { createTRPCRouter, sectionProcedure } from '../trpc';
-import { getGA4Config, runGA4Report } from '@/server/utils/ga4';
+import { getGA4Config, runGA4Report } from '@/engine/lib/ga4';
 
 const proc = sectionProcedure('content');
 

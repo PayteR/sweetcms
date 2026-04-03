@@ -7,7 +7,7 @@ import { PostType } from '@/engine/types/cms';
 import { PostCard } from '@/components/public/PostCard';
 import { BlogSidebar } from '@/components/public/BlogSidebar';
 import { db } from '@/server/db';
-import { getCodedRouteSEO } from '@/server/utils/page-seo';
+import { getCodedRouteSEO } from '@/engine/crud/page-seo';
 import { getLocale } from '@/lib/locale-server';
 import { localePath } from '@/lib/locale';
 

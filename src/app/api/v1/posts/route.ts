@@ -8,7 +8,7 @@ import {
   apiHeaders,
   checkRateLimit,
   validateApiKey,
-} from '@/server/utils/api-auth';
+} from '@/engine/lib/api-auth';
 
 export async function GET(request: Request) {
   if (!(await validateApiKey(request))) {

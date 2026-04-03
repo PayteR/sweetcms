@@ -1,6 +1,6 @@
 'use client';
 
-import { parseShortcodes } from '@/lib/shortcodes/parser';
+import { parseShortcodes } from '@/engine/lib/shortcodes-parser';
 import { markdownToHtml } from '@/engine/lib/markdown';
 import { CalloutBlock } from './shortcodes/CalloutBlock';
 import { CtaBlock } from './shortcodes/CtaBlock';

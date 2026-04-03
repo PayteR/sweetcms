@@ -6,7 +6,7 @@ import { eq } from 'drizzle-orm';
 
 import { db as appDb } from '@/server/db';
 import { cmsOptions } from '@/server/db/schema';
-import { createQueue, createWorker } from '../queue';
+import { createQueue, createWorker } from '@/engine/lib/queue';
 
 interface EmailPayload {
   to: string;

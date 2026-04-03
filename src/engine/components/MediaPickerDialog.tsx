@@ -10,9 +10,9 @@ import {
 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useBlankTranslations } from '@/engine/lib/translations';
 import { FileType } from '@/engine/types/cms';
-import { toast } from '@/store/toast-store';
+import { toast } from '@/engine/store/toast-store';
 import { cn } from '@/lib/utils';
 
 interface Props {

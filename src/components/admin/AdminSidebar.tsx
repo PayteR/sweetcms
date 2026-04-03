@@ -8,7 +8,7 @@ import { ChevronsLeft, ChevronsRight, ExternalLink, LogOut, Menu, Monitor, Moon,
 import { cn } from '@/lib/utils';
 import { useBlankTranslations } from '@/lib/translations';
 import { signOut, useSession } from '@/lib/auth-client';
-import { useSidebarStore } from '@/store/sidebar-store';
+import { useSidebarStore } from '@/engine/store/sidebar-store';
 import { useThemeStore } from '@/engine/store/theme-store';
 import { usePreferencesStore } from '@/engine/store/preferences-store';
 import { siteConfig } from '@/config/site';

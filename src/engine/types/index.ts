@@ -2,3 +2,4 @@
 export * from './cms';
 export * from './preferences';
 export * from './request-context';
+export * from './shortcodes';

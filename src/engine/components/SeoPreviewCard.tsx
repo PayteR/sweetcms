@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useBlankTranslations } from '@/lib/translations';
+import { useBlankTranslations } from '@/engine/lib/translations';
 import { cn } from '@/lib/utils';
 
 interface Props {

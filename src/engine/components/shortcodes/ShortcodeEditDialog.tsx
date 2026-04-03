@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { ShortcodeDef } from '@/engine/types/shortcodes';
-import { useBlankTranslations } from '@/lib/translations';
+import { useBlankTranslations } from '@/engine/lib/translations';
 import { Dialog } from '@/engine/components/Dialog';
 
 interface Props {

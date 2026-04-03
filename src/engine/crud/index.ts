@@ -14,3 +14,5 @@ export {
 } from './taxonomy-helpers';
 export { createRevision, getRevisions, pickSnapshot } from './content-revisions';
 export { resolveSlugRedirect } from './slug-redirects';
+export { wordSplitLike, getAffectedRows } from './drizzle-utils';
+export { getCodedRouteSEO } from './page-seo';

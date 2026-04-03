@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FileText, Hash, FolderOpen, Briefcase, Search } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { useBlankTranslations } from '@/lib/translations';
+import { useBlankTranslations } from '@/engine/lib/translations';
 import { trpc } from '@/lib/trpc/client';
 import { useKeyboardShortcuts } from '@/engine/hooks/useKeyboardShortcuts';
 

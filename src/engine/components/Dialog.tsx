@@ -4,7 +4,7 @@ import { createContext, useContext, type ReactNode, type RefObject } from 'react
 import { X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { useBlankTranslations } from '@/lib/translations';
+import { useBlankTranslations } from '@/engine/lib/translations';
 import { useOverlay } from '@/engine/hooks/useOverlay';
 
 /* ── Size presets ── */

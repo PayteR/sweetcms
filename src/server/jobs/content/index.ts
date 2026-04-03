@@ -1,6 +1,6 @@
 import { and, eq, lte, isNull } from 'drizzle-orm';
 
-import { createQueue, createWorker } from '../queue';
+import { createQueue, createWorker } from '@/engine/lib/queue';
 import { db } from '@/server/db';
 import { cmsPosts } from '@/server/db/schema/cms';
 import { cmsCategories } from '@/server/db/schema/categories';

@@ -22,7 +22,7 @@ vi.mock('@/engine/lib/audit', () => ({
   logAudit: vi.fn(),
 }));
 
-vi.mock('@/server/utils/gdpr', () => ({
+vi.mock('@/engine/lib/gdpr', () => ({
   anonymizeUser: vi.fn().mockResolvedValue(undefined),
 }));
 
@@ -43,7 +43,7 @@ vi.mock('@/engine/policy', () => ({
 import { asMock } from '@/test-utils';
 import { authRouter } from '../auth';
 import { auth } from '@/lib/auth';
-import { anonymizeUser } from '@/server/utils/gdpr';
+import { anonymizeUser } from '@/engine/lib/gdpr';
 
 function createMockDb() {
   const selectLimitMock = vi.fn().mockResolvedValue([]);

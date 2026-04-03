@@ -34,9 +34,9 @@ import {
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { useBlankTranslations } from '@/lib/translations';
+import { useBlankTranslations } from '@/engine/lib/translations';
 import { htmlToMarkdown, markdownToHtml } from '@/engine/lib/markdown';
-import { toast } from '@/store/toast-store';
+import { toast } from '@/engine/store/toast-store';
 import type { EditorHandle } from '@/engine/hooks/useLinkPicker';
 import type { ShortcodeConfig } from '@/engine/types/shortcodes';
 
