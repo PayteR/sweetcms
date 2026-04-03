@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages, getLocale } from 'next-intl/server';
 
 import { TRPCProvider } from '@/lib/trpc/provider';
-import { DEFAULT_LOCALE } from '@/lib/constants';
 
 import './globals.css';
 
@@ -27,8 +28,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const h = await headers();
-  const locale = h.get('x-locale') || DEFAULT_LOCALE;
+  const locale = await getLocale();
+  const messages = await getMessages();
 
   return (
     <html
@@ -44,7 +45,9 @@ export default async function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
-        <TRPCProvider>{children}</TRPCProvider>
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <TRPCProvider>{children}</TRPCProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

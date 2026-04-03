@@ -42,6 +42,9 @@ yarn-error.log*
 # drizzle migrations
 /drizzle/
 
+# generated translation JSON
+/locales/build/
+
 # vercel
 .vercel
 
