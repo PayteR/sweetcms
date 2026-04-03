@@ -128,6 +128,8 @@ import {
   softDelete,
   softRestore,
   permanentDelete,
+  fetchOrNotFound,
+  updateContentStatus,
 } from '@/engine/crud/admin-crud';
 import { deleteTermRelationshipsByTerm, resolveTagsForPosts } from '@/engine/crud/taxonomy-helpers';
 import { logAudit } from '@/engine/lib/audit';
@@ -198,21 +200,27 @@ describe('tagsRouter', () => {
   // =========================================================================
   describe('get', () => {
     it('returns the tag when found', async () => {
-      const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([MOCK_TAG]);
+      asMock(fetchOrNotFound).mockResolvedValue(MOCK_TAG);
 
+      const ctx = createMockCtx();
       const caller = tagsRouter.createCaller(ctx as never);
       const result = await caller.get({ id: MOCK_TAG.id });
 
       expect(result).toEqual(MOCK_TAG);
       expect(result.name).toBe('Next.js');
       expect(result.slug).toBe('nextjs');
+      expect(fetchOrNotFound).toHaveBeenCalledWith(
+        ctx.db, expect.anything(), MOCK_TAG.id, 'Tag', expect.anything()
+      );
     });
 
     it('throws NOT_FOUND when tag does not exist', async () => {
-      const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([]);
+      const { TRPCError } = await import('@trpc/server');
+      asMock(fetchOrNotFound).mockRejectedValue(
+        new TRPCError({ code: 'NOT_FOUND', message: 'Tag not found' })
+      );
 
+      const ctx = createMockCtx();
       const caller = tagsRouter.createCaller(ctx as never);
 
       await expect(
@@ -323,9 +331,9 @@ describe('tagsRouter', () => {
   // =========================================================================
   describe('update', () => {
     it('updates the tag and returns success', async () => {
-      const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([MOCK_TAG]);
+      asMock(fetchOrNotFound).mockResolvedValue(MOCK_TAG);
 
+      const ctx = createMockCtx();
       const caller = tagsRouter.createCaller(ctx as never);
       const result = await caller.update({ id: MOCK_TAG.id, name: 'Updated Tag' });
 
@@ -334,9 +342,12 @@ describe('tagsRouter', () => {
     });
 
     it('throws NOT_FOUND when tag does not exist', async () => {
-      const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([]);
+      const { TRPCError } = await import('@trpc/server');
+      asMock(fetchOrNotFound).mockRejectedValue(
+        new TRPCError({ code: 'NOT_FOUND', message: 'Tag not found' })
+      );
 
+      const ctx = createMockCtx();
       const caller = tagsRouter.createCaller(ctx as never);
 
       await expect(
@@ -345,9 +356,9 @@ describe('tagsRouter', () => {
     });
 
     it('checks slug uniqueness when a new slug is provided', async () => {
-      const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([MOCK_TAG]);
+      asMock(fetchOrNotFound).mockResolvedValue(MOCK_TAG);
 
+      const ctx = createMockCtx();
       const caller = tagsRouter.createCaller(ctx as never);
       await caller.update({ id: MOCK_TAG.id, slug: 'brand-new-slug' });
 
@@ -363,10 +374,9 @@ describe('tagsRouter', () => {
     });
 
     it('skips slug uniqueness check when slug is unchanged', async () => {
-      const ctx = createMockCtx();
-      // Return a tag whose slug is 'nextjs' — same as what we'll pass
-      ctx.db._chains.select.limit.mockResolvedValue([MOCK_TAG]);
+      asMock(fetchOrNotFound).mockResolvedValue(MOCK_TAG);
 
+      const ctx = createMockCtx();
       const caller = tagsRouter.createCaller(ctx as never);
       await caller.update({ id: MOCK_TAG.id, slug: 'nextjs' });
 
@@ -374,9 +384,9 @@ describe('tagsRouter', () => {
     });
 
     it('calls logAudit after update', async () => {
-      const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([MOCK_TAG]);
+      asMock(fetchOrNotFound).mockResolvedValue(MOCK_TAG);
 
+      const ctx = createMockCtx();
       const caller = tagsRouter.createCaller(ctx as never);
       await caller.update({ id: MOCK_TAG.id, name: 'Updated Tag' });
 
@@ -797,9 +807,9 @@ describe('tagsRouter', () => {
   // =========================================================================
   describe('updateStatus', () => {
     it('updates tag status and returns success', async () => {
-      const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([{ id: MOCK_TAG.id }]);
+      asMock(fetchOrNotFound).mockResolvedValue(MOCK_TAG);
 
+      const ctx = createMockCtx();
       const caller = tagsRouter.createCaller(ctx as never);
       const result = await caller.updateStatus({ id: MOCK_TAG.id, status: 0 });
 
@@ -811,9 +821,12 @@ describe('tagsRouter', () => {
     });
 
     it('throws NOT_FOUND when tag does not exist', async () => {
-      const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([]);
+      const { TRPCError } = await import('@trpc/server');
+      asMock(fetchOrNotFound).mockRejectedValue(
+        new TRPCError({ code: 'NOT_FOUND', message: 'Tag not found' })
+      );
 
+      const ctx = createMockCtx();
       const caller = tagsRouter.createCaller(ctx as never);
 
       await expect(
@@ -822,9 +835,9 @@ describe('tagsRouter', () => {
     });
 
     it('calls logAudit with updateStatus action and metadata', async () => {
-      const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([{ id: MOCK_TAG.id }]);
+      asMock(fetchOrNotFound).mockResolvedValue(MOCK_TAG);
 
+      const ctx = createMockCtx();
       const caller = tagsRouter.createCaller(ctx as never);
       await caller.updateStatus({ id: MOCK_TAG.id, status: 0 });
 

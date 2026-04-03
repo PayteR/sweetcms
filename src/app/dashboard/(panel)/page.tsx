@@ -25,7 +25,7 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="mx-auto max-w-320">
+    <div>
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-(--text-primary)">{__('Dashboard')}</h1>

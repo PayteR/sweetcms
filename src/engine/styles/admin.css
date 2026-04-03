@@ -32,6 +32,28 @@
 }
 
 @layer components {
+  /* ===================== Content Area ===================== */
+  .dashboard-shell-content {
+    max-width: var(--content-max-width);
+    margin-inline: auto;
+  }
+
+  /*
+   * Per-section width overrides — data-section is auto-derived from the URL.
+   * Examples:
+   *   /dashboard            → data-section="home"
+   *   /dashboard/cms/pages  → data-section="cms-pages"
+   *   /dashboard/cms/blog   → data-section="cms-blog"
+   *   /dashboard/media      → data-section="media"
+   *   /dashboard/users      → data-section="users"
+   *   /dashboard/settings   → data-section="settings"
+   *
+   * Uncomment or add overrides as needed:
+   *   .dashboard-shell-content[data-section="cms-pages"] { --content-max-width: 90rem; }
+   *   .dashboard-shell-content[data-section="cms-blog"]  { --content-max-width: 90rem; }
+   *   .dashboard-shell-content[data-section="media"]     { --content-max-width: 100%; }
+   */
+
   /* ===================== Cards ===================== */
   .card {
     background-color: var(--surface-secondary);

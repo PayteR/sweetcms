@@ -54,6 +54,26 @@ vi.mock('@/engine/crud/admin-crud', () => ({
   softDelete: vi.fn().mockResolvedValue(undefined),
   softRestore: vi.fn().mockResolvedValue(undefined),
   permanentDelete: vi.fn().mockResolvedValue(undefined),
+  fetchOrNotFound: vi.fn(),
+  updateContentStatus: vi.fn().mockResolvedValue(undefined),
+  generateCopySlug: vi.fn().mockResolvedValue('slug-copy'),
+  getTranslationSiblings: vi.fn().mockResolvedValue([]),
+  serializeExport: vi.fn().mockReturnValue({ data: '[]', contentType: 'application/json' }),
+  prepareTranslationCopy: vi.fn().mockResolvedValue({ slug: 'slug-en', translationGroup: 'group-1', previewToken: 'tok' }),
+  parsePagination: vi.fn().mockImplementation((input: { page?: number; pageSize?: number }) => {
+    const page = input.page ?? 1;
+    const pageSize = input.pageSize ?? 100;
+    return { page, pageSize, offset: (page - 1) * pageSize };
+  }),
+  paginatedResult: vi.fn().mockImplementation(
+    (items: unknown[], total: number, page: number, pageSize: number) => ({
+      results: items,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    })
+  ),
 }));
 
 vi.mock('@/engine/crud/cms-helpers', () => ({
@@ -184,9 +204,10 @@ vi.mock('@/server/db/schema', () => ({
 // Imports (after mocks)
 // ---------------------------------------------------------------------------
 
+import { TRPCError } from '@trpc/server';
 import { asMock } from '@/test-utils';
 import { cmsRouter } from '../cms';
-import { buildStatusCounts } from '@/engine/crud/admin-crud';
+import { buildStatusCounts, fetchOrNotFound } from '@/engine/crud/admin-crud';
 import { getTermRelationships, syncTermRelationships, resolveTagsForPosts } from '@/engine/crud/taxonomy-helpers';
 import { updateWithRevision } from '@/engine/crud/cms-helpers';
 import { softDelete, softRestore } from '@/engine/crud/admin-crud';
@@ -267,7 +288,7 @@ describe('cmsRouter', () => {
   describe('get', () => {
     it('returns a post with categoryIds and tagIds', async () => {
       const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([MOCK_POST]);
+      asMock(fetchOrNotFound).mockResolvedValue(MOCK_POST);
 
       asMock(getTermRelationships).mockResolvedValue([
         { termId: 'c1c1c1c1-0000-4000-a000-000000000001', taxonomyId: 'category' },
@@ -286,7 +307,9 @@ describe('cmsRouter', () => {
 
     it('throws NOT_FOUND when post does not exist', async () => {
       const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([]);
+      asMock(fetchOrNotFound).mockRejectedValue(
+        new TRPCError({ code: 'NOT_FOUND', message: 'Post not found' })
+      );
 
       const caller = cmsRouter.createCaller(ctx as never);
 
@@ -297,7 +320,7 @@ describe('cmsRouter', () => {
 
     it('returns empty arrays when post has no taxonomy relationships', async () => {
       const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([MOCK_POST]);
+      asMock(fetchOrNotFound).mockResolvedValue(MOCK_POST);
       asMock(getTermRelationships).mockResolvedValue([]);
 
       const caller = cmsRouter.createCaller(ctx as never);

@@ -54,6 +54,26 @@ vi.mock('@/engine/crud/admin-crud', () => ({
   softDelete: vi.fn().mockResolvedValue(undefined),
   softRestore: vi.fn().mockResolvedValue(undefined),
   permanentDelete: vi.fn().mockResolvedValue(undefined),
+  fetchOrNotFound: vi.fn(),
+  updateContentStatus: vi.fn().mockResolvedValue(undefined),
+  generateCopySlug: vi.fn().mockResolvedValue('slug-copy'),
+  getTranslationSiblings: vi.fn().mockResolvedValue([]),
+  serializeExport: vi.fn().mockReturnValue({ data: '[]', contentType: 'application/json' }),
+  prepareTranslationCopy: vi.fn().mockResolvedValue({ slug: 'slug-en', translationGroup: 'group-1', previewToken: 'tok' }),
+  parsePagination: vi.fn().mockImplementation((input: { page?: number; pageSize?: number }) => {
+    const page = input.page ?? 1;
+    const pageSize = input.pageSize ?? 100;
+    return { page, pageSize, offset: (page - 1) * pageSize };
+  }),
+  paginatedResult: vi.fn().mockImplementation(
+    (items: unknown[], total: number, page: number, pageSize: number) => ({
+      results: items,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    })
+  ),
 }));
 
 vi.mock('@/engine/crud/cms-helpers', () => ({
@@ -132,7 +152,9 @@ import {
   softDelete,
   softRestore,
   permanentDelete,
+  fetchOrNotFound,
 } from '@/engine/crud/admin-crud';
+import { TRPCError } from '@trpc/server';
 import {
   getTermRelationships,
   syncTermRelationships,
@@ -216,7 +238,7 @@ describe('categoriesRouter', () => {
   describe('get', () => {
     it('returns a category with tagIds', async () => {
       const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([MOCK_CATEGORY]);
+      asMock(fetchOrNotFound).mockResolvedValue(MOCK_CATEGORY);
 
       asMock(getTermRelationships).mockResolvedValue([
         { termId: 'aaaaaaaa-bbbb-4ccc-8ddd-111111111111', taxonomyId: 'tag' },
@@ -236,7 +258,9 @@ describe('categoriesRouter', () => {
 
     it('throws NOT_FOUND when category does not exist', async () => {
       const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([]);
+      asMock(fetchOrNotFound).mockRejectedValue(
+        new TRPCError({ code: 'NOT_FOUND', message: 'Category not found' })
+      );
 
       const caller = categoriesRouter.createCaller(ctx as never);
 
@@ -247,7 +271,7 @@ describe('categoriesRouter', () => {
 
     it('returns empty tagIds when category has no tag relationships', async () => {
       const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([MOCK_CATEGORY]);
+      asMock(fetchOrNotFound).mockResolvedValue(MOCK_CATEGORY);
       asMock(getTermRelationships).mockResolvedValue([]);
 
       const caller = categoriesRouter.createCaller(ctx as never);
@@ -258,7 +282,7 @@ describe('categoriesRouter', () => {
 
     it('calls getTermRelationships with tag taxonomy discriminator', async () => {
       const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([MOCK_CATEGORY]);
+      asMock(fetchOrNotFound).mockResolvedValue(MOCK_CATEGORY);
       asMock(getTermRelationships).mockResolvedValue([]);
 
       const caller = categoriesRouter.createCaller(ctx as never);
@@ -415,7 +439,7 @@ describe('categoriesRouter', () => {
   describe('update', () => {
     it('updates a category via updateWithRevision and returns success', async () => {
       const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([MOCK_CATEGORY]);
+      asMock(fetchOrNotFound).mockResolvedValue(MOCK_CATEGORY);
 
       const caller = categoriesRouter.createCaller(ctx as never);
       const result = await caller.update({
@@ -438,7 +462,9 @@ describe('categoriesRouter', () => {
 
     it('throws NOT_FOUND when updating a nonexistent category', async () => {
       const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([]);
+      asMock(fetchOrNotFound).mockRejectedValue(
+        new TRPCError({ code: 'NOT_FOUND', message: 'Category not found' })
+      );
 
       const caller = categoriesRouter.createCaller(ctx as never);
 
@@ -449,7 +475,7 @@ describe('categoriesRouter', () => {
 
     it('calls ensureSlugUnique when slug changes', async () => {
       const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([MOCK_CATEGORY]);
+      asMock(fetchOrNotFound).mockResolvedValue(MOCK_CATEGORY);
 
       const caller = categoriesRouter.createCaller(ctx as never);
       await caller.update({
@@ -469,7 +495,7 @@ describe('categoriesRouter', () => {
 
     it('does not call ensureSlugUnique when slug is unchanged', async () => {
       const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([MOCK_CATEGORY]);
+      asMock(fetchOrNotFound).mockResolvedValue(MOCK_CATEGORY);
 
       const caller = categoriesRouter.createCaller(ctx as never);
       await caller.update({
@@ -482,7 +508,7 @@ describe('categoriesRouter', () => {
 
     it('syncs tag relationships when tagIds are provided', async () => {
       const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([MOCK_CATEGORY]);
+      asMock(fetchOrNotFound).mockResolvedValue(MOCK_CATEGORY);
 
       const caller = categoriesRouter.createCaller(ctx as never);
       await caller.update({
@@ -500,7 +526,7 @@ describe('categoriesRouter', () => {
 
     it('does not call syncTermRelationships when tagIds is not provided', async () => {
       const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([MOCK_CATEGORY]);
+      asMock(fetchOrNotFound).mockResolvedValue(MOCK_CATEGORY);
 
       const caller = categoriesRouter.createCaller(ctx as never);
       await caller.update({
@@ -513,7 +539,7 @@ describe('categoriesRouter', () => {
 
     it('calls logAudit with update action after update', async () => {
       const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([MOCK_CATEGORY]);
+      asMock(fetchOrNotFound).mockResolvedValue(MOCK_CATEGORY);
 
       const caller = categoriesRouter.createCaller(ctx as never);
       await caller.update({ id: MOCK_CATEGORY.id, name: 'Updated Name' });
@@ -532,7 +558,7 @@ describe('categoriesRouter', () => {
 
     it('uses existing name in audit log when name is not updated', async () => {
       const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([MOCK_CATEGORY]);
+      asMock(fetchOrNotFound).mockResolvedValue(MOCK_CATEGORY);
 
       const caller = categoriesRouter.createCaller(ctx as never);
       await caller.update({ id: MOCK_CATEGORY.id, order: 5 });
@@ -546,7 +572,7 @@ describe('categoriesRouter', () => {
 
     it('passes oldSlug and newSlug to updateWithRevision', async () => {
       const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([MOCK_CATEGORY]);
+      asMock(fetchOrNotFound).mockResolvedValue(MOCK_CATEGORY);
 
       const caller = categoriesRouter.createCaller(ctx as never);
       await caller.update({ id: MOCK_CATEGORY.id, slug: 'changed-slug' });

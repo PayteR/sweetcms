@@ -29,6 +29,7 @@ vi.mock('drizzle-orm', () => ({
       type: 'sql',
       strings,
       values,
+      as: vi.fn().mockReturnThis(),
     })),
     {
       join: vi.fn(),

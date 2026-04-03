@@ -38,28 +38,44 @@ vi.mock('@/engine/policy', () => ({
 }));
 
 vi.mock('@/engine/crud/admin-crud', () => ({
-  buildAdminList: vi.fn().mockResolvedValue({ results: [], total: 0, page: 1, pageSize: 20, totalPages: 0 }),
-  buildStatusCounts: vi.fn().mockResolvedValue({ all: 0, published: 0, draft: 0, scheduled: 0, trashed: 0 }),
-  parsePagination: vi.fn((input: { page?: number; pageSize?: number }) => ({
-    page: input.page ?? 1,
-    pageSize: input.pageSize ?? 20,
-    offset: ((input.page ?? 1) - 1) * (input.pageSize ?? 20),
-  })),
-  paginatedResult: vi.fn(
-    (items: unknown[], total: number, page: number, pageSize: number) => ({
-      results: items, total, page, pageSize, totalPages: Math.ceil(total / pageSize),
-    })
-  ),
+  buildAdminList: vi.fn().mockResolvedValue({
+    results: [],
+    total: 0,
+    page: 1,
+    pageSize: 20,
+    totalPages: 0,
+  }),
+  buildStatusCounts: vi.fn().mockResolvedValue({
+    all: 0,
+    published: 0,
+    draft: 0,
+    scheduled: 0,
+    trashed: 0,
+  }),
   ensureSlugUnique: vi.fn().mockResolvedValue(undefined),
-  fetchOrNotFound: vi.fn(),
   softDelete: vi.fn().mockResolvedValue(undefined),
   softRestore: vi.fn().mockResolvedValue(undefined),
   permanentDelete: vi.fn().mockResolvedValue(undefined),
-  generateCopySlug: vi.fn().mockResolvedValue('slug-copy'),
+  fetchOrNotFound: vi.fn(),
   updateContentStatus: vi.fn().mockResolvedValue(undefined),
+  generateCopySlug: vi.fn().mockResolvedValue('slug-copy'),
   getTranslationSiblings: vi.fn().mockResolvedValue([]),
   serializeExport: vi.fn().mockReturnValue({ data: '[]', contentType: 'application/json' }),
-  prepareTranslationCopy: vi.fn().mockReturnValue({}),
+  prepareTranslationCopy: vi.fn().mockResolvedValue({ slug: 'slug-en', translationGroup: 'group-1', previewToken: 'tok' }),
+  parsePagination: vi.fn().mockImplementation((input: { page?: number; pageSize?: number }) => {
+    const page = input.page ?? 1;
+    const pageSize = input.pageSize ?? 100;
+    return { page, pageSize, offset: (page - 1) * pageSize };
+  }),
+  paginatedResult: vi.fn().mockImplementation(
+    (items: unknown[], total: number, page: number, pageSize: number) => ({
+      results: items,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    })
+  ),
 }));
 
 vi.mock('@/engine/lib/gdpr', () => ({
