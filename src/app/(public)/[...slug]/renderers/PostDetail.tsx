@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { PostType } from '@/engine/types/cms';
 import { PostCard } from '@/engine/components/PostCard';
 import { ShortcodeRenderer } from '@/engine/components/ShortcodeRenderer';
+import { SHORTCODE_COMPONENTS } from '@/config/shortcodes';
 import { localePath } from '@/lib/locale';
 import { getLocale } from '@/lib/locale-server';
 import { getCachedPost, getCachedTRPC } from '../data';
@@ -91,7 +92,7 @@ export async function PostDetail({ slug, postType, preview }: Props) {
       )}
 
       <div className="prose prose-gray dark:prose-invert mt-8 max-w-none">
-        <ShortcodeRenderer content={post.content} />
+        <ShortcodeRenderer content={post.content} components={SHORTCODE_COMPONENTS} />
       </div>
 
       {/* Related Posts */}

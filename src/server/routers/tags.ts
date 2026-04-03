@@ -182,20 +182,10 @@ export const tagsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { id, ...updates } = input;
 
-      const [existing] = await ctx.db
-        .select()
-        .from(cmsTerms)
-        .where(
-          and(
-            eq(cmsTerms.id, id),
-            eq(cmsTerms.taxonomyId, TAXONOMY_ID)
-          )
-        )
-        .limit(1);
-
-      if (!existing) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Tag not found' });
-      }
+      const existing = await fetchOrNotFound<typeof cmsTerms.$inferSelect>(
+        ctx.db, cmsTerms, id, 'Tag',
+        [eq(cmsTerms.taxonomyId, TAXONOMY_ID)],
+      );
 
       if (updates.slug && updates.slug !== existing.slug) {
         await ensureSlugUnique(
@@ -564,20 +554,10 @@ export const tagsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const [existing] = await ctx.db
-        .select({ id: cmsTerms.id })
-        .from(cmsTerms)
-        .where(
-          and(
-            eq(cmsTerms.id, input.id),
-            eq(cmsTerms.taxonomyId, TAXONOMY_ID)
-          )
-        )
-        .limit(1);
-
-      if (!existing) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Tag not found' });
-      }
+      await fetchOrNotFound<typeof cmsTerms.$inferSelect>(
+        ctx.db, cmsTerms, input.id, 'Tag',
+        [eq(cmsTerms.taxonomyId, TAXONOMY_ID)],
+      );
 
       await ctx.db
         .update(cmsTerms)

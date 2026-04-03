@@ -1,6 +1,7 @@
 import { PostType } from '@/engine/types/cms';
 import { PostCard } from '@/engine/components/PostCard';
 import { ShortcodeRenderer } from '@/engine/components/ShortcodeRenderer';
+import { SHORTCODE_COMPONENTS } from '@/config/shortcodes';
 import { localePath } from '@/lib/locale';
 import { getLocale } from '@/lib/locale-server';
 import { getCachedCategory, getCachedTRPC } from '../data';
@@ -30,7 +31,7 @@ export async function CategoryDetail({ slug }: Props) {
 
       {cat.text && (
         <div className="prose prose-gray dark:prose-invert mt-6 max-w-none">
-          <ShortcodeRenderer content={cat.text} />
+          <ShortcodeRenderer content={cat.text} components={SHORTCODE_COMPONENTS} />
         </div>
       )}
 

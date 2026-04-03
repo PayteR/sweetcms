@@ -1,8 +1,7 @@
 'use client';
 
-import { type ComponentType, type ReactNode, useRef, useState } from 'react';
-import Link from 'next/link';
-import { Clock, GripVertical } from 'lucide-react';
+import { type ReactNode, useRef, useState } from 'react';
+import { GripVertical } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -23,60 +22,13 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 import { cn } from '@/lib/utils';
-import { adminPanel } from '@/config/routes';
-import { useBlankTranslations } from '@/lib/translations';
 import { usePreferencesStore } from '@/engine/store/preferences-store';
 import {
   DASHBOARD_WIDGETS,
   DEFAULT_WIDGET_ORDER,
   DEFAULT_HIDDEN_WIDGETS,
+  DASHBOARD_WIDGET_COMPONENTS,
 } from '@/config/dashboard-widgets';
-import GA4Widget from '@/engine/components/GA4Widget';
-import RecentActivity from '@/engine/components/RecentActivity';
-import ContentStatusWidget from '@/engine/components/ContentStatusWidget';
-import QuickActionsWidget from '@/components/admin/QuickActionsWidget';
-
-// ── Widget component type ──────────────────────────────────
-type WidgetComponent = ComponentType<{ dragHandle?: ReactNode }>;
-
-// ── RecentActivity wrapper (was in page.tsx) ───────────────
-function RecentActivityWidget({ dragHandle }: { dragHandle?: ReactNode }) {
-  const __ = useBlankTranslations();
-
-  return (
-    <div className="card flex flex-col overflow-hidden">
-      <div className="widget-header">
-        <div className="flex items-center gap-2">
-          {dragHandle}
-          <h2 className="h2 flex items-center gap-2">
-            <Clock className="h-4 w-4 text-(--text-muted)" />
-            {__('Recent Activity')}
-          </h2>
-        </div>
-        <Link
-          href={adminPanel.activity}
-          className="text-xs font-medium text-(--text-muted) hover:text-(--text-primary) transition-colors"
-        >
-          {__('View all')}
-        </Link>
-      </div>
-      <RecentActivity />
-    </div>
-  );
-}
-
-// ── GA4 wrapper (injects settingsHref) ─────────────────────
-function GA4WidgetWrapper({ dragHandle }: { dragHandle?: ReactNode }) {
-  return <GA4Widget dragHandle={dragHandle} settingsHref={adminPanel.settings} />;
-}
-
-// ── Widget lookup ──────────────────────────────────────────
-const WIDGET_MAP: Record<string, WidgetComponent> = {
-  'content-status': ContentStatusWidget,
-  'quick-actions': QuickActionsWidget,
-  'ga4': GA4WidgetWrapper,
-  'recent-activity': RecentActivityWidget,
-};
 
 // ── Widget label lookup (for overlay) ──────────────────────
 const widgetLabelMap = Object.fromEntries(
@@ -115,7 +67,7 @@ function SortableWidget({
     gridColumn: `span ${colSpan}`,
   };
 
-  const Component = WIDGET_MAP[id];
+  const Component = DASHBOARD_WIDGET_COMPONENTS[id];
   if (!Component) return null;
 
   const dragHandle = (

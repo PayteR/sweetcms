@@ -647,13 +647,9 @@ export const cmsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const [source] = await ctx.db
-        .select()
-        .from(cmsPosts)
-        .where(eq(cmsPosts.id, input.id))
-        .limit(1);
-
-      if (!source) throw new TRPCError({ code: 'NOT_FOUND', message: 'Post not found' });
+      const source = await fetchOrNotFound<typeof cmsPosts.$inferSelect>(
+        ctx.db, cmsPosts, input.id, 'Post',
+      );
 
       // Translate fields if requested and DeepL is configured
       let title = source.title;

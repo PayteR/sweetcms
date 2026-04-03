@@ -1,4 +1,5 @@
 import { ShortcodeRenderer } from '@/engine/components/ShortcodeRenderer';
+import { SHORTCODE_COMPONENTS } from '@/config/shortcodes';
 import { getLocale } from '@/lib/locale-server';
 import { getCachedPortfolio } from '../data';
 
@@ -72,7 +73,7 @@ export async function PortfolioDetail({ slug, preview }: Props) {
 
       {item.text && (
         <div className="prose prose-gray dark:prose-invert mt-8 max-w-none">
-          <ShortcodeRenderer content={item.text} />
+          <ShortcodeRenderer content={item.text} components={SHORTCODE_COMPONENTS} />
         </div>
       )}
     </article>

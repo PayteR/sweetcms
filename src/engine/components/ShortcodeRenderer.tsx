@@ -2,26 +2,20 @@
 
 import { parseShortcodes } from '@/engine/lib/shortcodes-parser';
 import { markdownToHtml } from '@/engine/lib/markdown';
-import { CalloutBlock } from './shortcodes/CalloutBlock';
-import { CtaBlock } from './shortcodes/CtaBlock';
-import { YoutubeEmbed } from './shortcodes/YoutubeEmbed';
-import { GalleryBlock } from './shortcodes/GalleryBlock';
 
-const SHORTCODE_COMPONENTS: Record<
+/** Map of shortcode names to their React components. Passed by the project layer. */
+export type ShortcodeComponentMap = Record<
   string,
   React.ComponentType<{ attrs: Record<string, string>; content?: string }>
-> = {
-  callout: CalloutBlock,
-  cta: CtaBlock,
-  youtube: YoutubeEmbed,
-  gallery: GalleryBlock,
-};
+>;
 
 interface Props {
   content: string;
+  /** Shortcode component registry — project provides this via config. */
+  components: ShortcodeComponentMap;
 }
 
-export function ShortcodeRenderer({ content }: Props) {
+export function ShortcodeRenderer({ content, components }: Props) {
   const html = markdownToHtml(content);
   const segments = parseShortcodes(html);
 
@@ -37,7 +31,7 @@ export function ShortcodeRenderer({ content }: Props) {
           );
         }
 
-        const Component = SHORTCODE_COMPONENTS[seg.name];
+        const Component = components[seg.name];
         if (!Component) {
           // Unknown shortcode — render raw
           return (

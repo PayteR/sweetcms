@@ -262,13 +262,9 @@ export const categoriesRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const [source] = await ctx.db
-        .select()
-        .from(cmsCategories)
-        .where(eq(cmsCategories.id, input.id))
-        .limit(1);
-
-      if (!source) throw new TRPCError({ code: 'NOT_FOUND', message: 'Category not found' });
+      const source = await fetchOrNotFound<typeof cmsCategories.$inferSelect>(
+        ctx.db, cmsCategories, input.id, 'Category'
+      );
 
       let name = source.name;
       let title = source.title;
@@ -415,18 +411,9 @@ export const categoriesRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { id, tagIds, ...updates } = input;
 
-      const [existing] = await ctx.db
-        .select()
-        .from(cmsCategories)
-        .where(eq(cmsCategories.id, id))
-        .limit(1);
-
-      if (!existing) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Category not found',
-        });
-      }
+      const existing = await fetchOrNotFound<typeof cmsCategories.$inferSelect>(
+        ctx.db, cmsCategories, id, 'Category'
+      );
 
       if (updates.slug && updates.slug !== existing.slug) {
         await ensureSlugUnique(

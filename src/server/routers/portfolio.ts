@@ -273,13 +273,9 @@ export const portfolioRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const [source] = await ctx.db
-        .select()
-        .from(cmsPortfolio)
-        .where(eq(cmsPortfolio.id, input.id))
-        .limit(1);
-
-      if (!source) throw new TRPCError({ code: 'NOT_FOUND', message: 'Portfolio item not found' });
+      const source = await fetchOrNotFound<typeof cmsPortfolio.$inferSelect>(
+        ctx.db, cmsPortfolio, input.id, 'Portfolio item'
+      );
 
       let name = source.name;
       let title = source.title;
@@ -433,18 +429,9 @@ export const portfolioRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const { id, tagIds, ...updates } = input;
 
-      const [existing] = await ctx.db
-        .select()
-        .from(cmsPortfolio)
-        .where(eq(cmsPortfolio.id, id))
-        .limit(1);
-
-      if (!existing) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Portfolio item not found',
-        });
-      }
+      const existing = await fetchOrNotFound<typeof cmsPortfolio.$inferSelect>(
+        ctx.db, cmsPortfolio, id, 'Portfolio item'
+      );
 
       if (updates.slug && updates.slug !== existing.slug) {
         await ensureSlugUnique(
