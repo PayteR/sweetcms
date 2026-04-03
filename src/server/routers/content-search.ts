@@ -40,27 +40,94 @@ export const contentSearchRouter = createTRPCRouter({
 
       const results: SearchResult[] = [];
 
-      // Search posts (pages + blogs)
-      const posts = await ctx.db
-        .select({
-          id: cmsPosts.id,
-          type: cmsPosts.type,
-          slug: cmsPosts.slug,
-          title: cmsPosts.title,
-        })
-        .from(cmsPosts)
-        .where(
-          and(
-            eq(cmsPosts.status, ContentStatus.PUBLISHED),
-            isNull(cmsPosts.deletedAt),
-            ...(lang ? [eq(cmsPosts.lang, lang)] : []),
-            or(
-              ilike(cmsPosts.title, pattern),
-              ilike(cmsPosts.slug, pattern)
+      // Run all 4 content type queries in parallel
+      const [posts, categories, tags, portfolioItems] = await Promise.all([
+        // Search posts (pages + blogs)
+        ctx.db
+          .select({
+            id: cmsPosts.id,
+            type: cmsPosts.type,
+            slug: cmsPosts.slug,
+            title: cmsPosts.title,
+          })
+          .from(cmsPosts)
+          .where(
+            and(
+              eq(cmsPosts.status, ContentStatus.PUBLISHED),
+              isNull(cmsPosts.deletedAt),
+              ...(lang ? [eq(cmsPosts.lang, lang)] : []),
+              or(
+                ilike(cmsPosts.title, pattern),
+                ilike(cmsPosts.slug, pattern)
+              )
             )
           )
-        )
-        .limit(limit);
+          .limit(limit),
+
+        // Search categories
+        ctx.db
+          .select({
+            id: cmsCategories.id,
+            slug: cmsCategories.slug,
+            name: cmsCategories.name,
+          })
+          .from(cmsCategories)
+          .where(
+            and(
+              eq(cmsCategories.status, ContentStatus.PUBLISHED),
+              isNull(cmsCategories.deletedAt),
+              ...(lang ? [eq(cmsCategories.lang, lang)] : []),
+              or(
+                ilike(cmsCategories.name, pattern),
+                ilike(cmsCategories.slug, pattern)
+              )
+            )
+          )
+          .limit(limit),
+
+        // Search tags
+        ctx.db
+          .select({
+            id: cmsTerms.id,
+            slug: cmsTerms.slug,
+            name: cmsTerms.name,
+          })
+          .from(cmsTerms)
+          .where(
+            and(
+              eq(cmsTerms.taxonomyId, 'tag'),
+              eq(cmsTerms.status, ContentStatus.PUBLISHED),
+              isNull(cmsTerms.deletedAt),
+              ...(lang ? [eq(cmsTerms.lang, lang)] : []),
+              or(
+                ilike(cmsTerms.name, pattern),
+                ilike(cmsTerms.slug, pattern)
+              )
+            )
+          )
+          .limit(limit),
+
+        // Search portfolio
+        ctx.db
+          .select({
+            id: cmsPortfolio.id,
+            slug: cmsPortfolio.slug,
+            name: cmsPortfolio.name,
+          })
+          .from(cmsPortfolio)
+          .where(
+            and(
+              eq(cmsPortfolio.status, ContentStatus.PUBLISHED),
+              isNull(cmsPortfolio.deletedAt),
+              ...(lang ? [eq(cmsPortfolio.lang, lang)] : []),
+              or(
+                ilike(cmsPortfolio.name, pattern),
+                ilike(cmsPortfolio.slug, pattern)
+              )
+            )
+          )
+          .limit(limit),
+      ]);
 
       for (const post of posts) {
         const ct = CONTENT_TYPES.find((c) => c.postType === post.type);
@@ -77,27 +144,6 @@ export const contentSearchRouter = createTRPCRouter({
         });
       }
 
-      // Search categories
-      const categories = await ctx.db
-        .select({
-          id: cmsCategories.id,
-          slug: cmsCategories.slug,
-          name: cmsCategories.name,
-        })
-        .from(cmsCategories)
-        .where(
-          and(
-            eq(cmsCategories.status, ContentStatus.PUBLISHED),
-            isNull(cmsCategories.deletedAt),
-            ...(lang ? [eq(cmsCategories.lang, lang)] : []),
-            or(
-              ilike(cmsCategories.name, pattern),
-              ilike(cmsCategories.slug, pattern)
-            )
-          )
-        )
-        .limit(limit);
-
       for (const cat of categories) {
         results.push({
           type: 'category',
@@ -107,28 +153,6 @@ export const contentSearchRouter = createTRPCRouter({
         });
       }
 
-      // Search tags
-      const tags = await ctx.db
-        .select({
-          id: cmsTerms.id,
-          slug: cmsTerms.slug,
-          name: cmsTerms.name,
-        })
-        .from(cmsTerms)
-        .where(
-          and(
-            eq(cmsTerms.taxonomyId, 'tag'),
-            eq(cmsTerms.status, ContentStatus.PUBLISHED),
-            isNull(cmsTerms.deletedAt),
-            ...(lang ? [eq(cmsTerms.lang, lang)] : []),
-            or(
-              ilike(cmsTerms.name, pattern),
-              ilike(cmsTerms.slug, pattern)
-            )
-          )
-        )
-        .limit(limit);
-
       for (const tag of tags) {
         results.push({
           type: 'tag',
@@ -137,27 +161,6 @@ export const contentSearchRouter = createTRPCRouter({
           url: `/tag/${tag.slug}`,
         });
       }
-
-      // Search portfolio
-      const portfolioItems = await ctx.db
-        .select({
-          id: cmsPortfolio.id,
-          slug: cmsPortfolio.slug,
-          name: cmsPortfolio.name,
-        })
-        .from(cmsPortfolio)
-        .where(
-          and(
-            eq(cmsPortfolio.status, ContentStatus.PUBLISHED),
-            isNull(cmsPortfolio.deletedAt),
-            ...(lang ? [eq(cmsPortfolio.lang, lang)] : []),
-            or(
-              ilike(cmsPortfolio.name, pattern),
-              ilike(cmsPortfolio.slug, pattern)
-            )
-          )
-        )
-        .limit(limit);
 
       for (const item of portfolioItems) {
         results.push({

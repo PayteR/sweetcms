@@ -2,10 +2,11 @@
 
 import { signIn } from '@/lib/auth-client';
 import { accountRoutes } from '@/config/routes';
+import { env } from '@/lib/env';
 
 export function SocialLoginButtons({ callbackUrl = accountRoutes.home }: { callbackUrl?: string }) {
-  const hasGoogle = !!process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-  const hasDiscord = !!process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID;
+  const hasGoogle = !!env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+  const hasDiscord = !!env.NEXT_PUBLIC_DISCORD_CLIENT_ID;
 
   if (!hasGoogle && !hasDiscord) return null;
 

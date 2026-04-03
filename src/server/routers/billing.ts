@@ -287,36 +287,42 @@ export const billingRouter = createTRPCRouter({
 
       const totalActive = planDistribution.reduce((sum, p) => sum + Number(p.count), 0);
 
-      // MRR calculation — query individual subs to determine monthly vs yearly
-      const activeSubs = await ctx.db
+      // MRR calculation — group by plan+provider+priceId to avoid fetching individual rows
+      const activeSubGroups = await ctx.db
         .select({
           planId: saasSubscriptions.planId,
-          providerPriceId: saasSubscriptions.providerPriceId,
           providerId: saasSubscriptions.providerId,
+          providerPriceId: saasSubscriptions.providerPriceId,
+          count: sql<number>`count(*)`.as('count'),
         })
         .from(saasSubscriptions)
         .where(eq(saasSubscriptions.status, 'active'))
-        .limit(10000);
+        .groupBy(
+          saasSubscriptions.planId,
+          saasSubscriptions.providerId,
+          saasSubscriptions.providerPriceId,
+        );
 
       let mrr = 0;
-      for (const sub of activeSubs) {
-        const plan = getPlan(sub.planId);
+      for (const group of activeSubGroups) {
+        const plan = getPlan(group.planId);
         if (!plan) continue;
 
         // Determine if this is a yearly subscription by checking the price ID
         let isYearly = false;
-        if (sub.providerPriceId && sub.providerId) {
-          const prices = plan.providerPrices[sub.providerId];
+        if (group.providerPriceId && group.providerId) {
+          const prices = plan.providerPrices[group.providerId];
           if (prices) {
-            isYearly = prices.yearly === sub.providerPriceId;
+            isYearly = prices.yearly === group.providerPriceId;
           }
         }
         // Non-recurring providers (like nowpayments) are always yearly
-        if (sub.providerId === 'nowpayments') isYearly = true;
+        if (group.providerId === 'nowpayments') isYearly = true;
 
-        mrr += isYearly
+        const centsPerSub = isYearly
           ? Math.round(plan.priceYearly / 12)
           : plan.priceMonthly;
+        mrr += centsPerSub * Number(group.count);
       }
 
       // Churn: canceled in last 30 days

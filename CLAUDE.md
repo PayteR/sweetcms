@@ -36,7 +36,7 @@ SweetCMS is an open-source, AI agent-driven T3 SaaS starter with integrated CMS:
 
 **Engine provides:** config interfaces + factory helpers + admin-nav helpers, types (PostType, ContentStatus, shortcodes), RBAC policy, CRUD utils (admin-crud, drizzle-utils, taxonomy-helpers, cms-helpers, content-revisions, slug-redirects, page-seo), lib utils (slug, markdown, audit, webhooks, logger, datetime, redis, rate-limit, trpc-rate-limit, api-auth, seo-routes, ga4, gdpr, queue, ws-client, ws-channels, stats-cache, translations, shortcodes-parser, shortcode-utils, locale, locale-server, db-queue, queue-adapter), payment services (subscription-service, discount-service, feature-gate), hooks (form state, list state, autosave, bulk actions, useLocale), shared components (CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPickerDialog, CustomFieldsEditor, RevisionHistory, BulkActionBar, CommandPalette, SlideOver, ConfirmDialog, Toaster, InternalLinkDialog, FallbackRadio, DashboardShell, LocaleLink, LanguageSwitcher, PreferencesHydrator, MenuBuilder, RecentActivity, ContentStatusWidget, MobileMenu, ThemeToggle, NotificationBell, PostAttachments, GA4Widget, OrgSwitcher, ContentCalendar, TranslationBar, SeoOverridesDialog, DashboardConfig, PostCard, TagCloud, DynamicNav, BlogSidebar, ShortcodeRenderer, FaqAccordion, AccountSidebar, PricingToggle, shortcodes/CalloutBlock, shortcodes/CtaBlock, shortcodes/YoutubeEmbed, shortcodes/GalleryBlock), styles (tokens, admin CSS), stores (preferences-store, sidebar-store, toast-store, theme-store), test-utils (asMock).
 
-**Project provides:** content type data (`src/config/cms.ts`), taxonomy data (`src/config/taxonomies.ts`), admin navigation data (`src/config/admin-nav.ts`), dashboard widget registry (`src/config/dashboard-widgets.ts`), billing plans (`src/config/plans.ts`), pricing display config (`src/config/pricing.ts`), DB schema, tRPC routers, form components (PostForm, CategoryForm, etc.), CmsListView, AdminSidebar, DashboardWidgetGrid, auth-dependent components (UserMenu, SocialLoginButtons), routes, public UI.
+**Project provides:** content type data (`src/config/cms.ts`), taxonomy data (`src/config/taxonomies.ts`), admin navigation data (`src/config/admin-nav.ts`), dashboard widget registry + components (`src/config/dashboard-widgets.tsx`), shortcode component registry (`src/config/shortcodes.ts`), billing plans (`src/config/plans.ts`), pricing display config (`src/config/pricing.ts`), DB schema, tRPC routers, form components (PostForm, CategoryForm, etc.), CmsListView, AdminSidebar, DashboardWidgetGrid, auth-dependent components (UserMenu, SocialLoginButtons), routes, public UI.
 
 **Import rule:** project imports from `@/engine/*`. Engine accepts cross-boundary imports from `@/server/db`, `@/server/db/schema/*`, `@/lib/trpc/client`, `@/lib/trpc/server`, `@/lib/utils`, `@/lib/constants`, `@/config/plans`.
 
@@ -126,6 +126,20 @@ WordPress-style universal taxonomy with config-driven declarations.
 2. For post-backed types: auto-registered via `cms_posts.type`. For others: create table + router
 3. Add admin section page
 4. Add sitemap entries in `src/app/sitemap.ts`
+
+**To add a new shortcode:**
+1. Create component in `src/engine/components/shortcodes/` (or project-specific location)
+2. Register in `src/config/shortcodes.ts` — add entry to `SHORTCODE_COMPONENTS` map
+3. Engine's `ShortcodeRenderer` accepts `components` prop (no engine edit needed)
+
+**To add a new custom field type:**
+1. Engine's `CustomFieldsEditor` accepts optional `fieldRenderers` prop — pass custom renderers to override/extend built-in types (text, textarea, number, boolean, select, date, url, color)
+2. No engine edit needed — built-in defaults cover standard types
+
+**To add a new dashboard widget:**
+1. Create widget component (accepts `{ dragHandle?: ReactNode }` prop)
+2. Add `DashboardWidgetDef` entry in `src/config/dashboard-widgets.tsx`
+3. Add component to `DASHBOARD_WIDGET_COMPONENTS` map in same file
 
 ### File Structure
 
@@ -248,6 +262,7 @@ Always use these instead of manual alternatives:
 - **Copy slug** (`src/engine/crud/admin-crud.ts`): Use `generateCopySlug()` for duplicate operations — never inline the 20-attempt loop
 - **Status update** (`src/engine/crud/admin-crud.ts`): Use `updateContentStatus()` — handles auto-publishedAt logic. Never inline
 - **Translation siblings** (`src/engine/crud/admin-crud.ts`): Use `getTranslationSiblings()` — never inline the translationGroup lookup
+- **Translation copy** (`src/engine/crud/admin-crud.ts`): Use `prepareTranslationCopy()` for duplicateAsTranslation — handles translation group creation, unique slug, preview token. Never inline this infrastructure
 - **Bulk export** (`src/engine/crud/admin-crud.ts`): Use `serializeExport(items, headers, format)` for JSON/TSV export
 - **Router Zod schemas** (`src/engine/crud/router-schemas.ts`): Use `adminListInput`, `updateStatusInput`, `duplicateAsTranslationInput`, `exportBulkInput` — never inline these Zod shapes
 - **Slug auto-generation** (`src/engine/hooks/useSlugAutoGenerate.ts`): Use `useSlugAutoGenerate(source, isNew, slugManual, setSlug)` in all form components

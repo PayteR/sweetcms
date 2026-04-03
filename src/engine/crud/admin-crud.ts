@@ -14,6 +14,8 @@ import {
 } from 'drizzle-orm';
 import type { PgColumn, PgTable, PgTableWithColumns } from 'drizzle-orm/pg-core';
 
+import crypto from 'crypto';
+
 import type { DbClient, DrizzleDB, DrizzleDBOrTx } from '@/server/db';
 import { getAffectedRows, wordSplitLike } from './drizzle-utils';
 import { cmsContentRevisions, cmsSlugRedirects } from '@/server/db/schema';
@@ -482,4 +484,62 @@ export function serializeExport(
     data: [headers.join('\t'), ...rows].join('\n'),
     contentType: 'text/tab-separated-values',
   };
+}
+
+// ---------------------------------------------------------------------------
+// prepareTranslationCopy — shared infrastructure for duplicateAsTranslation
+// ---------------------------------------------------------------------------
+
+/**
+ * Handles the shared infrastructure when duplicating content as a translation:
+ * 1. Creates or reuses a translation group (updates source if needed)
+ * 2. Generates a unique slug for the target language
+ * 3. Generates a preview token
+ *
+ * Each router still handles field translation (DeepL) and insert (type-specific columns).
+ */
+export async function prepareTranslationCopy(
+  db: DbClient,
+  table: PgTableWithColumns<any>,
+  cols: {
+    id: PgColumn;
+    slug: PgColumn;
+    lang: PgColumn;
+    deletedAt: PgColumn;
+    translationGroup: PgColumn;
+  },
+  sourceId: string,
+  sourceSlug: string,
+  sourceTranslationGroup: string | null,
+  targetLang: string,
+): Promise<{ slug: string; translationGroup: string; previewToken: string }> {
+  // Create or reuse translation group
+  const translationGroup = sourceTranslationGroup ?? crypto.randomUUID();
+  if (!sourceTranslationGroup) {
+    await db
+      .update(table)
+      .set({ [cols.translationGroup.name]: translationGroup })
+      .where(eq(cols.id, sourceId));
+  }
+
+  // Generate unique slug for target language
+  let slug = `${sourceSlug}-${targetLang}`;
+  const [existing] = await db
+    .select({ slug: cols.slug })
+    .from(table)
+    .where(
+      and(
+        eq(cols.slug, slug),
+        eq(cols.lang, targetLang),
+        isNull(cols.deletedAt),
+      ),
+    )
+    .limit(1);
+  if (existing) {
+    slug = `${slug}-${Date.now()}`;
+  }
+
+  const previewToken = crypto.randomBytes(32).toString('hex');
+
+  return { slug, translationGroup, previewToken };
 }

@@ -10,7 +10,7 @@ import { logAudit } from '@/engine/lib/audit';
 export type AnonymizationMode = 'full' | 'pseudonymize';
 
 function pseudonymize(userId: string): { name: string; email: string } {
-  const secret = process.env.AUTH_SECRET ?? 'sweetcms-default-secret';
+  const secret = process.env.BETTER_AUTH_SECRET ?? 'sweetcms-default-secret';
   const hash = createHmac('sha256', secret).update(userId).digest('hex');
   return {
     name: `User-${hash.slice(0, 8)}`,

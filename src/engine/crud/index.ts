@@ -4,7 +4,7 @@ export {
   buildAdminList, buildStatusCounts, ensureSlugUnique,
   parsePagination, paginatedResult,
   fetchOrNotFound, generateCopySlug, updateContentStatus,
-  getTranslationSiblings, serializeExport,
+  getTranslationSiblings, serializeExport, prepareTranslationCopy,
 } from './admin-crud';
 export type { CrudColumns, AdminListInput, AdminListCols, StatusCountCols } from './admin-crud';
 export { updateWithRevision, batchGroupLangs, findTranslations } from './cms-helpers';

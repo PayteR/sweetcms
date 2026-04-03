@@ -22,6 +22,7 @@ import {
   serializeExport,
   parsePagination,
   paginatedResult,
+  prepareTranslationCopy,
 } from '@/engine/crud/admin-crud';
 import { adminListInput, exportBulkInput } from '@/engine/crud/router-schemas';
 import { updateWithRevision } from '@/engine/crud/cms-helpers';
@@ -285,35 +286,11 @@ export const categoriesRouter = createTRPCRouter({
         ]);
       }
 
-      // Create or reuse translation group
-      const translationGroup = source.translationGroup ?? crypto.randomUUID();
-
-      // If source had no group, update it
-      if (!source.translationGroup) {
-        await ctx.db
-          .update(cmsCategories)
-          .set({ translationGroup })
-          .where(eq(cmsCategories.id, input.id));
-      }
-
-      // Generate unique slug
-      let slug = `${source.slug}-${input.targetLang}`;
-      const [existing] = await ctx.db
-        .select({ slug: cmsCategories.slug })
-        .from(cmsCategories)
-        .where(
-          and(
-            eq(cmsCategories.slug, slug),
-            eq(cmsCategories.lang, input.targetLang),
-            isNull(cmsCategories.deletedAt)
-          )
-        )
-        .limit(1);
-      if (existing) {
-        slug = `${slug}-${Date.now()}`;
-      }
-
-      const previewToken = crypto.randomBytes(32).toString('hex');
+      const { slug, translationGroup, previewToken } = await prepareTranslationCopy(
+        ctx.db, cmsCategories,
+        { id: cmsCategories.id, slug: cmsCategories.slug, lang: cmsCategories.lang, deletedAt: cmsCategories.deletedAt, translationGroup: cmsCategories.translationGroup },
+        input.id, source.slug, source.translationGroup, input.targetLang,
+      );
 
       const [newCategory] = await ctx.db
         .insert(cmsCategories)

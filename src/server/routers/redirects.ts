@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, count as drizzleCount, desc, eq, like, or } from 'drizzle-orm';
+import { and, count as drizzleCount, desc, eq, inArray, like, or } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { cmsSlugRedirects, cmsPosts, cmsCategories } from '@/server/db/schema';
@@ -50,31 +50,40 @@ export const redirectsRouter = createTRPCRouter({
           .where(where),
       ]);
 
-      // Resolve target titles
-      const enriched = await Promise.all(
-        items.map(async (item) => {
-          let targetTitle = '';
-          let targetSlug = '';
+      // Resolve target titles — batch by contentType to avoid N+1
+      const categoryIds = items
+        .filter((i) => i.contentType === 'category')
+        .map((i) => i.contentId);
+      const postIds = items
+        .filter((i) => i.contentType !== 'category')
+        .map((i) => i.contentId);
 
-          if (item.contentType === 'category') {
-            const cat = await ctx.db.query.cmsCategories.findFirst({
-              where: eq(cmsCategories.id, item.contentId),
-              columns: { name: true, slug: true },
-            });
-            targetTitle = cat?.name ?? '(deleted)';
-            targetSlug = cat?.slug ?? '';
-          } else {
-            const post = await ctx.db.query.cmsPosts.findFirst({
-              where: eq(cmsPosts.id, item.contentId),
-              columns: { title: true, slug: true },
-            });
-            targetTitle = post?.title ?? '(deleted)';
-            targetSlug = post?.slug ?? '';
-          }
+      const [categoryRows, postRows] = await Promise.all([
+        categoryIds.length > 0
+          ? ctx.db
+              .select({ id: cmsCategories.id, name: cmsCategories.name, slug: cmsCategories.slug })
+              .from(cmsCategories)
+              .where(inArray(cmsCategories.id, categoryIds))
+          : Promise.resolve([]),
+        postIds.length > 0
+          ? ctx.db
+              .select({ id: cmsPosts.id, title: cmsPosts.title, slug: cmsPosts.slug })
+              .from(cmsPosts)
+              .where(inArray(cmsPosts.id, postIds))
+          : Promise.resolve([]),
+      ]);
 
-          return { ...item, targetTitle, targetSlug };
-        })
-      );
+      const categoryMap = new Map(categoryRows.map((c) => [c.id, c]));
+      const postMap = new Map(postRows.map((p) => [p.id, p]));
+
+      const enriched = items.map((item) => {
+        if (item.contentType === 'category') {
+          const cat = categoryMap.get(item.contentId);
+          return { ...item, targetTitle: cat?.name ?? '(deleted)', targetSlug: cat?.slug ?? '' };
+        }
+        const post = postMap.get(item.contentId);
+        return { ...item, targetTitle: post?.title ?? '(deleted)', targetSlug: post?.slug ?? '' };
+      });
 
       return paginatedResult(
         enriched,

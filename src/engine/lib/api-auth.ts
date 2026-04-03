@@ -20,7 +20,9 @@ export async function validateApiKey(request: Request): Promise<boolean> {
   if (!providedKey) return false;
 
   const hash = crypto.createHash('sha256').update(providedKey).digest('hex');
-  return hash === (option.value as string);
+  const a = Buffer.from(hash);
+  const b = Buffer.from(option.value as string);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
 /** Redis-backed rate limiter: 100 req/min per IP. Falls back to allowing if Redis unavailable. */

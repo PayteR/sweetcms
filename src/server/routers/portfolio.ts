@@ -22,6 +22,7 @@ import {
   serializeExport,
   parsePagination,
   paginatedResult,
+  prepareTranslationCopy,
 } from '@/engine/crud/admin-crud';
 import { adminListInput, exportBulkInput } from '@/engine/crud/router-schemas';
 import { updateWithRevision } from '@/engine/crud/cms-helpers';
@@ -298,32 +299,11 @@ export const portfolioRouter = createTRPCRouter({
         ]);
       }
 
-      const translationGroup = source.translationGroup ?? crypto.randomUUID();
-
-      if (!source.translationGroup) {
-        await ctx.db
-          .update(cmsPortfolio)
-          .set({ translationGroup })
-          .where(eq(cmsPortfolio.id, input.id));
-      }
-
-      let slug = `${source.slug}-${input.targetLang}`;
-      const [existing] = await ctx.db
-        .select({ slug: cmsPortfolio.slug })
-        .from(cmsPortfolio)
-        .where(
-          and(
-            eq(cmsPortfolio.slug, slug),
-            eq(cmsPortfolio.lang, input.targetLang),
-            isNull(cmsPortfolio.deletedAt)
-          )
-        )
-        .limit(1);
-      if (existing) {
-        slug = `${slug}-${Date.now()}`;
-      }
-
-      const previewToken = crypto.randomBytes(32).toString('hex');
+      const { slug, translationGroup, previewToken } = await prepareTranslationCopy(
+        ctx.db, cmsPortfolio,
+        { id: cmsPortfolio.id, slug: cmsPortfolio.slug, lang: cmsPortfolio.lang, deletedAt: cmsPortfolio.deletedAt, translationGroup: cmsPortfolio.translationGroup },
+        input.id, source.slug, source.translationGroup, input.targetLang,
+      );
 
       const [newItem] = await ctx.db
         .insert(cmsPortfolio)

@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { eq } from 'drizzle-orm';
 import type { PaymentProvider, CheckoutParams, CheckoutResult, WebhookEvent } from '@/engine/types/payment';
 import { TransactionStatus } from '@/engine/types/payment';
@@ -62,7 +63,9 @@ async function verifySignature(body: Record<string, unknown>, signatureHeader: s
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
 
-  return computed === signatureHeader;
+  const a = Buffer.from(computed);
+  const b = Buffer.from(signatureHeader);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
 
 export class NowPaymentsProvider implements PaymentProvider {

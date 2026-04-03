@@ -1,29 +1,36 @@
-import { boolean, integer, jsonb, pgTable, text, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { boolean, index, integer, jsonb, pgTable, text, timestamp, varchar } from 'drizzle-orm/pg-core';
 import { organization } from './organization';
 
 // ─── saas_subscriptions ──────────────────────────────────────────────────────
 // Tracks subscriptions per organization (provider-agnostic).
 
-export const saasSubscriptions = pgTable('saas_subscriptions', {
-  id: text('id')
-    .primaryKey()
-    .$defaultFn(() => crypto.randomUUID()),
-  organizationId: text('organization_id')
-    .notNull()
-    .references(() => organization.id, { onDelete: 'cascade' }),
-  providerId: varchar('provider_id', { length: 50 }).notNull().default('stripe'),
-  providerCustomerId: text('provider_customer_id').notNull(),
-  providerSubscriptionId: text('provider_subscription_id').unique(),
-  providerPriceId: text('provider_price_id'),
-  planId: varchar('plan_id', { length: 50 }).notNull().default('free'),
-  status: varchar('status', { length: 30 }).notNull().default('active'),
-  currentPeriodStart: timestamp('current_period_start'),
-  currentPeriodEnd: timestamp('current_period_end'),
-  cancelAtPeriodEnd: boolean('cancel_at_period_end').notNull().default(false),
-  trialEnd: timestamp('trial_end'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow(),
-});
+export const saasSubscriptions = pgTable(
+  'saas_subscriptions',
+  {
+    id: text('id')
+      .primaryKey()
+      .$defaultFn(() => crypto.randomUUID()),
+    organizationId: text('organization_id')
+      .notNull()
+      .references(() => organization.id, { onDelete: 'cascade' }),
+    providerId: varchar('provider_id', { length: 50 }).notNull().default('stripe'),
+    providerCustomerId: text('provider_customer_id').notNull(),
+    providerSubscriptionId: text('provider_subscription_id').unique(),
+    providerPriceId: text('provider_price_id'),
+    planId: varchar('plan_id', { length: 50 }).notNull().default('free'),
+    status: varchar('status', { length: 30 }).notNull().default('active'),
+    currentPeriodStart: timestamp('current_period_start'),
+    currentPeriodEnd: timestamp('current_period_end'),
+    cancelAtPeriodEnd: boolean('cancel_at_period_end').notNull().default(false),
+    trialEnd: timestamp('trial_end'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow(),
+  },
+  (t) => [
+    index('saas_subscriptions_org_idx').on(t.organizationId),
+    index('saas_subscriptions_status_org_idx').on(t.status, t.organizationId),
+  ]
+);
 
 // ─── saas_subscription_events ────────────────────────────────────────────────
 // Idempotency log for processed webhook events (provider-agnostic).
