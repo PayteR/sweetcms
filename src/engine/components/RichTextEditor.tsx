@@ -51,6 +51,7 @@ import { createSlashCommandExtension } from './editor/slash-commands';
 import type { SlashCommandItem } from './editor/slash-commands';
 import { createSlashCommandRender } from './editor/slash-command-renderer';
 import { EditorBubbleMenu } from './editor/EditorBubbleMenu';
+import { ImageBubbleMenu } from './editor/ImageBubbleMenu';
 import { TableMenu } from './editor/TableMenu';
 import { AiAssistMenu } from './editor/AiAssistMenu';
 import { LivePreview } from './editor/LivePreview';
@@ -70,6 +71,10 @@ interface Props {
   shortcodes?: ShortcodeConfig;
   /** Callback for AI text transformation. When provided, enables AI assist. */
   onAiTransform?: (text: string, instruction: string) => Promise<string>;
+  /** Additional CSS class for the outer wrapper (e.g. to remove rounding when embedded) */
+  wrapperClassName?: string;
+  /** Called when user wants to replace an image via media picker. Receives callback to set the new URL. */
+  onRequestMediaPicker?: (onSelect: (url: string, alt?: string) => void) => void;
 }
 
 const HEIGHT_STORAGE_PREFIX = 'cms-editor-h:';
@@ -136,6 +141,8 @@ export function RichTextEditor({
   editorRef,
   shortcodes,
   onAiTransform,
+  wrapperClassName,
+  onRequestMediaPicker,
 }: Props) {
   const scPrepareRef = useRef(shortcodes?.prepareForEditor ?? identity);
   const scSerializeRef = useRef(shortcodes?.serializeForStorage ?? identity);
@@ -390,6 +397,21 @@ export function RichTextEditor({
           }
         }
       },
+      insertImage: (src: string, alt?: string) => {
+        if (mode === 'source') {
+          const md = alt ? `![${alt}](${src})` : `![](${src})`;
+          const textarea = sourceTextareaRef.current;
+          if (textarea) {
+            const start = textarea.selectionStart;
+            const val = textarea.value;
+            const newValue = val.slice(0, start) + md + val.slice(start);
+            setSourceValue(newValue);
+            onChangeRef.current(newValue);
+          }
+        } else if (editor) {
+          editor.chain().focus().setImage({ src, alt: alt ?? '' }).run();
+        }
+      },
     };
     return () => {
       if (editorRef) editorRef.current = null;
@@ -448,11 +470,14 @@ export function RichTextEditor({
       <div
         ref={wrapperRef}
         style={{ height: height ?? '400px', resize: 'vertical', overflow: 'hidden' }}
-        className="relative flex flex-col overflow-hidden rounded-md border border-(--border-primary) focus-within:border-(--color-accent-500) focus-within:ring-1 focus-within:ring-(--color-accent-500)"
+        className={cn(
+          'relative flex flex-col overflow-hidden rounded-md border border-(--border-primary) focus-within:border-(--color-accent-500) focus-within:ring-1 focus-within:ring-(--color-accent-500)',
+          wrapperClassName,
+        )}
       >
         {/* Toolbar — disabled in source mode to prevent modifying the hidden editor */}
         <div className={cn(
-          'editor-toolbar flex flex-wrap items-center gap-0.5 border-b border-(--border-primary) px-2 py-1.5 shrink-0',
+          'editor-toolbar flex flex-wrap items-center gap-0.5 border-b border-(--border-primary) bg-(--surface-inset) px-2 py-1.5 shrink-0',
           mode === 'source' && 'pointer-events-none opacity-40',
         )}>
           <ToolbarButton
@@ -714,7 +739,7 @@ export function RichTextEditor({
         />
 
         {/* Editor / Source */}
-        <div className={cn('editor-content flex-1', mode === 'wysiwyg' ? 'overflow-auto' : 'overflow-hidden')}>
+        <div className={cn('editor-content flex-1 bg-(--surface-secondary)', mode === 'wysiwyg' ? 'overflow-auto' : 'overflow-hidden')}>
           {mode === 'wysiwyg' ? (
             <EditorContent
               editor={editor}
@@ -745,6 +770,20 @@ export function RichTextEditor({
               onAiAssist={onAiTransform ? () => setAiAssistOpen(true) : undefined}
             />
             <TableMenu editor={editor} __={__} />
+            <ImageBubbleMenu
+              editor={editor}
+              __={__}
+              onReplace={() => {
+                if (onRequestMediaPicker) {
+                  onRequestMediaPicker((url, alt) => {
+                    editor.chain().focus().updateAttributes('image', {
+                      src: url,
+                      ...(alt ? { alt } : {}),
+                    }).run();
+                  });
+                }
+              }}
+            />
           </>
         )}
 
@@ -760,7 +799,7 @@ export function RichTextEditor({
         )}
 
         {/* Mode tabs (bottom) */}
-        <div className="editor-mode-tabs flex justify-end border-t border-(--border-primary) shrink-0">
+        <div className="editor-mode-tabs flex justify-end border-t border-(--border-primary) bg-(--surface-secondary) shrink-0">
           <button
             type="button"
             className={cn(

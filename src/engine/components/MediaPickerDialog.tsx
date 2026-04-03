@@ -1,19 +1,22 @@
-'use client';
+"use client";
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
   X,
   Upload,
   Loader2,
   Image as ImageIcon,
   Check,
-} from 'lucide-react';
+  Search,
+  Trash2,
+} from "lucide-react";
 
-import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/engine/lib/translations';
-import { FileType } from '@/engine/types/cms';
-import { toast } from '@/engine/store/toast-store';
-import { cn } from '@/lib/utils';
+import { trpc } from "@/lib/trpc/client";
+import { useBlankTranslations } from "@/engine/lib/translations";
+import { FileType } from "@/engine/types/cms";
+import { toast } from "@/engine/store/toast-store";
+import { cn } from "@/lib/utils";
+import { Dialog } from "@/engine/components/Dialog";
 
 interface Props {
   open: boolean;
@@ -28,10 +31,28 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
   const [uploading, setUploading] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [searchDebounced, setSearchDebounced] = useState("");
+  const [dragOver, setDragOver] = useState(false);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
+
+  // Debounce search
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSearchDebounced(search);
+      setPage(1);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [search]);
 
   const mediaList = trpc.media.list.useQuery(
-    { page, pageSize: 20, fileType: FileType.IMAGE },
-    { enabled: open }
+    {
+      page,
+      pageSize: 20,
+      fileType: FileType.IMAGE,
+      search: searchDebounced || undefined,
+    },
+    { enabled: open },
   );
 
   const registerMedia = trpc.media.register.useMutation({
@@ -39,92 +60,200 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
     onError: (err) => toast.error(err.message),
   });
 
+  const updateMedia = trpc.media.update.useMutation({
+    onSuccess: () => utils.media.list.invalidate(),
+  });
+
+  const deleteMedia = trpc.media.delete.useMutation({
+    onSuccess: () => {
+      utils.media.list.invalidate();
+      setSelectedId(null);
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
   const data = mediaList.data;
   const selectedItem = data?.results.find((m) => m.id === selectedId);
 
-  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = e.target.files;
-    if (!files?.length) return;
-    setUploading(true);
-
-    for (const file of Array.from(files)) {
-      try {
-        const formData = new FormData();
-        formData.append('file', file);
-        const res = await fetch('/api/upload', { method: 'POST', body: formData });
-        if (!res.ok) {
-          const err = await res.json();
-          toast.error(err.error ?? 'Upload failed');
+  // ── Upload handler (shared by button + drag-drop) ──────────
+  const uploadFiles = useCallback(
+    async (files: FileList | File[]) => {
+      setUploading(true);
+      for (const file of Array.from(files)) {
+        if (!file.type.startsWith("image/")) {
+          toast.error(__("Only image files are supported"));
           continue;
         }
-        const result = await res.json();
-        await registerMedia.mutateAsync({
-          filename: result.filename,
-          filepath: result.filepath,
-          mimeType: result.mimeType,
-          fileSize: result.fileSize,
-        });
-      } catch {
-        toast.error(__('Failed to upload {name}', { name: file.name }));
+        try {
+          const formData = new FormData();
+          formData.append("file", file);
+          const res = await fetch("/api/upload", {
+            method: "POST",
+            body: formData,
+          });
+          if (!res.ok) {
+            const err = (await res.json()) as { error?: string };
+            toast.error(err.error ?? "Upload failed");
+            continue;
+          }
+          const result = (await res.json()) as {
+            filename: string;
+            filepath: string;
+            mimeType: string;
+            fileSize: number;
+            width?: number;
+            height?: number;
+            thumbnailPath?: string;
+            mediumPath?: string;
+            blurDataUrl?: string;
+          };
+          await registerMedia.mutateAsync({
+            filename: result.filename,
+            filepath: result.filepath,
+            mimeType: result.mimeType,
+            fileSize: result.fileSize,
+            width: result.width,
+            height: result.height,
+            thumbnailPath: result.thumbnailPath,
+            mediumPath: result.mediumPath,
+            blurDataUrl: result.blurDataUrl,
+          });
+        } catch {
+          toast.error(__("Failed to upload {name}", { name: file.name }));
+        }
       }
-    }
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    },
+    [__, registerMedia],
+  );
 
-    setUploading(false);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  }
+  // ── Drag-drop handlers ─────────────────────────────────────
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only leave if actually leaving the drop zone
+    if (
+      dropZoneRef.current &&
+      !dropZoneRef.current.contains(e.relatedTarget as Node)
+    ) {
+      setDragOver(false);
+    }
+  }, []);
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragOver(false);
+      const files = e.dataTransfer.files;
+      if (files.length > 0) uploadFiles(files);
+    },
+    [uploadFiles],
+  );
 
   function handleConfirm() {
     if (!selectedItem) return;
     onSelect(selectedItem.url, selectedItem.altText ?? undefined);
     onClose();
     setSelectedId(null);
+    setSearch("");
   }
 
-  if (!open) return null;
+  function handleClose() {
+    onClose();
+    setSelectedId(null);
+    setSearch("");
+  }
 
   return (
-    <div className="media-picker-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="media-picker-panel mx-4 flex max-h-[80vh] w-full max-w-3xl flex-col rounded-lg bg-(--surface-primary) shadow-xl">
-        {/* Header */}
-        <div className="media-picker-header flex items-center justify-between border-b border-(--border-primary) px-6 py-4">
-          <h2 className="text-lg font-semibold text-(--text-primary)">
-            {__('Select Image')}
-          </h2>
-          <div className="media-picker-header-actions flex items-center gap-2">
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      size="5xl"
+      className="max-w-7xl! h-[calc(100vh-80px)]"
+    >
+      {/* Header */}
+      <div className="media-picker-header flex items-center justify-between border-b border-(--border-primary) bg-(--surface-inset) px-6 py-3 rounded-t-lg shrink-0">
+        <h2 className="text-lg font-semibold text-(--text-primary)">
+          {__("Media Library")}
+        </h2>
+        <div className="media-picker-header-actions flex items-center gap-3">
+          {/* Search */}
+          <div className="relative">
+            <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-(--text-muted)" />
             <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handleUpload}
-              className="hidden"
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={__("Search media...")}
+              className="input pl-9 w-56 text-sm"
             />
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploading}
-              className="btn btn-secondary"
-            >
-              {uploading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Upload className="h-4 w-4" />
-              )}
-              {__('Upload')}
-            </button>
-            <button
-              onClick={() => {
-                onClose();
-                setSelectedId(null);
-              }}
-              className="rounded p-1 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
-            >
-              <X className="h-5 w-5" />
-            </button>
           </div>
+          {/* Upload button */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={(e) => {
+              if (e.target.files) uploadFiles(e.target.files);
+            }}
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+            className="btn btn-primary"
+          >
+            {uploading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Upload className="h-4 w-4" />
+            )}
+            {__("Upload")}
+          </button>
+          <button
+            onClick={handleClose}
+            className="rounded p-1 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
+      </div>
 
+      {/* Body: Grid + Detail panel */}
+      <div
+        ref={dropZoneRef}
+        className={cn(
+          "flex flex-1 min-h-0 transition-colors",
+          dragOver &&
+            "bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.05)]",
+        )}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         {/* Grid */}
-        <div className="media-picker-body flex-1 overflow-y-auto p-6">
+        <div className="flex-1 overflow-y-auto p-6">
+          {/* Drag-drop overlay */}
+          {dragOver && (
+            <div className="flex items-center justify-center rounded-lg border-2 border-dashed border-(--color-brand-400) py-12 mb-4">
+              <div className="text-center">
+                <Upload className="mx-auto h-8 w-8 text-brand-500" />
+                <p className="mt-2 text-sm font-medium text-brand-600 dark:text-(--color-brand-400)">
+                  {__("Drop files to upload")}
+                </p>
+              </div>
+            </div>
+          )}
+
           {mediaList.isLoading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
@@ -132,23 +261,27 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
           ) : (data?.results ?? []).length === 0 ? (
             <div className="media-picker-empty flex flex-col items-center justify-center py-12">
               <ImageIcon className="h-12 w-12 text-(--text-muted)" />
-              <p className="media-picker-empty-text mt-4 text-sm text-(--text-muted)">
-                {__('No images yet. Upload one above.')}
+              <p className="mt-4 text-sm text-(--text-muted)">
+                {search
+                  ? __("No images match your search.")
+                  : __("No images yet. Upload or drag files here.")}
               </p>
             </div>
           ) : (
             <>
-              <div className="grid grid-cols-4 gap-3 sm:grid-cols-5">
+              <div className="grid grid-cols-4 gap-3 sm:grid-cols-5 lg:grid-cols-6">
                 {(data?.results ?? []).map((item) => (
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => setSelectedId(item.id)}
+                    onClick={() =>
+                      setSelectedId(item.id === selectedId ? null : item.id)
+                    }
                     className={cn(
-                      'group relative aspect-square overflow-hidden rounded-lg border-2 transition-colors',
+                      "group relative aspect-square overflow-hidden rounded-lg border-2 transition-colors",
                       selectedId === item.id
-                        ? 'border-(--color-brand-500) ring-2 ring-(--color-brand-200) dark:ring-[oklch(0.65_0.17_var(--brand-hue)_/_0.25)]'
-                        : 'border-transparent hover:border-(--border-primary)'
+                        ? "border-(--color-brand-500) ring-2 ring-(--color-brand-200) dark:ring-[oklch(0.65_0.17_var(--brand-hue)_/_0.25)]"
+                        : "border-transparent hover:border-(--border-primary)",
                     )}
                   >
                     <img
@@ -174,17 +307,19 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
                     disabled={page <= 1}
                     className="btn btn-secondary text-xs disabled:opacity-40"
                   >
-                    {__('Previous')}
+                    {__("Previous")}
                   </button>
-                  <span className="media-picker-page-indicator px-3 py-1 text-xs text-(--text-muted)">
+                  <span className="px-3 py-1 text-xs text-(--text-muted)">
                     {page} / {data.totalPages}
                   </span>
                   <button
-                    onClick={() => setPage((p) => Math.min(data.totalPages, p + 1))}
+                    onClick={() =>
+                      setPage((p) => Math.min(data.totalPages, p + 1))
+                    }
                     disabled={page >= data.totalPages}
                     className="btn btn-secondary text-xs disabled:opacity-40"
                   >
-                    {__('Next')}
+                    {__("Next")}
                   </button>
                 </div>
               )}
@@ -192,31 +327,134 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
           )}
         </div>
 
-        {/* Footer */}
-        <div className="media-picker-footer flex items-center justify-between border-t border-(--border-primary) px-6 py-4">
-          <div className="media-picker-selection-label text-sm text-(--text-muted)">
-            {selectedItem ? selectedItem.filename : __('No image selected')}
-          </div>
-          <div className="media-picker-footer-actions flex gap-2">
-            <button
-              onClick={() => {
-                onClose();
-                setSelectedId(null);
-              }}
-              className="btn btn-secondary"
-            >
-              {__('Cancel')}
-            </button>
-            <button
-              onClick={handleConfirm}
-              disabled={!selectedItem}
-              className="btn btn-primary disabled:opacity-50"
-            >
-              {__('Select')}
-            </button>
-          </div>
+        {/* Detail panel — always visible */}
+        <div className="w-72 shrink-0 border-l border-(--border-primary) bg-(--surface-inset) overflow-y-auto">
+          {selectedItem ? (
+            <div key={selectedItem.id} className="p-4 space-y-4">
+              {/* Preview */}
+              <img
+                src={selectedItem.url}
+                alt={selectedItem.altText ?? selectedItem.filename}
+                className="w-full rounded-lg border border-(--border-primary) object-contain max-h-48"
+              />
+
+              {/* Filename */}
+              <div
+                className="text-xs text-(--text-muted) truncate"
+                title={selectedItem.filename}
+              >
+                {selectedItem.filename}
+              </div>
+
+              {/* File info */}
+              <div className="text-xs text-(--text-muted) space-y-0.5">
+                {selectedItem.width && selectedItem.height && (
+                  <div>
+                    {selectedItem.width} x {selectedItem.height}px
+                  </div>
+                )}
+                <div>{(selectedItem.fileSize / 1024).toFixed(1)} KB</div>
+              </div>
+
+              {/* Editable fields */}
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-(--text-secondary) mb-1">
+                    {__("Title")}
+                  </label>
+                  <input
+                    type="text"
+                    defaultValue={selectedItem.title ?? ""}
+                    onBlur={(e) => {
+                      updateMedia.mutate({
+                        id: selectedItem.id,
+                        title: e.target.value,
+                      });
+                    }}
+                    className="input w-full text-sm"
+                    placeholder={__("Image title")}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-(--text-secondary) mb-1">
+                    {__("Alt Text")}
+                  </label>
+                  <input
+                    type="text"
+                    defaultValue={selectedItem.altText ?? ""}
+                    onBlur={(e) => {
+                      updateMedia.mutate({
+                        id: selectedItem.id,
+                        altText: e.target.value,
+                      });
+                    }}
+                    className="input w-full text-sm"
+                    placeholder={__("Describe the image")}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-(--text-secondary) mb-1">
+                    {__("Description")}
+                  </label>
+                  <textarea
+                    defaultValue={selectedItem.description ?? ""}
+                    onBlur={(e) => {
+                      updateMedia.mutate({
+                        id: selectedItem.id,
+                        description: e.target.value,
+                      });
+                    }}
+                    rows={3}
+                    className="textarea w-full text-sm"
+                    placeholder={__("Optional description")}
+                  />
+                </div>
+              </div>
+
+              {/* Delete */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (confirm(__("Delete this media file?"))) {
+                    deleteMedia.mutate({ id: selectedItem.id });
+                  }
+                }}
+                className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-600 transition-colors"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                {__("Delete")}
+              </button>
+            </div>
+          ) : (
+            <div className="flex h-full items-center justify-center p-4">
+              <p className="text-center text-sm text-(--text-muted)">
+                {__("Select an image to view details")}
+              </p>
+            </div>
+          )}
         </div>
       </div>
-    </div>
+
+      {/* Footer */}
+      <div className="media-picker-footer flex items-center justify-between border-t border-(--border-primary) bg-(--surface-inset) px-6 py-3 rounded-b-lg shrink-0">
+        <div className="text-sm text-(--text-muted)">
+          {selectedItem ? selectedItem.filename : __("No image selected")}
+        </div>
+        <div className="flex gap-2">
+          <button onClick={handleClose} className="btn btn-secondary">
+            {__("Cancel")}
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={!selectedItem}
+            className="btn btn-primary disabled:opacity-50"
+          >
+            {__("Select")}
+          </button>
+        </div>
+      </div>
+    </Dialog>
   );
 }

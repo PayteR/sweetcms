@@ -98,6 +98,7 @@ export function PostForm({ contentType, postId }: Props) {
   const [slugManual, setSlugManual] = useState(false);
   const [showMediaPicker, setShowMediaPicker] = useState(false);
   const [showContentMediaPicker, setShowContentMediaPicker] = useState(false);
+  const [replaceImageCallback, setReplaceImageCallback] = useState<((url: string, alt?: string) => void) | null>(null);
   const [showRevisions, setShowRevisions] = useState(false);
 
   // Fetch existing post (wait for session to avoid UNAUTHORIZED on first render)
@@ -712,8 +713,8 @@ export function PostForm({ contentType, postId }: Props) {
         <div className="post-form-layout grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Main content — 2/3 */}
           <div className="post-form-main space-y-6 lg:col-span-2">
-            {/* Title + Slug — bare inputs, no card */}
-            <div>
+            {/* Title + Slug */}
+            <div className="rounded-lg bg-(--surface-secondary) px-5 py-4">
               <input
                 type="text"
                 required
@@ -737,32 +738,31 @@ export function PostForm({ contentType, postId }: Props) {
               </div>
             </div>
 
-            {/* Fixed: Content */}
-            <FormPanel
-              title={__('Content')}
-              headerActions={
-                <button
-                  type="button"
-                  onClick={() => setShowContentMediaPicker(true)}
-                  className="flex items-center gap-1.5 rounded px-2 py-1 text-xs font-medium text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary) transition-colors"
-                >
-                  <ImageIcon className="h-3.5 w-3.5" />
-                  {__('Add Media')}
-                </button>
-              }
+            {/* Add Media button */}
+            <button
+              type="button"
+              onClick={() => setShowContentMediaPicker(true)}
+              className="btn btn-secondary btn-sm"
             >
-              <RichTextEditor
-                content={formData.content}
-                onChange={(v) => handleChange('content', v)}
-                placeholder={__('Start writing your content...')}
-                postId={post?.id}
-                storageKey={`post-${post?.id ?? 'new'}`}
-                onRequestLinkPicker={openLinkPicker}
-                editorRef={editorRef}
-                shortcodes={shortcodeConfig}
-                onAiTransform={aiTransform}
-              />
-            </FormPanel>
+              <ImageIcon className="h-4 w-4" />
+              {__('Add Media')}
+            </button>
+
+            {/* Content editor */}
+            <RichTextEditor
+              content={formData.content}
+              onChange={(v) => handleChange('content', v)}
+              placeholder={__('Start writing your content...')}
+              postId={post?.id}
+              storageKey={`post-${post?.id ?? 'new'}`}
+              onRequestLinkPicker={openLinkPicker}
+              editorRef={editorRef}
+              shortcodes={shortcodeConfig}
+              onAiTransform={aiTransform}
+              onRequestMediaPicker={(onSelect) => {
+                setReplaceImageCallback(() => onSelect);
+              }}
+            />
 
             {/* Sortable main panels */}
             <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={handleMainDragEnd}>
@@ -864,7 +864,17 @@ export function PostForm({ contentType, postId }: Props) {
         open={showContentMediaPicker}
         onClose={() => setShowContentMediaPicker(false)}
         onSelect={(url) => {
-          editorRef.current?.replaceSelection(`![](${url})`);
+          editorRef.current?.insertImage?.(url);
+        }}
+      />
+
+      {/* Media Picker — Replace Image in Editor */}
+      <MediaPickerDialog
+        open={!!replaceImageCallback}
+        onClose={() => setReplaceImageCallback(null)}
+        onSelect={(url, alt) => {
+          replaceImageCallback?.(url, alt);
+          setReplaceImageCallback(null);
         }}
       />
 

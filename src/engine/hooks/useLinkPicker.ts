@@ -5,6 +5,7 @@ import { useCallback, useRef, useState } from 'react';
 /** Imperative handle for programmatic editor control. */
 export interface EditorHandle {
   replaceSelection: (text: string) => void;
+  insertImage?: (src: string, alt?: string) => void;
 }
 
 /** Shared link picker state for CMS editor forms (PostForm, CategoryForm). */

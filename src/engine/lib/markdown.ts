@@ -25,12 +25,12 @@ turndown.use(turndownGfm);
 // Preserve <u> as inline HTML — markdown has no underline syntax
 turndown.keep(['u']);
 
-// Preserve <img> with width/style as raw HTML — markdown ![alt](src) has no width syntax.
-// Plain images (no width) still convert to standard markdown image syntax.
-turndown.addRule('resizedImage', {
+// Preserve <img> with width or style as raw HTML — markdown ![alt](src) has no width/alignment syntax.
+// Plain images (no width, no style) still convert to standard markdown image syntax.
+turndown.addRule('styledImage', {
   filter: (node) => {
     if (node.nodeName !== 'IMG') return false;
-    return !!(node.getAttribute('width') || /width\s*:/i.test(node.getAttribute('style') ?? ''));
+    return !!(node.getAttribute('width') || node.getAttribute('style'));
   },
   replacement: (_content, node) => {
     return `\n\n${(node as HTMLElement).outerHTML}\n\n`;
