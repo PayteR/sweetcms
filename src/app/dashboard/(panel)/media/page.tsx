@@ -111,12 +111,12 @@ export default function MediaPage() {
 
         uploaded++;
       } catch {
-        toast.error(__(`Failed to upload ${file.name}`));
+        toast.error(__('Failed to upload {name}', { name: file.name }));
       }
     }
 
     if (uploaded > 0) {
-      toast.success(__(`${uploaded} file(s) uploaded`));
+      toast.success(__('{count} file(s) uploaded', { count: uploaded }));
     }
 
     setUploading(false);
@@ -335,7 +335,7 @@ export default function MediaPage() {
       <ConfirmDialog
         open={!!deleteTarget}
         title={__('Delete file?')}
-        message={__(`"${deleteTarget?.filename}" will be deleted.`)}
+        message={__('"{name}" will be deleted.', { name: deleteTarget?.filename ?? '' })}
         confirmLabel={__('Delete')}
         variant="danger"
         onConfirm={confirmDelete}

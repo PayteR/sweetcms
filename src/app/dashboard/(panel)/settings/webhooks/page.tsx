@@ -61,7 +61,7 @@ export default function WebhooksPage() {
   });
 
   const testWebhook = trpc.webhooks.test.useMutation({
-    onSuccess: (data) => toast.success(__(`Test sent (status ${data.status})`)),
+    onSuccess: (data) => toast.success(__('Test sent (status {status})', { status: data.status })),
     onError: (err) => toast.error(err.message),
   });
 
@@ -247,7 +247,7 @@ export default function WebhooksPage() {
       <ConfirmDialog
         open={!!deleteTarget}
         title={__('Delete webhook?')}
-        message={__(`"${deleteTarget?.name}" will be permanently deleted.`)}
+        message={__('"{name}" will be permanently deleted.', { name: deleteTarget?.name ?? '' })}
         confirmLabel={__('Delete')}
         variant="danger"
         onConfirm={() => {

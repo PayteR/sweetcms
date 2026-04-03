@@ -164,7 +164,7 @@ export function PostForm({ contentType, postId }: Props) {
       customFieldsRef.current?.save(data.id).catch((err: unknown) => {
         console.error('[PostForm] Failed to save custom fields', err);
       });
-      toast.success(__(`${contentType.label} created`));
+      toast.success(__('{label} created', { label: contentType.label }));
       utils.cms.list.invalidate();
       utils.cms.counts.invalidate();
       router.push(adminPanel.cmsItem(contentType.adminSlug, data.id));
@@ -178,7 +178,7 @@ export function PostForm({ contentType, postId }: Props) {
       if (postId) customFieldsRef.current?.save(postId).catch((err: unknown) => {
         console.error('[PostForm] Failed to save custom fields', err);
       });
-      toast.success(__(`${contentType.label} updated`));
+      toast.success(__('{label} updated', { label: contentType.label }));
       utils.cms.list.invalidate();
       existingPost.refetch();
       // Post-save link validation
@@ -330,8 +330,8 @@ export function PostForm({ contentType, postId }: Props) {
         </button>
         <h1 className="text-2xl font-bold text-(--text-primary)">
           {isNew
-            ? __(`New ${contentType.label}`)
-            : __(`Edit ${contentType.label}`)}
+            ? __('New {label}', { label: contentType.label })
+            : __('Edit {label}', { label: contentType.label })}
         </h1>
       </div>
       <div className="flex items-center gap-2">
@@ -401,7 +401,7 @@ export function PostForm({ contentType, postId }: Props) {
                 value={formData.title}
                 onChange={(e) => handleChange('title', e.target.value)}
                 className="input mt-1"
-                placeholder={__(`${contentType.label} title`)}
+                placeholder={__('{label} title', { label: contentType.label })}
               />
 
               <label className="mt-3 block text-sm font-medium text-(--text-secondary)">

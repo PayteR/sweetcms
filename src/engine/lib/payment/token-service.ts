@@ -1,4 +1,4 @@
-import { eq, sql } from 'drizzle-orm';
+import { eq, sql, and, gte, desc } from 'drizzle-orm';
 import { db } from '@/server/db';
 import { saasTokenBalances, saasTokenTransactions } from '@/server/db/schema';
 import { createLogger } from '@/engine/lib/logger';
@@ -100,6 +100,8 @@ export async function addTokens(
 /**
  * Deduct tokens (debit). Used for feature usage, API calls, etc.
  * Returns the new balance, or throws if insufficient.
+ *
+ * Race-safe: uses atomic UPDATE ... WHERE balance >= amount (no SELECT-then-UPDATE gap).
  */
 export async function deductTokens(
   orgId: string,
@@ -110,19 +112,7 @@ export async function deductTokens(
   if (amount <= 0) throw new Error('deductTokens amount must be positive');
 
   const newBalance = await db.transaction(async (tx) => {
-    // Check current balance
-    const [row] = await tx
-      .select({ balance: saasTokenBalances.balance })
-      .from(saasTokenBalances)
-      .where(eq(saasTokenBalances.organizationId, orgId))
-      .limit(1);
-
-    const current = row?.balance ?? 0;
-    if (current < amount) {
-      throw new Error(`Insufficient tokens: have ${current}, need ${amount}`);
-    }
-
-    // Deduct
+    // Atomic deduct — WHERE clause prevents negative balance even under concurrency
     const [updated] = await tx
       .update(saasTokenBalances)
       .set({
@@ -130,21 +120,30 @@ export async function deductTokens(
         lifetimeUsed: sql`${saasTokenBalances.lifetimeUsed} + ${amount}`,
         updatedAt: new Date(),
       })
-      .where(eq(saasTokenBalances.organizationId, orgId))
+      .where(
+        and(
+          eq(saasTokenBalances.organizationId, orgId),
+          gte(saasTokenBalances.balance, amount),
+        )
+      )
       .returning({ balance: saasTokenBalances.balance });
 
-    const balance = updated!.balance;
+    if (!updated) {
+      // Either org has no balance record or insufficient tokens
+      const current = await getTokenBalance(orgId);
+      throw new Error(`Insufficient tokens: have ${current}, need ${amount}`);
+    }
 
     // Ledger entry
     await tx.insert(saasTokenTransactions).values({
       organizationId: orgId,
       amount: -amount,
-      balanceAfter: balance,
+      balanceAfter: updated.balance,
       reason,
       metadata: metadata ?? null,
     });
 
-    return balance;
+    return updated.balance;
   });
 
   logger.info('Tokens deducted', { orgId, amount, reason, newBalance });
@@ -156,7 +155,6 @@ export async function deductTokens(
  * Get recent token transactions for an organization.
  */
 export async function getTokenTransactions(orgId: string, limit = 20) {
-  const { desc } = await import('drizzle-orm');
   return db
     .select()
     .from(saasTokenTransactions)

@@ -464,7 +464,7 @@ export default function UserDetailPage() {
       <ConfirmDialog
         open={banDialogOpen}
         title={__('Ban user?')}
-        message={__(`Ban ${u.name}? They will lose access.`)}
+        message={__('Ban {name}? They will lose access.', { name: u.name })}
         confirmLabel={__('Ban')}
         variant="danger"
         onConfirm={() => {

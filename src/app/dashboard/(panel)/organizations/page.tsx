@@ -502,7 +502,7 @@ export default function OrganizationsPage() {
       <ConfirmDialog
         open={!!deleteTarget}
         title={__('Delete organization?')}
-        message={__(`Permanently delete "${deleteTarget?.name}"? This will remove all members and data. This action cannot be undone.`)}
+        message={__('Permanently delete "{name}"? This will remove all members and data. This action cannot be undone.', { name: deleteTarget?.name ?? '' })}
         confirmLabel={__('Delete')}
         variant="danger"
         onConfirm={() => {
@@ -515,7 +515,7 @@ export default function OrganizationsPage() {
       <ConfirmDialog
         open={!!leaveTarget}
         title={__('Leave organization?')}
-        message={__(`Leave "${leaveTarget?.name}"? You will lose access to this organization.`)}
+        message={__('Leave "{name}"? You will lose access to this organization.', { name: leaveTarget?.name ?? '' })}
         confirmLabel={__('Leave')}
         variant="danger"
         onConfirm={() => {

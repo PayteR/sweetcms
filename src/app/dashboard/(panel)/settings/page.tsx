@@ -41,7 +41,7 @@ export default function SettingsPage() {
 
   const resetToDefault = trpc.options.resetToDefault.useMutation({
     onSuccess: (_data, variables) => {
-      toast.success(__(`Reset "${variables.key}" to default`));
+      toast.success(__('Reset "{key}" to default', { key: variables.key }));
       // Clear local override if any
       setLocalOverrides((prev) => {
         const next = { ...prev };
@@ -62,7 +62,7 @@ export default function SettingsPage() {
   const [seoDialogOpen, setSeoDialogOpen] = useState(false);
   const createSeoOverrides = trpc.cms.createMissingSeoOverrides.useMutation({
     onSuccess: (data) => {
-      toast.success(__(`Created ${data.created} SEO override page(s)`));
+      toast.success(__('Created {count} SEO override page(s)', { count: data.created }));
       setSeoDialogOpen(false);
     },
     onError: (err) => toast.error(err.message),

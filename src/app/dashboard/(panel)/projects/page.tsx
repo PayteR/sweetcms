@@ -277,7 +277,7 @@ export default function ProjectsPage() {
       <ConfirmDialog
         open={!!deleteTarget}
         title={__('Delete project?')}
-        message={__(`Delete "${deleteTarget?.name}"? This action cannot be undone.`)}
+        message={__('Delete "{name}"? This action cannot be undone.', { name: deleteTarget?.name ?? '' })}
         confirmLabel={__('Delete')}
         variant="danger"
         onConfirm={() => {

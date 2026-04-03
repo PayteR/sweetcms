@@ -65,7 +65,7 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
           fileSize: result.fileSize,
         });
       } catch {
-        toast.error(__(`Failed to upload ${file.name}`));
+        toast.error(__('Failed to upload {name}', { name: file.name }));
       }
     }
 

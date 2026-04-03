@@ -1,6 +1,6 @@
 # Deployment Guide
 
-The cheapest way to deploy SweetCMS: a single VPS running everything via Docker Compose, with free tools for CI/CD, CDN, SSL, and email.
+> **Note:** This is the cheapest, no-frills deployment — not the best. It gets you running for ~$4/mo on a single VPS. For production apps with high traffic, stricter uptime requirements, or compliance needs, consider managed databases, multi-region setups, or a proper PaaS. This guide prioritizes simplicity and cost over everything else.
 
 ## Stack Overview
 

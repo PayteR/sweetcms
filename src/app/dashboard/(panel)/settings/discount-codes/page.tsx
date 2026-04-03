@@ -329,7 +329,7 @@ export default function DiscountCodesPage() {
       <ConfirmDialog
         open={!!deleteTarget}
         title={__('Delete discount code?')}
-        message={__(`Code "${deleteTarget?.code}" will be permanently deleted.`)}
+        message={__('Code "{code}" will be permanently deleted.', { code: deleteTarget?.code ?? '' })}
         confirmLabel={__('Delete')}
         variant="danger"
         onConfirm={() => {

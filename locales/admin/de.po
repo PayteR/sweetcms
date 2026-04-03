@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sweetcms\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-03T19:28:29.524Z\n"
-"PO-Revision-Date: 2026-04-03T19:28:29.524Z\n"
+"POT-Creation-Date: 2026-04-03T19:38:04.870Z\n"
+"PO-Revision-Date: 2026-04-03T19:38:04.870Z\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: de\n"
 "Language: de\n"
@@ -32,7 +32,7 @@ msgstr "Filter by user..."
 #: src/app/dashboard/(panel)/cms/redirects/page.tsx:241
 #: src/app/dashboard/(panel)/forms/page.tsx:107
 #: src/app/dashboard/(panel)/users/page.tsx:209
-#: src/components/admin/AdminSidebar.tsx:168
+#: src/components/admin/AdminSidebar.tsx:172
 msgid "Search"
 msgstr "Search"
 
@@ -54,7 +54,7 @@ msgstr "Action"
 #: src/app/dashboard/(panel)/cms/activity/page.tsx:119
 #: src/app/dashboard/(panel)/organizations/page.tsx:391
 #: src/app/dashboard/(panel)/users/page.tsx:223
-#: src/components/admin/AdminSidebar.tsx:186
+#: src/components/admin/AdminSidebar.tsx:190
 msgid "User"
 msgstr "User"
 
@@ -228,6 +228,10 @@ msgstr "Delete"
 msgid "Delete menu?"
 msgstr "Delete menu?"
 
+#: src/app/dashboard/(panel)/cms/menus/page.tsx:139
+msgid "\"{name}\" and all its items will be permanently deleted."
+msgstr "\"{name}\" and all its items will be permanently deleted."
+
 #: src/app/dashboard/(panel)/cms/menus/[id]/page.tsx:33
 msgid "Menu updated"
 msgstr "Menu updated"
@@ -247,6 +251,10 @@ msgstr "Menu Items"
 #: src/app/dashboard/(panel)/cms/redirects/page.tsx:50
 msgid "Redirect created"
 msgstr "Redirect created"
+
+#: src/app/dashboard/(panel)/cms/redirects/page.tsx:52
+msgid "Chain detected: {chain}"
+msgstr "Chain detected: {chain}"
 
 #: src/app/dashboard/(panel)/cms/redirects/page.tsx:68
 msgid "Redirect deleted"
@@ -605,6 +613,15 @@ msgstr "Delete this submission? This cannot be undone."
 msgid "File deleted"
 msgstr "File deleted"
 
+#: src/app/dashboard/(panel)/media/page.tsx:114
+#: src/engine/components/MediaPickerDialog.tsx:68
+msgid "Failed to upload {name}"
+msgstr "Failed to upload {name}"
+
+#: src/app/dashboard/(panel)/media/page.tsx:119
+msgid "{count} file(s) uploaded"
+msgstr "{count} file(s) uploaded"
+
 #: src/app/dashboard/(panel)/media/page.tsx:167
 #: src/components/admin/QuickActionsWidget.tsx:42
 msgid "Media Library"
@@ -635,6 +652,10 @@ msgstr "Copy URL"
 #: src/app/dashboard/(panel)/media/page.tsx:337
 msgid "Delete file?"
 msgstr "Delete file?"
+
+#: src/app/dashboard/(panel)/media/page.tsx:338
+msgid "\"{name}\" will be deleted."
+msgstr "\"{name}\" will be deleted."
 
 #: src/app/dashboard/(panel)/notifications/page.tsx:39
 #: src/engine/components/NotificationBell.tsx:61
@@ -792,9 +813,17 @@ msgstr "Delete Organization"
 msgid "Delete organization?"
 msgstr "Delete organization?"
 
+#: src/app/dashboard/(panel)/organizations/page.tsx:505
+msgid "Permanently delete \"{name}\"? This will remove all members and data. This action cannot be undone."
+msgstr "Permanently delete \"{name}\"? This will remove all members and data. This action cannot be undone."
+
 #: src/app/dashboard/(panel)/organizations/page.tsx:517
 msgid "Leave organization?"
 msgstr "Leave organization?"
+
+#: src/app/dashboard/(panel)/organizations/page.tsx:518
+msgid "Leave \"{name}\"? You will lose access to this organization."
+msgstr "Leave \"{name}\"? You will lose access to this organization."
 
 #: src/app/dashboard/(panel)/organizations/page.tsx:519
 msgid "Leave"
@@ -957,6 +986,10 @@ msgstr "Next"
 #: src/app/dashboard/(panel)/projects/page.tsx:279
 msgid "Delete project?"
 msgstr "Delete project?"
+
+#: src/app/dashboard/(panel)/projects/page.tsx:280
+msgid "Delete \"{name}\"? This action cannot be undone."
+msgstr "Delete \"{name}\"? This action cannot be undone."
 
 #: src/app/dashboard/(panel)/settings/affiliates/page.tsx:26
 #: src/app/dashboard/(panel)/settings/billing/components/AffiliateOverview.tsx:23
@@ -1383,6 +1416,10 @@ msgstr "Uses"
 msgid "Delete discount code?"
 msgstr "Delete discount code?"
 
+#: src/app/dashboard/(panel)/settings/discount-codes/page.tsx:332
+msgid "Code \"{code}\" will be permanently deleted."
+msgstr "Code \"{code}\" will be permanently deleted."
+
 #: src/app/dashboard/(panel)/settings/email-templates/page.tsx:58
 msgid "Template saved"
 msgstr "Template saved"
@@ -1390,6 +1427,10 @@ msgstr "Template saved"
 #: src/app/dashboard/(panel)/settings/email-templates/page.tsx:66
 msgid "Template reset to default"
 msgstr "Template reset to default"
+
+#: src/app/dashboard/(panel)/settings/email-templates/page.tsx:140
+msgid "Edit: {label}"
+msgstr "Edit: {label}"
 
 #: src/app/dashboard/(panel)/settings/email-templates/page.tsx:150
 msgid "Reset to Default"
@@ -1446,6 +1487,10 @@ msgstr "Custom"
 #: src/engine/components/FallbackRadio.tsx:28
 msgid "Default"
 msgstr "Default"
+
+#: src/app/dashboard/(panel)/settings/email-templates/page.tsx:273
+msgid "Variables: {vars}"
+msgstr "Variables: {vars}"
 
 #: src/app/dashboard/(panel)/settings/import/page.tsx:123
 msgid "File size exceeds 50MB limit"
@@ -1657,9 +1702,17 @@ msgstr "Retry"
 msgid "Settings saved"
 msgstr "Settings saved"
 
+#: src/app/dashboard/(panel)/settings/page.tsx:44
+msgid "Reset \"{key}\" to default"
+msgstr "Reset \"{key}\" to default"
+
 #: src/app/dashboard/(panel)/settings/page.tsx:58
 msgid "GA4 connection successful"
 msgstr "GA4 connection successful"
+
+#: src/app/dashboard/(panel)/settings/page.tsx:65
+msgid "Created {count} SEO override page(s)"
+msgstr "Created {count} SEO override page(s)"
 
 #: src/app/dashboard/(panel)/settings/page.tsx:194
 msgid "Settings"
@@ -1801,6 +1854,10 @@ msgstr "Webhook updated"
 msgid "Webhook deleted"
 msgstr "Webhook deleted"
 
+#: src/app/dashboard/(panel)/settings/webhooks/page.tsx:64
+msgid "Test sent (status {status})"
+msgstr "Test sent (status {status})"
+
 #: src/app/dashboard/(panel)/settings/webhooks/page.tsx:113
 msgid "Webhooks"
 msgstr "Webhooks"
@@ -1831,6 +1888,10 @@ msgstr "Test"
 #: src/app/dashboard/(panel)/settings/webhooks/page.tsx:249
 msgid "Delete webhook?"
 msgstr "Delete webhook?"
+
+#: src/app/dashboard/(panel)/settings/webhooks/page.tsx:250
+msgid "\"{name}\" will be permanently deleted."
+msgstr "\"{name}\" will be permanently deleted."
 
 #: src/app/dashboard/(panel)/users/page.tsx:79
 msgid "Role updated"
@@ -1898,6 +1959,10 @@ msgstr "Anonymize (GDPR)"
 msgid "Change Role"
 msgstr "Change Role"
 
+#: src/app/dashboard/(panel)/users/page.tsx:398
+msgid "Change role for {name}"
+msgstr "Change role for {name}"
+
 #: src/app/dashboard/(panel)/users/page.tsx:433
 msgid "Unban user?"
 msgstr "Unban user?"
@@ -1906,6 +1971,15 @@ msgstr "Unban user?"
 #: src/app/dashboard/(panel)/users/[id]/page.tsx:466
 msgid "Ban user?"
 msgstr "Ban user?"
+
+#: src/app/dashboard/(panel)/users/page.tsx:436
+msgid "Unban {name}? They will regain access."
+msgstr "Unban {name}? They will regain access."
+
+#: src/app/dashboard/(panel)/users/page.tsx:437
+#: src/app/dashboard/(panel)/users/[id]/page.tsx:467
+msgid "Ban {name}? They will lose access."
+msgstr "Ban {name}? They will lose access."
 
 #: src/app/dashboard/(panel)/users/page.tsx:448
 #: src/app/dashboard/(panel)/users/[id]/page.tsx:480
@@ -1968,24 +2042,24 @@ msgstr "Audit Trail"
 msgid "No activity recorded for this user."
 msgstr "No activity recorded for this user."
 
-#: src/components/admin/AdminSidebar.tsx:176
+#: src/components/admin/AdminSidebar.tsx:180
 msgid "Theme"
 msgstr "Theme"
 
-#: src/components/admin/AdminSidebar.tsx:216
+#: src/components/admin/AdminSidebar.tsx:220
 msgid "Sign Out"
 msgstr "Sign Out"
 
-#: src/components/admin/AdminSidebar.tsx:239
+#: src/components/admin/AdminSidebar.tsx:243
 msgid "Expand panel"
 msgstr "Expand panel"
 
-#: src/components/admin/AdminSidebar.tsx:239
+#: src/components/admin/AdminSidebar.tsx:243
 msgid "Collapse panel"
 msgstr "Collapse panel"
 
-#: src/components/admin/AdminSidebar.tsx:283
-#: src/components/admin/AdminSidebar.tsx:347
+#: src/components/admin/AdminSidebar.tsx:287
+#: src/components/admin/AdminSidebar.tsx:351
 msgid "View site"
 msgstr "View site"
 
@@ -2092,6 +2166,10 @@ msgstr "Permanently deleted"
 msgid "Duplicated"
 msgstr "Duplicated"
 
+#: src/components/admin/CmsListView.tsx:365
+msgid "Exported {count} items"
+msgstr "Exported {count} items"
+
 #: src/components/admin/CmsListView.tsx:556
 msgid "Toggle columns"
 msgstr "Toggle columns"
@@ -2100,6 +2178,15 @@ msgstr "Toggle columns"
 #: src/engine/components/DashboardConfig.tsx:121
 msgid "Columns"
 msgstr "Columns"
+
+#: src/components/admin/CmsListView.tsx:623
+#: src/components/admin/PostForm.tsx:333
+msgid "New {label}"
+msgstr "New {label}"
+
+#: src/components/admin/CmsListView.tsx:660
+msgid "Search {label}..."
+msgstr "Search {label}..."
 
 #: src/components/admin/CmsListView.tsx:678
 msgid "All langs"
@@ -2152,6 +2239,22 @@ msgstr "Delete permanently?"
 #: src/components/admin/CmsListView.tsx:972
 msgid "Move to trash?"
 msgstr "Move to trash?"
+
+#: src/components/admin/CmsListView.tsx:960
+msgid "\"{title}\" will be permanently deleted. This cannot be undone."
+msgstr "\"{title}\" will be permanently deleted. This cannot be undone."
+
+#: src/components/admin/CmsListView.tsx:961
+msgid "\"{title}\" will be moved to trash."
+msgstr "\"{title}\" will be moved to trash."
+
+#: src/components/admin/CmsListView.tsx:973
+msgid "{count} items will be moved to trash."
+msgstr "{count} items will be moved to trash."
+
+#: src/components/admin/CmsListView.tsx:990
+msgid "Created {count} SEO override(s)"
+msgstr "Created {count} SEO override(s)"
 
 #: src/components/admin/CmsListView.tsx:994
 msgid "All SEO overrides already exist"
@@ -2224,9 +2327,26 @@ msgstr "Alt text"
 msgid "Select Image"
 msgstr "Select Image"
 
+#: src/components/admin/PostForm.tsx:167
+msgid "{label} created"
+msgstr "{label} created"
+
+#: src/components/admin/PostForm.tsx:181
+msgid "{label} updated"
+msgstr "{label} updated"
+
+#: src/components/admin/PostForm.tsx:334
+#: src/engine/components/shortcodes/ShortcodeEditDialog.tsx:34
+msgid "Edit {label}"
+msgstr "Edit {label}"
+
 #: src/components/admin/PostForm.tsx:357
 msgid "Publish"
 msgstr "Publish"
+
+#: src/components/admin/PostForm.tsx:404
+msgid "{label} title"
+msgstr "{label} title"
 
 #: src/components/admin/PostForm.tsx:425
 #: src/engine/components/CommandPalette.tsx:93
@@ -2911,6 +3031,10 @@ msgstr "Press Enter to create \""
 msgid "\""
 msgstr "\""
 
+#: src/engine/components/TokenBalance.tsx:65
+msgid "Token balance"
+msgstr "Token balance"
+
 #: src/engine/components/TranslationBar.tsx:66
 msgid "Failed to create translation"
 msgstr "Failed to create translation"
@@ -2922,6 +3046,14 @@ msgstr "Copy"
 #: src/engine/components/TranslationBar.tsx:138
 msgid "Copy & Translate"
 msgstr "Copy & Translate"
+
+#: src/engine/hooks/useBulkActions.ts:50
+msgid "{succeeded} {action}, {failed} failed"
+msgstr "{succeeded} {action}, {failed} failed"
+
+#: src/engine/hooks/useBulkActions.ts:52
+msgid "{count} items {action}"
+msgstr "{count} items {action}"
 
 #: src/engine/hooks/useCmsFormState.ts:49
 msgid "Please check the form for errors"

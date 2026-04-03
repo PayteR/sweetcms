@@ -47,9 +47,9 @@ export function useBulkActions({
   const showResult = useCallback(
     (succeeded: number, failed: number, action: string) => {
       if (failed > 0) {
-        toast.info(__(`${succeeded} ${action}, ${failed} failed`));
+        toast.info(__('{succeeded} {action}, {failed} failed', { succeeded, action, failed }));
       } else {
-        toast.success(__(`${succeeded} items ${action}`));
+        toast.success(__('{count} items {action}', { count: succeeded, action }));
       }
     },
     [__]

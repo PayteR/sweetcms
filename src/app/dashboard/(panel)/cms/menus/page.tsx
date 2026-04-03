@@ -136,7 +136,7 @@ export default function MenusPage() {
       <ConfirmDialog
         open={!!deleteTarget}
         title={__('Delete menu?')}
-        message={__(`"${deleteTarget?.name}" and all its items will be permanently deleted.`)}
+        message={__('"{name}" and all its items will be permanently deleted.', { name: deleteTarget?.name ?? '' })}
         confirmLabel={__('Delete')}
         variant="danger"
         onConfirm={() => {

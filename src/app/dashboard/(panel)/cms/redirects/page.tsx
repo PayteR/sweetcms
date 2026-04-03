@@ -49,7 +49,7 @@ export default function RedirectsPage() {
     onSuccess: (data) => {
       toast.success(__('Redirect created'));
       if (data.chain) {
-        toast.info(__(`Chain detected: ${data.chain.join(' -> ')}`));
+        toast.info(__('Chain detected: {chain}', { chain: data.chain.join(' -> ') }));
       }
       utils.redirects.list.invalidate();
       setShowCreateForm(false);

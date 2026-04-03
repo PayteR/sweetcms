@@ -31,7 +31,7 @@ export function ShortcodeEditDialog({ def, attrs, content, onSave, onClose }: Pr
 
   return (
     <Dialog open onClose={onClose} size="md">
-      <Dialog.Header onClose={onClose}>{__(`Edit ${def.label}`)}</Dialog.Header>
+      <Dialog.Header onClose={onClose}>{__('Edit {label}', { label: def.label })}</Dialog.Header>
       <Dialog.Body>
         <form id="shortcode-edit-form" onSubmit={handleSubmit} className="space-y-4">
           {def.attrs.map((attr) => (

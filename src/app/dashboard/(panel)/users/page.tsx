@@ -395,7 +395,7 @@ export default function UsersPage() {
               {__('Change Role')}
             </h3>
             <p className="mt-2 text-sm text-(--text-secondary)">
-              {__(`Change role for ${editingRole.name}`)}
+              {__('Change role for {name}', { name: editingRole.name })}
             </p>
             <select
               value={selectedRole}
@@ -433,8 +433,8 @@ export default function UsersPage() {
         title={banTarget?.banned ? __('Unban user?') : __('Ban user?')}
         message={
           banTarget?.banned
-            ? __(`Unban ${banTarget?.name}? They will regain access.`)
-            : __(`Ban ${banTarget?.name}? They will lose access.`)
+            ? __('Unban {name}? They will regain access.', { name: banTarget?.name ?? '' })
+            : __('Ban {name}? They will lose access.', { name: banTarget?.name ?? '' })
         }
         confirmLabel={banTarget?.banned ? __('Unban') : __('Ban')}
         variant={banTarget?.banned ? 'default' : 'danger'}

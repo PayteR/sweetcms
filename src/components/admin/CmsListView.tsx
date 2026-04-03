@@ -362,7 +362,7 @@ export function CmsListView({ contentType }: Props) {
       a.download = `${contentType.adminSlug}-export-${ids.length}items.${format}`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success(__(`Exported ${ids.length} items`));
+      toast.success(__('Exported {count} items', { count: ids.length }));
     } catch {
       toast.error(__('Export failed'));
     }
@@ -620,7 +620,7 @@ export function CmsListView({ contentType }: Props) {
             className="btn btn-primary"
           >
             <Plus className="h-4 w-4" />
-            {__(`New ${contentType.label}`)}
+            {__('New {label}', { label: contentType.label })}
           </Link>
         </div>
       </div>
@@ -657,7 +657,7 @@ export function CmsListView({ contentType }: Props) {
             type="text"
             value={searchQuery}
             onChange={(e) => handleSearchChange(e.target.value)}
-            placeholder={__(`Search ${contentType.labelPlural.toLowerCase()}...`)}
+            placeholder={__('Search {label}...', { label: contentType.labelPlural.toLowerCase() })}
             className="search-input py-2 pl-9 pr-8"
           />
           {searchQuery && (
@@ -957,8 +957,8 @@ export function CmsListView({ contentType }: Props) {
         }
         message={
           deleteTarget?.permanent
-            ? __(`"${deleteTarget?.title}" will be permanently deleted. This cannot be undone.`)
-            : __(`"${deleteTarget?.title}" will be moved to trash.`)
+            ? __('"{title}" will be permanently deleted. This cannot be undone.', { title: deleteTarget?.title ?? '' })
+            : __('"{title}" will be moved to trash.', { title: deleteTarget?.title ?? '' })
         }
         confirmLabel={deleteTarget?.permanent ? __('Delete') : __('Trash')}
         variant="danger"
@@ -970,7 +970,7 @@ export function CmsListView({ contentType }: Props) {
       <ConfirmDialog
         open={confirmAction === 'trash'}
         title={__('Move to trash?')}
-        message={__(`${selectedCount} items will be moved to trash.`)}
+        message={__('{count} items will be moved to trash.', { count: selectedCount })}
         confirmLabel={__('Trash')}
         variant="danger"
         onConfirm={executeBulkTrash}
@@ -987,7 +987,7 @@ export function CmsListView({ contentType }: Props) {
               onSuccess: (result) => {
                 setSeoDialogOpen(false);
                 if (result.created > 0) {
-                  toast.success(__(`Created ${result.created} SEO override(s)`));
+                  toast.success(__('Created {count} SEO override(s)', { count: result.created }));
                   utils.cms.list.invalidate();
                   utils.cms.counts.invalidate();
                 } else {
