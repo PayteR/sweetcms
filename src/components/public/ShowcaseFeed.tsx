@@ -228,12 +228,14 @@ export function ShowcaseFeed({ items }: Props) {
               <div className="absolute bottom-24 right-4 z-20 sm:right-6">
                 <ShowcaseActionBar
                   itemId={item.id}
+                  itemSlug={item.slug}
                   contentType="showcase"
                   likes={counts.likes}
                   dislikes={counts.dislikes}
                   commentCount={cCount}
                   userReaction={uReaction}
                   onCommentClick={() => setCommentPanelId(item.id)}
+                  allItemIds={itemIds}
                 />
               </div>
             </div>
@@ -274,12 +276,14 @@ export function ShowcaseFeed({ items }: Props) {
       )}
 
       {/* Comment panel */}
-      <CommentPanel
-        contentType="showcase"
-        contentId={commentPanelId ?? ''}
-        open={!!commentPanelId}
-        onClose={() => setCommentPanelId(null)}
-      />
+      {commentPanelId && (
+        <CommentPanel
+          contentType="showcase"
+          contentId={commentPanelId}
+          open
+          onClose={() => setCommentPanelId(null)}
+        />
+      )}
     </div>
   );
 }

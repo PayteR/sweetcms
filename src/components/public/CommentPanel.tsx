@@ -238,6 +238,16 @@ export function CommentPanel({ contentType, contentId, open, onClose }: Props) {
     [onClose]
   );
 
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (open) {
+      // Trigger enter animation on next frame
+      requestAnimationFrame(() => setVisible(true));
+    }
+    return () => setVisible(false);
+  }, [open]);
+
   if (!open) return null;
 
   const totalComments = comments.data?.total ?? 0;
@@ -246,14 +256,20 @@ export function CommentPanel({ contentType, contentId, open, onClose }: Props) {
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 z-50 bg-black/50"
+        className={cn(
+          'fixed inset-0 z-50 bg-black/50 transition-opacity duration-300',
+          visible ? 'opacity-100' : 'opacity-0'
+        )}
         onClick={handleBackdropClick}
       />
 
       {/* Panel */}
       <div
         ref={panelRef}
-        className="fixed inset-x-0 bottom-0 z-50 flex max-h-[75dvh] flex-col rounded-t-2xl bg-[oklch(0.15_0.01_260)] animate-in slide-in-from-bottom duration-300"
+        className={cn(
+          'fixed inset-x-0 bottom-0 z-50 flex max-h-[75dvh] flex-col rounded-t-2xl bg-[oklch(0.15_0.01_260)] transition-transform duration-300 ease-out',
+          visible ? 'translate-y-0' : 'translate-y-full'
+        )}
       >
         {/* Drag handle */}
         <div className="flex justify-center py-2">

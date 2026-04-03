@@ -9,45 +9,47 @@ import { toast } from '@/store/toast-store';
 
 interface Props {
   itemId: string;
+  itemSlug: string;
   contentType: string;
   likes: number;
   dislikes: number;
   commentCount: number;
   userReaction: 'like' | 'dislike' | null;
   onCommentClick: () => void;
+  /** All item IDs in the feed — needed to match batch query cache key */
+  allItemIds: string[];
 }
 
 export function ShowcaseActionBar({
   itemId,
+  itemSlug,
   contentType,
   likes,
   dislikes,
   commentCount,
   userReaction,
   onCommentClick,
+  allItemIds,
 }: Props) {
   const { data: session } = useSession();
   const utils = trpc.useUtils();
 
   const toggleReaction = trpc.reactions.toggle.useMutation({
     onMutate: async ({ reactionType }) => {
-      // Optimistic update
-      const batchKey = { contentType, contentIds: [itemId] };
+      const batchKey = { contentType, contentIds: allItemIds };
       await utils.reactions.getBatchCounts.cancel(batchKey);
+      await utils.reactions.getUserBatchReactions.cancel(batchKey);
 
       const prevCounts = utils.reactions.getBatchCounts.getData(batchKey);
       const prevUserReactions = utils.reactions.getUserBatchReactions.getData(batchKey);
 
-      // Update counts optimistically
       utils.reactions.getBatchCounts.setData(batchKey, (old) => {
         if (!old) return old;
         const entry = { ...(old[itemId] ?? { likes: 0, dislikes: 0 }) };
         if (userReaction === reactionType) {
-          // Toggle off
           if (reactionType === 'like') entry.likes = Math.max(0, entry.likes - 1);
           else entry.dislikes = Math.max(0, entry.dislikes - 1);
         } else {
-          // Toggle on (and maybe off the other)
           if (userReaction === 'like') entry.likes = Math.max(0, entry.likes - 1);
           else if (userReaction === 'dislike') entry.dislikes = Math.max(0, entry.dislikes - 1);
           if (reactionType === 'like') entry.likes += 1;
@@ -70,8 +72,7 @@ export function ShowcaseActionBar({
       return { prevCounts, prevUserReactions };
     },
     onError: (_err, _vars, context) => {
-      // Rollback
-      const batchKey = { contentType, contentIds: [itemId] };
+      const batchKey = { contentType, contentIds: allItemIds };
       if (context?.prevCounts) {
         utils.reactions.getBatchCounts.setData(batchKey, context.prevCounts);
       }
@@ -94,7 +95,7 @@ export function ShowcaseActionBar({
   }
 
   function handleShare() {
-    const url = `${window.location.origin}/showcase/${itemId}`;
+    const url = `${window.location.origin}/showcase/${itemSlug}`;
     if (navigator.share) {
       navigator.share({ url }).catch(() => {});
     } else {
