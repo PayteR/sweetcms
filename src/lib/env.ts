@@ -62,6 +62,11 @@ const serverEnvSchema = z.object({
   NOWPAYMENTS_IPN_SECRET: z.string().optional(),
   NOWPAYMENTS_SANDBOX: z.coerce.boolean().default(true),
 
+  // AI Assist (optional — editor AI features disabled without API key)
+  AI_API_KEY: z.string().optional(),
+  AI_API_URL: z.url().optional(),
+  AI_MODEL: z.string().optional(),
+
   // Server role
   SERVER_ROLE: z.enum(['all', 'frontend', 'api', 'worker']).default('all'),
   PORT: z.string().regex(/^\d+$/).default('3000'),

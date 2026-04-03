@@ -147,6 +147,7 @@ export function RichTextEditor({
   const [shortcodeMenuOpen, setShortcodeMenuOpen] = useState(false);
   const [aiAssistOpen, setAiAssistOpen] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [previewMarkdown, setPreviewMarkdown] = useState(content);
   const [mode, setMode] = useState<'wysiwyg' | 'source'>(() => {
     try {
       return localStorage.getItem('cms-editor-mode') === 'source'
@@ -160,10 +161,13 @@ export function RichTextEditor({
   const lastEmittedContent = useRef(content);
   const onChangeRef = useRef(onChange);
   useEffect(() => { onChangeRef.current = onChange; });
+  const showPreviewRef = useRef(showPreview);
+  useEffect(() => { showPreviewRef.current = showPreview; });
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const sourceTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const editorIdRef = useRef(`editor-${Math.random().toString(36).slice(2, 9)}`);
 
   // Clear pending debounce on unmount (editor may already be destroyed)
   useEffect(() => {
@@ -175,13 +179,14 @@ export function RichTextEditor({
     };
   }, []);
 
-  // Listen for slash command image insert events
+  // Listen for slash command image insert events (scoped to this editor instance)
   useEffect(() => {
+    const eventName = `editor:insert-image:${editorIdRef.current}`;
     function handleInsertImage() {
       imageInputRef.current?.click();
     }
-    document.addEventListener('editor:insert-image', handleInsertImage);
-    return () => document.removeEventListener('editor:insert-image', handleInsertImage);
+    document.addEventListener(eventName, handleInsertImage);
+    return () => document.removeEventListener(eventName, handleInsertImage);
   }, []);
 
   // Height persistence
@@ -266,7 +271,7 @@ export function RichTextEditor({
       // Drag handles for block reordering
       DragHandle,
       // Slash commands
-      createSlashCommandExtension(__, extraSlashItems).configure({
+      createSlashCommandExtension(__, extraSlashItems, editorIdRef.current).configure({
         suggestion: {
           render: slashCommandRenderRef.current!,
         },
@@ -276,11 +281,25 @@ export function RichTextEditor({
     content: scPrepareRef.current(markdownToHtml(content)),
     onUpdate: ({ editor: e }) => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
-      debounceRef.current = setTimeout(() => {
+
+      if (showPreviewRef.current) {
+        // Preview open: convert immediately for live preview, reuse for debounced form update
         const md = htmlToMarkdown(scSerializeRef.current(e.getHTML()));
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- onUpdate is an editor callback, not a React effect
+        setPreviewMarkdown(md);
         lastEmittedContent.current = md;
-        onChangeRef.current(md);
-      }, 300);
+        // Debounce only the parent onChange (to avoid excessive form re-renders)
+        debounceRef.current = setTimeout(() => {
+          onChangeRef.current(lastEmittedContent.current);
+        }, 300);
+      } else {
+        // No preview: defer everything to debounce
+        debounceRef.current = setTimeout(() => {
+          const md = htmlToMarkdown(scSerializeRef.current(e.getHTML()));
+          lastEmittedContent.current = md;
+          onChangeRef.current(md);
+        }, 300);
+      }
     },
     editorProps: {
       attributes: {
@@ -332,6 +351,7 @@ export function RichTextEditor({
     lastEmittedContent.current = content;
     // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate external sync: parent content → source textarea
     if (mode === 'source') setSourceValue(content);
+    setPreviewMarkdown(content);
     editor.commands.setContent(scPrepareRef.current(markdownToHtml(content)), {
       emitUpdate: false,
     });
@@ -419,10 +439,8 @@ export function RichTextEditor({
 
   const iconSize = 'h-4 w-4';
 
-  // Current markdown content for live preview
-  const previewContent = mode === 'source'
-    ? sourceValue
-    : lastEmittedContent.current;
+  // Sync preview content when source mode changes or preview toggled on
+  const previewContent = mode === 'source' ? sourceValue : previewMarkdown;
 
   return (
     <div className={cn(showPreview && 'editor-preview-split')}>
@@ -658,7 +676,13 @@ export function RichTextEditor({
           {/* Spacer + Preview toggle */}
           <div className="ml-auto" />
           <ToolbarButton
-            onClick={() => setShowPreview(!showPreview)}
+            onClick={() => {
+              if (!showPreview && editor && mode === 'wysiwyg') {
+                // Sync preview with current editor content when toggling on
+                setPreviewMarkdown(htmlToMarkdown(scSerializeRef.current(editor.getHTML())));
+              }
+              setShowPreview(!showPreview);
+            }}
             active={showPreview}
             title={showPreview ? __('Hide Preview') : __('Show Preview')}
           >

@@ -3,9 +3,13 @@ import { Extension } from '@tiptap/react';
 import type { EditorView } from '@tiptap/pm/view';
 import { NodeSelection } from '@tiptap/pm/state';
 
+const DRAG_HANDLE_WIDTH = 22;
+const DRAG_HANDLE_GAP = 4;
+
 /**
  * Adds a drag handle (grip icon) to the left of top-level blocks.
- * On hover, a handle appears. Dragging it initiates ProseMirror DnD to reorder blocks.
+ * On hover near the left edge, a handle appears. Dragging it reorders blocks
+ * via ProseMirror's built-in DnD (NodeSelection + slice).
  */
 export const DragHandle = Extension.create({
   name: 'dragHandle',
@@ -13,6 +17,9 @@ export const DragHandle = Extension.create({
   addProseMirrorPlugins() {
     let handle: HTMLDivElement | null = null;
     let currentBlockPos: number | null = null;
+    let handleHovered = false;
+    let editorHovered = false;
+    let throttleFrame: number | null = null;
 
     function createHandle() {
       const el = document.createElement('div');
@@ -28,13 +35,11 @@ export const DragHandle = Extension.create({
     }
 
     function getTopLevelBlockAtCoords(view: EditorView, y: number) {
-      // Find position at coordinates
-      const pos = view.posAtCoords({ left: view.dom.getBoundingClientRect().left + 10, top: y });
+      const editorRect = view.dom.getBoundingClientRect();
+      const pos = view.posAtCoords({ left: editorRect.left + 10, top: y });
       if (!pos) return null;
 
-      // Resolve to top-level block
       const resolved = view.state.doc.resolve(pos.pos);
-      // Walk up to depth 1 (top-level inside doc)
       if (resolved.depth < 1) return null;
       const topPos = resolved.before(1);
       const node = view.state.doc.nodeAt(topPos);
@@ -43,91 +48,154 @@ export const DragHandle = Extension.create({
       return { pos: topPos, node };
     }
 
+    function hideHandle() {
+      if (handle) {
+        handle.style.opacity = '0';
+        handle.style.pointerEvents = 'none';
+      }
+      currentBlockPos = null;
+    }
+
+    function showHandle() {
+      if (handle) {
+        handle.style.opacity = '1';
+        handle.style.pointerEvents = 'auto';
+      }
+    }
+
+    function maybeHide() {
+      // Only hide if neither the editor left edge nor the handle is hovered
+      if (!handleHovered && !editorHovered) {
+        hideHandle();
+      }
+    }
+
     const plugin = new Plugin({
       key: new PluginKey('dragHandle'),
       view(view) {
         handle = createHandle();
-        handle.style.display = 'none';
-        view.dom.parentElement?.appendChild(handle);
+        hideHandle();
 
-        // Position handle on mousemove
-        function onMouseMove(e: MouseEvent) {
+        // The handle lives inside the editor's scroll container (parent)
+        // but is positioned absolutely relative to it
+        const container = view.dom.parentElement;
+        if (container) {
+          container.style.position = 'relative';
+          container.appendChild(handle);
+        }
+
+        function positionHandle(view: EditorView, y: number) {
           if (!handle) return;
-          const editorRect = view.dom.getBoundingClientRect();
 
-          // Only show when cursor is near the left edge of the editor
-          if (e.clientX > editorRect.left + 60 || e.clientX < editorRect.left - 40) {
-            handle.style.display = 'none';
-            currentBlockPos = null;
-            return;
-          }
-
-          const block = getTopLevelBlockAtCoords(view, e.clientY);
+          const block = getTopLevelBlockAtCoords(view, y);
           if (!block) {
-            handle.style.display = 'none';
-            currentBlockPos = null;
+            maybeHide();
             return;
           }
 
           currentBlockPos = block.pos;
 
-          // Get block DOM position
           const domNode = view.nodeDOM(block.pos) as HTMLElement | null;
           if (!domNode) return;
 
+          const editorRect = view.dom.getBoundingClientRect();
           const blockRect = domNode.getBoundingClientRect();
-          handle.style.display = 'flex';
-          handle.style.top = `${blockRect.top - editorRect.top + view.dom.scrollTop + 2}px`;
-          handle.style.left = '-28px';
+
+          // Position relative to the editor's scroll container
+          const top = blockRect.top - editorRect.top + view.dom.scrollTop;
+          const left = -(DRAG_HANDLE_WIDTH + DRAG_HANDLE_GAP);
+
+          handle.style.top = `${top + 2}px`;
+          handle.style.left = `${left}px`;
+          showHandle();
+        }
+
+        function onMouseMove(e: MouseEvent) {
+          if (!handle) return;
+          const editorRect = view.dom.getBoundingClientRect();
+
+          // Only respond when cursor is near the left padding area
+          const distFromLeft = e.clientX - editorRect.left;
+          if (distFromLeft > 60 || distFromLeft < -(DRAG_HANDLE_WIDTH + DRAG_HANDLE_GAP + 10)) {
+            editorHovered = false;
+            maybeHide();
+            return;
+          }
+
+          editorHovered = true;
+
+          // Throttle via rAF
+          if (throttleFrame !== null) return;
+          throttleFrame = requestAnimationFrame(() => {
+            throttleFrame = null;
+            positionHandle(view, e.clientY);
+          });
         }
 
         function onMouseLeave() {
-          if (handle) {
-            // Delay hiding so user can reach the handle
-            setTimeout(() => {
-              if (handle && !handle.matches(':hover')) {
-                handle.style.display = 'none';
-                currentBlockPos = null;
-              }
-            }, 200);
-          }
+          editorHovered = false;
+          maybeHide();
         }
 
-        // Drag start — create a NodeSelection so ProseMirror handles the drop
+        function onHandleMouseEnter() {
+          handleHovered = true;
+        }
+
+        function onHandleMouseLeave() {
+          handleHovered = false;
+          maybeHide();
+        }
+
         function onDragStart(e: DragEvent) {
           if (currentBlockPos == null) return;
           const node = view.state.doc.nodeAt(currentBlockPos);
           if (!node) return;
 
-          // Create a node selection
+          // Create a NodeSelection so ProseMirror handles the drop
           const selection = NodeSelection.create(view.state.doc, currentBlockPos);
           view.dispatch(view.state.tr.setSelection(selection));
 
-          // Set transfer data so ProseMirror's built-in DnD handles the rest
-          view.dragging = {
-            slice: selection.content(),
-            move: true,
-          };
+          // Set up ProseMirror's internal DnD — the drop handler reads view.dragging
+          const slice = selection.content();
+          view.dragging = { slice, move: true };
 
           if (e.dataTransfer) {
             e.dataTransfer.effectAllowed = 'move';
-            e.dataTransfer.setDragImage(
-              view.nodeDOM(currentBlockPos) as HTMLElement,
-              0,
-              0,
-            );
+            // dataTransfer needs some data to enable the drag
+            e.dataTransfer.setData('text/plain', '');
+
+            const blockDom = view.nodeDOM(currentBlockPos) as HTMLElement | null;
+            if (blockDom) {
+              e.dataTransfer.setDragImage(blockDom, 0, 0);
+            }
           }
+
+          hideHandle();
         }
 
         view.dom.addEventListener('mousemove', onMouseMove);
         view.dom.addEventListener('mouseleave', onMouseLeave);
+        handle.addEventListener('mouseenter', onHandleMouseEnter);
+        handle.addEventListener('mouseleave', onHandleMouseLeave);
         handle.addEventListener('dragstart', onDragStart);
 
         return {
+          update() {
+            // If a block is being tracked, reposition (handles doc changes)
+            if (currentBlockPos !== null && handle && handle.style.opacity === '1') {
+              const node = view.state.doc.nodeAt(currentBlockPos);
+              if (!node) {
+                hideHandle();
+              }
+            }
+          },
           destroy() {
+            if (throttleFrame !== null) cancelAnimationFrame(throttleFrame);
             view.dom.removeEventListener('mousemove', onMouseMove);
             view.dom.removeEventListener('mouseleave', onMouseLeave);
             if (handle) {
+              handle.removeEventListener('mouseenter', onHandleMouseEnter);
+              handle.removeEventListener('mouseleave', onHandleMouseLeave);
               handle.removeEventListener('dragstart', onDragStart);
               handle.remove();
               handle = null;

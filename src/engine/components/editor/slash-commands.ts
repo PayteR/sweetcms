@@ -12,7 +12,7 @@ export interface SlashCommandItem {
   command: (props: { editor: Editor; range: { from: number; to: number } }) => void;
 }
 
-function getDefaultItems(__: (s: string) => string): SlashCommandItem[] {
+function getDefaultItems(__: (s: string) => string, editorId?: string): SlashCommandItem[] {
   return [
     {
       title: __('Heading 1'),
@@ -104,9 +104,9 @@ function getDefaultItems(__: (s: string) => string): SlashCommandItem[] {
       group: __('Media'),
       command: ({ editor, range }) => {
         editor.chain().focus().deleteRange(range).run();
-        // Trigger the hidden file input — dispatched as a custom event
-        const event = new CustomEvent('editor:insert-image');
-        document.dispatchEvent(event);
+        // Trigger the hidden file input — scoped to this editor instance
+        const eventName = editorId ? `editor:insert-image:${editorId}` : 'editor:insert-image';
+        document.dispatchEvent(new CustomEvent(eventName));
       },
     },
   ];
@@ -115,8 +115,9 @@ function getDefaultItems(__: (s: string) => string): SlashCommandItem[] {
 export function createSlashCommandExtension(
   __: (s: string) => string,
   extraItems?: SlashCommandItem[],
+  editorId?: string,
 ) {
-  const items = [...getDefaultItems(__), ...(extraItems ?? [])];
+  const items = [...getDefaultItems(__, editorId), ...(extraItems ?? [])];
 
   return Extension.create({
     name: 'slashCommand',

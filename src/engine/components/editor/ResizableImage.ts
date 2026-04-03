@@ -2,9 +2,13 @@ import Image from '@tiptap/extension-image';
 import { Plugin, PluginKey } from '@tiptap/pm/state';
 import { Decoration, DecorationSet } from '@tiptap/pm/view';
 
+interface ResizePluginState {
+  selectedImagePos: number | null;
+}
+
 /**
  * Extends the default Image extension with click-to-select and drag-to-resize handles.
- * When an image is selected, a wrapper with corner handles is rendered via decorations.
+ * When an image is selected, a wrapper with side handles is rendered via decorations.
  * Drag on any handle resizes the image proportionally.
  */
 export const ResizableImage = Image.extend({
@@ -26,14 +30,16 @@ export const ResizableImage = Image.extend({
     const parentPlugins = this.parent?.() ?? [];
     const editor = this.editor;
 
-    const resizePlugin = new Plugin({
-      key: new PluginKey('imageResize'),
+    const pluginKey = new PluginKey<ResizePluginState>('imageResize');
+
+    const resizePlugin = new Plugin<ResizePluginState>({
+      key: pluginKey,
       state: {
-        init() {
-          return { selectedImagePos: null as number | null };
+        init(): ResizePluginState {
+          return { selectedImagePos: null };
         },
-        apply(tr, value) {
-          const meta = tr.getMeta('imageResize');
+        apply(tr, value): ResizePluginState {
+          const meta = tr.getMeta(pluginKey) as number | null | undefined;
           if (meta !== undefined) return { selectedImagePos: meta };
           // Revalidate on doc changes — selection may have shifted
           if (tr.docChanged && value.selectedImagePos !== null) {
@@ -47,34 +53,28 @@ export const ResizableImage = Image.extend({
       },
       props: {
         decorations(state) {
-          const pluginState = resizePlugin.getState(state);
+          const pluginState = pluginKey.getState(state);
           if (pluginState?.selectedImagePos == null) return DecorationSet.empty;
           const pos = pluginState.selectedImagePos;
           const node = state.doc.nodeAt(pos);
           if (!node || node.type.name !== 'image') return DecorationSet.empty;
 
-          const deco = Decoration.widget(pos, () => {
-            // Invisible overlay to prevent losing the selection decoration
-            // The actual resize UI is handled by the CSS class added via node decoration
-            return document.createComment('');
-          });
-
           const nodeDeco = Decoration.node(pos, pos + node.nodeSize, {
             class: 'image-resizable-selected',
           });
 
-          return DecorationSet.create(state.doc, [deco, nodeDeco]);
+          return DecorationSet.create(state.doc, [nodeDeco]);
         },
         handleClick(view, pos) {
           const node = view.state.doc.nodeAt(pos);
           if (node?.type.name === 'image') {
-            view.dispatch(view.state.tr.setMeta('imageResize', pos));
+            view.dispatch(view.state.tr.setMeta(pluginKey, pos));
             return true;
           }
           // Clicking elsewhere deselects
-          const pluginState = resizePlugin.getState(view.state);
+          const pluginState = pluginKey.getState(view.state);
           if (pluginState?.selectedImagePos !== null) {
-            view.dispatch(view.state.tr.setMeta('imageResize', null));
+            view.dispatch(view.state.tr.setMeta(pluginKey, null));
           }
           return false;
         },
@@ -84,7 +84,7 @@ export const ResizableImage = Image.extend({
             if (!target.classList?.contains('image-resize-handle')) return false;
 
             event.preventDefault();
-            const pluginState = resizePlugin.getState(view.state);
+            const pluginState = pluginKey.getState(view.state);
             if (pluginState?.selectedImagePos == null) return false;
 
             const pos = pluginState.selectedImagePos;
@@ -103,7 +103,6 @@ export const ResizableImage = Image.extend({
             function onMouseMove(e: MouseEvent) {
               const diff = direction === 'left' ? startX - e.clientX : e.clientX - startX;
               const newWidth = Math.max(100, Math.round(startWidth + diff));
-              // Live resize via style
               (imgEl as HTMLElement).style.width = `${newWidth}px`;
             }
 
@@ -112,10 +111,9 @@ export const ResizableImage = Image.extend({
               document.removeEventListener('mouseup', onMouseUp);
               const diff = direction === 'left' ? startX - e.clientX : e.clientX - startX;
               const newWidth = Math.max(100, Math.round(startWidth + diff));
-              // Commit to ProseMirror
               const currentNode = view.state.doc.nodeAt(pos);
-            if (!currentNode) return;
-            const tr = view.state.tr.setNodeMarkup(pos, undefined, {
+              if (!currentNode) return;
+              const tr = view.state.tr.setNodeMarkup(pos, undefined, {
                 ...currentNode.attrs,
                 width: `${newWidth}px`,
               });
@@ -130,15 +128,13 @@ export const ResizableImage = Image.extend({
         },
       },
       view(editorView) {
-        // Add resize handles to the DOM when image is selected
-        function updateHandles() {
-          // Remove existing handles
+        let lastPos: number | null = null;
+
+        function removeHandles() {
           editorView.dom.querySelectorAll('.image-resize-handle').forEach((el) => el.remove());
+        }
 
-          const pluginState = resizePlugin.getState(editorView.state);
-          if (pluginState?.selectedImagePos == null) return;
-
-          const pos = pluginState.selectedImagePos;
+        function addHandles(pos: number) {
           const domNode = editorView.nodeDOM(pos) as HTMLElement | null;
           if (!domNode) return;
 
@@ -156,10 +152,24 @@ export const ResizableImage = Image.extend({
           }
         }
 
+        function updateHandles() {
+          const pluginState = pluginKey.getState(editorView.state);
+          const newPos = pluginState?.selectedImagePos ?? null;
+
+          // Skip if position hasn't changed
+          if (newPos === lastPos) return;
+          lastPos = newPos;
+
+          removeHandles();
+          if (newPos !== null) {
+            addHandles(newPos);
+          }
+        }
+
         return {
           update: updateHandles,
           destroy() {
-            editorView.dom.querySelectorAll('.image-resize-handle').forEach((el) => el.remove());
+            removeHandles();
           },
         };
       },

@@ -38,7 +38,7 @@ function TableButton({
       title={title}
       disabled={disabled}
       className={cn(
-        'rounded p-1.5 transition-colors text-sm',
+        'flex items-center gap-1 rounded p-1.5 transition-colors text-sm',
         danger
           ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30'
           : 'text-(--text-secondary) hover:bg-(--surface-secondary)',
@@ -55,7 +55,11 @@ export function TableMenu({ editor, __ }: Props) {
     <BubbleMenu
       editor={editor}
       pluginKey="tableMenu"
-      shouldShow={({ editor: e }: { editor: Editor }) => e.isActive('table')}
+      shouldShow={({ editor: e, from, to }: { editor: Editor; from: number; to: number }) => {
+        // Only show table controls when cursor is in a table but no text is selected
+        // (when text is selected, the formatting BubbleMenu takes priority)
+        return e.isActive('table') && from === to;
+      }}
       options={{
         placement: 'top',
         offset: 8,
@@ -115,6 +119,7 @@ export function TableMenu({ editor, __ }: Props) {
         danger
       >
         <Trash2 className="h-3.5 w-3.5" />
+        <span className="text-[11px]">{__('Row')}</span>
       </TableButton>
       <TableButton
         onClick={() => editor.chain().focus().deleteColumn().run()}
@@ -122,13 +127,15 @@ export function TableMenu({ editor, __ }: Props) {
         danger
       >
         <Trash2 className="h-3.5 w-3.5" />
+        <span className="text-[11px]">{__('Col')}</span>
       </TableButton>
       <TableButton
         onClick={() => editor.chain().focus().deleteTable().run()}
         title={__('Delete table')}
         danger
       >
-        <span className="text-xs font-medium px-1">{__('Delete table')}</span>
+        <Trash2 className="h-3.5 w-3.5" />
+        <span className="text-[11px]">{__('Table')}</span>
       </TableButton>
     </BubbleMenu>
   );

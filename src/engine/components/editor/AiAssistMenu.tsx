@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { Editor } from '@tiptap/react';
+import { computePosition, flip, shift, offset } from '@floating-ui/dom';
 import {
   Sparkles,
   RefreshCw,
@@ -13,7 +14,6 @@ import {
   X,
   Pen,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 export interface AiAssistAction {
   id: string;
@@ -113,6 +113,42 @@ export function AiAssistMenu({ editor, __, open, onClose, onSubmit }: AiAssistMe
     setError(null);
   }, []);
 
+  // Position with floating-ui whenever open or content changes
+  useEffect(() => {
+    if (!open || !menuRef.current) return;
+
+    const selectionFrom = editor.state.selection.from;
+    const coords = editor.view.coordsAtPos(selectionFrom);
+
+    const virtualEl = {
+      getBoundingClientRect: () => ({
+        x: coords.left,
+        y: coords.top,
+        width: 0,
+        height: coords.bottom - coords.top,
+        top: coords.top,
+        right: coords.left,
+        bottom: coords.bottom,
+        left: coords.left,
+      }),
+    };
+
+    computePosition(virtualEl, menuRef.current, {
+      placement: 'top-start',
+      middleware: [
+        offset(8),
+        flip({ padding: 8 }),
+        shift({ padding: 8 }),
+      ],
+    }).then(({ x, y }) => {
+      if (!menuRef.current) return;
+      Object.assign(menuRef.current.style, {
+        left: `${x}px`,
+        top: `${y}px`,
+      });
+    });
+  }, [open, editor, result, error, loading, showCustom]);
+
   // Focus custom input when shown
   useEffect(() => {
     if (showCustom && inputRef.current) {
@@ -155,22 +191,10 @@ export function AiAssistMenu({ editor, __, open, onClose, onSubmit }: AiAssistMe
 
   if (!open) return null;
 
-  // Position near the selection
-  const coords = editor.view.coordsAtPos(editor.state.selection.from);
-  const editorRect = editor.view.dom.getBoundingClientRect();
-
   return (
     <div
       ref={menuRef}
-      className="ai-assist-menu absolute z-50 w-72 rounded-lg border border-(--border-primary) bg-(--surface-primary) shadow-xl"
-      style={{
-        top: coords.top - editorRect.top + editor.view.dom.scrollTop - 8,
-        left: Math.min(
-          coords.left - editorRect.left,
-          editorRect.width - 300,
-        ),
-        transform: 'translateY(-100%)',
-      }}
+      className="ai-assist-menu fixed z-50 w-72 rounded-lg border border-(--border-primary) bg-(--surface-primary) shadow-xl"
     >
       {/* Header */}
       <div className="flex items-center gap-2 border-b border-(--border-primary) px-3 py-2">

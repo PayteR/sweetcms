@@ -65,8 +65,6 @@ export function EditorBubbleMenu({ editor, __, onAddLink, onAiAssist }: Props) {
         if (e.isActive('codeBlock')) return false;
         // Don't show if image is selected
         if (e.isActive('image')) return false;
-        // Don't show if inside a table (table has its own menu)
-        if (e.isActive('table')) return false;
         return true;
       }}
       className="bubble-menu flex items-center gap-0.5 rounded-lg border border-(--border-primary) bg-(--surface-primary) p-1 shadow-lg"

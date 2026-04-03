@@ -25,6 +25,18 @@ turndown.use(turndownGfm);
 // Preserve <u> as inline HTML — markdown has no underline syntax
 turndown.keep(['u']);
 
+// Preserve <img> with width/style as raw HTML — markdown ![alt](src) has no width syntax.
+// Plain images (no width) still convert to standard markdown image syntax.
+turndown.addRule('resizedImage', {
+  filter: (node) => {
+    if (node.nodeName !== 'IMG') return false;
+    return !!(node.getAttribute('width') || /width\s*:/i.test(node.getAttribute('style') ?? ''));
+  },
+  replacement: (_content, node) => {
+    return `\n\n${(node as HTMLElement).outerHTML}\n\n`;
+  },
+});
+
 // Preserve text-aligned elements as raw HTML — markdown has no alignment syntax.
 // Uses outerHTML so inner formatting (<strong>, etc.) stays as HTML and round-trips
 // correctly through marked. Shortcodes are block-level and can't be inside

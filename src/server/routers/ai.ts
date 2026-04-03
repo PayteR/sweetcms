@@ -1,16 +1,19 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { sectionProcedure } from '../trpc';
-import { createTRPCRouter } from '../trpc';
+import { sectionProcedure, createTRPCRouter } from '../trpc';
+import { env } from '@/lib/env';
 import { createLogger } from '@/engine/lib/logger';
 
 const logger = createLogger('ai');
+
+const DEFAULT_API_URL = 'https://api.openai.com/v1/chat/completions';
+const DEFAULT_MODEL = 'gpt-4o-mini';
 
 /**
  * AI assist router — provides text transformation for the rich text editor.
  * Uses OpenAI-compatible API (works with OpenAI, Anthropic via proxy, Ollama, etc.)
  *
- * Requires AI_API_KEY and optionally AI_API_URL env vars.
+ * Requires AI_API_KEY and optionally AI_API_URL / AI_MODEL env vars.
  */
 export const aiRouter = createTRPCRouter({
   /**
@@ -25,23 +28,22 @@ export const aiRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ input }) => {
-      const apiKey = process.env.AI_API_KEY;
-      const apiUrl = process.env.AI_API_URL ?? 'https://api.openai.com/v1/chat/completions';
-      const model = process.env.AI_MODEL ?? 'gpt-4o-mini';
-
-      if (!apiKey) {
+      if (!env.AI_API_KEY) {
         throw new TRPCError({
           code: 'PRECONDITION_FAILED',
           message: 'AI features are not configured. Set AI_API_KEY in your environment.',
         });
       }
 
+      const apiUrl = env.AI_API_URL ?? DEFAULT_API_URL;
+      const model = env.AI_MODEL ?? DEFAULT_MODEL;
+
       try {
         const response = await fetch(apiUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiKey}`,
+            Authorization: `Bearer ${env.AI_API_KEY}`,
           },
           body: JSON.stringify({
             model,
@@ -63,7 +65,7 @@ export const aiRouter = createTRPCRouter({
 
         if (!response.ok) {
           const errBody = await response.text().catch(() => 'Unknown error');
-          logger.error('AI API error', { status: response.status, body: errBody });
+          logger.error('AI API error', { status: String(response.status), body: errBody });
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
             message: 'AI request failed. Check your API configuration.',

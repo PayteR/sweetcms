@@ -1,7 +1,7 @@
 'use client';
 
 import { ReactRenderer } from '@tiptap/react';
-import tippy, { type Instance as TippyInstance } from 'tippy.js';
+import { computePosition, flip, shift, offset } from '@floating-ui/dom';
 import { SlashCommandMenu, type SlashCommandMenuHandle } from './SlashCommandMenu';
 import type { SlashCommandItem } from './slash-commands';
 
@@ -14,12 +14,39 @@ interface SuggestionProps {
 
 /**
  * Creates the Tiptap suggestion render function for the slash command menu.
- * Returns a function compatible with `suggestion.render` in the extension options.
+ * Uses @floating-ui/dom for positioning (same library as Tiptap's BubbleMenu).
  */
 export function createSlashCommandRender() {
   return () => {
     let component: ReactRenderer<SlashCommandMenuHandle> | null = null;
-    let popup: TippyInstance | null = null;
+    let popup: HTMLDivElement | null = null;
+    let getRect: (() => DOMRect | null) | null = null;
+
+    function updatePosition() {
+      if (!popup || !getRect) return;
+      const rect = getRect();
+      if (!rect) return;
+
+      // Virtual element for floating-ui
+      const virtualEl = {
+        getBoundingClientRect: () => rect,
+      };
+
+      computePosition(virtualEl, popup, {
+        placement: 'bottom-start',
+        middleware: [
+          offset(4),
+          flip({ padding: 8 }),
+          shift({ padding: 8 }),
+        ],
+      }).then(({ x, y }) => {
+        if (!popup) return;
+        Object.assign(popup.style, {
+          left: `${x}px`,
+          top: `${y}px`,
+        });
+      });
+    }
 
     return {
       onStart(props: SuggestionProps) {
@@ -31,17 +58,14 @@ export function createSlashCommandRender() {
           editor: props.editor as never,
         });
 
-        const [instance] = tippy('body', {
-          getReferenceClientRect: props.clientRect as () => DOMRect,
-          appendTo: () => document.body,
-          content: component.element,
-          showOnCreate: true,
-          interactive: true,
-          trigger: 'manual',
-          placement: 'bottom-start',
-          offset: [0, 4],
-        });
-        popup = instance ?? null;
+        popup = document.createElement('div');
+        popup.style.position = 'fixed';
+        popup.style.zIndex = '50';
+        popup.appendChild(component.element);
+        document.body.appendChild(popup);
+
+        getRect = props.clientRect;
+        updatePosition();
       },
 
       onUpdate(props: SuggestionProps) {
@@ -50,26 +74,24 @@ export function createSlashCommandRender() {
           command: props.command,
         });
 
-        if (props.clientRect && popup) {
-          popup.setProps({
-            getReferenceClientRect: props.clientRect as () => DOMRect,
-          });
-        }
+        getRect = props.clientRect;
+        updatePosition();
       },
 
       onKeyDown(props: { event: KeyboardEvent }) {
         if (props.event.key === 'Escape') {
-          popup?.hide();
+          if (popup) popup.style.display = 'none';
           return true;
         }
         return component?.ref?.onKeyDown(props) ?? false;
       },
 
       onExit() {
-        popup?.destroy();
+        popup?.remove();
         component?.destroy();
         popup = null;
         component = null;
+        getRect = null;
       },
     };
   };
