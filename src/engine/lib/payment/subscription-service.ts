@@ -135,13 +135,28 @@ export async function updateSubscription(
 
 /**
  * Cancel a subscription by provider subscription ID.
+ * If cancelAtPeriodEnd was set, keeps the current plan until period ends.
+ * If immediate cancellation, downgrades to free immediately.
  */
 export async function cancelSubscription(providerSubscriptionId: string) {
+  // Check if this is a cancel-at-period-end subscription
+  const [sub] = await db
+    .select({
+      cancelAtPeriodEnd: saasSubscriptions.cancelAtPeriodEnd,
+      currentPeriodEnd: saasSubscriptions.currentPeriodEnd,
+    })
+    .from(saasSubscriptions)
+    .where(eq(saasSubscriptions.providerSubscriptionId, providerSubscriptionId))
+    .limit(1);
+
+  const isPeriodEnd = sub?.cancelAtPeriodEnd && sub?.currentPeriodEnd && sub.currentPeriodEnd > new Date();
+
   await db
     .update(saasSubscriptions)
     .set({
       status: 'canceled',
-      planId: 'free',
+      // Keep current plan if canceling at period end and period hasn't ended yet
+      ...(isPeriodEnd ? {} : { planId: 'free' }),
       updatedAt: new Date(),
     })
     .where(eq(saasSubscriptions.providerSubscriptionId, providerSubscriptionId));

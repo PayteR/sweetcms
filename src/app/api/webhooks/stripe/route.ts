@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { eq } from 'drizzle-orm';
 import { db } from '@/server/db';
 import { saasSubscriptionEvents } from '@/server/db/schema';
 import { getProvider } from '@/server/lib/payment/factory';
@@ -44,23 +43,21 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Missing event ID' }, { status: 400 });
   }
 
-  const [existing] = await db
-    .select({ id: saasSubscriptionEvents.id })
-    .from(saasSubscriptionEvents)
-    .where(eq(saasSubscriptionEvents.providerEventId, stripeEventId))
-    .limit(1);
-
-  if (existing) {
-    return NextResponse.json({ received: true, duplicate: true });
+  // Atomic idempotency: INSERT or bail if already processed
+  try {
+    await db.insert(saasSubscriptionEvents).values({
+      providerId: 'stripe',
+      providerEventId: stripeEventId,
+      type: event.type,
+      data: event.providerData as Record<string, unknown>,
+    });
+  } catch (err) {
+    // Unique constraint violation = already processed
+    if (String(err).includes('unique') || String(err).includes('duplicate')) {
+      return NextResponse.json({ received: true, duplicate: true });
+    }
+    throw err;
   }
-
-  // Log event for idempotency
-  await db.insert(saasSubscriptionEvents).values({
-    providerId: 'stripe',
-    providerEventId: stripeEventId,
-    type: event.type,
-    data: event.providerData as Record<string, unknown>,
-  });
 
   try {
     switch (event.type) {

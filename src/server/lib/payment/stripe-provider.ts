@@ -157,9 +157,11 @@ export class StripeProvider implements PaymentProvider {
 
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
-        const subRef = invoice.parent?.subscription_details?.subscription;
+        // Extract subscription ID from parent.subscription_details or lines
+        const subRef = invoice.parent?.subscription_details?.subscription
+          ?? invoice.lines?.data?.[0]?.subscription;
         const subId = subRef
-          ? typeof subRef === 'string' ? subRef : subRef.id
+          ? typeof subRef === 'string' ? subRef : (subRef as { id: string }).id
           : undefined;
         return {
           type: 'payment.failed',

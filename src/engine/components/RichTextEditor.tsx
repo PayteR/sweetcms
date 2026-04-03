@@ -4,10 +4,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
-import Image from '@tiptap/extension-image';
 import Placeholder from '@tiptap/extension-placeholder';
 import Underline from '@tiptap/extension-underline';
 import TextAlign from '@tiptap/extension-text-align';
+import { Table } from '@tiptap/extension-table';
+import { TableRow } from '@tiptap/extension-table-row';
+import { TableHeader } from '@tiptap/extension-table-header';
+import { TableCell } from '@tiptap/extension-table-cell';
 import {
   Bold,
   Italic,
@@ -31,6 +34,9 @@ import {
   Minus,
   Blocks,
   FileSearch,
+  Table as TableIcon,
+  PanelRightOpen,
+  PanelRightClose,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -39,6 +45,17 @@ import { htmlToMarkdown, markdownToHtml } from '@/engine/lib/markdown';
 import { toast } from '@/engine/store/toast-store';
 import type { EditorHandle } from '@/engine/hooks/useLinkPicker';
 import type { ShortcodeConfig } from '@/engine/types/shortcodes';
+import { ResizableImage } from './editor/ResizableImage';
+import { DragHandle } from './editor/DragHandle';
+import { createSlashCommandExtension } from './editor/slash-commands';
+import type { SlashCommandItem } from './editor/slash-commands';
+import { createSlashCommandRender } from './editor/slash-command-renderer';
+import { EditorBubbleMenu } from './editor/EditorBubbleMenu';
+import { TableMenu } from './editor/TableMenu';
+import { AiAssistMenu } from './editor/AiAssistMenu';
+import { LivePreview } from './editor/LivePreview';
+
+import './editor/editor-styles.css';
 
 interface Props {
   content: string;
@@ -51,6 +68,8 @@ interface Props {
   editorRef?: React.RefObject<EditorHandle | null>;
   /** Optional shortcode integration (dropdown, Tiptap extension, transforms) */
   shortcodes?: ShortcodeConfig;
+  /** Callback for AI text transformation. When provided, enables AI assist. */
+  onAiTransform?: (text: string, instruction: string) => Promise<string>;
 }
 
 const HEIGHT_STORAGE_PREFIX = 'cms-editor-h:';
@@ -116,6 +135,7 @@ export function RichTextEditor({
   onRequestLinkPicker,
   editorRef,
   shortcodes,
+  onAiTransform,
 }: Props) {
   const scPrepareRef = useRef(shortcodes?.prepareForEditor ?? identity);
   const scSerializeRef = useRef(shortcodes?.serializeForStorage ?? identity);
@@ -125,6 +145,8 @@ export function RichTextEditor({
   });
   const __ = useBlankTranslations();
   const [shortcodeMenuOpen, setShortcodeMenuOpen] = useState(false);
+  const [aiAssistOpen, setAiAssistOpen] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const [mode, setMode] = useState<'wysiwyg' | 'source'>(() => {
     try {
       return localStorage.getItem('cms-editor-mode') === 'source'
@@ -153,6 +175,15 @@ export function RichTextEditor({
     };
   }, []);
 
+  // Listen for slash command image insert events
+  useEffect(() => {
+    function handleInsertImage() {
+      imageInputRef.current?.click();
+    }
+    document.addEventListener('editor:insert-image', handleInsertImage);
+    return () => document.removeEventListener('editor:insert-image', handleInsertImage);
+  }, []);
+
   // Height persistence
   useEffect(() => {
     if (!storageKey) return;
@@ -170,6 +201,34 @@ export function RichTextEditor({
     return () => observer.disconnect();
   }, [storageKey]);
 
+  // Build slash command render function (stable ref)
+  const slashCommandRenderRef = useRef<ReturnType<typeof createSlashCommandRender> | null>(null);
+  if (!slashCommandRenderRef.current) {
+    slashCommandRenderRef.current = createSlashCommandRender();
+  }
+
+  // Build extra slash items from shortcodes
+  const extraSlashItems: SlashCommandItem[] = shortcodes?.registry.map((sc) => ({
+    title: __(sc.label),
+    description: __('Insert {name} block', { name: sc.label }),
+    icon: 'blocks',
+    group: __('Shortcodes'),
+    command: ({ editor: e, range }) => {
+      const defaultAttrs: Record<string, string> = {};
+      for (const attr of sc.attrs) {
+        if (attr.default) defaultAttrs[attr.name] = attr.default;
+      }
+      e.chain().focus().deleteRange(range).insertContent({
+        type: 'shortcode',
+        attrs: {
+          shortcodeName: sc.name,
+          shortcodeAttrs: JSON.stringify(defaultAttrs),
+          shortcodeContent: '',
+        },
+      }).run();
+    },
+  })) ?? [];
+
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -177,20 +236,40 @@ export function RichTextEditor({
         heading: { levels: [1, 2, 3] },
         link: false,
         underline: false,
+        dropcursor: {
+          color: 'oklch(0.65 0.25 var(--brand-hue, 350))',
+          width: 3,
+        },
       }),
       Underline,
       Link.configure({
         openOnClick: false,
         HTMLAttributes: { rel: 'noopener noreferrer' },
       }),
-      Image.configure({
+      ResizableImage.configure({
         HTMLAttributes: { class: 'rounded-lg max-w-full' },
       }),
       TextAlign.configure({
         types: ['heading', 'paragraph'],
       }),
       Placeholder.configure({
-        placeholder: placeholder ?? __('Start writing...'),
+        placeholder: placeholder ?? __('Start writing or type / for commands...'),
+      }),
+      // Table support
+      Table.configure({
+        resizable: true,
+        HTMLAttributes: { class: 'editor-table' },
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
+      // Drag handles for block reordering
+      DragHandle,
+      // Slash commands
+      createSlashCommandExtension(__, extraSlashItems).configure({
+        suggestion: {
+          render: slashCommandRenderRef.current!,
+        },
       }),
       ...(shortcodes?.extension ? [shortcodes.extension] : []),
     ],
@@ -340,292 +419,363 @@ export function RichTextEditor({
 
   const iconSize = 'h-4 w-4';
 
+  // Current markdown content for live preview
+  const previewContent = mode === 'source'
+    ? sourceValue
+    : lastEmittedContent.current;
+
   return (
-    <div
-      ref={wrapperRef}
-      style={{ height: height ?? '400px', resize: 'vertical', overflow: 'hidden' }}
-      className="flex flex-col overflow-hidden rounded-md border border-(--border-primary) focus-within:border-(--color-accent-500) focus-within:ring-1 focus-within:ring-(--color-accent-500)"
-    >
-      {/* Toolbar — disabled in source mode to prevent modifying the hidden editor */}
-      <div className={cn(
-        'editor-toolbar flex flex-wrap items-center gap-0.5 border-b border-(--border-primary) px-2 py-1.5 shrink-0',
-        mode === 'source' && 'pointer-events-none opacity-40',
-      )}>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          active={editor.isActive('bold')}
-          title={__('Bold')}
-        >
-          <Bold className={iconSize} />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          active={editor.isActive('italic')}
-          title={__('Italic')}
-        >
-          <Italic className={iconSize} />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleUnderline().run()}
-          active={editor.isActive('underline')}
-          title={__('Underline')}
-        >
-          <UnderlineIcon className={iconSize} />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleStrike().run()}
-          active={editor.isActive('strike')}
-          title={__('Strikethrough')}
-        >
-          <Strikethrough className={iconSize} />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleCode().run()}
-          active={editor.isActive('code')}
-          title={__('Inline Code')}
-        >
-          <Code className={iconSize} />
-        </ToolbarButton>
-
-        <ToolbarDivider />
-
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          active={editor.isActive('heading', { level: 1 })}
-          title={__('Heading 1')}
-        >
-          <Heading1 className={iconSize} />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          active={editor.isActive('heading', { level: 2 })}
-          title={__('Heading 2')}
-        >
-          <Heading2 className={iconSize} />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          active={editor.isActive('heading', { level: 3 })}
-          title={__('Heading 3')}
-        >
-          <Heading3 className={iconSize} />
-        </ToolbarButton>
-
-        <ToolbarDivider />
-
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          active={editor.isActive('bulletList')}
-          title={__('Bullet List')}
-        >
-          <List className={iconSize} />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          active={editor.isActive('orderedList')}
-          title={__('Ordered List')}
-        >
-          <ListOrdered className={iconSize} />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          active={editor.isActive('blockquote')}
-          title={__('Quote')}
-        >
-          <Quote className={iconSize} />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-          active={editor.isActive('codeBlock')}
-          title={__('Code Block')}
-        >
-          <Code2 className={iconSize} />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().setHorizontalRule().run()}
-          title={__('Horizontal Rule')}
-        >
-          <Minus className={iconSize} />
-        </ToolbarButton>
-
-        <ToolbarDivider />
-
-        <ToolbarButton
-          onClick={() => editor.chain().focus().setTextAlign('left').run()}
-          active={editor.isActive({ textAlign: 'left' })}
-          title={__('Align Left')}
-        >
-          <AlignLeft className={iconSize} />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().setTextAlign('center').run()}
-          active={editor.isActive({ textAlign: 'center' })}
-          title={__('Align Center')}
-        >
-          <AlignCenter className={iconSize} />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().setTextAlign('right').run()}
-          active={editor.isActive({ textAlign: 'right' })}
-          title={__('Align Right')}
-        >
-          <AlignRight className={iconSize} />
-        </ToolbarButton>
-
-        <ToolbarDivider />
-
-        <ToolbarButton
-          onClick={addLink}
-          active={editor.isActive('link')}
-          title={__('Link')}
-        >
-          <LinkIcon className={iconSize} />
-        </ToolbarButton>
-        {onRequestLinkPicker && (
-          <ToolbarButton onClick={onRequestLinkPicker} title={__('Internal Link')} active={false}>
-            <FileSearch size={18} />
+    <div className={cn(showPreview && 'editor-preview-split')}>
+      {/* Editor */}
+      <div
+        ref={wrapperRef}
+        style={{ height: height ?? '400px', resize: 'vertical', overflow: 'hidden' }}
+        className="relative flex flex-col overflow-hidden rounded-md border border-(--border-primary) focus-within:border-(--color-accent-500) focus-within:ring-1 focus-within:ring-(--color-accent-500)"
+      >
+        {/* Toolbar — disabled in source mode to prevent modifying the hidden editor */}
+        <div className={cn(
+          'editor-toolbar flex flex-wrap items-center gap-0.5 border-b border-(--border-primary) px-2 py-1.5 shrink-0',
+          mode === 'source' && 'pointer-events-none opacity-40',
+        )}>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleBold().run()}
+            active={editor.isActive('bold')}
+            title={__('Bold')}
+          >
+            <Bold className={iconSize} />
           </ToolbarButton>
-        )}
-        <ToolbarButton onClick={() => imageInputRef.current?.click()} title={__('Image')}>
-          <ImageIcon className={iconSize} />
-        </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleItalic().run()}
+            active={editor.isActive('italic')}
+            title={__('Italic')}
+          >
+            <Italic className={iconSize} />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            active={editor.isActive('underline')}
+            title={__('Underline')}
+          >
+            <UnderlineIcon className={iconSize} />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleStrike().run()}
+            active={editor.isActive('strike')}
+            title={__('Strikethrough')}
+          >
+            <Strikethrough className={iconSize} />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleCode().run()}
+            active={editor.isActive('code')}
+            title={__('Inline Code')}
+          >
+            <Code className={iconSize} />
+          </ToolbarButton>
 
-        <ToolbarDivider />
+          <ToolbarDivider />
 
-        {/* Shortcode insert dropdown (only shown when shortcodes config provided) */}
-        {shortcodes && shortcodes.registry.length > 0 && (
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
+            active={editor.isActive('heading', { level: 1 })}
+            title={__('Heading 1')}
+          >
+            <Heading1 className={iconSize} />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+            active={editor.isActive('heading', { level: 2 })}
+            title={__('Heading 2')}
+          >
+            <Heading2 className={iconSize} />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+            active={editor.isActive('heading', { level: 3 })}
+            title={__('Heading 3')}
+          >
+            <Heading3 className={iconSize} />
+          </ToolbarButton>
+
+          <ToolbarDivider />
+
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleBulletList().run()}
+            active={editor.isActive('bulletList')}
+            title={__('Bullet List')}
+          >
+            <List className={iconSize} />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleOrderedList().run()}
+            active={editor.isActive('orderedList')}
+            title={__('Ordered List')}
+          >
+            <ListOrdered className={iconSize} />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleBlockquote().run()}
+            active={editor.isActive('blockquote')}
+            title={__('Quote')}
+          >
+            <Quote className={iconSize} />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().toggleCodeBlock().run()}
+            active={editor.isActive('codeBlock')}
+            title={__('Code Block')}
+          >
+            <Code2 className={iconSize} />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().setHorizontalRule().run()}
+            title={__('Horizontal Rule')}
+          >
+            <Minus className={iconSize} />
+          </ToolbarButton>
+
+          <ToolbarDivider />
+
+          {/* Table insert */}
+          <ToolbarButton
+            onClick={() =>
+              editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+            }
+            active={editor.isActive('table')}
+            title={__('Insert Table')}
+          >
+            <TableIcon className={iconSize} />
+          </ToolbarButton>
+
+          <ToolbarDivider />
+
+          <ToolbarButton
+            onClick={() => editor.chain().focus().setTextAlign('left').run()}
+            active={editor.isActive({ textAlign: 'left' })}
+            title={__('Align Left')}
+          >
+            <AlignLeft className={iconSize} />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().setTextAlign('center').run()}
+            active={editor.isActive({ textAlign: 'center' })}
+            title={__('Align Center')}
+          >
+            <AlignCenter className={iconSize} />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().setTextAlign('right').run()}
+            active={editor.isActive({ textAlign: 'right' })}
+            title={__('Align Right')}
+          >
+            <AlignRight className={iconSize} />
+          </ToolbarButton>
+
+          <ToolbarDivider />
+
+          <ToolbarButton
+            onClick={addLink}
+            active={editor.isActive('link')}
+            title={__('Link')}
+          >
+            <LinkIcon className={iconSize} />
+          </ToolbarButton>
+          {onRequestLinkPicker && (
+            <ToolbarButton onClick={onRequestLinkPicker} title={__('Internal Link')} active={false}>
+              <FileSearch size={18} />
+            </ToolbarButton>
+          )}
+          <ToolbarButton onClick={() => imageInputRef.current?.click()} title={__('Image')}>
+            <ImageIcon className={iconSize} />
+          </ToolbarButton>
+
+          <ToolbarDivider />
+
+          {/* Shortcode insert dropdown (only shown when shortcodes config provided) */}
+          {shortcodes && shortcodes.registry.length > 0 && (
+            <>
+              <div className="editor-toolbar-menu relative">
+                <ToolbarButton
+                  onClick={() => setShortcodeMenuOpen(!shortcodeMenuOpen)}
+                  title={__('Insert Block')}
+                >
+                  <Blocks className={iconSize} />
+                </ToolbarButton>
+                {shortcodeMenuOpen && (
+                  <div className="editor-shortcode-menu absolute left-0 top-full z-10 mt-1 w-40 rounded-md border border-(--border-primary) bg-(--surface-primary) py-1 shadow-lg">
+                    {shortcodes.registry.map((sc) => (
+                      <button
+                        key={sc.name}
+                        type="button"
+                        className="block w-full px-3 py-1.5 text-left text-sm text-(--text-secondary) hover:bg-(--surface-secondary)"
+                        onClick={() => {
+                          if (!editor) return;
+                          const defaultAttrs: Record<string, string> = {};
+                          for (const attr of sc.attrs) {
+                            if (attr.default) defaultAttrs[attr.name] = attr.default;
+                          }
+                          editor
+                            .chain()
+                            .focus()
+                            .insertContent({
+                              type: 'shortcode',
+                              attrs: {
+                                shortcodeName: sc.name,
+                                shortcodeAttrs: JSON.stringify(defaultAttrs),
+                                shortcodeContent: '',
+                              },
+                            })
+                            .run();
+                          setShortcodeMenuOpen(false);
+                        }}
+                      >
+                        {__(sc.label)}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <ToolbarDivider />
+            </>
+          )}
+
+          <ToolbarButton
+            onClick={() => editor.chain().focus().undo().run()}
+            disabled={!editor.can().undo()}
+            title={__('Undo')}
+          >
+            <Undo className={iconSize} />
+          </ToolbarButton>
+          <ToolbarButton
+            onClick={() => editor.chain().focus().redo().run()}
+            disabled={!editor.can().redo()}
+            title={__('Redo')}
+          >
+            <Redo className={iconSize} />
+          </ToolbarButton>
+
+          {/* Spacer + Preview toggle */}
+          <div className="ml-auto" />
+          <ToolbarButton
+            onClick={() => setShowPreview(!showPreview)}
+            active={showPreview}
+            title={showPreview ? __('Hide Preview') : __('Show Preview')}
+          >
+            {showPreview ? (
+              <PanelRightClose className={iconSize} />
+            ) : (
+              <PanelRightOpen className={iconSize} />
+            )}
+          </ToolbarButton>
+        </div>
+
+        {/* Hidden file input for image upload */}
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            if (!file || !editor) return;
+            e.target.value = '';
+            try {
+              const url = await uploadImage(file, postId);
+              editor.chain().focus().setImage({ src: url }).run();
+            } catch (err) {
+              toast.error(err instanceof Error ? err.message : __('Image upload failed'));
+            }
+          }}
+        />
+
+        {/* Editor / Source */}
+        <div className="editor-content flex-1 overflow-auto">
+          {mode === 'wysiwyg' ? (
+            <EditorContent
+              editor={editor}
+              className="h-full"
+            />
+          ) : (
+            <textarea
+              ref={sourceTextareaRef}
+              value={sourceValue}
+              onChange={(e) => {
+                setSourceValue(e.target.value);
+                lastEmittedContent.current = e.target.value;
+                onChangeRef.current(e.target.value);
+              }}
+              className="tiptap-source-textarea h-full min-h-[300px] w-full resize-none border-none bg-transparent px-4 py-3 font-mono text-[13px] leading-relaxed text-inherit outline-none"
+              style={{ tabSize: 2 }}
+            />
+          )}
+        </div>
+
+        {/* Floating toolbar on text selection */}
+        {mode === 'wysiwyg' && (
           <>
-            <div className="editor-toolbar-menu relative">
-              <ToolbarButton
-                onClick={() => setShortcodeMenuOpen(!shortcodeMenuOpen)}
-                title={__('Insert Block')}
-              >
-                <Blocks className={iconSize} />
-              </ToolbarButton>
-              {shortcodeMenuOpen && (
-                <div className="editor-shortcode-menu absolute left-0 top-full z-10 mt-1 w-40 rounded-md border border-(--border-primary) bg-(--surface-primary) py-1 shadow-lg">
-                  {shortcodes.registry.map((sc) => (
-                    <button
-                      key={sc.name}
-                      type="button"
-                      className="block w-full px-3 py-1.5 text-left text-sm text-(--text-secondary) hover:bg-(--surface-secondary)"
-                      onClick={() => {
-                        if (!editor) return;
-                        const defaultAttrs: Record<string, string> = {};
-                        for (const attr of sc.attrs) {
-                          if (attr.default) defaultAttrs[attr.name] = attr.default;
-                        }
-                        editor
-                          .chain()
-                          .focus()
-                          .insertContent({
-                            type: 'shortcode',
-                            attrs: {
-                              shortcodeName: sc.name,
-                              shortcodeAttrs: JSON.stringify(defaultAttrs),
-                              shortcodeContent: '',
-                            },
-                          })
-                          .run();
-                        setShortcodeMenuOpen(false);
-                      }}
-                    >
-                      {__(sc.label)}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <ToolbarDivider />
+            <EditorBubbleMenu
+              editor={editor}
+              __={__}
+              onAddLink={addLink}
+              onAiAssist={onAiTransform ? () => setAiAssistOpen(true) : undefined}
+            />
+            <TableMenu editor={editor} __={__} />
           </>
         )}
 
-        <ToolbarButton
-          onClick={() => editor.chain().focus().undo().run()}
-          disabled={!editor.can().undo()}
-          title={__('Undo')}
-        >
-          <Undo className={iconSize} />
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().redo().run()}
-          disabled={!editor.can().redo()}
-          title={__('Redo')}
-        >
-          <Redo className={iconSize} />
-        </ToolbarButton>
-
-      </div>
-
-      {/* Hidden file input for image upload */}
-      <input
-        ref={imageInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={async (e) => {
-          const file = e.target.files?.[0];
-          if (!file || !editor) return;
-          e.target.value = '';
-          try {
-            const url = await uploadImage(file, postId);
-            editor.chain().focus().setImage({ src: url }).run();
-          } catch (err) {
-            toast.error(err instanceof Error ? err.message : __('Image upload failed'));
-          }
-        }}
-      />
-
-      {/* Editor / Source */}
-      <div className="editor-content flex-1 overflow-auto">
-        {mode === 'wysiwyg' ? (
-          <EditorContent
+        {/* AI Assist floating menu */}
+        {mode === 'wysiwyg' && onAiTransform && (
+          <AiAssistMenu
             editor={editor}
-            className="h-full"
-          />
-        ) : (
-          <textarea
-            ref={sourceTextareaRef}
-            value={sourceValue}
-            onChange={(e) => {
-              setSourceValue(e.target.value);
-              lastEmittedContent.current = e.target.value;
-              onChangeRef.current(e.target.value);
-            }}
-            className="tiptap-source-textarea h-full min-h-[300px] w-full resize-none border-none bg-transparent px-4 py-3 font-mono text-[13px] leading-relaxed text-inherit outline-none"
-            style={{ tabSize: 2 }}
+            __={__}
+            open={aiAssistOpen}
+            onClose={() => setAiAssistOpen(false)}
+            onSubmit={onAiTransform}
           />
         )}
+
+        {/* Mode tabs (bottom) */}
+        <div className="editor-mode-tabs flex justify-end border-t border-(--border-primary) shrink-0">
+          <button
+            type="button"
+            className={cn(
+              '-mt-px border-t-2 px-4 py-1.5 text-[13px] transition-colors',
+              mode === 'wysiwyg'
+                ? 'border-(--color-brand-500) text-(--color-brand-500) dark:border-(--color-brand-400) dark:text-(--color-brand-400) bg-(--surface-primary)'
+                : 'border-transparent text-(--text-secondary) hover:text-(--text-primary) hover:bg-(--surface-primary)',
+            )}
+            onClick={() => mode !== 'wysiwyg' && toggleMode()}
+          >
+            {__('Visual')}
+          </button>
+          <button
+            type="button"
+            className={cn(
+              '-mt-px border-t-2 px-4 py-1.5 text-[13px] transition-colors',
+              mode === 'source'
+                ? 'border-(--color-brand-500) text-(--color-brand-500) dark:border-(--color-brand-400) dark:text-(--color-brand-400) bg-(--surface-primary)'
+                : 'border-transparent text-(--text-secondary) hover:text-(--text-primary) hover:bg-(--surface-primary)',
+            )}
+            onClick={() => mode !== 'source' && toggleMode()}
+          >
+            {__('Source')}
+          </button>
+        </div>
       </div>
 
-      {/* Mode tabs (bottom) */}
-      <div className="editor-mode-tabs flex justify-end border-t border-(--border-primary) shrink-0">
-        <button
-          type="button"
-          className={cn(
-            '-mt-px border-t-2 px-4 py-1.5 text-[13px] transition-colors',
-            mode === 'wysiwyg'
-              ? 'border-(--color-brand-500) text-(--color-brand-500) dark:border-(--color-brand-400) dark:text-(--color-brand-400) bg-(--surface-primary)'
-              : 'border-transparent text-(--text-secondary) hover:text-(--text-primary) hover:bg-(--surface-primary)',
-          )}
-          onClick={() => mode !== 'wysiwyg' && toggleMode()}
-        >
-          {__('Visual')}
-        </button>
-        <button
-          type="button"
-          className={cn(
-            '-mt-px border-t-2 px-4 py-1.5 text-[13px] transition-colors',
-            mode === 'source'
-              ? 'border-(--color-brand-500) text-(--color-brand-500) dark:border-(--color-brand-400) dark:text-(--color-brand-400) bg-(--surface-primary)'
-              : 'border-transparent text-(--text-secondary) hover:text-(--text-primary) hover:bg-(--surface-primary)',
-          )}
-          onClick={() => mode !== 'source' && toggleMode()}
-        >
-          {__('Source')}
-        </button>
-      </div>
+      {/* Live Preview Panel */}
+      {showPreview && (
+        <div className="rounded-md border border-(--border-primary) overflow-auto" style={{ height: height ?? '400px' }}>
+          <div className="border-b border-(--border-primary) px-3 py-2 text-xs font-medium text-(--text-muted) uppercase tracking-wider">
+            {__('Preview')}
+          </div>
+          <LivePreview
+            content={previewContent}
+            className="prose prose-sm dark:prose-invert max-w-none px-4 py-3"
+          />
+        </div>
+      )}
     </div>
   );
 }

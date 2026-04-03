@@ -1,4 +1,5 @@
 import TurndownService from 'turndown';
+import { gfm as turndownGfm } from 'turndown-plugin-gfm';
 import { marked } from 'marked';
 
 // Shortcode regex: [name attrs]content[/name] and [name attrs /]
@@ -18,14 +19,11 @@ const turndown = new TurndownService({
   bulletListMarker: '-',
 });
 
+// GFM tables + strikethrough (table rule in turndown)
+turndown.use(turndownGfm);
+
 // Preserve <u> as inline HTML — markdown has no underline syntax
 turndown.keep(['u']);
-
-// Convert <s>/<del> to GFM strikethrough ~~text~~
-turndown.addRule('strikethrough', {
-  filter: ['del', 's'],
-  replacement: (content) => `~~${content}~~`,
-});
 
 // Preserve text-aligned elements as raw HTML — markdown has no alignment syntax.
 // Uses outerHTML so inner formatting (<strong>, etc.) stays as HTML and round-trips

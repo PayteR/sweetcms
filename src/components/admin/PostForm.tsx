@@ -31,6 +31,7 @@ import { PostAttachments } from '@/engine/components/PostAttachments';
 import { RevisionHistory } from '@/engine/components/RevisionHistory';
 import { RichTextEditor } from '@/engine/components/RichTextEditor';
 import { shortcodeConfig } from '@/lib/shortcodes/config';
+import { useAiTransform } from '@/engine/hooks/useAiTransform';
 import { SEOFields } from '@/engine/components/SEOFields';
 import { SeoPreviewCard } from '@/engine/components/SeoPreviewCard';
 import { TagInput } from '@/engine/components/TagInput';
@@ -157,6 +158,7 @@ export function PostForm({ contentType, postId }: Props) {
   const duplicateAsTranslation = trpc.cms.duplicateAsTranslation.useMutation();
   const translationAvailableQuery = trpc.options.translationAvailable.useQuery();
   const customFieldsRef = useRef<CustomFieldsEditorHandle>(null);
+  const aiTransform = useAiTransform();
 
   const createPost = trpc.cms.create.useMutation({
     onSuccess: (data) => {
@@ -433,6 +435,7 @@ export function PostForm({ contentType, postId }: Props) {
                 onRequestLinkPicker={openLinkPicker}
                 editorRef={editorRef}
                 shortcodes={shortcodeConfig}
+                onAiTransform={aiTransform}
               />
             </div>
 

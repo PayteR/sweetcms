@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sweetcms\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-03T19:38:04.850Z\n"
-"PO-Revision-Date: 2026-04-03T19:38:04.850Z\n"
+"POT-Creation-Date: 2026-04-03T21:59:23.663Z\n"
+"PO-Revision-Date: 2026-04-03T21:59:23.663Z\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: en\n"
 "Language: en\n"
@@ -32,7 +32,7 @@ msgstr "Filter by user..."
 #: src/app/dashboard/(panel)/cms/redirects/page.tsx:241
 #: src/app/dashboard/(panel)/forms/page.tsx:107
 #: src/app/dashboard/(panel)/users/page.tsx:209
-#: src/components/admin/AdminSidebar.tsx:172
+#: src/components/admin/AdminSidebar.tsx:171
 msgid "Search"
 msgstr "Search"
 
@@ -54,7 +54,7 @@ msgstr "Action"
 #: src/app/dashboard/(panel)/cms/activity/page.tsx:119
 #: src/app/dashboard/(panel)/organizations/page.tsx:391
 #: src/app/dashboard/(panel)/users/page.tsx:223
-#: src/components/admin/AdminSidebar.tsx:190
+#: src/components/admin/AdminSidebar.tsx:189
 msgid "User"
 msgstr "User"
 
@@ -172,8 +172,8 @@ msgstr "No menus yet. Create your first one."
 #: src/app/dashboard/(panel)/settings/webhooks/page.tsx:125
 #: src/app/dashboard/(panel)/settings/webhooks/page.tsx:199
 #: src/app/dashboard/(panel)/users/[id]/page.tsx:263
-#: src/components/admin/CategoryForm.tsx:321
-#: src/components/admin/PortfolioForm.tsx:346
+#: src/components/admin/CategoryForm.tsx:324
+#: src/components/admin/PortfolioForm.tsx:348
 #: src/components/admin/TermForm.tsx:235
 msgid "Name"
 msgstr "Name"
@@ -184,11 +184,11 @@ msgstr "Name"
 #: src/app/dashboard/(panel)/organizations/page.tsx:207
 #: src/app/dashboard/(panel)/settings/custom-fields/page.tsx:322
 #: src/app/dashboard/(panel)/settings/import/page.tsx:588
-#: src/components/admin/CategoryForm.tsx:334
+#: src/components/admin/CategoryForm.tsx:337
 #: src/components/admin/CmsListView.tsx:749
-#: src/components/admin/PortfolioForm.tsx:359
-#: src/components/admin/PostForm.tsx:408
-#: src/components/admin/ShowcaseForm.tsx:325
+#: src/components/admin/PortfolioForm.tsx:361
+#: src/components/admin/PostForm.tsx:410
+#: src/components/admin/ShowcaseForm.tsx:332
 #: src/components/admin/TermForm.tsx:248
 #: src/engine/components/SeoOverridesDialog.tsx:135
 msgid "Slug"
@@ -448,10 +448,10 @@ msgstr "Edit Form"
 #: src/app/dashboard/(panel)/projects/page.tsx:144
 #: src/app/dashboard/(panel)/settings/email-templates/page.tsx:163
 #: src/app/dashboard/(panel)/settings/page.tsx:206
-#: src/components/admin/CategoryForm.tsx:296
-#: src/components/admin/PortfolioForm.tsx:321
-#: src/components/admin/PostForm.tsx:371
-#: src/components/admin/ShowcaseForm.tsx:287
+#: src/components/admin/CategoryForm.tsx:299
+#: src/components/admin/PortfolioForm.tsx:323
+#: src/components/admin/PostForm.tsx:373
+#: src/components/admin/ShowcaseForm.tsx:294
 #: src/components/admin/TermForm.tsx:212
 #: src/engine/components/PostAttachments.tsx:264
 #: src/engine/components/shortcodes/ShortcodeEditDialog.tsx:94
@@ -847,7 +847,7 @@ msgstr "Blog Posts"
 
 #: src/app/dashboard/(panel)/page.tsx:58
 #: src/app/dashboard/(panel)/settings/import/page.tsx:591
-#: src/components/admin/PostForm.tsx:608
+#: src/components/admin/PostForm.tsx:611
 msgid "Categories"
 msgstr "Categories"
 
@@ -902,14 +902,14 @@ msgid "Edit Project"
 msgstr "Edit Project"
 
 #: src/app/dashboard/(panel)/projects/page.tsx:125
-#: src/components/admin/PortfolioForm.tsx:354
+#: src/components/admin/PortfolioForm.tsx:356
 msgid "Project name"
 msgstr "Project name"
 
 #: src/app/dashboard/(panel)/projects/page.tsx:131
-#: src/components/admin/CategoryForm.tsx:380
-#: src/components/admin/PortfolioForm.tsx:471
-#: src/components/admin/ShowcaseForm.tsx:473
+#: src/components/admin/CategoryForm.tsx:383
+#: src/components/admin/PortfolioForm.tsx:473
+#: src/components/admin/ShowcaseForm.tsx:480
 #: src/engine/components/SeoPreviewCard.tsx:125
 msgid "Description"
 msgstr "Description"
@@ -942,12 +942,12 @@ msgstr "No projects yet. Create one to get started."
 #: src/app/dashboard/(panel)/settings/support/[id]/page.tsx:183
 #: src/app/dashboard/(panel)/settings/webhooks/page.tsx:201
 #: src/app/dashboard/(panel)/users/page.tsx:225
-#: src/components/admin/CategoryForm.tsx:450
+#: src/components/admin/CategoryForm.tsx:454
 #: src/components/admin/CmsListView.tsx:729
-#: src/components/admin/PortfolioForm.tsx:580
-#: src/components/admin/PostForm.tsx:504
-#: src/components/admin/PostForm.tsx:508
-#: src/components/admin/ShowcaseForm.tsx:528
+#: src/components/admin/PortfolioForm.tsx:583
+#: src/components/admin/PostForm.tsx:507
+#: src/components/admin/PostForm.tsx:511
+#: src/components/admin/ShowcaseForm.tsx:536
 #: src/components/admin/TermForm.tsx:268
 msgid "Status"
 msgstr "Status"
@@ -1021,6 +1021,7 @@ msgstr "No affiliates found"
 #: src/app/dashboard/(panel)/settings/billing/components/DiscountCodesTable.tsx:60
 #: src/app/dashboard/(panel)/settings/discount-codes/page.tsx:144
 #: src/app/dashboard/(panel)/settings/discount-codes/page.tsx:272
+#: src/engine/components/editor/EditorBubbleMenu.tsx:105
 msgid "Code"
 msgstr "Code"
 
@@ -1333,7 +1334,7 @@ msgstr "Content Types"
 
 #: src/app/dashboard/(panel)/settings/custom-fields/page.tsx:251
 #: src/app/dashboard/(panel)/settings/custom-fields/page.tsx:325
-#: src/components/admin/ShowcaseForm.tsx:454
+#: src/components/admin/ShowcaseForm.tsx:461
 msgid "Sort Order"
 msgstr "Sort Order"
 
@@ -1455,7 +1456,8 @@ msgstr "Available Variables"
 
 #: src/app/dashboard/(panel)/settings/email-templates/page.tsx:214
 #: src/app/dashboard/(panel)/settings/import/page.tsx:524
-#: src/components/admin/PostForm.tsx:347
+#: src/components/admin/PostForm.tsx:349
+#: src/engine/components/RichTextEditor.tsx:771
 msgid "Preview"
 msgstr "Preview"
 
@@ -1591,21 +1593,21 @@ msgid "Select all"
 msgstr "Select all"
 
 #: src/app/dashboard/(panel)/settings/import/page.tsx:587
-#: src/components/admin/CategoryForm.tsx:349
+#: src/components/admin/CategoryForm.tsx:352
 #: src/components/admin/CmsListView.tsx:723
-#: src/components/admin/PortfolioForm.tsx:374
-#: src/components/admin/PostForm.tsx:396
-#: src/components/admin/ShowcaseForm.tsx:312
+#: src/components/admin/PortfolioForm.tsx:376
+#: src/components/admin/PostForm.tsx:398
+#: src/components/admin/ShowcaseForm.tsx:319
 #: src/engine/components/SeoPreviewCard.tsx:122
 msgid "Title"
 msgstr "Title"
 
 #: src/app/dashboard/(panel)/settings/import/page.tsx:631
-#: src/components/admin/CategoryForm.tsx:460
+#: src/components/admin/CategoryForm.tsx:464
 #: src/components/admin/CmsListView.tsx:757
-#: src/components/admin/PortfolioForm.tsx:590
-#: src/components/admin/PostForm.tsx:517
-#: src/components/admin/ShowcaseForm.tsx:538
+#: src/components/admin/PortfolioForm.tsx:593
+#: src/components/admin/PostForm.tsx:520
+#: src/components/admin/ShowcaseForm.tsx:546
 #: src/components/admin/TaxonomyOverview.tsx:22
 #: src/components/admin/TermForm.tsx:278
 #: src/engine/components/BulkActionBar.tsx:80
@@ -1613,10 +1615,10 @@ msgid "Published"
 msgstr "Published"
 
 #: src/app/dashboard/(panel)/settings/import/page.tsx:632
-#: src/components/admin/CategoryForm.tsx:458
-#: src/components/admin/PortfolioForm.tsx:588
-#: src/components/admin/PostForm.tsx:515
-#: src/components/admin/ShowcaseForm.tsx:536
+#: src/components/admin/CategoryForm.tsx:462
+#: src/components/admin/PortfolioForm.tsx:591
+#: src/components/admin/PostForm.tsx:518
+#: src/components/admin/ShowcaseForm.tsx:544
 #: src/components/admin/TermForm.tsx:276
 #: src/engine/components/BulkActionBar.tsx:79
 msgid "Draft"
@@ -1869,7 +1871,7 @@ msgstr "New Webhook"
 #: src/app/dashboard/(panel)/settings/webhooks/page.tsx:135
 #: src/app/dashboard/(panel)/settings/webhooks/page.tsx:200
 #: src/engine/components/MenuBuilder.tsx:104
-#: src/engine/components/RichTextEditor.tsx:332
+#: src/engine/components/RichTextEditor.tsx:411
 msgid "URL"
 msgstr "URL"
 
@@ -2042,96 +2044,97 @@ msgstr "Audit Trail"
 msgid "No activity recorded for this user."
 msgstr "No activity recorded for this user."
 
-#: src/components/admin/AdminSidebar.tsx:180
+#: src/components/admin/AdminSidebar.tsx:179
 msgid "Theme"
 msgstr "Theme"
 
-#: src/components/admin/AdminSidebar.tsx:220
+#: src/components/admin/AdminSidebar.tsx:219
 msgid "Sign Out"
 msgstr "Sign Out"
 
-#: src/components/admin/AdminSidebar.tsx:243
+#: src/components/admin/AdminSidebar.tsx:242
 msgid "Expand panel"
 msgstr "Expand panel"
 
-#: src/components/admin/AdminSidebar.tsx:243
+#: src/components/admin/AdminSidebar.tsx:242
 msgid "Collapse panel"
 msgstr "Collapse panel"
 
-#: src/components/admin/AdminSidebar.tsx:287
-#: src/components/admin/AdminSidebar.tsx:351
+#: src/components/admin/AdminSidebar.tsx:286
+#: src/components/admin/AdminSidebar.tsx:350
 msgid "View site"
 msgstr "View site"
 
-#: src/components/admin/CategoryForm.tsx:152
+#: src/components/admin/CategoryForm.tsx:155
 msgid "Category created"
 msgstr "Category created"
 
-#: src/components/admin/CategoryForm.tsx:166
+#: src/components/admin/CategoryForm.tsx:169
 msgid "Category updated"
 msgstr "Category updated"
 
-#: src/components/admin/CategoryForm.tsx:280
+#: src/components/admin/CategoryForm.tsx:283
 #: src/components/admin/QuickActionsWidget.tsx:34
 msgid "New Category"
 msgstr "New Category"
 
-#: src/components/admin/CategoryForm.tsx:280
+#: src/components/admin/CategoryForm.tsx:283
 msgid "Edit Category"
 msgstr "Edit Category"
 
-#: src/components/admin/CategoryForm.tsx:329
+#: src/components/admin/CategoryForm.tsx:332
 msgid "Category name"
 msgstr "Category name"
 
-#: src/components/admin/CategoryForm.tsx:360
+#: src/components/admin/CategoryForm.tsx:363
 msgid "Display title (can differ from name)"
 msgstr "Display title (can differ from name)"
 
-#: src/components/admin/CategoryForm.tsx:365
+#: src/components/admin/CategoryForm.tsx:368
 msgid "Icon"
 msgstr "Icon"
 
-#: src/components/admin/CategoryForm.tsx:372
+#: src/components/admin/CategoryForm.tsx:375
 msgid "Icon name or URL"
 msgstr "Icon name or URL"
 
-#: src/components/admin/CategoryForm.tsx:385
+#: src/components/admin/CategoryForm.tsx:388
 msgid "Category description..."
 msgstr "Category description..."
 
-#: src/components/admin/CategoryForm.tsx:395
+#: src/components/admin/CategoryForm.tsx:399
 #: src/components/admin/CmsListView.tsx:822
-#: src/components/admin/PortfolioForm.tsx:486
-#: src/components/admin/PostForm.tsx:441
-#: src/components/admin/ShowcaseForm.tsx:488
+#: src/components/admin/PortfolioForm.tsx:489
+#: src/components/admin/PostForm.tsx:444
+#: src/components/admin/ShowcaseForm.tsx:496
 msgid "SEO"
 msgstr "SEO"
 
-#: src/components/admin/CategoryForm.tsx:439
-#: src/components/admin/PortfolioForm.tsx:569
-#: src/components/admin/PostForm.tsx:637
+#: src/components/admin/CategoryForm.tsx:443
+#: src/components/admin/PortfolioForm.tsx:572
+#: src/components/admin/PostForm.tsx:640
+#: src/components/admin/ShowcaseForm.tsx:612
 msgid "Tags"
 msgstr "Tags"
 
-#: src/components/admin/CategoryForm.tsx:466
+#: src/components/admin/CategoryForm.tsx:470
 #: src/components/admin/TermForm.tsx:284
 msgid "Order"
 msgstr "Order"
 
-#: src/components/admin/CategoryForm.tsx:497
-#: src/components/admin/PortfolioForm.tsx:616
-#: src/components/admin/PostForm.tsx:559
-#: src/components/admin/ShowcaseForm.tsx:564
+#: src/components/admin/CategoryForm.tsx:501
+#: src/components/admin/PortfolioForm.tsx:619
+#: src/components/admin/PostForm.tsx:562
+#: src/components/admin/ShowcaseForm.tsx:572
 #: src/components/admin/TermForm.tsx:295
 #: src/engine/components/TranslationBar.tsx:74
 msgid "Language"
 msgstr "Language"
 
-#: src/components/admin/CategoryForm.tsx:523
-#: src/components/admin/PortfolioForm.tsx:642
-#: src/components/admin/PostForm.tsx:527
-#: src/components/admin/ShowcaseForm.tsx:590
+#: src/components/admin/CategoryForm.tsx:527
+#: src/components/admin/PortfolioForm.tsx:645
+#: src/components/admin/PostForm.tsx:530
+#: src/components/admin/ShowcaseForm.tsx:598
 msgid "Publish Date"
 msgstr "Publish Date"
 
@@ -2180,7 +2183,7 @@ msgid "Columns"
 msgstr "Columns"
 
 #: src/components/admin/CmsListView.tsx:623
-#: src/components/admin/PostForm.tsx:333
+#: src/components/admin/PostForm.tsx:335
 msgid "New {label}"
 msgstr "New {label}"
 
@@ -2260,135 +2263,135 @@ msgstr "Created {count} SEO override(s)"
 msgid "All SEO overrides already exist"
 msgstr "All SEO overrides already exist"
 
-#: src/components/admin/PortfolioForm.tsx:159
+#: src/components/admin/PortfolioForm.tsx:161
 msgid "Portfolio item created"
 msgstr "Portfolio item created"
 
-#: src/components/admin/PortfolioForm.tsx:173
+#: src/components/admin/PortfolioForm.tsx:175
 msgid "Portfolio item updated"
 msgstr "Portfolio item updated"
 
-#: src/components/admin/PortfolioForm.tsx:305
+#: src/components/admin/PortfolioForm.tsx:307
 msgid "New Portfolio Item"
 msgstr "New Portfolio Item"
 
-#: src/components/admin/PortfolioForm.tsx:305
+#: src/components/admin/PortfolioForm.tsx:307
 msgid "Edit Portfolio Item"
 msgstr "Edit Portfolio Item"
 
-#: src/components/admin/PortfolioForm.tsx:385
+#: src/components/admin/PortfolioForm.tsx:387
 msgid "Display title"
 msgstr "Display title"
 
-#: src/components/admin/PortfolioForm.tsx:393
+#: src/components/admin/PortfolioForm.tsx:395
 msgid "Project Details"
 msgstr "Project Details"
 
-#: src/components/admin/PortfolioForm.tsx:397
+#: src/components/admin/PortfolioForm.tsx:399
 msgid "Client Name"
 msgstr "Client Name"
 
-#: src/components/admin/PortfolioForm.tsx:404
+#: src/components/admin/PortfolioForm.tsx:406
 msgid "Client or company name"
 msgstr "Client or company name"
 
-#: src/components/admin/PortfolioForm.tsx:409
+#: src/components/admin/PortfolioForm.tsx:411
 msgid "Project URL"
 msgstr "Project URL"
 
-#: src/components/admin/PortfolioForm.tsx:421
+#: src/components/admin/PortfolioForm.tsx:423
 msgid "Tech Stack"
 msgstr "Tech Stack"
 
-#: src/components/admin/PortfolioForm.tsx:452
+#: src/components/admin/PortfolioForm.tsx:454
 msgid "Type and press Enter or comma to add"
 msgstr "Type and press Enter or comma to add"
 
-#: src/components/admin/PortfolioForm.tsx:457
+#: src/components/admin/PortfolioForm.tsx:459
 msgid "Completion Date"
 msgstr "Completion Date"
 
-#: src/components/admin/PortfolioForm.tsx:476
+#: src/components/admin/PortfolioForm.tsx:478
 msgid "Project description..."
 msgstr "Project description..."
 
-#: src/components/admin/PortfolioForm.tsx:527
-#: src/components/admin/PostForm.tsx:650
+#: src/components/admin/PortfolioForm.tsx:530
+#: src/components/admin/PostForm.tsx:653
 msgid "Featured Image"
 msgstr "Featured Image"
 
-#: src/components/admin/PortfolioForm.tsx:552
+#: src/components/admin/PortfolioForm.tsx:555
 msgid "Alt text"
 msgstr "Alt text"
 
-#: src/components/admin/PortfolioForm.tsx:561
-#: src/components/admin/PostForm.tsx:677
+#: src/components/admin/PortfolioForm.tsx:564
+#: src/components/admin/PostForm.tsx:680
 #: src/engine/components/MediaPickerDialog.tsx:91
 msgid "Select Image"
 msgstr "Select Image"
 
-#: src/components/admin/PostForm.tsx:167
+#: src/components/admin/PostForm.tsx:169
 msgid "{label} created"
 msgstr "{label} created"
 
-#: src/components/admin/PostForm.tsx:181
+#: src/components/admin/PostForm.tsx:183
 msgid "{label} updated"
 msgstr "{label} updated"
 
-#: src/components/admin/PostForm.tsx:334
+#: src/components/admin/PostForm.tsx:336
 #: src/engine/components/shortcodes/ShortcodeEditDialog.tsx:34
 msgid "Edit {label}"
 msgstr "Edit {label}"
 
-#: src/components/admin/PostForm.tsx:357
+#: src/components/admin/PostForm.tsx:359
 msgid "Publish"
 msgstr "Publish"
 
-#: src/components/admin/PostForm.tsx:404
+#: src/components/admin/PostForm.tsx:406
 msgid "{label} title"
 msgstr "{label} title"
 
-#: src/components/admin/PostForm.tsx:425
+#: src/components/admin/PostForm.tsx:427
 #: src/engine/components/CommandPalette.tsx:93
 #: src/engine/components/CommandPalette.tsx:232
 #: src/engine/components/shortcodes/ShortcodeEditDialog.tsx:78
 msgid "Content"
 msgstr "Content"
 
-#: src/components/admin/PostForm.tsx:430
+#: src/components/admin/PostForm.tsx:432
 msgid "Start writing your content..."
 msgstr "Start writing your content..."
 
-#: src/components/admin/PostForm.tsx:488
+#: src/components/admin/PostForm.tsx:491
 msgid "Structured Data (JSON-LD)"
 msgstr "Structured Data (JSON-LD)"
 
-#: src/components/admin/PostForm.tsx:520
+#: src/components/admin/PostForm.tsx:523
 #: src/engine/components/ContentStatusWidget.tsx:27
 msgid "Scheduled"
 msgstr "Scheduled"
 
-#: src/components/admin/PostForm.tsx:588
+#: src/components/admin/PostForm.tsx:591
 msgid "Parent Page"
 msgstr "Parent Page"
 
-#: src/components/admin/PostForm.tsx:594
+#: src/components/admin/PostForm.tsx:597
 msgid "None (top level)"
 msgstr "None (top level)"
 
-#: src/components/admin/PostForm.tsx:614
+#: src/components/admin/PostForm.tsx:617
 msgid "No categories yet."
 msgstr "No categories yet."
 
-#: src/components/admin/PostForm.tsx:687
+#: src/components/admin/PostForm.tsx:690
 msgid "Change"
 msgstr "Change"
 
-#: src/components/admin/PostForm.tsx:694
+#: src/components/admin/PostForm.tsx:697
 msgid "Alt Text"
 msgstr "Alt Text"
 
-#: src/components/admin/PostForm.tsx:701
+#: src/components/admin/PostForm.tsx:704
 msgid "Describe the image"
 msgstr "Describe the image"
 
@@ -2408,56 +2411,56 @@ msgstr "New Post"
 msgid "View Site"
 msgstr "View Site"
 
-#: src/components/admin/ShowcaseForm.tsx:145
+#: src/components/admin/ShowcaseForm.tsx:150
 msgid "Showcase item created"
 msgstr "Showcase item created"
 
-#: src/components/admin/ShowcaseForm.tsx:159
+#: src/components/admin/ShowcaseForm.tsx:164
 msgid "Showcase item updated"
 msgstr "Showcase item updated"
 
-#: src/components/admin/ShowcaseForm.tsx:271
+#: src/components/admin/ShowcaseForm.tsx:278
 msgid "New Showcase Item"
 msgstr "New Showcase Item"
 
-#: src/components/admin/ShowcaseForm.tsx:271
+#: src/components/admin/ShowcaseForm.tsx:278
 msgid "Edit Showcase Item"
 msgstr "Edit Showcase Item"
 
-#: src/components/admin/ShowcaseForm.tsx:320
+#: src/components/admin/ShowcaseForm.tsx:327
 msgid "Card title"
 msgstr "Card title"
 
-#: src/components/admin/ShowcaseForm.tsx:343
+#: src/components/admin/ShowcaseForm.tsx:350
 msgid "Card Configuration"
 msgstr "Card Configuration"
 
-#: src/components/admin/ShowcaseForm.tsx:347
+#: src/components/admin/ShowcaseForm.tsx:354
 msgid "Card Type"
 msgstr "Card Type"
 
-#: src/components/admin/ShowcaseForm.tsx:365
+#: src/components/admin/ShowcaseForm.tsx:372
 msgid "Video Embed URL"
 msgstr "Video Embed URL"
 
-#: src/components/admin/ShowcaseForm.tsx:365
+#: src/components/admin/ShowcaseForm.tsx:372
 msgid "Image URL"
 msgstr "Image URL"
 
-#: src/components/admin/ShowcaseForm.tsx:384
-#: src/components/admin/ShowcaseForm.tsx:429
+#: src/components/admin/ShowcaseForm.tsx:391
+#: src/components/admin/ShowcaseForm.tsx:436
 msgid "Browse"
 msgstr "Browse"
 
-#: src/components/admin/ShowcaseForm.tsx:411
+#: src/components/admin/ShowcaseForm.tsx:418
 msgid "Thumbnail URL"
 msgstr "Thumbnail URL"
 
-#: src/components/admin/ShowcaseForm.tsx:465
+#: src/components/admin/ShowcaseForm.tsx:472
 msgid "Lower numbers appear first in the feed"
 msgstr "Lower numbers appear first in the feed"
 
-#: src/components/admin/ShowcaseForm.tsx:478
+#: src/components/admin/ShowcaseForm.tsx:485
 msgid "Card description..."
 msgstr "Card description..."
 
@@ -2618,6 +2621,227 @@ msgstr "Dashboard Layout"
 #: src/engine/components/SlideOver.tsx:101
 msgid "Close"
 msgstr "Close"
+
+#: src/engine/components/editor/AiAssistMenu.tsx:31
+msgid "Rewrite"
+msgstr "Rewrite"
+
+#: src/engine/components/editor/AiAssistMenu.tsx:37
+msgid "Shorten"
+msgstr "Shorten"
+
+#: src/engine/components/editor/AiAssistMenu.tsx:43
+msgid "Expand"
+msgstr "Expand"
+
+#: src/engine/components/editor/AiAssistMenu.tsx:49
+msgid "Fix grammar"
+msgstr "Fix grammar"
+
+#: src/engine/components/editor/AiAssistMenu.tsx:55
+msgid "Translate to English"
+msgstr "Translate to English"
+
+#: src/engine/components/editor/AiAssistMenu.tsx:97
+msgid "AI request failed"
+msgstr "AI request failed"
+
+#: src/engine/components/editor/AiAssistMenu.tsx:178
+#: src/engine/components/editor/EditorBubbleMenu.tsx:125
+msgid "AI Assist"
+msgstr "AI Assist"
+
+#: src/engine/components/editor/AiAssistMenu.tsx:192
+msgid "Thinking..."
+msgstr "Thinking..."
+
+#: src/engine/components/editor/AiAssistMenu.tsx:205
+msgid "Try again"
+msgstr "Try again"
+
+#: src/engine/components/editor/AiAssistMenu.tsx:223
+msgid "Apply"
+msgstr "Apply"
+
+#: src/engine/components/editor/AiAssistMenu.tsx:230
+msgid "Discard"
+msgstr "Discard"
+
+#: src/engine/components/editor/AiAssistMenu.tsx:266
+#: src/engine/components/editor/AiAssistMenu.tsx:278
+msgid "Custom instruction..."
+msgstr "Custom instruction..."
+
+#: src/engine/components/editor/EditorBubbleMenu.tsx:77
+#: src/engine/components/RichTextEditor.tsx:443
+msgid "Bold"
+msgstr "Bold"
+
+#: src/engine/components/editor/EditorBubbleMenu.tsx:84
+#: src/engine/components/RichTextEditor.tsx:450
+msgid "Italic"
+msgstr "Italic"
+
+#: src/engine/components/editor/EditorBubbleMenu.tsx:91
+#: src/engine/components/RichTextEditor.tsx:457
+msgid "Underline"
+msgstr "Underline"
+
+#: src/engine/components/editor/EditorBubbleMenu.tsx:98
+#: src/engine/components/RichTextEditor.tsx:464
+msgid "Strikethrough"
+msgstr "Strikethrough"
+
+#: src/engine/components/editor/EditorBubbleMenu.tsx:115
+#: src/engine/components/RichTextEditor.tsx:579
+msgid "Link"
+msgstr "Link"
+
+#: src/engine/components/editor/slash-commands.ts:18
+#: src/engine/components/RichTextEditor.tsx:481
+msgid "Heading 1"
+msgstr "Heading 1"
+
+#: src/engine/components/editor/slash-commands.ts:19
+msgid "Large section heading"
+msgstr "Large section heading"
+
+#: src/engine/components/editor/slash-commands.ts:21
+#: src/engine/components/editor/slash-commands.ts:30
+#: src/engine/components/editor/slash-commands.ts:39
+msgid "Headings"
+msgstr "Headings"
+
+#: src/engine/components/editor/slash-commands.ts:27
+#: src/engine/components/RichTextEditor.tsx:488
+msgid "Heading 2"
+msgstr "Heading 2"
+
+#: src/engine/components/editor/slash-commands.ts:28
+msgid "Medium section heading"
+msgstr "Medium section heading"
+
+#: src/engine/components/editor/slash-commands.ts:36
+#: src/engine/components/RichTextEditor.tsx:495
+msgid "Heading 3"
+msgstr "Heading 3"
+
+#: src/engine/components/editor/slash-commands.ts:37
+msgid "Small section heading"
+msgstr "Small section heading"
+
+#: src/engine/components/editor/slash-commands.ts:45
+#: src/engine/components/RichTextEditor.tsx:505
+msgid "Bullet List"
+msgstr "Bullet List"
+
+#: src/engine/components/editor/slash-commands.ts:46
+msgid "Unordered list"
+msgstr "Unordered list"
+
+#: src/engine/components/editor/slash-commands.ts:48
+#: src/engine/components/editor/slash-commands.ts:57
+msgid "Lists"
+msgstr "Lists"
+
+#: src/engine/components/editor/slash-commands.ts:54
+msgid "Numbered List"
+msgstr "Numbered List"
+
+#: src/engine/components/editor/slash-commands.ts:55
+msgid "Ordered list"
+msgstr "Ordered list"
+
+#: src/engine/components/editor/slash-commands.ts:63
+msgid "Blockquote"
+msgstr "Blockquote"
+
+#: src/engine/components/editor/slash-commands.ts:64
+msgid "Quote block"
+msgstr "Quote block"
+
+#: src/engine/components/editor/slash-commands.ts:66
+#: src/engine/components/editor/slash-commands.ts:75
+#: src/engine/components/editor/slash-commands.ts:84
+#: src/engine/components/editor/slash-commands.ts:93
+msgid "Blocks"
+msgstr "Blocks"
+
+#: src/engine/components/editor/slash-commands.ts:72
+#: src/engine/components/RichTextEditor.tsx:526
+msgid "Code Block"
+msgstr "Code Block"
+
+#: src/engine/components/editor/slash-commands.ts:73
+msgid "Fenced code block"
+msgstr "Fenced code block"
+
+#: src/engine/components/editor/slash-commands.ts:81
+#: src/engine/components/RichTextEditor.tsx:532
+msgid "Horizontal Rule"
+msgstr "Horizontal Rule"
+
+#: src/engine/components/editor/slash-commands.ts:82
+msgid "Divider line"
+msgstr "Divider line"
+
+#: src/engine/components/editor/slash-commands.ts:90
+msgid "Table"
+msgstr "Table"
+
+#: src/engine/components/editor/slash-commands.ts:91
+msgid "Insert a table"
+msgstr "Insert a table"
+
+#: src/engine/components/editor/slash-commands.ts:101
+#: src/engine/components/RichTextEditor.tsx:588
+msgid "Image"
+msgstr "Image"
+
+#: src/engine/components/editor/slash-commands.ts:102
+msgid "Upload or embed an image"
+msgstr "Upload or embed an image"
+
+#: src/engine/components/editor/slash-commands.ts:104
+msgid "Media"
+msgstr "Media"
+
+#: src/engine/components/editor/TableMenu.tsx:67
+msgid "Add row above"
+msgstr "Add row above"
+
+#: src/engine/components/editor/TableMenu.tsx:73
+msgid "Add row below"
+msgstr "Add row below"
+
+#: src/engine/components/editor/TableMenu.tsx:82
+msgid "Add column left"
+msgstr "Add column left"
+
+#: src/engine/components/editor/TableMenu.tsx:88
+msgid "Add column right"
+msgstr "Add column right"
+
+#: src/engine/components/editor/TableMenu.tsx:97
+msgid "Merge cells"
+msgstr "Merge cells"
+
+#: src/engine/components/editor/TableMenu.tsx:104
+msgid "Split cell"
+msgstr "Split cell"
+
+#: src/engine/components/editor/TableMenu.tsx:114
+msgid "Delete row"
+msgstr "Delete row"
+
+#: src/engine/components/editor/TableMenu.tsx:121
+msgid "Delete column"
+msgstr "Delete column"
+
+#: src/engine/components/editor/TableMenu.tsx:128
+#: src/engine/components/editor/TableMenu.tsx:131
+msgid "Delete table"
+msgstr "Delete table"
 
 #: src/engine/components/FallbackRadio.tsx:21
 msgid "Language Fallback"
@@ -2853,109 +3077,81 @@ msgstr "Restore revision?"
 msgid "This will overwrite the current content with the selected revision. Continue?"
 msgstr "This will overwrite the current content with the selected revision. Continue?"
 
-#: src/engine/components/RichTextEditor.tsx:193
-msgid "Start writing..."
-msgstr "Start writing..."
+#: src/engine/components/RichTextEditor.tsx:213
+msgid "Insert {name} block"
+msgstr "Insert {name} block"
 
-#: src/engine/components/RichTextEditor.tsx:222
-#: src/engine/components/RichTextEditor.tsx:239
-#: src/engine/components/RichTextEditor.tsx:575
+#: src/engine/components/RichTextEditor.tsx:215
+msgid "Shortcodes"
+msgstr "Shortcodes"
+
+#: src/engine/components/RichTextEditor.tsx:256
+msgid "Start writing or type / for commands..."
+msgstr "Start writing or type / for commands..."
+
+#: src/engine/components/RichTextEditor.tsx:301
+#: src/engine/components/RichTextEditor.tsx:318
+#: src/engine/components/RichTextEditor.tsx:687
 msgid "Image upload failed"
 msgstr "Image upload failed"
 
-#: src/engine/components/RichTextEditor.tsx:357
-msgid "Bold"
-msgstr "Bold"
-
-#: src/engine/components/RichTextEditor.tsx:364
-msgid "Italic"
-msgstr "Italic"
-
-#: src/engine/components/RichTextEditor.tsx:371
-msgid "Underline"
-msgstr "Underline"
-
-#: src/engine/components/RichTextEditor.tsx:378
-msgid "Strikethrough"
-msgstr "Strikethrough"
-
-#: src/engine/components/RichTextEditor.tsx:385
+#: src/engine/components/RichTextEditor.tsx:471
 msgid "Inline Code"
 msgstr "Inline Code"
 
-#: src/engine/components/RichTextEditor.tsx:395
-msgid "Heading 1"
-msgstr "Heading 1"
-
-#: src/engine/components/RichTextEditor.tsx:402
-msgid "Heading 2"
-msgstr "Heading 2"
-
-#: src/engine/components/RichTextEditor.tsx:409
-msgid "Heading 3"
-msgstr "Heading 3"
-
-#: src/engine/components/RichTextEditor.tsx:419
-msgid "Bullet List"
-msgstr "Bullet List"
-
-#: src/engine/components/RichTextEditor.tsx:426
+#: src/engine/components/RichTextEditor.tsx:512
 msgid "Ordered List"
 msgstr "Ordered List"
 
-#: src/engine/components/RichTextEditor.tsx:433
+#: src/engine/components/RichTextEditor.tsx:519
 msgid "Quote"
 msgstr "Quote"
 
-#: src/engine/components/RichTextEditor.tsx:440
-msgid "Code Block"
-msgstr "Code Block"
+#: src/engine/components/RichTextEditor.tsx:545
+msgid "Insert Table"
+msgstr "Insert Table"
 
-#: src/engine/components/RichTextEditor.tsx:446
-msgid "Horizontal Rule"
-msgstr "Horizontal Rule"
-
-#: src/engine/components/RichTextEditor.tsx:456
+#: src/engine/components/RichTextEditor.tsx:555
 msgid "Align Left"
 msgstr "Align Left"
 
-#: src/engine/components/RichTextEditor.tsx:463
+#: src/engine/components/RichTextEditor.tsx:562
 msgid "Align Center"
 msgstr "Align Center"
 
-#: src/engine/components/RichTextEditor.tsx:470
+#: src/engine/components/RichTextEditor.tsx:569
 msgid "Align Right"
 msgstr "Align Right"
 
-#: src/engine/components/RichTextEditor.tsx:480
-msgid "Link"
-msgstr "Link"
-
-#: src/engine/components/RichTextEditor.tsx:485
+#: src/engine/components/RichTextEditor.tsx:584
 msgid "Internal Link"
 msgstr "Internal Link"
 
-#: src/engine/components/RichTextEditor.tsx:489
-msgid "Image"
-msgstr "Image"
-
-#: src/engine/components/RichTextEditor.tsx:501
+#: src/engine/components/RichTextEditor.tsx:600
 msgid "Insert Block"
 msgstr "Insert Block"
 
-#: src/engine/components/RichTextEditor.tsx:547
+#: src/engine/components/RichTextEditor.tsx:646
 msgid "Undo"
 msgstr "Undo"
 
-#: src/engine/components/RichTextEditor.tsx:554
+#: src/engine/components/RichTextEditor.tsx:653
 msgid "Redo"
 msgstr "Redo"
 
-#: src/engine/components/RichTextEditor.tsx:614
+#: src/engine/components/RichTextEditor.tsx:663
+msgid "Hide Preview"
+msgstr "Hide Preview"
+
+#: src/engine/components/RichTextEditor.tsx:663
+msgid "Show Preview"
+msgstr "Show Preview"
+
+#: src/engine/components/RichTextEditor.tsx:750
 msgid "Visual"
 msgstr "Visual"
 
-#: src/engine/components/RichTextEditor.tsx:626
+#: src/engine/components/RichTextEditor.tsx:762
 msgid "Source"
 msgstr "Source"
 
@@ -3058,3 +3254,7 @@ msgstr "{count} items {action}"
 #: src/engine/hooks/useCmsFormState.ts:49
 msgid "Please check the form for errors"
 msgstr "Please check the form for errors"
+
+#. REMOVED FROM CODE - PRESERVED FOR REFERENCE
+#~ msgid "Start writing..."
+#~ msgstr "Start writing..."

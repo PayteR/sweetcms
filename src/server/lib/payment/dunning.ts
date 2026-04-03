@@ -1,4 +1,4 @@
-import { and, eq, gte, lte } from 'drizzle-orm';
+import { and, eq, gte, lte, lt } from 'drizzle-orm';
 import { db } from '@/server/db';
 import { saasSubscriptions } from '@/server/db/schema/billing';
 import { member } from '@/server/db/schema/organization';
@@ -172,6 +172,128 @@ export async function checkExpiredSubscriptions(): Promise<void> {
 }
 
 /**
+ * Check for subscriptions with expired grace periods and mark as past_due.
+ * Grace periods are set when a payment fails (e.g. Stripe invoice.payment_failed).
+ */
+export async function checkGracePeriods(): Promise<void> {
+  const now = new Date();
+
+  const expired = await db
+    .select({
+      id: saasSubscriptions.id,
+      organizationId: saasSubscriptions.organizationId,
+      planId: saasSubscriptions.planId,
+    })
+    .from(saasSubscriptions)
+    .where(
+      and(
+        eq(saasSubscriptions.status, 'active'),
+        lt(saasSubscriptions.gracePeriodEndsAt, now)
+      )
+    )
+    .limit(200);
+
+  for (const sub of expired) {
+    await db
+      .update(saasSubscriptions)
+      .set({ status: 'past_due', gracePeriodEndsAt: null, updatedAt: new Date() })
+      .where(eq(saasSubscriptions.id, sub.id));
+
+    const plan = getPlan(sub.planId);
+
+    sendOrgNotification(sub.organizationId, {
+      title: 'Payment overdue',
+      body: `Your ${plan?.name ?? sub.planId} plan grace period has ended. Please update your payment method to avoid losing access.`,
+      type: NotificationType.ERROR,
+      category: NotificationCategory.BILLING,
+      actionUrl: '/dashboard/settings/billing',
+    });
+
+    logAudit({
+      db,
+      userId: 'system',
+      action: 'dunning.grace_expired',
+      entityType: 'subscription',
+      entityId: sub.id,
+      metadata: { orgId: sub.organizationId },
+    });
+
+    log.info('Grace period expired, marked past_due', { subId: sub.id, orgId: sub.organizationId });
+  }
+}
+
+/**
+ * Check for long-overdue subscriptions (past_due > 30 days) and cancel them.
+ * Downgrades to free plan. Only for non-Stripe providers (Stripe handles its own lifecycle).
+ */
+export async function checkLongOverdueSubscriptions(): Promise<void> {
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+  const overdue = await db
+    .select({
+      id: saasSubscriptions.id,
+      organizationId: saasSubscriptions.organizationId,
+      planId: saasSubscriptions.planId,
+      providerId: saasSubscriptions.providerId,
+    })
+    .from(saasSubscriptions)
+    .where(
+      and(
+        eq(saasSubscriptions.status, 'past_due'),
+        lte(saasSubscriptions.updatedAt, thirtyDaysAgo)
+      )
+    )
+    .limit(200);
+
+  for (const sub of overdue) {
+    // Stripe handles its own cancellation lifecycle
+    if (sub.providerId === 'stripe') continue;
+
+    await db
+      .update(saasSubscriptions)
+      .set({ status: 'canceled', planId: 'free', updatedAt: new Date() })
+      .where(eq(saasSubscriptions.id, sub.id));
+
+    const plan = getPlan(sub.planId);
+
+    sendOrgNotification(sub.organizationId, {
+      title: 'Subscription canceled',
+      body: `Your ${plan?.name ?? sub.planId} plan has been canceled due to non-payment. You have been downgraded to the free plan.`,
+      type: NotificationType.ERROR,
+      category: NotificationCategory.BILLING,
+      actionUrl: '/dashboard/settings/billing',
+    });
+
+    // Send cancellation email to org members
+    const admins = await db
+      .select({ email: user.email })
+      .from(member)
+      .innerJoin(user, eq(user.id, member.userId))
+      .where(eq(member.organizationId, sub.organizationId))
+      .limit(10);
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+    for (const admin of admins) {
+      enqueueTemplateEmail(admin.email, 'subscription-expired', {
+        planName: plan?.name ?? sub.planId,
+        billingUrl: `${appUrl}/dashboard/settings/billing`,
+      }).catch((err) => log.error('Failed to send cancellation email', { error: String(err) }));
+    }
+
+    logAudit({
+      db,
+      userId: 'system',
+      action: 'dunning.canceled',
+      entityType: 'subscription',
+      entityId: sub.id,
+      metadata: { orgId: sub.organizationId, previousPlan: sub.planId },
+    });
+
+    log.info('Canceled long-overdue subscription', { subId: sub.id, orgId: sub.organizationId });
+  }
+}
+
+/**
  * Run all dunning checks. Called by the scheduled job.
  */
 export async function runDunningChecks(): Promise<void> {
@@ -179,6 +301,8 @@ export async function runDunningChecks(): Promise<void> {
   try {
     await checkExpiringSubscriptions();
     await checkExpiredSubscriptions();
+    await checkGracePeriods();
+    await checkLongOverdueSubscriptions();
     log.info('Dunning checks complete');
   } catch (err) {
     log.error('Dunning check failed', { error: String(err) });

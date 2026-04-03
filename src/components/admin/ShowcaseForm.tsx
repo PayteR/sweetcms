@@ -19,6 +19,7 @@ import { useLinkPicker } from '@/engine/hooks/useLinkPicker';
 import { useLinkValidation } from '@/engine/hooks/useLinkValidation';
 import { useCmsAutosave } from '@/engine/hooks/useCmsAutosave';
 import { useKeyboardShortcuts } from '@/engine/hooks/useKeyboardShortcuts';
+import { useAiTransform } from '@/engine/hooks/useAiTransform';
 import AutosaveIndicator from '@/engine/components/AutosaveIndicator';
 import AutosaveRecoveryBanner from '@/engine/components/AutosaveRecoveryBanner';
 import BrokenLinksBanner from '@/engine/components/BrokenLinksBanner';
@@ -72,6 +73,7 @@ export function ShowcaseForm({ showcaseId }: Props) {
   const { data: session } = useSession();
   const isNew = !showcaseId;
 
+  const aiTransform = useAiTransform();
   const [slugManual, setSlugManual] = useState(false);
   const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
   const [mediaPickerTarget, setMediaPickerTarget] = useState<'mediaUrl' | 'thumbnailUrl'>('mediaUrl');
@@ -485,6 +487,7 @@ export function ShowcaseForm({ showcaseId }: Props) {
                 onRequestLinkPicker={openLinkPicker}
                 editorRef={editorRef}
                 shortcodes={shortcodeConfig}
+                onAiTransform={aiTransform}
               />
             </div>
 

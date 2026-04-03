@@ -23,6 +23,7 @@ export const saasSubscriptions = pgTable(
     currentPeriodEnd: timestamp('current_period_end'),
     cancelAtPeriodEnd: boolean('cancel_at_period_end').notNull().default(false),
     trialEnd: timestamp('trial_end'),
+    gracePeriodEndsAt: timestamp('grace_period_ends_at'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow(),
   },

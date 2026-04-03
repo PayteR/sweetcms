@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { eq } from 'drizzle-orm';
 import { db } from '@/server/db';
 import { saasSubscriptionEvents } from '@/server/db/schema';
 import { getProvider } from '@/server/lib/payment/factory';
@@ -32,26 +31,24 @@ export async function POST(request: Request) {
   // Idempotency check: use order_id from providerData as unique event ID
   const providerData = event.providerData as Record<string, unknown> | undefined;
   const orderId = providerData?.order_id as string | undefined;
-  const paymentStatus = providerData?.payment_status as string | undefined;
-  const idempotencyKey = orderId ? `np_${orderId}_${paymentStatus ?? 'unknown'}` : null;
+  const idempotencyKey = orderId ? `np_${orderId}` : null;
 
   if (idempotencyKey) {
-    const [existing] = await db
-      .select({ id: saasSubscriptionEvents.id })
-      .from(saasSubscriptionEvents)
-      .where(eq(saasSubscriptionEvents.providerEventId, idempotencyKey))
-      .limit(1);
-
-    if (existing) {
-      return NextResponse.json({ received: true, duplicate: true });
+    // Atomic idempotency: INSERT or bail if already processed
+    try {
+      await db.insert(saasSubscriptionEvents).values({
+        providerId: 'nowpayments',
+        providerEventId: idempotencyKey,
+        type: event.type,
+        data: providerData as Record<string, unknown>,
+      });
+    } catch (err) {
+      // Unique constraint violation = already processed
+      if (String(err).includes('unique') || String(err).includes('duplicate')) {
+        return NextResponse.json({ received: true, duplicate: true });
+      }
+      throw err;
     }
-
-    await db.insert(saasSubscriptionEvents).values({
-      providerId: 'nowpayments',
-      providerEventId: idempotencyKey,
-      type: event.type,
-      data: providerData as Record<string, unknown>,
-    });
   }
 
   try {
