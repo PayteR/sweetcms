@@ -1,4 +1,3 @@
-import 'server-only';
 import type { PlanDefinition } from '@/engine/types/billing';
 
 /**

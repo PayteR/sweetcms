@@ -566,7 +566,50 @@ Designed and built a real-time analytics dashboard for an e-commerce platform. T
       ]);
     }
 
-    log('✅', '3 pages, 4 blog posts (1 draft), 3 categories, 4 tags, and 2 portfolio items created.');
+    // ── Showcase items ──────────────────────────────────────────
+    const { cmsShowcase } = await import('../server/db/schema/showcase');
+
+    await db.insert(cmsShowcase).values({
+      title: 'Welcome to Showcase',
+      slug: 'welcome-to-showcase',
+      lang: 'en',
+      description: `This is a **rich text** showcase card. Use it for testimonials, quotes, feature highlights, or any text-first content.\n\nSwipe up or press the arrow keys to see more.`,
+      cardType: 'richtext',
+      status: 1,
+      sortOrder: 0,
+      publishedAt: new Date(now - 3 * 24 * 60 * 60 * 1000),
+      metaDescription: 'Introduction to the SweetCMS showcase feed.',
+      previewToken: crypto.randomBytes(32).toString('hex'),
+    });
+
+    await db.insert(cmsShowcase).values({
+      title: 'Video Embed Demo',
+      slug: 'video-embed-demo',
+      lang: 'en',
+      description: 'Showcase supports YouTube and Vimeo embeds. Videos auto-play when scrolled into view and pause when you swipe away.',
+      cardType: 'video',
+      mediaUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      status: 1,
+      sortOrder: 1,
+      publishedAt: new Date(now - 2 * 24 * 60 * 60 * 1000),
+      metaDescription: 'Video embed demonstration in the SweetCMS showcase.',
+      previewToken: crypto.randomBytes(32).toString('hex'),
+    });
+
+    await db.insert(cmsShowcase).values({
+      title: 'Image Card Example',
+      slug: 'image-card-example',
+      lang: 'en',
+      description: 'Full-bleed images with text overlay. Perfect for product shots, team photos, or hero visuals.',
+      cardType: 'image',
+      status: 1,
+      sortOrder: 2,
+      publishedAt: new Date(now - 1 * 24 * 60 * 60 * 1000),
+      metaDescription: 'Image card showcase demonstration.',
+      previewToken: crypto.randomBytes(32).toString('hex'),
+    });
+
+    log('✅', '3 pages, 4 blog posts (1 draft), 3 categories, 4 tags, 2 portfolio items, and 3 showcase items created.');
   } finally {
     await sql.end();
   }

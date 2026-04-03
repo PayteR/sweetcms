@@ -1,5 +1,13 @@
 import { cache } from 'react';
+import { notFound } from 'next/navigation';
+import { TRPCError } from '@trpc/server';
 import { serverTRPC } from '@/lib/trpc/server';
+
+/** Rethrows NOT_FOUND TRPCErrors as Next.js notFound() for proper 404 handling. */
+function rethrowAsNotFound(err: unknown): never {
+  if (err instanceof TRPCError && err.code === 'NOT_FOUND') notFound();
+  throw err;
+}
 
 /**
  * React.cache()-wrapped data fetchers for the catch-all route.
@@ -26,23 +34,30 @@ export const getCachedTRPC = cache(async () => {
 export const getCachedPost = cache(
   async (slug: string, type: number, lang: string, previewToken?: string) => {
     const api = await getCachedTRPC();
-    return api.cms.getBySlug({ slug, type, lang, previewToken });
+    return api.cms.getBySlug({ slug, type, lang, previewToken }).catch(rethrowAsNotFound);
   }
 );
 
 export const getCachedTag = cache(async (slug: string, lang: string) => {
   const api = await getCachedTRPC();
-  return api.tags.getBySlug({ slug, lang });
+  return api.tags.getBySlug({ slug, lang }).catch(rethrowAsNotFound);
 });
 
 export const getCachedPortfolio = cache(
   async (slug: string, lang: string, previewToken?: string) => {
     const api = await getCachedTRPC();
-    return api.portfolio.getBySlug({ slug, lang, previewToken });
+    return api.portfolio.getBySlug({ slug, lang, previewToken }).catch(rethrowAsNotFound);
+  }
+);
+
+export const getCachedShowcase = cache(
+  async (slug: string, lang: string, previewToken?: string) => {
+    const api = await getCachedTRPC();
+    return api.showcase.getBySlug({ slug, lang, previewToken }).catch(rethrowAsNotFound);
   }
 );
 
 export const getCachedCategory = cache(async (slug: string, lang: string) => {
   const api = await getCachedTRPC();
-  return api.categories.getBySlug({ slug, lang });
+  return api.categories.getBySlug({ slug, lang }).catch(rethrowAsNotFound);
 });

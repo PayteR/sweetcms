@@ -4,6 +4,7 @@ import { and, desc, eq, ilike, isNull, or, sql } from 'drizzle-orm';
 import { cmsPosts } from '@/server/db/schema/cms';
 import { cmsCategories } from '@/server/db/schema/categories';
 import { cmsPortfolio } from '@/server/db/schema/portfolio';
+import { cmsShowcase } from '@/server/db/schema/showcase';
 import { cmsTerms } from '@/server/db/schema/terms';
 import { ContentStatus } from '@/engine/types/cms';
 import { CONTENT_TYPES } from '@/config/cms';
@@ -41,7 +42,7 @@ export const contentSearchRouter = createTRPCRouter({
       const results: SearchResult[] = [];
 
       // Run all 4 content type queries in parallel
-      const [posts, categories, tags, portfolioItems] = await Promise.all([
+      const [posts, categories, tags, portfolioItems, showcaseItems] = await Promise.all([
         // Search posts (pages + blogs)
         ctx.db
           .select({
@@ -127,6 +128,27 @@ export const contentSearchRouter = createTRPCRouter({
             )
           )
           .limit(limit),
+
+        // Search showcase
+        ctx.db
+          .select({
+            id: cmsShowcase.id,
+            slug: cmsShowcase.slug,
+            title: cmsShowcase.title,
+          })
+          .from(cmsShowcase)
+          .where(
+            and(
+              eq(cmsShowcase.status, ContentStatus.PUBLISHED),
+              isNull(cmsShowcase.deletedAt),
+              ...(lang ? [eq(cmsShowcase.lang, lang)] : []),
+              or(
+                ilike(cmsShowcase.title, pattern),
+                ilike(cmsShowcase.slug, pattern)
+              )
+            )
+          )
+          .limit(limit),
       ]);
 
       for (const post of posts) {
@@ -168,6 +190,15 @@ export const contentSearchRouter = createTRPCRouter({
           id: item.id,
           title: item.name,
           url: `/portfolio/${item.slug}`,
+        });
+      }
+
+      for (const item of showcaseItems) {
+        results.push({
+          type: 'showcase',
+          id: item.id,
+          title: item.title,
+          url: `/showcase/${item.slug}`,
         });
       }
 

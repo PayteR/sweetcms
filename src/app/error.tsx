@@ -23,6 +23,17 @@ function isConnectionError(error: Error): boolean {
 export default function GlobalError({ error, reset }: Props) {
   useEffect(() => {
     console.error('Application error:', error);
+
+    // Ensure dark mode is applied (error boundary may render before layout script)
+    const key = location.pathname.startsWith('/dashboard')
+      ? 'sweetcms-theme-admin'
+      : 'sweetcms-theme-public';
+    const theme = localStorage.getItem(key) || localStorage.getItem('sweetcms-theme');
+    const isDark =
+      theme === 'dark' ||
+      (theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches) ||
+      (!theme && matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.classList.toggle('dark', isDark);
   }, [error]);
 
   const isConnection = isConnectionError(error);

@@ -7,7 +7,7 @@ import { LOCALES, DEFAULT_LOCALE } from '@/lib/constants';
 import type { Locale } from '@/lib/constants';
 import { PostType, ContentStatus } from '@/engine/types/cms';
 import { db } from '@/server/db';
-import { cmsPosts, cmsCategories, cmsPortfolio, cmsTerms } from '@/server/db/schema';
+import { cmsPosts, cmsCategories, cmsPortfolio, cmsShowcase, cmsTerms } from '@/server/db/schema';
 
 export const dynamic = 'force-dynamic';
 
@@ -101,6 +101,18 @@ const SITEMAP_FETCHERS: SitemapContentConfig[] = [
         .orderBy(desc(cmsPortfolio.completedAt))
         .limit(500),
   },
+  {
+    contentTypeId: 'showcase',
+    priority: 0.5,
+    changeFrequency: 'monthly',
+    fetchEntries: (locale) =>
+      db
+        .select({ slug: cmsShowcase.slug, updatedAt: cmsShowcase.updatedAt })
+        .from(cmsShowcase)
+        .where(and(eq(cmsShowcase.status, ContentStatus.PUBLISHED), eq(cmsShowcase.lang, locale), isNull(cmsShowcase.deletedAt)))
+        .orderBy(desc(cmsShowcase.createdAt))
+        .limit(500),
+  },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -130,6 +142,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: 'weekly',
       priority: locale === DEFAULT_LOCALE ? 0.7 : 0.6,
       alternates: { languages: buildAlternates('/portfolio') },
+    });
+
+    entries.push({
+      url: localeUrl('/showcase', locale),
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: locale === DEFAULT_LOCALE ? 0.7 : 0.6,
+      alternates: { languages: buildAlternates('/showcase') },
     });
 
     entries.push({

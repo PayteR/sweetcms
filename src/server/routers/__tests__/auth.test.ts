@@ -40,6 +40,15 @@ vi.mock('@/engine/policy', () => ({
   },
 }));
 
+vi.mock('@/lib/env', () => ({
+  env: {
+    DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
+    BETTER_AUTH_SECRET: 'test-secret',
+    NEXT_PUBLIC_APP_URL: 'http://localhost:3000',
+    DEEPL_API_KEY: '',
+  },
+}));
+
 import { asMock } from '@/test-utils';
 import { authRouter } from '../auth';
 import { auth } from '@/lib/auth';

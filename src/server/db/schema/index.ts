@@ -11,6 +11,7 @@ export * from './webhooks';
 export * from './custom-fields';
 export * from './forms';
 export * from './portfolio';
+export * from './showcase';
 export * from './translations';
 export * from './user-preferences';
 export * from './organization';

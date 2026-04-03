@@ -14,6 +14,7 @@ import { mediaRouter } from './media';
 import { menusRouter } from './menus';
 import { optionsRouter } from './options';
 import { portfolioRouter } from './portfolio';
+import { showcaseRouter } from './showcase';
 import { redirectsRouter } from './redirects';
 import { revisionsRouter } from './revisions';
 import { tagsRouter } from './tags';
@@ -49,6 +50,7 @@ export const appRouter = createTRPCRouter({
   notifications: notificationsRouter,
   organizations: organizationsRouter,
   portfolio: portfolioRouter,
+  showcase: showcaseRouter,
   projects: projectsRouter,
   redirects: redirectsRouter,
   revisions: revisionsRouter,

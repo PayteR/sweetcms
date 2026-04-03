@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+
 import { PLANS, getPlan, getPlanByProviderPriceId, getProviderPriceId, getFreePlan } from '../plans';
 
 describe('PLANS', () => {

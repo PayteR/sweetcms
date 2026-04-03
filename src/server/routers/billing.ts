@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { eq, and, desc, sql, gte } from 'drizzle-orm';
+import { eq, and, desc, sql, gte, lte, inArray, isNotNull, or } from 'drizzle-orm';
 import { createTRPCRouter, protectedProcedure, sectionProcedure } from '../trpc';
 import { getProvider, isBillingEnabled, getEnabledProviders } from '@/server/lib/payment/factory';
 import { getSubscription } from '@/engine/lib/payment/subscription-service';
@@ -12,8 +12,15 @@ import {
 } from '@/engine/lib/payment/discount-service';
 import { PLANS, getPlan } from '@/config/plans';
 import { member } from '@/server/db/schema';
-import { saasSubscriptions, saasPaymentTransactions, saasDiscountCodes } from '@/server/db/schema';
+import {
+  saasSubscriptions,
+  saasPaymentTransactions,
+  saasDiscountCodes,
+  saasDiscountUsages,
+} from '@/server/db/schema';
+import { organization } from '@/server/db/schema/organization';
 import { getStats as getCachedStats } from '@/engine/lib/stats-cache';
+import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
 
 function requireOrg(activeOrganizationId: string | null | undefined): string {
   if (!activeOrganizationId) {
@@ -360,4 +367,362 @@ export const billingRouter = createTRPCRouter({
       };
     });
   }),
+
+  // ─── Admin: list subscriptions ──────────────────────────────────────────────
+
+  listSubscriptions: billingAdminProcedure
+    .input(
+      z.object({
+        page: z.number().int().min(1).default(1),
+        pageSize: z.number().int().min(10).max(100).default(20),
+        status: z.string().max(30).optional(),
+        planId: z.string().max(50).optional(),
+        from: z.string().datetime().optional(),
+        to: z.string().datetime().optional(),
+        search: z.string().max(200).optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { page, pageSize } = parsePagination(input);
+      const conditions = [];
+
+      if (input.status) {
+        conditions.push(eq(saasSubscriptions.status, input.status));
+      }
+      if (input.planId) {
+        conditions.push(eq(saasSubscriptions.planId, input.planId));
+      }
+      if (input.from) {
+        conditions.push(gte(saasSubscriptions.createdAt, new Date(input.from)));
+      }
+      if (input.to) {
+        conditions.push(lte(saasSubscriptions.createdAt, new Date(input.to)));
+      }
+
+      const where = conditions.length > 0 ? and(...conditions) : undefined;
+
+      // If searching, find matching org IDs first
+      let orgIdFilter: string[] | undefined;
+      if (input.search && input.search.trim()) {
+        const matchingOrgs = await ctx.db
+          .select({ id: organization.id })
+          .from(organization)
+          .where(sql`lower(${organization.name}) like lower(${'%' + input.search.trim() + '%'})`)
+          .limit(100);
+        orgIdFilter = matchingOrgs.map((o) => o.id);
+        if (orgIdFilter.length === 0) {
+          return paginatedResult([], 0, page, pageSize);
+        }
+      }
+
+      const searchCondition = orgIdFilter
+        ? and(where, inArray(saasSubscriptions.organizationId, orgIdFilter))
+        : where;
+
+      const [countResult] = await ctx.db
+        .select({ count: sql<number>`count(*)`.as('count') })
+        .from(saasSubscriptions)
+        .where(searchCondition);
+
+      const total = Number(countResult?.count ?? 0);
+
+      const rows = await ctx.db
+        .select({
+          id: saasSubscriptions.id,
+          organizationId: saasSubscriptions.organizationId,
+          orgName: organization.name,
+          orgSlug: organization.slug,
+          providerId: saasSubscriptions.providerId,
+          planId: saasSubscriptions.planId,
+          status: saasSubscriptions.status,
+          providerPriceId: saasSubscriptions.providerPriceId,
+          currentPeriodStart: saasSubscriptions.currentPeriodStart,
+          currentPeriodEnd: saasSubscriptions.currentPeriodEnd,
+          cancelAtPeriodEnd: saasSubscriptions.cancelAtPeriodEnd,
+          trialEnd: saasSubscriptions.trialEnd,
+          createdAt: saasSubscriptions.createdAt,
+        })
+        .from(saasSubscriptions)
+        .leftJoin(organization, eq(saasSubscriptions.organizationId, organization.id))
+        .where(searchCondition)
+        .orderBy(desc(saasSubscriptions.createdAt))
+        .limit(pageSize)
+        .offset((page - 1) * pageSize);
+
+      return paginatedResult(rows, total, page, pageSize);
+    }),
+
+  // ─── Admin: churned subscriptions ──────────────────────────────────────────
+
+  listChurned: billingAdminProcedure
+    .input(
+      z.object({
+        page: z.number().int().min(1).default(1),
+        pageSize: z.number().int().min(10).max(100).default(20),
+        type: z.enum(['all', 'canceled', 'past_due', 'unpaid']).default('all'),
+        from: z.string().datetime().optional(),
+        to: z.string().datetime().optional(),
+        search: z.string().max(200).optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { page, pageSize } = parsePagination(input);
+      const churnStatuses = input.type === 'all'
+        ? ['canceled', 'past_due', 'unpaid']
+        : [input.type];
+
+      const conditions = [
+        inArray(saasSubscriptions.status, churnStatuses),
+      ];
+
+      if (input.from) {
+        conditions.push(gte(saasSubscriptions.updatedAt, new Date(input.from)));
+      }
+      if (input.to) {
+        conditions.push(lte(saasSubscriptions.updatedAt, new Date(input.to)));
+      }
+
+      let orgIdFilter: string[] | undefined;
+      if (input.search?.trim()) {
+        const matchingOrgs = await ctx.db
+          .select({ id: organization.id })
+          .from(organization)
+          .where(sql`lower(${organization.name}) like lower(${'%' + input.search.trim() + '%'})`)
+          .limit(100);
+        orgIdFilter = matchingOrgs.map((o) => o.id);
+        if (orgIdFilter.length === 0) {
+          return { ...paginatedResult([], 0, page, pageSize), typeCounts: { canceled: 0, past_due: 0, unpaid: 0 } };
+        }
+      }
+
+      const searchCondition = orgIdFilter
+        ? and(...conditions, inArray(saasSubscriptions.organizationId, orgIdFilter))
+        : and(...conditions);
+
+      const [countResult] = await ctx.db
+        .select({ count: sql<number>`count(*)`.as('count') })
+        .from(saasSubscriptions)
+        .where(searchCondition);
+
+      const rows = await ctx.db
+        .select({
+          id: saasSubscriptions.id,
+          organizationId: saasSubscriptions.organizationId,
+          orgName: organization.name,
+          planId: saasSubscriptions.planId,
+          status: saasSubscriptions.status,
+          providerId: saasSubscriptions.providerId,
+          cancelAtPeriodEnd: saasSubscriptions.cancelAtPeriodEnd,
+          currentPeriodEnd: saasSubscriptions.currentPeriodEnd,
+          createdAt: saasSubscriptions.createdAt,
+          updatedAt: saasSubscriptions.updatedAt,
+        })
+        .from(saasSubscriptions)
+        .leftJoin(organization, eq(saasSubscriptions.organizationId, organization.id))
+        .where(searchCondition)
+        .orderBy(desc(saasSubscriptions.updatedAt))
+        .limit(pageSize)
+        .offset((page - 1) * pageSize);
+
+      // Get counts per churn type (for tab badges)
+      const baseConditions = [];
+      if (input.from) baseConditions.push(gte(saasSubscriptions.updatedAt, new Date(input.from)));
+      if (input.to) baseConditions.push(lte(saasSubscriptions.updatedAt, new Date(input.to)));
+      if (orgIdFilter) baseConditions.push(inArray(saasSubscriptions.organizationId, orgIdFilter));
+
+      const typeCountRows = await ctx.db
+        .select({
+          status: saasSubscriptions.status,
+          count: sql<number>`count(*)`.as('count'),
+        })
+        .from(saasSubscriptions)
+        .where(
+          and(
+            inArray(saasSubscriptions.status, ['canceled', 'past_due', 'unpaid']),
+            ...baseConditions,
+          )
+        )
+        .groupBy(saasSubscriptions.status);
+
+      const typeCounts = { canceled: 0, past_due: 0, unpaid: 0 };
+      for (const row of typeCountRows) {
+        if (row.status in typeCounts) {
+          typeCounts[row.status as keyof typeof typeCounts] = Number(row.count);
+        }
+      }
+
+      return {
+        ...paginatedResult(rows, Number(countResult?.count ?? 0), page, pageSize),
+        typeCounts,
+      };
+    }),
+
+  // ─── Admin: discount codes with usage stats ────────────────────────────────
+
+  listDiscountCodes: billingAdminProcedure.query(async ({ ctx }) => {
+    const codes = await ctx.db
+      .select()
+      .from(saasDiscountCodes)
+      .orderBy(desc(saasDiscountCodes.createdAt))
+      .limit(200);
+
+    return codes.map((c) => ({
+      id: c.id,
+      code: c.code,
+      isActive: c.isActive,
+      discountType: c.discountType,
+      discountValue: c.discountValue,
+      trialDays: c.trialDays,
+      maxUses: c.maxUses,
+      currentUses: c.currentUses,
+      validFrom: c.validFrom,
+      validUntil: c.validUntil,
+      createdAt: c.createdAt,
+    }));
+  }),
+
+  // ─── Admin: revenue over time ──────────────────────────────────────────────
+
+  revenueOverTime: billingAdminProcedure
+    .input(
+      z.object({
+        from: z.string().datetime().optional(),
+        to: z.string().datetime().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const conditions = [
+        eq(saasPaymentTransactions.status, 'successful'),
+      ];
+      if (input.from) {
+        conditions.push(gte(saasPaymentTransactions.createdAt, new Date(input.from)));
+      }
+      if (input.to) {
+        conditions.push(lte(saasPaymentTransactions.createdAt, new Date(input.to)));
+      }
+
+      const rows = await ctx.db
+        .select({
+          date: sql<string>`to_char(${saasPaymentTransactions.createdAt}, 'YYYY-MM-DD')`.as('date'),
+          revenue: sql<number>`sum(${saasPaymentTransactions.amountCents})`.as('revenue'),
+          count: sql<number>`count(*)`.as('count'),
+        })
+        .from(saasPaymentTransactions)
+        .where(and(...conditions))
+        .groupBy(sql`to_char(${saasPaymentTransactions.createdAt}, 'YYYY-MM-DD')`)
+        .orderBy(sql`to_char(${saasPaymentTransactions.createdAt}, 'YYYY-MM-DD')`)
+        .limit(365);
+
+      return rows.map((r) => ({
+        date: r.date,
+        revenue: Number(r.revenue),
+        count: Number(r.count),
+      }));
+    }),
+
+  // ─── Admin: subscription summary with churn metrics ─────────────────────────
+
+  getSummary: billingAdminProcedure
+    .input(
+      z.object({
+        from: z.string().datetime().optional(),
+        to: z.string().datetime().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const dateConditions = [];
+      if (input.from) dateConditions.push(gte(saasSubscriptions.createdAt, new Date(input.from)));
+      if (input.to) dateConditions.push(lte(saasSubscriptions.createdAt, new Date(input.to)));
+
+      // Active subs by plan
+      const planDist = await ctx.db
+        .select({
+          planId: saasSubscriptions.planId,
+          count: sql<number>`count(*)`.as('count'),
+        })
+        .from(saasSubscriptions)
+        .where(and(eq(saasSubscriptions.status, 'active'), ...dateConditions))
+        .groupBy(saasSubscriptions.planId);
+
+      const totalActive = planDist.reduce((s, p) => s + Number(p.count), 0);
+
+      // MRR
+      const activeSubGroups = await ctx.db
+        .select({
+          planId: saasSubscriptions.planId,
+          providerId: saasSubscriptions.providerId,
+          providerPriceId: saasSubscriptions.providerPriceId,
+          count: sql<number>`count(*)`.as('count'),
+        })
+        .from(saasSubscriptions)
+        .where(eq(saasSubscriptions.status, 'active'))
+        .groupBy(saasSubscriptions.planId, saasSubscriptions.providerId, saasSubscriptions.providerPriceId);
+
+      let mrr = 0;
+      for (const group of activeSubGroups) {
+        const plan = getPlan(group.planId);
+        if (!plan) continue;
+        let isYearly = false;
+        if (group.providerPriceId && group.providerId) {
+          const prices = plan.providerPrices[group.providerId];
+          if (prices) isYearly = prices.yearly === group.providerPriceId;
+        }
+        if (group.providerId === 'nowpayments') isYearly = true;
+        const centsPerSub = isYearly ? Math.round(plan.priceYearly / 12) : plan.priceMonthly;
+        mrr += centsPerSub * Number(group.count);
+      }
+
+      // Trialing
+      const [trialingResult] = await ctx.db
+        .select({ count: sql<number>`count(*)`.as('count') })
+        .from(saasSubscriptions)
+        .where(eq(saasSubscriptions.status, 'trialing'));
+
+      // Churn metrics
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const [canceledResult] = await ctx.db
+        .select({ count: sql<number>`count(*)`.as('count') })
+        .from(saasSubscriptions)
+        .where(and(eq(saasSubscriptions.status, 'canceled'), gte(saasSubscriptions.updatedAt, thirtyDaysAgo)));
+
+      const [pastDueResult] = await ctx.db
+        .select({ count: sql<number>`count(*)`.as('count') })
+        .from(saasSubscriptions)
+        .where(eq(saasSubscriptions.status, 'past_due'));
+
+      const [unpaidResult] = await ctx.db
+        .select({ count: sql<number>`count(*)`.as('count') })
+        .from(saasSubscriptions)
+        .where(eq(saasSubscriptions.status, 'unpaid'));
+
+      // Total ever subscribed (non-free)
+      const [totalEverResult] = await ctx.db
+        .select({ count: sql<number>`count(*)`.as('count') })
+        .from(saasSubscriptions);
+
+      const totalEver = Number(totalEverResult?.count ?? 0);
+      const canceledCount = Number(canceledResult?.count ?? 0);
+      const churnRate = totalEver > 0 ? Math.round((canceledCount / totalEver) * 10000) / 100 : 0;
+
+      // Total revenue
+      const [revenueResult] = await ctx.db
+        .select({ total: sql<number>`coalesce(sum(${saasPaymentTransactions.amountCents}), 0)`.as('total') })
+        .from(saasPaymentTransactions)
+        .where(eq(saasPaymentTransactions.status, 'successful'));
+
+      return {
+        totalActive,
+        mrr,
+        trialing: Number(trialingResult?.count ?? 0),
+        planDistribution: planDist.map((p) => ({ planId: p.planId, count: Number(p.count) })),
+        churn: {
+          canceled30d: canceledCount,
+          pastDue: Number(pastDueResult?.count ?? 0),
+          unpaid: Number(unpaidResult?.count ?? 0),
+          totalEver,
+          churnRate,
+        },
+        totalRevenue: Number(revenueResult?.total ?? 0),
+      };
+    }),
 });

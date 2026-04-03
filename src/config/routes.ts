@@ -94,6 +94,7 @@ export const accountRoutes = {
 export const contentRoutes = {
   blog: '/blog',
   portfolio: '/portfolio',
+  showcase: '/showcase',
   pricing: '/pricing',
   search: '/search',
 } as const;

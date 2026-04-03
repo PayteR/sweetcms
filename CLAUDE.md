@@ -12,7 +12,7 @@ SweetCMS is an open-source, AI agent-driven T3 SaaS starter with integrated CMS:
 
 - **Package manager:** `bun`
 - **Dev server:** `bun run dev` — custom server with Turbopack (port 3000)
-- **First-time setup:** `bun run init` — creates DB, runs migrations, creates superadmin, seeds defaults (3 pages, 4 blog posts, 3 categories, 4 tags)
+- **First-time setup:** `bun run init` — creates DB, runs migrations, creates superadmin, seeds defaults (3 pages, 4 blog posts, 3 categories, 4 tags, 2 portfolio items, 3 showcase items)
 - **Promote user:** `bun run promote <email>` — promote user to superadmin
 - **Change password:** `bun run change-password <email>` — change a user's password
 - **Entry point:** `src/app/` (Next.js App Router with locale-prefix routing)
@@ -32,7 +32,7 @@ SweetCMS is an open-source, AI agent-driven T3 SaaS starter with integrated CMS:
 - Pull updates: `git subtree pull --prefix=src/engine git@github.com:PayteR/sweetcms-engine.git main --squash`
 - Push changes: `git subtree push --prefix=src/engine git@github.com:PayteR/sweetcms-engine.git main`
 
-`src/config/`, `src/server/`, `src/app/` are project-specific — customize freely. `src/components/admin/` has project-specific forms (PostForm, CategoryForm, PortfolioForm, TermForm), list views (CmsListView), layout (AdminSidebar, DashboardWidgetGrid), and shortcode nodes. `src/components/public/` has auth-dependent components (UserMenu, SocialLoginButtons) and project-specific UI (ContactForm, CreateOrgCard).
+`src/config/`, `src/server/`, `src/app/` are project-specific — customize freely. `src/components/admin/` has project-specific forms (PostForm, CategoryForm, PortfolioForm, ShowcaseForm, TermForm), list views (CmsListView), layout (AdminSidebar, DashboardWidgetGrid), and shortcode nodes. `src/components/public/` has auth-dependent components (UserMenu, SocialLoginButtons) and project-specific UI (ContactForm, CreateOrgCard, ShowcaseFeed).
 
 **Engine provides:** config interfaces + factory helpers + admin-nav helpers, types (PostType, ContentStatus, shortcodes), RBAC policy, CRUD utils (admin-crud, drizzle-utils, taxonomy-helpers, cms-helpers, content-revisions, slug-redirects, page-seo), lib utils (slug, markdown, audit, webhooks, logger, datetime, redis, rate-limit, trpc-rate-limit, api-auth, seo-routes, ga4, gdpr, queue, ws-client, ws-channels, stats-cache, translations, shortcodes-parser, shortcode-utils, locale, locale-server, db-queue, queue-adapter), payment services (subscription-service, discount-service, feature-gate), hooks (form state, list state, autosave, bulk actions, useLocale), shared components (CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPickerDialog, CustomFieldsEditor, RevisionHistory, BulkActionBar, CommandPalette, SlideOver, ConfirmDialog, Toaster, InternalLinkDialog, FallbackRadio, DashboardShell, LocaleLink, LanguageSwitcher, PreferencesHydrator, MenuBuilder, RecentActivity, ContentStatusWidget, MobileMenu, ThemeToggle, NotificationBell, PostAttachments, GA4Widget, OrgSwitcher, ContentCalendar, TranslationBar, SeoOverridesDialog, DashboardConfig, PostCard, TagCloud, DynamicNav, BlogSidebar, ShortcodeRenderer, FaqAccordion, AccountSidebar, PricingToggle, shortcodes/CalloutBlock, shortcodes/CtaBlock, shortcodes/YoutubeEmbed, shortcodes/GalleryBlock), styles (tokens, admin CSS), stores (preferences-store, sidebar-store, toast-store, theme-store), test-utils (asMock).
 
@@ -48,7 +48,7 @@ SweetCMS is an open-source, AI agent-driven T3 SaaS starter with integrated CMS:
 
 **Procedure types:** `publicProcedure`, `protectedProcedure`, `staffProcedure`, `sectionProcedure(section)`, `superadminProcedure`.
 
-**Routers (`src/server/routers/_app.ts`):** `analytics`, `audit`, `auth`, `billing`, `categories`, `cms`, `contentSearch`, `customFields`, `forms`, `import`, `jobQueue`, `media`, `menus`, `notifications`, `options`, `organizations`, `portfolio`, `redirects`, `revisions`, `tags`, `users`, `webhooks`.
+**Routers (`src/server/routers/_app.ts`):** `analytics`, `audit`, `auth`, `billing`, `categories`, `cms`, `contentSearch`, `customFields`, `forms`, `import`, `jobQueue`, `media`, `menus`, `notifications`, `options`, `organizations`, `portfolio`, `redirects`, `revisions`, `showcase`, `tags`, `users`, `webhooks`.
 
 ### Database
 
@@ -60,6 +60,7 @@ PostgreSQL only. All CMS tables prefixed `cms_`. UUID primary keys via `gen_rand
 - `cms_post_attachments` — file attachments per post
 - `cms_categories` — standalone category table (rich: SEO, content, icon, jsonLd)
 - `cms_portfolio` — portfolio items (custom table: clientName, projectUrl, techStack jsonb, completedAt, featuredImage, SEO fields, revision history)
+- `cms_showcase` — swipeable showcase cards (custom table: cardType enum video/image/richtext, mediaUrl, thumbnailUrl, sortOrder, SEO fields, revision history)
 - `cms_terms` — universal taxonomy terms (simple: name, slug, lang, status, order). Used for tags; extensible for future taxonomies
 - `cms_term_relationships` — polymorphic M:N (objectId, termId, taxonomyId). Links posts to categories AND tags. `taxonomyId` discriminator: `'category'` → termId points to `cms_categories.id`, `'tag'` → termId points to `cms_terms.id`. No FK on termId (app-level enforcement)
 - `cms_content_revisions` — JSONB snapshots for revision history
@@ -85,7 +86,7 @@ PostgreSQL only. All CMS tables prefixed `cms_`. UUID primary keys via `gen_rand
 
 `src/config/cms.ts` — single source of truth for all CMS content types.
 
-Content types: `page` (PostType.PAGE), `blog` (PostType.BLOG), `portfolio` (separate table), `category` (separate table), `tag` (uses `cms_terms`).
+Content types: `page` (PostType.PAGE), `blog` (PostType.BLOG), `portfolio` (separate table), `showcase` (separate table, swipeable vertical feed), `category` (separate table), `tag` (uses `cms_terms`).
 
 Lookup helpers: `getContentType(id)`, `getContentTypeByPostType(type)`, `getContentTypeByAdminSlug(slug)`.
 
@@ -156,7 +157,9 @@ src/
 │   │   ├── register/     — customer registration (gated by NEXT_PUBLIC_REGISTRATION_ENABLED)
 │   │   ├── reset-password/ — customer password reset (token-based)
 │   │   ├── search/       — content search page
-│   │   └── [...slug]/    — catch-all CMS route (pages, posts, categories, tags, portfolio)
+│   │   └── [...slug]/    — catch-all CMS route (pages, posts, categories, tags, portfolio, showcase)
+│   ├── (showcase)/       — showcase feed (own layout: no header/footer, floating back button)
+│   │   └── showcase/     — swipeable vertical feed page (/showcase)
 │   ├── api/
 │   │   ├── auth/         — Better Auth route handler
 │   │   ├── feed/         — RSS feeds (blog, tag)
@@ -190,8 +193,8 @@ src/
 │   ├── robots.ts         — robots.txt (disallows /dashboard/, /api/webhooks/, /api/health)
 │   └── sitemap.ts        — dynamic sitemap generation
 ├── components/
-│   ├── admin/            — PostForm, CategoryForm, PortfolioForm, TermForm, CmsListView, AdminSidebar, DashboardWidgetGrid, QuickActionsWidget, TaxonomyOverview, shortcodes/
-│   ├── public/           — ContactForm, UserMenu, SocialLoginButtons, CreateOrgCard, RefCookieCapture
+│   ├── admin/            — PostForm, CategoryForm, PortfolioForm, ShowcaseForm, TermForm, CmsListView, AdminSidebar, DashboardWidgetGrid, QuickActionsWidget, TaxonomyOverview, shortcodes/
+│   ├── public/           — ContactForm, UserMenu, SocialLoginButtons, CreateOrgCard, ShowcaseFeed, RefCookieCapture
 │   └── ui/               — ConfirmDialog (re-export)
 ├── config/               — cms.ts (content types), taxonomies.ts (taxonomy declarations), admin-nav.ts (navigation data), plans.ts (billing plans), pricing.ts (pricing display), site.ts (site config)
 ├── engine/
@@ -207,10 +210,10 @@ src/
 ├── lib/                  — auth, auth-client, constants, env, locale (re-export), locale-server (re-export), password, translations (re-export), trpc, utils
 ├── scripts/              — init.ts, promote.ts, change-password.ts, migrate-html-to-markdown.ts, schedule-jobs.ts
 ├── server/
-│   ├── db/schema/        — auth, cms, categories, portfolio, terms, term-relationships, media, menu, webhooks, audit, custom-fields, forms, organization, billing, notifications
+│   ├── db/schema/        — auth, cms, categories, portfolio, showcase, terms, term-relationships, media, menu, webhooks, audit, custom-fields, forms, organization, billing, notifications
 │   ├── jobs/             — email queue (BullMQ + nodemailer), content queue
 │   ├── lib/              — stripe, ws (WebSocket server), notifications
-│   ├── routers/          — analytics, audit, auth, billing, categories, cms, content-search, custom-fields, forms, import, job-queue, media, menus, notifications, options, organizations, portfolio, redirects, revisions, tags, users, webhooks
+│   ├── routers/          — analytics, audit, auth, billing, categories, cms, content-search, custom-fields, forms, import, job-queue, media, menus, notifications, options, organizations, portfolio, redirects, revisions, showcase, tags, users, webhooks
 │   └── storage/          — pluggable storage (filesystem, S3-compatible)
 ├── store/                — toast-store (re-export)
 ```
@@ -389,12 +392,14 @@ Use `cn()` from `@/lib/utils` for conditional classes — never template literal
 - `renderers/PostDetail.tsx` — page + blog post rendering (parallel: tags, related, ancestors)
 - `renderers/TagDetail.tsx` — tag detail + paginated posts
 - `renderers/PortfolioDetail.tsx` — portfolio item detail
+- `renderers/ShowcaseDetail.tsx` — showcase item detail
 - `renderers/CategoryDetail.tsx` — category detail + posts in category
 
 URL patterns:
 - `/privacy-policy` → page
 - `/blog/my-post` → blog post
 - `/portfolio/my-project` → portfolio item (project details + description)
+- `/showcase/my-card` → showcase item (individual card detail)
 - `/category/tech` → category (shows description + posts in category)
 - `/tag/nextjs` → tag (shows posts with that tag, paginated via `?page=N`)
 

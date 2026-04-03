@@ -1,5 +1,5 @@
 import { db } from '@/server/db';
-import { cmsPosts, cmsCategories, cmsPortfolio } from '@/server/db/schema';
+import { cmsPosts, cmsCategories, cmsPortfolio, cmsShowcase } from '@/server/db/schema';
 import { eq, and, ne, isNull } from 'drizzle-orm';
 import { ContentStatus } from '@/engine/types/cms';
 
@@ -99,6 +99,34 @@ export async function getCategoryTranslationSiblings(catId: string) {
           ne(cmsCategories.id, catId),
           eq(cmsCategories.status, ContentStatus.PUBLISHED),
           isNull(cmsCategories.deletedAt)
+        )
+      )
+      .limit(20);
+  } catch {
+    return [];
+  }
+}
+
+/** Get translation siblings for a showcase item via its translationGroup. */
+export async function getShowcaseTranslationSiblings(itemId: string) {
+  try {
+    const [item] = await db
+      .select({ translationGroup: cmsShowcase.translationGroup })
+      .from(cmsShowcase)
+      .where(eq(cmsShowcase.id, itemId))
+      .limit(1);
+
+    if (!item?.translationGroup) return [];
+
+    return await db
+      .select({ lang: cmsShowcase.lang, slug: cmsShowcase.slug })
+      .from(cmsShowcase)
+      .where(
+        and(
+          eq(cmsShowcase.translationGroup, item.translationGroup),
+          ne(cmsShowcase.id, itemId),
+          eq(cmsShowcase.status, ContentStatus.PUBLISHED),
+          isNull(cmsShowcase.deletedAt)
         )
       )
       .limit(20);

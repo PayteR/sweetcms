@@ -96,6 +96,20 @@ const contentTypesDef = [
     titleTemplate: '{title} | {sitename}',
     sitemapSlug: 'portfolio-pages',
   },
+  {
+    id: 'showcase',
+    urlPrefix: '/showcase/',
+    listSegment: 'showcase',
+    listTitle: 'Showcase',
+    canOverrideCodedRouteSEO: false,
+    fallbackToDefault: true,
+    label: 'Showcase Item',
+    labelPlural: 'Showcase',
+    adminSlug: 'showcase',
+    adminCapability: 'section.content',
+    titleTemplate: '{title} | {sitename}',
+    sitemapSlug: 'showcase-pages',
+  },
 ] as const satisfies readonly ContentTypeDeclaration[];
 
 export const CONTENT_TYPES: readonly ContentTypeDeclaration[] = contentTypesDef;

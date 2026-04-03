@@ -79,6 +79,7 @@ async function getMobileNavItems(
       url: localePath(`/category/${c.slug}`, locale),
     })),
     { label: 'Portfolio', url: localePath(contentRoutes.portfolio, locale) },
+    { label: 'Showcase', url: localePath(contentRoutes.showcase, locale) },
     { label: 'Search', url: localePath(contentRoutes.search, locale) },
   ];
 }
@@ -129,6 +130,9 @@ export default async function PublicLayout({
                       {cat.name}
                     </Link>
                   ))}
+                  <Link href={localePath(contentRoutes.showcase, locale)} className="header-link">
+                    Showcase
+                  </Link>
                 </>
               }
             />
@@ -184,6 +188,7 @@ export default async function PublicLayout({
               <h4 className="footer-col-title">Quick Links</h4>
               <Link href={localePath(contentRoutes.blog, locale)} className="footer-link">Blog</Link>
               <Link href={localePath(contentRoutes.portfolio, locale)} className="footer-link">Portfolio</Link>
+              <Link href={localePath(contentRoutes.showcase, locale)} className="footer-link">Showcase</Link>
               <Link href={localePath(contentRoutes.search, locale)} className="footer-link">Search</Link>
             </div>
 

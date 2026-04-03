@@ -111,6 +111,7 @@ export function CmsListView({ contentType }: Props) {
   const isCategoryType = contentType.id === 'category';
   const isTagType = contentType.id === 'tag';
   const isPortfolioType = contentType.id === 'portfolio';
+  const isShowcaseType = contentType.id === 'showcase';
 
   // Post queries
   const postList = trpc.cms.list.useQuery(
@@ -164,6 +165,24 @@ export function CmsListView({ contentType }: Props) {
 
   const tagCounts = trpc.tags.counts.useQuery(undefined, {
     enabled: isTagType,
+  });
+
+  // Showcase queries
+  const showcaseList = trpc.showcase.list.useQuery(
+    {
+      search: search || undefined,
+      trashed: tab === 'trash',
+      lang: langFilter || undefined,
+      sortBy,
+      sortDir,
+      page,
+      pageSize: 20,
+    },
+    { enabled: isShowcaseType }
+  );
+
+  const showcaseCounts = trpc.showcase.counts.useQuery(undefined, {
+    enabled: isShowcaseType,
   });
 
   // Portfolio queries
@@ -241,6 +260,20 @@ export function CmsListView({ contentType }: Props) {
   });
   const updatePortfolioStatus = trpc.portfolio.updateStatus.useMutation();
 
+  const deleteShowcase = trpc.showcase.delete.useMutation({
+    onSuccess: () => { toast.success(__('Moved to trash')); utils.showcase.list.invalidate(); utils.showcase.counts.invalidate(); },
+    onError: (err) => toast.error(err.message),
+  });
+  const restoreShowcase = trpc.showcase.restore.useMutation({
+    onSuccess: () => { toast.success(__('Restored')); utils.showcase.list.invalidate(); utils.showcase.counts.invalidate(); },
+    onError: (err) => toast.error(err.message),
+  });
+  const permanentDeleteShowcase = trpc.showcase.permanentDelete.useMutation({
+    onSuccess: () => { toast.success(__('Permanently deleted')); utils.showcase.list.invalidate(); utils.showcase.counts.invalidate(); },
+    onError: (err) => toast.error(err.message),
+  });
+  const updateShowcaseStatus = trpc.showcase.updateStatus.useMutation();
+
   // ── Duplicate mutations ─────────────────────────────
   const duplicatePost = trpc.cms.duplicate.useMutation({
     onSuccess: (data) => {
@@ -266,11 +299,20 @@ export function CmsListView({ contentType }: Props) {
     },
     onError: (err) => toast.error(err.message),
   });
+  const duplicateShowcase = trpc.showcase.duplicate.useMutation({
+    onSuccess: () => {
+      toast.success(__('Duplicated'));
+      utils.showcase.list.invalidate();
+      utils.showcase.counts.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   function handleDuplicate(id: string) {
     if (isPostType) duplicatePost.mutate({ id });
     else if (isCategoryType) duplicateCat.mutate({ id });
     else if (isPortfolioType) duplicatePortfolio.mutate({ id });
+    else if (isShowcaseType) duplicateShowcase.mutate({ id });
   }
 
   // ── Export ──────────────────────────────────────────
@@ -307,6 +349,8 @@ export function CmsListView({ contentType }: Props) {
         result = await utils.categories.exportBulk.fetch({ ids, format });
       } else if (isPortfolioType) {
         result = await utils.portfolio.exportBulk.fetch({ ids, format });
+      } else if (isShowcaseType) {
+        result = await utils.showcase.exportBulk.fetch({ ids, format });
       } else {
         return; // Tags don't have export
       }
@@ -335,9 +379,9 @@ export function CmsListView({ contentType }: Props) {
   );
 
   // ── Unified data ──────────────────────────────────────
-  const data = isPostType ? postList.data : isTagType ? tagList.data : isPortfolioType ? portfolioList.data : catList.data;
-  const counts = isPostType ? postCounts.data : isTagType ? tagCounts.data : isPortfolioType ? portfolioCounts.data : catCounts.data;
-  const isLoading = isPostType ? postList.isLoading : isTagType ? tagList.isLoading : isPortfolioType ? portfolioList.isLoading : catList.isLoading;
+  const data = isPostType ? postList.data : isTagType ? tagList.data : isPortfolioType ? portfolioList.data : isShowcaseType ? showcaseList.data : catList.data;
+  const counts = isPostType ? postCounts.data : isTagType ? tagCounts.data : isPortfolioType ? portfolioCounts.data : isShowcaseType ? showcaseCounts.data : catCounts.data;
+  const isLoading = isPostType ? postList.isLoading : isTagType ? tagList.isLoading : isPortfolioType ? portfolioList.isLoading : isShowcaseType ? showcaseList.isLoading : catList.isLoading;
 
   const items: Array<{
     id: string;
@@ -376,9 +420,10 @@ export function CmsListView({ contentType }: Props) {
       if (isPostType) return deletePost.mutateAsync(input);
       if (isTagType) return deleteTag.mutateAsync(input);
       if (isPortfolioType) return deletePortfolio.mutateAsync(input);
+      if (isShowcaseType) return deleteShowcase.mutateAsync(input);
       return deleteCat.mutateAsync(input);
     },
-    [isPostType, isTagType, isPortfolioType, deletePost, deleteTag, deletePortfolio, deleteCat]
+    [isPostType, isTagType, isPortfolioType, isShowcaseType, deletePost, deleteTag, deletePortfolio, deleteShowcase, deleteCat]
   );
 
   const bulkRestoreAsync = useCallback(
@@ -386,9 +431,10 @@ export function CmsListView({ contentType }: Props) {
       if (isPostType) return restorePost.mutateAsync(input);
       if (isTagType) return restoreTag.mutateAsync(input);
       if (isPortfolioType) return restorePortfolio.mutateAsync(input);
+      if (isShowcaseType) return restoreShowcase.mutateAsync(input);
       return restoreCat.mutateAsync(input);
     },
-    [isPostType, isTagType, isPortfolioType, restorePost, restoreTag, restorePortfolio, restoreCat]
+    [isPostType, isTagType, isPortfolioType, isShowcaseType, restorePost, restoreTag, restorePortfolio, restoreShowcase, restoreCat]
   );
 
   const bulkUpdateStatusAsync = useCallback(
@@ -396,24 +442,27 @@ export function CmsListView({ contentType }: Props) {
       if (isPostType) return updatePostStatus.mutateAsync(input);
       if (isCategoryType) return updateCatStatus.mutateAsync(input);
       if (isPortfolioType) return updatePortfolioStatus.mutateAsync(input);
+      if (isShowcaseType) return updateShowcaseStatus.mutateAsync(input);
       return updateTagStatus.mutateAsync(input);
     },
-    [isPostType, isCategoryType, isPortfolioType, updatePostStatus, updateCatStatus, updatePortfolioStatus, updateTagStatus]
+    [isPostType, isCategoryType, isPortfolioType, isShowcaseType, updatePostStatus, updateCatStatus, updatePortfolioStatus, updateShowcaseStatus, updateTagStatus]
   );
 
   const refetch = useCallback(() => {
     if (isPostType) postList.refetch();
     else if (isTagType) { tagList.refetch(); utils.tags.stats.invalidate(); }
     else if (isPortfolioType) portfolioList.refetch();
+    else if (isShowcaseType) showcaseList.refetch();
     else catList.refetch();
-  }, [isPostType, isTagType, isPortfolioType, postList, tagList, portfolioList, catList, utils.tags.stats]);
+  }, [isPostType, isTagType, isPortfolioType, isShowcaseType, postList, tagList, portfolioList, showcaseList, catList, utils.tags.stats]);
 
   const invalidateCounts = useCallback(() => {
     if (isPostType) utils.cms.counts.invalidate();
     else if (isTagType) utils.tags.counts.invalidate();
     else if (isPortfolioType) utils.portfolio.counts.invalidate();
+    else if (isShowcaseType) utils.showcase.counts.invalidate();
     else utils.categories.counts.invalidate();
-  }, [isPostType, isTagType, isPortfolioType, utils]);
+  }, [isPostType, isTagType, isPortfolioType, isShowcaseType, utils]);
 
   const {
     isPending: isBulkPending,
@@ -463,11 +512,13 @@ export function CmsListView({ contentType }: Props) {
       if (isPostType) permanentDeletePost.mutate({ id: deleteTarget.id });
       else if (isTagType) permanentDeleteTag.mutate({ id: deleteTarget.id });
       else if (isPortfolioType) permanentDeletePortfolio.mutate({ id: deleteTarget.id });
+      else if (isShowcaseType) permanentDeleteShowcase.mutate({ id: deleteTarget.id });
       else permanentDeleteCat.mutate({ id: deleteTarget.id });
     } else {
       if (isPostType) deletePost.mutate({ id: deleteTarget.id });
       else if (isTagType) deleteTag.mutate({ id: deleteTarget.id });
       else if (isPortfolioType) deletePortfolio.mutate({ id: deleteTarget.id });
+      else if (isShowcaseType) deleteShowcase.mutate({ id: deleteTarget.id });
       else deleteCat.mutate({ id: deleteTarget.id });
     }
     setDeleteTarget(null);
@@ -477,6 +528,7 @@ export function CmsListView({ contentType }: Props) {
     if (isPostType) restorePost.mutate({ id });
     else if (isTagType) restoreTag.mutate({ id });
     else if (isPortfolioType) restorePortfolio.mutate({ id });
+    else if (isShowcaseType) restoreShowcase.mutate({ id });
     else restoreCat.mutate({ id });
   }
 
@@ -641,7 +693,7 @@ export function CmsListView({ contentType }: Props) {
         onBulkStatusChange={executeBulkStatusChange}
         onDeselectAll={deselectAll}
         isPending={isBulkPending}
-        onBulkExport={(isPostType || isCategoryType || isPortfolioType) ? handleBulkExport : undefined}
+        onBulkExport={(isPostType || isCategoryType || isPortfolioType || isShowcaseType) ? handleBulkExport : undefined}
       />
 
       {/* Table */}
@@ -834,7 +886,7 @@ export function CmsListView({ contentType }: Props) {
                           </>
                         ) : (
                           <>
-                            {(isPostType || isCategoryType || isPortfolioType) && (
+                            {(isPostType || isCategoryType || isPortfolioType || isShowcaseType) && (
                               <button
                                 onClick={() => handleDuplicate(item.id)}
                                 className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-green-600"

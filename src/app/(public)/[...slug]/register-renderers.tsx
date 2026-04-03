@@ -17,12 +17,14 @@ import {
   getCachedPost,
   getCachedTag,
   getCachedPortfolio,
+  getCachedShowcase,
   getCachedCategory,
 } from './data';
 import {
   getPostTranslationSiblings,
   getCategoryTranslationSiblings,
   getPortfolioTranslationSiblings,
+  getShowcaseTranslationSiblings,
 } from './queries';
 import { buildAlternates } from './resolve';
 
@@ -121,6 +123,31 @@ registerContentRenderer('portfolio', {
       ...(item.featuredImage && {
         openGraph: {
           images: [{ url: item.featuredImage, alt: item.featuredImageAlt ?? item.title }],
+        },
+      }),
+    };
+  },
+});
+
+// ── showcase ─────────────────────────────────────────────────────────────────
+
+registerContentRenderer('showcase', {
+  async render({ slug, preview }) {
+    const { ShowcaseDetail } = await import('./renderers/ShowcaseDetail');
+    return <ShowcaseDetail slug={slug} preview={preview} />;
+  },
+  async generateMetadata({ slug, locale, baseUrl }) {
+    const item = await getCachedShowcase(slug, locale);
+    const siblings = await getShowcaseTranslationSiblings(item.id);
+    const languages = buildAlternates(baseUrl, siblings, locale as import('@/lib/constants').Locale, slug, '/showcase/');
+    return {
+      title: item.seoTitle ?? `${item.title} | ${siteConfig.name}`,
+      description: item.metaDescription ?? undefined,
+      robots: item.noindex ? { index: false, follow: false } : undefined,
+      ...(languages && { alternates: { languages } }),
+      ...(item.thumbnailUrl && {
+        openGraph: {
+          images: [{ url: item.thumbnailUrl, alt: item.title }],
         },
       }),
     };
