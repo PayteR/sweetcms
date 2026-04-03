@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { Sun, Moon, Monitor } from 'lucide-react';
 
-import { useThemeStore } from '@/store/theme-store';
+import { useThemeStore } from '@/engine/store/theme-store';
 
 const icons = {
   light: Sun,

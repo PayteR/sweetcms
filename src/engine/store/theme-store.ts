@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { DASHBOARD_PREFIX } from '@/config/routes';
+
+const DASHBOARD_PREFIX = '/dashboard';
 
 type Theme = 'light' | 'dark' | 'system';
 type ResolvedTheme = 'light' | 'dark';

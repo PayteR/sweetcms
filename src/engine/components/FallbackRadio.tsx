@@ -2,7 +2,7 @@
 
 import { useId } from 'react';
 
-import type { ContentTypeDeclaration } from '@/config/cms';
+import type { ContentTypeDeclaration } from '@/engine/config/content-types';
 import { useBlankTranslations } from '@/lib/translations';
 
 interface FallbackRadioProps {

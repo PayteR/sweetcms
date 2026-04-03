@@ -16,7 +16,7 @@ vi.mock('@/engine/lib/redis', () => ({
   getRedis: vi.fn().mockReturnValue(null),
 }));
 
-vi.mock('@/server/middleware/rate-limit', () => ({
+vi.mock('@/engine/lib/trpc-rate-limit', () => ({
   applyRateLimit: vi.fn().mockResolvedValue(undefined),
 }));
 
@@ -107,34 +107,47 @@ import { logAudit } from '@/engine/lib/audit';
 // ---------------------------------------------------------------------------
 
 /**
- * Creates a mock DB where each `select()` call builds an independent chain.
- * Supports `selectReturnSequence` to configure what each successive select chain returns.
+ * Makes an object thenable so it can be used in Promise.all / await.
+ * Drizzle query builders are thenable — `.where()` can be the terminal.
  */
+function thenable(data: unknown, chainMethods: Record<string, unknown> = {}) {
+  return {
+    then: (resolve: (v: unknown) => void, reject?: (e: unknown) => void) =>
+      Promise.resolve(data).then(resolve, reject),
+    ...chainMethods,
+  };
+}
+
+function createSelectChain(data: unknown) {
+  const limitMock = vi.fn().mockResolvedValue(data);
+  const offsetMock = vi.fn().mockReturnValue(thenable(data, { limit: limitMock }));
+  const orderByMock = vi.fn().mockReturnValue(thenable(data, { limit: limitMock, offset: offsetMock }));
+  const groupByMock = vi.fn().mockReturnValue(thenable(data, { orderBy: orderByMock }));
+  const whereMock = vi.fn().mockReturnValue(
+    thenable(data, {
+      limit: limitMock,
+      orderBy: orderByMock,
+      offset: offsetMock,
+      groupBy: groupByMock,
+    })
+  );
+  const fromMock = vi.fn().mockReturnValue(
+    thenable(data, {
+      where: whereMock,
+      orderBy: orderByMock,
+      limit: limitMock,
+      groupBy: groupByMock,
+    })
+  );
+  return { from: fromMock };
+}
+
 function createMockDb() {
   const returningMock = vi.fn().mockResolvedValue([{ id: 'new-id' }]);
   const insertValuesMock = vi.fn().mockReturnValue({ returning: returningMock });
   const insertMock = vi.fn().mockReturnValue({ values: insertValuesMock });
 
-  // Each select() call returns a fresh chain
-  const selectMock = vi.fn().mockImplementation(() => {
-    const limitMock = vi.fn().mockResolvedValue([]);
-    const offsetMock = vi.fn().mockReturnValue({ limit: limitMock });
-    const orderByMock = vi.fn().mockReturnValue({ limit: limitMock, offset: offsetMock });
-    const groupByMock = vi.fn().mockReturnValue({ orderBy: orderByMock });
-    const whereMock = vi.fn().mockReturnValue({
-      limit: limitMock,
-      orderBy: orderByMock,
-      offset: offsetMock,
-      groupBy: groupByMock,
-    });
-    const fromMock = vi.fn().mockReturnValue({
-      where: whereMock,
-      orderBy: orderByMock,
-      limit: limitMock,
-      groupBy: groupByMock,
-    });
-    return { from: fromMock };
-  });
+  const selectMock = vi.fn().mockImplementation(() => createSelectChain([]));
 
   const updateWhereMock = vi.fn().mockResolvedValue(undefined);
   const updateSetMock = vi.fn().mockReturnValue({ where: updateWhereMock });
@@ -156,32 +169,12 @@ function createMockDb() {
   };
 }
 
-/**
- * Configures the mock DB's select() to return a sequence of results.
- * Each select() call returns the next item in the sequence.
- */
-function setupSelectSequence(db: ReturnType<typeof createMockDb>, sequence: unknown[][]) {
+function setupSelectSequence(db: ReturnType<typeof createMockDb>, sequence: unknown[]) {
   let callIdx = 0;
   db.select.mockImplementation(() => {
     const data = sequence[callIdx] ?? [];
     callIdx++;
-    const limitMock = vi.fn().mockResolvedValue(data);
-    const offsetMock = vi.fn().mockReturnValue({ limit: limitMock });
-    const orderByMock = vi.fn().mockReturnValue({ limit: limitMock, offset: offsetMock });
-    const groupByMock = vi.fn().mockReturnValue({ orderBy: orderByMock });
-    const whereMock = vi.fn().mockReturnValue({
-      limit: limitMock,
-      orderBy: orderByMock,
-      offset: offsetMock,
-      groupBy: groupByMock,
-    });
-    const fromMock = vi.fn().mockReturnValue({
-      where: whereMock,
-      orderBy: orderByMock,
-      limit: limitMock,
-      groupBy: groupByMock,
-    });
-    return { from: fromMock };
+    return createSelectChain(data);
   });
 }
 
@@ -224,7 +217,6 @@ describe('affiliatesRouter', () => {
   describe('getMyAffiliate', () => {
     it('returns null when not registered', async () => {
       const ctx = createMockCtx();
-      // Default: select returns []
 
       const caller = affiliatesRouter.createCaller(ctx as never);
       const result = await caller.getMyAffiliate();
@@ -253,8 +245,6 @@ describe('affiliatesRouter', () => {
       const ctx = createMockCtx();
       // First select: no existing affiliate
       setupSelectSequence(ctx.db, [[]]);
-
-      // Insert succeeds
       ctx.db.insert.mockReturnValue({
         values: vi.fn().mockResolvedValue(undefined),
       });
@@ -266,11 +256,8 @@ describe('affiliatesRouter', () => {
       expect(result).toHaveProperty('code');
       expect(typeof result.code).toBe('string');
       expect(result.code.length).toBe(8);
-
-      // Insert was called
       expect(ctx.db.insert).toHaveBeenCalled();
 
-      // logAudit was called
       expect(logAudit).toHaveBeenCalledWith(
         expect.objectContaining({
           db: ctx.db,
@@ -284,7 +271,6 @@ describe('affiliatesRouter', () => {
 
     it('throws CONFLICT when already registered', async () => {
       const ctx = createMockCtx();
-      // Already exists
       setupSelectSequence(ctx.db, [[{ id: AFFILIATE_UUID }]]);
 
       const caller = affiliatesRouter.createCaller(ctx as never);
@@ -299,7 +285,6 @@ describe('affiliatesRouter', () => {
   describe('getStats', () => {
     it('returns null when not an affiliate', async () => {
       const ctx = createMockCtx();
-      // Default: select returns []
 
       const caller = affiliatesRouter.createCaller(ctx as never);
       const result = await caller.getStats();
@@ -316,12 +301,8 @@ describe('affiliatesRouter', () => {
         { id: 'evt-1', affiliateId: AFFILIATE_UUID, type: 'commission', amountCents: 500, createdAt: new Date() },
       ];
 
-      // Call sequence: 1. affiliate found, 2. referrals, 3. events
-      setupSelectSequence(ctx.db, [
-        [MOCK_AFFILIATE],
-        referrals,
-        events,
-      ]);
+      // Call sequence: affiliate, referrals, events
+      setupSelectSequence(ctx.db, [[MOCK_AFFILIATE], referrals, events]);
 
       const caller = affiliatesRouter.createCaller(ctx as never);
       const result = await caller.getStats();
@@ -381,12 +362,7 @@ describe('affiliatesRouter', () => {
       const events = [{ id: 'evt-1', type: 'signup', createdAt: new Date() }];
 
       // Call sequence: affiliate, user, referrals, events
-      setupSelectSequence(ctx.db, [
-        [MOCK_AFFILIATE],
-        [userInfo],
-        referrals,
-        events,
-      ]);
+      setupSelectSequence(ctx.db, [[MOCK_AFFILIATE], [userInfo], referrals, events]);
 
       const caller = affiliatesRouter.createCaller(ctx as never);
       const result = await caller.adminGet({ id: AFFILIATE_UUID });
@@ -399,7 +375,6 @@ describe('affiliatesRouter', () => {
 
     it('throws NOT_FOUND when affiliate does not exist', async () => {
       const ctx = createMockCtx();
-      // Default: select returns []
 
       const caller = affiliatesRouter.createCaller(ctx as never);
 
@@ -422,7 +397,6 @@ describe('affiliatesRouter', () => {
       });
 
       expect(result).toEqual({ success: true });
-
       expect(ctx.db.update).toHaveBeenCalled();
       expect(ctx.db._chains.update.set).toHaveBeenCalledWith(
         expect.objectContaining({ status: 'suspended' })
@@ -454,7 +428,6 @@ describe('affiliatesRouter', () => {
       });
 
       expect(result).toEqual({ success: true });
-
       expect(ctx.db.update).toHaveBeenCalled();
       expect(ctx.db._chains.update.set).toHaveBeenCalledWith(
         expect.objectContaining({ commissionPercent: 30 })

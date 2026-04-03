@@ -5,7 +5,7 @@ import { ZodError } from 'zod';
 import { auth } from '@/lib/auth';
 import { type AdminSection, Policy, Role, type UserRole } from '@/engine/policy';
 import { db } from '@/server/db';
-import { applyRateLimit } from '@/server/middleware/rate-limit';
+import { applyRateLimit } from '@/engine/lib/trpc-rate-limit';
 
 /**
  * Context for tRPC procedures — session + Drizzle DB + headers

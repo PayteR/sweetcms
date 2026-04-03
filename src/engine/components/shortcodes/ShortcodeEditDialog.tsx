@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { ShortcodeDef } from '@/lib/shortcodes/registry';
+import type { ShortcodeDef } from '@/engine/types/shortcodes';
 import { useBlankTranslations } from '@/lib/translations';
 import { Dialog } from '@/engine/components/Dialog';
 

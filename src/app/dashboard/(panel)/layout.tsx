@@ -1,7 +1,8 @@
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
-import { DashboardShell } from '@/components/admin/DashboardShell';
+import { DashboardShell } from '@/engine/components/DashboardShell';
 import { PreferencesHydrator } from '@/components/admin/PreferencesHydrator';
-import { Toaster } from '@/components/ui/Toaster';
+import { Toaster } from '@/engine/components/Toaster';
+import { navigation } from '@/config/admin-nav';
 
 export default function PanelLayout({
   children,
@@ -12,7 +13,7 @@ export default function PanelLayout({
     <>
       <AdminSidebar />
       <PreferencesHydrator />
-      <DashboardShell>{children}</DashboardShell>
+      <DashboardShell navigation={navigation}>{children}</DashboardShell>
       <Toaster />
     </>
   );

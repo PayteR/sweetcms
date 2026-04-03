@@ -115,6 +115,15 @@ export const authRouter = createTRPCRouter({
       return { success: true };
     }),
 
+  /** Capture affiliate referral after registration */
+  captureReferral: protectedProcedure
+    .input(z.object({ refCode: z.string().min(1).max(50) }))
+    .mutation(async ({ ctx, input }) => {
+      const { captureReferral } = await import('@/server/lib/affiliates');
+      await captureReferral(ctx.session.user.id, input.refCode);
+      return { success: true };
+    }),
+
   revokeAllSessions: protectedProcedure.mutation(async ({ ctx }) => {
     // Get current session token to exclude it
     const currentSessionToken = ctx.headers.get('cookie')?.match(/better-auth\.session_token=([^;]+)/)?.[1];

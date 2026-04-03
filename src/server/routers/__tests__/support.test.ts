@@ -16,7 +16,7 @@ vi.mock('@/engine/lib/redis', () => ({
   getRedis: vi.fn().mockReturnValue(null),
 }));
 
-vi.mock('@/server/middleware/rate-limit', () => ({
+vi.mock('@/engine/lib/trpc-rate-limit', () => ({
   applyRateLimit: vi.fn().mockResolvedValue(undefined),
 }));
 
@@ -112,36 +112,54 @@ import { sendNotification, sendOrgNotification } from '@/server/lib/notification
 // ---------------------------------------------------------------------------
 
 /**
- * Creates a mock DB where each `select()` call builds an independent chain.
- * This is critical for procedures that use `Promise.all([db.select()..., db.select()...])`.
+ * Makes an object thenable (can be awaited / used in Promise.all).
+ * Drizzle query builders are thenable: when awaited, they execute.
+ * We simulate this by resolving to `data` and also exposing chain methods.
  */
+function thenable(data: unknown, chainMethods: Record<string, unknown> = {}) {
+  return {
+    then: (resolve: (v: unknown) => void, reject?: (e: unknown) => void) =>
+      Promise.resolve(data).then(resolve, reject),
+    ...chainMethods,
+  };
+}
+
+/**
+ * Creates a select chain that supports both full chain (`.where().orderBy().offset().limit()`)
+ * and short chain (`.where()` used directly in Promise.all).
+ * `data` is what the chain resolves to when awaited at any point.
+ */
+function createSelectChain(data: unknown) {
+  const limitMock = vi.fn().mockResolvedValue(data);
+  const offsetMock = vi.fn().mockReturnValue(thenable(data, { limit: limitMock }));
+  const orderByMock = vi.fn().mockReturnValue(thenable(data, { limit: limitMock, offset: offsetMock }));
+  const groupByMock = vi.fn().mockReturnValue(thenable(data, { orderBy: orderByMock }));
+  const whereMock = vi.fn().mockReturnValue(
+    thenable(data, {
+      limit: limitMock,
+      orderBy: orderByMock,
+      offset: offsetMock,
+      groupBy: groupByMock,
+    })
+  );
+  const fromMock = vi.fn().mockReturnValue(
+    thenable(data, {
+      where: whereMock,
+      orderBy: orderByMock,
+      limit: limitMock,
+      groupBy: groupByMock,
+    })
+  );
+  return { from: fromMock, _limit: limitMock };
+}
+
 function createMockDb() {
   const returningMock = vi.fn().mockResolvedValue([{ id: 'new-id' }]);
   const insertValuesMock = vi.fn().mockReturnValue({ returning: returningMock });
   const insertMock = vi.fn().mockReturnValue({ values: insertValuesMock });
 
-  // Each select() call returns a fresh chain so parallel Promise.all works
-  const allSelectLimitMocks: ReturnType<typeof vi.fn>[] = [];
-  const selectMock = vi.fn().mockImplementation(() => {
-    const limitMock = vi.fn().mockResolvedValue([]);
-    allSelectLimitMocks.push(limitMock);
-    const offsetMock = vi.fn().mockReturnValue({ limit: limitMock });
-    const orderByMock = vi.fn().mockReturnValue({ limit: limitMock, offset: offsetMock });
-    const groupByMock = vi.fn().mockReturnValue({ orderBy: orderByMock });
-    const whereMock = vi.fn().mockReturnValue({
-      limit: limitMock,
-      orderBy: orderByMock,
-      offset: offsetMock,
-      groupBy: groupByMock,
-    });
-    const fromMock = vi.fn().mockReturnValue({
-      where: whereMock,
-      orderBy: orderByMock,
-      limit: limitMock,
-      groupBy: groupByMock,
-    });
-    return { from: fromMock };
-  });
+  // Default: each select() returns an empty-array-resolving chain
+  const selectMock = vi.fn().mockImplementation(() => createSelectChain([]));
 
   const updateWhereMock = vi.fn().mockResolvedValue(undefined);
   const updateSetMock = vi.fn().mockReturnValue({ where: updateWhereMock });
@@ -155,14 +173,25 @@ function createMockDb() {
     select: selectMock,
     update: updateMock,
     delete: deleteMock,
-    /** Access all limitMock instances created by select chains (in order) */
-    _allSelectLimitMocks: allSelectLimitMocks,
     _chains: {
       insert: { values: insertValuesMock, returning: returningMock },
       update: { set: updateSetMock, where: updateWhereMock },
       delete: { where: deleteWhereMock },
     },
   };
+}
+
+/**
+ * Configures select() to return data in sequence. Each call to select()
+ * gets the next entry from `sequence`.
+ */
+function setupSelectSequence(db: ReturnType<typeof createMockDb>, sequence: unknown[]) {
+  let callIdx = 0;
+  db.select.mockImplementation(() => {
+    const data = sequence[callIdx] ?? [];
+    callIdx++;
+    return createSelectChain(data);
+  });
 }
 
 function createMockCtx(overrides: Record<string, unknown> = {}) {
@@ -211,33 +240,10 @@ describe('supportRouter', () => {
         { id: 't-1', subject: 'Issue A', status: 'open', priority: 'normal', createdAt: new Date(), updatedAt: new Date() },
       ];
 
-      // Pre-set what each select chain's limit should return.
-      // list() does Promise.all: first select = items, second select = count.
-      // We configure after createMockCtx but before calling — the mock is lazy per select() call.
+      // list() does Promise.all: first select = items, second select = count row
+      setupSelectSequence(ctx.db, [tickets, [{ count: 1 }]]);
+
       const caller = supportRouter.createCaller(ctx as never);
-
-      // We need to configure the limitMocks AFTER select() is called.
-      // Use mockImplementation on selectMock to set up per-chain returns.
-      let selectCallCount = 0;
-      ctx.db.select.mockImplementation(() => {
-        selectCallCount++;
-        const isItemsCall = selectCallCount === 1;
-        const limitMock = vi.fn().mockResolvedValue(isItemsCall ? tickets : [{ count: 1 }]);
-        const offsetMock = vi.fn().mockReturnValue({ limit: limitMock });
-        const orderByMock = vi.fn().mockReturnValue({ limit: limitMock, offset: offsetMock });
-        const whereMock = vi.fn().mockReturnValue({
-          limit: limitMock,
-          orderBy: orderByMock,
-          offset: offsetMock,
-        });
-        const fromMock = vi.fn().mockReturnValue({
-          where: whereMock,
-          orderBy: orderByMock,
-          limit: limitMock,
-        });
-        return { from: fromMock };
-      });
-
       const result = await caller.list({ page: 1, pageSize: 20 });
 
       expect(result).toEqual({
@@ -256,7 +262,6 @@ describe('supportRouter', () => {
   describe('create', () => {
     it('inserts ticket + initial message and sends notification', async () => {
       const ctx = createMockCtx();
-      // insert resolves without error (void for values chain)
       ctx.db.insert.mockReturnValue({
         values: vi.fn().mockResolvedValue(undefined),
       });
@@ -311,16 +316,7 @@ describe('supportRouter', () => {
   describe('reply', () => {
     it('adds message and sets status to awaiting_admin', async () => {
       const ctx = createMockCtx();
-
-      // Configure select to return open ticket owned by user
-      ctx.db.select.mockImplementation(() => {
-        const limitMock = vi.fn().mockResolvedValue([MOCK_TICKET]);
-        const whereMock = vi.fn().mockReturnValue({ limit: limitMock });
-        const fromMock = vi.fn().mockReturnValue({ where: whereMock });
-        return { from: fromMock };
-      });
-
-      // Insert chain for message
+      setupSelectSequence(ctx.db, [[MOCK_TICKET]]);
       ctx.db.insert.mockReturnValue({
         values: vi.fn().mockResolvedValue(undefined),
       });
@@ -332,11 +328,7 @@ describe('supportRouter', () => {
       });
 
       expect(result).toEqual({ success: true });
-
-      // Message was inserted
       expect(ctx.db.insert).toHaveBeenCalled();
-
-      // Status updated to awaiting_admin
       expect(ctx.db.update).toHaveBeenCalled();
       expect(ctx.db._chains.update.set).toHaveBeenCalledWith(
         expect.objectContaining({ status: 'awaiting_admin' })
@@ -345,12 +337,7 @@ describe('supportRouter', () => {
 
     it('rejects reply to closed ticket', async () => {
       const ctx = createMockCtx();
-      ctx.db.select.mockImplementation(() => {
-        const limitMock = vi.fn().mockResolvedValue([{ ...MOCK_TICKET, status: 'closed' }]);
-        const whereMock = vi.fn().mockReturnValue({ limit: limitMock });
-        const fromMock = vi.fn().mockReturnValue({ where: whereMock });
-        return { from: fromMock };
-      });
+      setupSelectSequence(ctx.db, [[{ ...MOCK_TICKET, status: 'closed' }]]);
 
       const caller = supportRouter.createCaller(ctx as never);
 
@@ -361,7 +348,7 @@ describe('supportRouter', () => {
 
     it('throws NOT_FOUND for non-existent ticket', async () => {
       const ctx = createMockCtx();
-      // Default: select returns []
+      // Default: returns []
 
       const caller = supportRouter.createCaller(ctx as never);
 
@@ -377,12 +364,7 @@ describe('supportRouter', () => {
   describe('close', () => {
     it('closes own ticket', async () => {
       const ctx = createMockCtx();
-      ctx.db.select.mockImplementation(() => {
-        const limitMock = vi.fn().mockResolvedValue([MOCK_TICKET]);
-        const whereMock = vi.fn().mockReturnValue({ limit: limitMock });
-        const fromMock = vi.fn().mockReturnValue({ where: whereMock });
-        return { from: fromMock };
-      });
+      setupSelectSequence(ctx.db, [[MOCK_TICKET]]);
 
       const caller = supportRouter.createCaller(ctx as never);
       const result = await caller.close({ ticketId: TICKET_UUID });
@@ -399,7 +381,6 @@ describe('supportRouter', () => {
 
     it('throws NOT_FOUND for non-existent ticket', async () => {
       const ctx = createMockCtx();
-      // Default: select returns []
 
       const caller = supportRouter.createCaller(ctx as never);
 
@@ -419,25 +400,8 @@ describe('supportRouter', () => {
         { id: 't-1', subject: 'Issue A', status: 'open', priority: 'high', assignedTo: null, createdAt: new Date(), updatedAt: new Date() },
       ];
 
-      let selectCallCount = 0;
-      ctx.db.select.mockImplementation(() => {
-        selectCallCount++;
-        const isItemsCall = selectCallCount === 1;
-        const limitMock = vi.fn().mockResolvedValue(isItemsCall ? tickets : [{ count: 1 }]);
-        const offsetMock = vi.fn().mockReturnValue({ limit: limitMock });
-        const orderByMock = vi.fn().mockReturnValue({ limit: limitMock, offset: offsetMock });
-        const whereMock = vi.fn().mockReturnValue({
-          limit: limitMock,
-          orderBy: orderByMock,
-          offset: offsetMock,
-        });
-        const fromMock = vi.fn().mockReturnValue({
-          where: whereMock,
-          orderBy: orderByMock,
-          limit: limitMock,
-        });
-        return { from: fromMock };
-      });
+      // Promise.all: items + count
+      setupSelectSequence(ctx.db, [tickets, [{ count: 1 }]]);
 
       const caller = supportRouter.createCaller(ctx as never);
       const result = await caller.adminList({ status: 'open', page: 1, pageSize: 20 });
@@ -453,25 +417,7 @@ describe('supportRouter', () => {
 
     it('returns empty results when no tickets match', async () => {
       const ctx = createMockCtx();
-
-      let selectCallCount = 0;
-      ctx.db.select.mockImplementation(() => {
-        selectCallCount++;
-        const limitMock = vi.fn().mockResolvedValue(selectCallCount === 1 ? [] : [{ count: 0 }]);
-        const offsetMock = vi.fn().mockReturnValue({ limit: limitMock });
-        const orderByMock = vi.fn().mockReturnValue({ limit: limitMock, offset: offsetMock });
-        const whereMock = vi.fn().mockReturnValue({
-          limit: limitMock,
-          orderBy: orderByMock,
-          offset: offsetMock,
-        });
-        const fromMock = vi.fn().mockReturnValue({
-          where: whereMock,
-          orderBy: orderByMock,
-          limit: limitMock,
-        });
-        return { from: fromMock };
-      });
+      setupSelectSequence(ctx.db, [[], [{ count: 0 }]]);
 
       const caller = supportRouter.createCaller(ctx as never);
       const result = await caller.adminList({ page: 1, pageSize: 20 });
@@ -492,13 +438,7 @@ describe('supportRouter', () => {
   describe('adminReply', () => {
     it('adds staff message, sets status to awaiting_user, notifies creator', async () => {
       const ctx = createMockCtx();
-      ctx.db.select.mockImplementation(() => {
-        const limitMock = vi.fn().mockResolvedValue([MOCK_TICKET]);
-        const orderByMock = vi.fn().mockReturnValue({ limit: limitMock });
-        const whereMock = vi.fn().mockReturnValue({ limit: limitMock, orderBy: orderByMock });
-        const fromMock = vi.fn().mockReturnValue({ where: whereMock });
-        return { from: fromMock };
-      });
+      setupSelectSequence(ctx.db, [[MOCK_TICKET]]);
       ctx.db.insert.mockReturnValue({
         values: vi.fn().mockResolvedValue(undefined),
       });
@@ -510,11 +450,7 @@ describe('supportRouter', () => {
       });
 
       expect(result).toEqual({ success: true });
-
-      // Message was inserted
       expect(ctx.db.insert).toHaveBeenCalled();
-
-      // Status updated to awaiting_user
       expect(ctx.db.update).toHaveBeenCalled();
       expect(ctx.db._chains.update.set).toHaveBeenCalledWith(
         expect.objectContaining({ status: 'awaiting_user' })
@@ -532,7 +468,6 @@ describe('supportRouter', () => {
 
     it('throws NOT_FOUND when ticket does not exist', async () => {
       const ctx = createMockCtx();
-      // Default: select returns []
 
       const caller = supportRouter.createCaller(ctx as never);
 
@@ -548,13 +483,8 @@ describe('supportRouter', () => {
   describe('changeStatus', () => {
     it('updates status and notifies creator', async () => {
       const ctx = createMockCtx();
-      // changeStatus does update then select to fetch ticket for notification
-      ctx.db.select.mockImplementation(() => {
-        const limitMock = vi.fn().mockResolvedValue([{ userId: 'user-1', subject: 'Cannot upload files' }]);
-        const whereMock = vi.fn().mockReturnValue({ limit: limitMock });
-        const fromMock = vi.fn().mockReturnValue({ where: whereMock });
-        return { from: fromMock };
-      });
+      // changeStatus: update, then select to find ticket for notification
+      setupSelectSequence(ctx.db, [[{ userId: 'user-1', subject: 'Cannot upload files' }]]);
 
       const caller = supportRouter.createCaller(ctx as never);
       const result = await caller.changeStatus({
@@ -564,7 +494,6 @@ describe('supportRouter', () => {
 
       expect(result).toEqual({ success: true });
 
-      // Status was updated
       expect(ctx.db.update).toHaveBeenCalled();
       expect(ctx.db._chains.update.set).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -584,12 +513,7 @@ describe('supportRouter', () => {
 
     it('sets closedAt when status is closed', async () => {
       const ctx = createMockCtx();
-      ctx.db.select.mockImplementation(() => {
-        const limitMock = vi.fn().mockResolvedValue([{ userId: 'user-1', subject: 'Issue' }]);
-        const whereMock = vi.fn().mockReturnValue({ limit: limitMock });
-        const fromMock = vi.fn().mockReturnValue({ where: whereMock });
-        return { from: fromMock };
-      });
+      setupSelectSequence(ctx.db, [[{ userId: 'user-1', subject: 'Issue' }]]);
 
       const caller = supportRouter.createCaller(ctx as never);
       await caller.changeStatus({
@@ -624,7 +548,6 @@ describe('supportRouter', () => {
         expect.objectContaining({ assignedTo: ADMIN_UUID })
       );
 
-      // logAudit called
       expect(logAudit).toHaveBeenCalledWith(
         expect.objectContaining({
           action: 'support.assign',
@@ -661,12 +584,8 @@ describe('supportRouter', () => {
         { status: 'awaiting_admin', count: 3 },
         { status: 'closed', count: 10 },
       ];
-      // getStats: select().from().groupBy() — groupBy resolves
-      ctx.db.select.mockImplementation(() => {
-        const groupByMock = vi.fn().mockResolvedValue(statusRows);
-        const fromMock = vi.fn().mockReturnValue({ groupBy: groupByMock });
-        return { from: fromMock };
-      });
+      // getStats: select().from().groupBy() resolves to statusRows
+      setupSelectSequence(ctx.db, [statusRows]);
 
       const caller = supportRouter.createCaller(ctx as never);
       const result = await caller.getStats();
@@ -681,11 +600,7 @@ describe('supportRouter', () => {
 
     it('returns total=0 when no tickets exist', async () => {
       const ctx = createMockCtx();
-      ctx.db.select.mockImplementation(() => {
-        const groupByMock = vi.fn().mockResolvedValue([]);
-        const fromMock = vi.fn().mockReturnValue({ groupBy: groupByMock });
-        return { from: fromMock };
-      });
+      setupSelectSequence(ctx.db, [[]]);
 
       const caller = supportRouter.createCaller(ctx as never);
       const result = await caller.getStats();

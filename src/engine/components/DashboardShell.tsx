@@ -3,14 +3,20 @@
 import { usePathname } from 'next/navigation';
 
 import { cn } from '@/lib/utils';
-import { getActiveSectionId, getNavItem, isNavGroup } from '@/config/admin-nav';
-import { useSidebarStore } from '@/store/sidebar-store';
+import { getActiveSectionId, getNavItem, isNavGroup } from '@/engine/config/admin-nav';
+import type { NavItem } from '@/engine/config/admin-nav';
+import { useSidebarStore } from '@/engine/store/sidebar-store';
 
-export function DashboardShell({ children }: { children: React.ReactNode }) {
+interface DashboardShellProps {
+  navigation: NavItem[];
+  children: React.ReactNode;
+}
+
+export function DashboardShell({ navigation, children }: DashboardShellProps) {
   const pathname = usePathname();
   const isL2Collapsed = useSidebarStore((s) => s.isL2Collapsed);
-  const activeSectionId = getActiveSectionId(pathname);
-  const activeItem = activeSectionId ? getNavItem(activeSectionId) : undefined;
+  const activeSectionId = getActiveSectionId(navigation, pathname);
+  const activeItem = activeSectionId ? getNavItem(navigation, activeSectionId) : undefined;
   const hasLevel2 = activeItem && isNavGroup(activeItem);
 
   return (

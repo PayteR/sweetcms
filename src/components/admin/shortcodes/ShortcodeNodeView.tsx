@@ -7,7 +7,7 @@ import { Info, AlertTriangle, CheckCircle, XCircle, X, Pencil, MousePointer, Pla
 
 import { getShortcodeDef } from '@/lib/shortcodes/registry';
 import { cn } from '@/lib/utils';
-import { ShortcodeEditDialog } from './ShortcodeEditDialog';
+import { ShortcodeEditDialog } from '@/engine/components/shortcodes/ShortcodeEditDialog';
 
 const CALLOUT_STYLES: Record<string, { icon: typeof Info; bg: string }> = {
   info: { icon: Info, bg: 'bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.10)] border-(--color-brand-200) dark:border-[oklch(0.65_0.17_var(--brand-hue)_/_0.30)]' },

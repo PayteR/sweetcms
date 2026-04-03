@@ -12,7 +12,7 @@ import { and, asc, eq, isNull } from 'drizzle-orm';
 import { DynamicNav } from '@/components/public/DynamicNav';
 import { ThemeToggle } from '@/components/public/ThemeToggle';
 import { MobileMenu } from '@/components/public/MobileMenu';
-import { LanguageSwitcher } from '@/components/public/LanguageSwitcher';
+import { LanguageSwitcher } from '@/engine/components/LanguageSwitcher';
 import { UserMenu } from '@/components/public/UserMenu';
 import { getLocale } from '@/lib/locale-server';
 import { localePath } from '@/lib/locale';
