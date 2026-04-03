@@ -97,7 +97,7 @@ openssl rand -hex 32
 bun run init
 ```
 
-Creates tables, runs migrations, prompts for a superadmin account, and seeds example content (3 pages, 4 blog posts, 3 categories, 4 tags).
+Creates the database, runs migrations, prompts for a superadmin account and company info, then selectively seeds demo content: CMS (13 pages, 101 blog posts, 6 categories, 12 tags, 4 portfolio items, 5 showcase items), billing (20 users, 12 orgs, subscriptions), and extras (menus, forms, audit log, notifications). Supports reset on re-run.
 
 ### 5. Start development server
 

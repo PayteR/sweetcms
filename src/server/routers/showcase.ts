@@ -5,7 +5,7 @@ import crypto from 'crypto';
 
 import { env } from '@/lib/env';
 import { createLogger } from '@/engine/lib/logger';
-import { cmsShowcase } from '@/server/db/schema';
+import { cmsShowcase, cmsTermRelationships } from '@/server/db/schema';
 import { createFieldTranslator } from '@/server/translation/translate-fields';
 import { ContentStatus } from '@/engine/types/cms';
 import {
@@ -26,6 +26,11 @@ import {
 } from '@/engine/crud/admin-crud';
 import { adminListInput, exportBulkInput } from '@/engine/crud/router-schemas';
 import { updateWithRevision } from '@/engine/crud/cms-helpers';
+import {
+  deleteAllTermRelationships,
+  getTermRelationships,
+  syncTermRelationships,
+} from '@/engine/crud/taxonomy-helpers';
 import { logAudit } from '@/engine/lib/audit';
 import {
   createTRPCRouter,
@@ -107,9 +112,12 @@ export const showcaseRouter = createTRPCRouter({
   get: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      return fetchOrNotFound<typeof cmsShowcase.$inferSelect>(
+      const item = await fetchOrNotFound<typeof cmsShowcase.$inferSelect>(
         ctx.db, cmsShowcase, input.id, 'Showcase item'
       );
+      const rels = await getTermRelationships(ctx.db, item.id, 'tag');
+      const tagIds = rels.map((r) => r.termId);
+      return { ...item, tagIds };
     }),
 
   create: contentProcedure
@@ -130,17 +138,20 @@ export const showcaseRouter = createTRPCRouter({
         publishedAt: z.string().datetime().optional(),
         translationGroup: z.string().uuid().optional(),
         fallbackToDefault: z.boolean().optional(),
+        tagIds: z.array(z.string().uuid()).max(50).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const { tagIds, ...itemInput } = input;
+
       await ensureSlugUnique(
         ctx.db,
         {
           table: cmsShowcase,
           slugCol: cmsShowcase.slug,
-          slug: input.slug,
+          slug: itemInput.slug,
           langCol: cmsShowcase.lang,
-          lang: input.lang,
+          lang: itemInput.lang,
           deletedAtCol: cmsShowcase.deletedAt,
         },
         'Showcase item'
@@ -151,25 +162,29 @@ export const showcaseRouter = createTRPCRouter({
       const [item] = await ctx.db
         .insert(cmsShowcase)
         .values({
-          title: input.title,
-          slug: input.slug,
-          lang: input.lang,
-          description: input.description,
-          cardType: input.cardType,
-          mediaUrl: input.mediaUrl ?? null,
-          thumbnailUrl: input.thumbnailUrl ?? null,
-          status: input.status,
-          sortOrder: input.sortOrder,
-          metaDescription: input.metaDescription ?? null,
-          seoTitle: input.seoTitle ?? null,
-          noindex: input.noindex,
-          publishedAt: input.publishedAt ? new Date(input.publishedAt) : null,
+          title: itemInput.title,
+          slug: itemInput.slug,
+          lang: itemInput.lang,
+          description: itemInput.description,
+          cardType: itemInput.cardType,
+          mediaUrl: itemInput.mediaUrl ?? null,
+          thumbnailUrl: itemInput.thumbnailUrl ?? null,
+          status: itemInput.status,
+          sortOrder: itemInput.sortOrder,
+          metaDescription: itemInput.metaDescription ?? null,
+          seoTitle: itemInput.seoTitle ?? null,
+          noindex: itemInput.noindex,
+          publishedAt: itemInput.publishedAt ? new Date(itemInput.publishedAt) : null,
           previewToken,
-          translationGroup: input.translationGroup ?? null,
-          fallbackToDefault: input.fallbackToDefault ?? null,
+          translationGroup: itemInput.translationGroup ?? null,
+          fallbackToDefault: itemInput.fallbackToDefault ?? null,
           createdBy: ctx.session.user.id,
         })
         .returning();
+
+      if (tagIds?.length && item) {
+        await syncTermRelationships(ctx.db, item.id, 'tag', tagIds);
+      }
 
       logAudit({
         db: ctx.db,
@@ -217,6 +232,15 @@ export const showcaseRouter = createTRPCRouter({
           createdBy: ctx.session.user.id,
         })
         .returning();
+
+      // Copy tag relationships
+      const originalRels = await getTermRelationships(ctx.db, input.id);
+      const tagIds = originalRels
+        .filter((r) => r.taxonomyId === 'tag')
+        .map((r) => r.termId);
+      if (tagIds.length > 0) {
+        await syncTermRelationships(ctx.db, copy!.id, 'tag', tagIds);
+      }
 
       logAudit({
         db: ctx.db,
@@ -359,10 +383,11 @@ export const showcaseRouter = createTRPCRouter({
         publishedAt: z.string().datetime().optional().nullable(),
         translationGroup: z.string().uuid().optional().nullable(),
         fallbackToDefault: z.boolean().optional().nullable(),
+        tagIds: z.array(z.string().uuid()).max(50).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...updates } = input;
+      const { id, tagIds, ...updates } = input;
 
       const existing = await fetchOrNotFound<typeof cmsShowcase.$inferSelect>(
         ctx.db, cmsShowcase, id, 'Showcase item'
@@ -411,6 +436,10 @@ export const showcaseRouter = createTRPCRouter({
             .where(eq(cmsShowcase.id, id));
         },
       });
+
+      if (tagIds !== undefined) {
+        await syncTermRelationships(ctx.db, id, 'tag', tagIds);
+      }
 
       logAudit({
         db: ctx.db,
@@ -468,7 +497,9 @@ export const showcaseRouter = createTRPCRouter({
   permanentDelete: contentProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      await permanentDelete(ctx.db, crudCols, input.id, 'showcase');
+      await permanentDelete(ctx.db, crudCols, input.id, 'showcase', async (tx) => {
+        await deleteAllTermRelationships(tx, input.id);
+      });
       return { success: true };
     }),
 

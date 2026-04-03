@@ -4,6 +4,7 @@
  * Creates realistic demo data for the subscription admin dashboard:
  * - 20 customers, 12 orgs, 15 subscriptions, 40 transactions
  * - 5 discount codes, 6 affiliates with referrals + events
+ * - Token balances + ledger entries for all orgs
  *
  * Uses faker seed(42) for deterministic output.
  * Safe to run multiple times — skips if billing data already exists.

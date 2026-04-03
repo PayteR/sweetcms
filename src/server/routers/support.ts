@@ -8,16 +8,7 @@ import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
 import { logAudit } from '@/engine/lib/audit';
 import { sendNotification, sendOrgNotification } from '@/server/lib/notifications';
 import { NotificationType, NotificationCategory } from '@/engine/types/notifications';
-
-function requireOrg(activeOrganizationId: string | null | undefined): string {
-  if (!activeOrganizationId) {
-    throw new TRPCError({
-      code: 'BAD_REQUEST',
-      message: 'No active organization selected',
-    });
-  }
-  return activeOrganizationId;
-}
+import { resolveOrgId } from '@/server/lib/resolve-org';
 
 const supportAdminProcedure = sectionProcedure('settings');
 
@@ -32,7 +23,7 @@ export const supportRouter = createTRPCRouter({
       pageSize: z.number().int().min(1).max(100).default(20),
     }))
     .query(async ({ ctx, input }) => {
-      const orgId = requireOrg(ctx.activeOrganizationId);
+      const orgId = await resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
       const userId = ctx.session.user.id;
       const { page, pageSize, offset } = parsePagination(input);
 
@@ -116,7 +107,7 @@ export const supportRouter = createTRPCRouter({
       priority: z.enum(['low', 'normal', 'high', 'urgent']).default('normal'),
     }))
     .mutation(async ({ ctx, input }) => {
-      const orgId = requireOrg(ctx.activeOrganizationId);
+      const orgId = await resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
       const userId = ctx.session.user.id;
 
       const ticketId = crypto.randomUUID();

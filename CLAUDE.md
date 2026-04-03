@@ -12,7 +12,7 @@ SweetCMS is an open-source, AI agent-driven T3 SaaS starter with integrated CMS:
 
 - **Package manager:** `bun`
 - **Dev server:** `bun run dev` — custom server with Turbopack (port 3000)
-- **First-time setup:** `bun run init` — single command that fully populates the app. Creates DB, runs migrations, creates superadmin, prompts for company info, writes .env values. Selectively seeds: CMS content (13 pages, 101 blog posts, 6 categories, 12 tags, 4 portfolio, 5 showcase, 12 placeholder images), billing demo data (20 users, 12 orgs, 15 subscriptions, 40 transactions, 5 discounts, 6 affiliates), extras (2 menus, 2 forms + 15 submissions, 30 audit entries, 20 notifications). Supports reset: re-run to truncate all data and re-seed
+- **First-time setup:** `bun run init` — single command that fully populates the app. Creates DB, runs migrations, creates superadmin, prompts for company info, writes .env values. Selectively seeds: CMS content (13 pages, 101 blog posts, 6 categories, 12 tags, 4 portfolio, 5 showcase, 12 placeholder images), billing demo data (20 users, 12 orgs, 15 subscriptions, 40 transactions, 5 discounts, 6 affiliates, token balances + ledger entries), extras (2 menus, 2 forms + 15 submissions, 30 audit entries, 20 notifications). Supports reset: re-run to truncate all data and re-seed
 - **Promote user:** `bun run promote <email>` — promote user to superadmin
 - **Change password:** `bun run change-password <email>` — change a user's password
 - **Entry point:** `src/app/` (Next.js App Router with locale-prefix routing)
@@ -34,7 +34,7 @@ SweetCMS is an open-source, AI agent-driven T3 SaaS starter with integrated CMS:
 
 `src/config/`, `src/server/`, `src/app/` are project-specific — customize freely. `src/components/admin/` has project-specific forms (PostForm, CategoryForm, PortfolioForm, ShowcaseForm, TermForm), list views (CmsListView), layout (AdminSidebar, DashboardWidgetGrid), and shortcode nodes. `src/components/public/` has auth-dependent components (UserMenu, SocialLoginButtons) and project-specific UI (ContactForm, CreateOrgCard, ShowcaseFeed).
 
-**Engine provides:** config interfaces + factory helpers + admin-nav helpers, types (PostType, ContentStatus, shortcodes), RBAC policy, CRUD utils (admin-crud, drizzle-utils, taxonomy-helpers, cms-helpers, content-revisions, slug-redirects, page-seo), lib utils (slug, markdown, audit, webhooks, logger, datetime, redis, rate-limit, trpc-rate-limit, api-auth, seo-routes, ga4, gdpr, queue, ws-client, ws-channels, stats-cache, translations, shortcodes-parser, shortcode-utils, locale, locale-server, db-queue, queue-adapter), payment services (subscription-service, discount-service, feature-gate), hooks (form state, list state, autosave, bulk actions, useLocale), shared components (CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPickerDialog, CustomFieldsEditor, RevisionHistory, BulkActionBar, CommandPalette, SlideOver, ConfirmDialog, Toaster, InternalLinkDialog, FallbackRadio, DashboardShell, LocaleLink, LanguageSwitcher, PreferencesHydrator, MenuBuilder, RecentActivity, ContentStatusWidget, MobileMenu, ThemeToggle, NotificationBell, PostAttachments, GA4Widget, OrgSwitcher, ContentCalendar, TranslationBar, SeoOverridesDialog, DashboardConfig, PostCard, TagCloud, DynamicNav, BlogSidebar, ShortcodeRenderer, FaqAccordion, AccountSidebar, PricingToggle, shortcodes/CalloutBlock, shortcodes/CtaBlock, shortcodes/YoutubeEmbed, shortcodes/GalleryBlock), styles (tokens, admin CSS), stores (preferences-store, sidebar-store, toast-store, theme-store), test-utils (asMock).
+**Engine provides:** config interfaces + factory helpers + admin-nav helpers, types (PostType, ContentStatus, shortcodes), RBAC policy, CRUD utils (admin-crud, drizzle-utils, taxonomy-helpers, cms-helpers, content-revisions, slug-redirects, page-seo), lib utils (slug, markdown, audit, webhooks, logger, datetime, redis, rate-limit, trpc-rate-limit, api-auth, seo-routes, ga4, gdpr, queue, ws-client, ws-channels, stats-cache, translations, shortcodes-parser, shortcode-utils, locale, locale-server, db-queue, queue-adapter), payment services (subscription-service, discount-service, feature-gate, token-service), hooks (form state, list state, autosave, bulk actions, useLocale), shared components (CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPickerDialog, CustomFieldsEditor, RevisionHistory, BulkActionBar, CommandPalette, SlideOver, ConfirmDialog, Toaster, InternalLinkDialog, FallbackRadio, DashboardShell, LocaleLink, LanguageSwitcher, PreferencesHydrator, MenuBuilder, RecentActivity, ContentStatusWidget, MobileMenu, ThemeToggle, NotificationBell, TokenBalance, PostAttachments, GA4Widget, OrgSwitcher, ContentCalendar, TranslationBar, SeoOverridesDialog, DashboardConfig, PostCard, TagCloud, DynamicNav, BlogSidebar, ShortcodeRenderer, FaqAccordion, AccountSidebar, PricingToggle, shortcodes/CalloutBlock, shortcodes/CtaBlock, shortcodes/YoutubeEmbed, shortcodes/GalleryBlock), styles (tokens, admin CSS), stores (preferences-store, sidebar-store, toast-store, theme-store), test-utils (asMock).
 
 **Project provides:** content type data (`src/config/cms.ts`), taxonomy data (`src/config/taxonomies.ts`), admin navigation data (`src/config/admin-nav.ts`), dashboard widget registry + components (`src/config/dashboard-widgets.tsx`), shortcode component registry (`src/config/shortcodes.ts`), billing plans (`src/config/plans.ts`), pricing display config (`src/config/pricing.ts`), DB schema, tRPC routers, form components (PostForm, CategoryForm, etc.), CmsListView, AdminSidebar, DashboardWidgetGrid, auth-dependent components (UserMenu, SocialLoginButtons), routes, public UI.
 
@@ -60,7 +60,7 @@ PostgreSQL only. All CMS tables prefixed `cms_`. UUID primary keys via `gen_rand
 - `cms_post_attachments` — file attachments per post
 - `cms_categories` — standalone category table (rich: SEO, content, icon, jsonLd)
 - `cms_portfolio` — portfolio items (custom table: clientName, projectUrl, techStack jsonb, completedAt, featuredImage, SEO fields, revision history)
-- `cms_showcase` — swipeable showcase cards (custom table: cardType enum video/image/richtext, mediaUrl, thumbnailUrl, sortOrder, SEO fields, revision history)
+- `cms_showcase` — swipeable showcase cards (custom table: cardType enum video/image/richtext, mediaUrl, thumbnailUrl, sortOrder, tags via term_relationships, reactions + comments via polymorphic tables, SEO fields, revision history)
 - `cms_reactions` — polymorphic like/dislike reactions (userId text, contentType varchar, contentId uuid, reactionType like/dislike). Unique on (userId, contentType, contentId). Generic — works with any content type
 - `cms_comments` — polymorphic comments with threading (userId text, contentType varchar, contentId uuid, parentId for replies, body, status, soft-delete). Generic — works with any content type
 - `cms_terms` — universal taxonomy terms (simple: name, slug, lang, status, order). Used for tags; extensible for future taxonomies
@@ -80,8 +80,16 @@ PostgreSQL only. All CMS tables prefixed `cms_`. UUID primary keys via `gen_rand
 - `organization` — Better Auth organizations (name, slug, logo, metadata). Text PKs.
 - `member` — org membership (organizationId, userId, role). Text PKs.
 - `invitation` — org invitations (organizationId, email, role, status, inviterId, expiresAt)
-- `saas_subscriptions` — Stripe subscriptions per org (stripeCustomerId, stripeSubscriptionId, planId, status, period dates, cancelAtPeriodEnd)
-- `saas_subscription_events` — Stripe webhook idempotency log (stripeEventId UNIQUE, type, data JSONB)
+- `saas_subscriptions` — provider-agnostic subscriptions per org (providerId, providerCustomerId, providerSubscriptionId, planId, status, period dates, cancelAtPeriodEnd)
+- `saas_subscription_events` — webhook idempotency log (providerId, providerEventId UNIQUE, type, data JSONB)
+- `saas_payment_transactions` — payment records (organizationId, userId, providerId, amountCents, currency, status, planId, interval, discountCodeId, discountAmountCents)
+- `saas_discount_codes` — discount/coupon definitions (code UNIQUE, discountType, discountValue, trialDays, maxUses, currentUses, validFrom, validUntil, timeLimitHours)
+- `saas_discount_usages` — per-user discount tracking (userId, discountCodeId, planId, appliedAt, expiresAt, usedAt, removedAt)
+- `saas_token_balances` — per-org token/credit balances (organizationId UNIQUE, balance, lifetimeAdded, lifetimeUsed)
+- `saas_token_transactions` — token ledger (organizationId, amount +/-, balanceAfter, reason, metadata JSONB). Indexed on (orgId, createdAt)
+- `saas_affiliates` — affiliate partners (userId UNIQUE, code UNIQUE, commissionPercent, status, totalReferrals, totalEarningsCents)
+- `saas_referrals` — referral relationships (affiliateId, referredUserId UNIQUE, status pending/converted, convertedAt)
+- `saas_affiliate_events` — affiliate event log (affiliateId, referralId, type signup/purchase/commission, amountCents, metadata JSONB)
 - `saas_notifications` — in-app notifications (userId, orgId, type, category, title, body, actionUrl, read, readAt, expiresAt)
 
 ### Content Type Registry
@@ -103,7 +111,7 @@ WordPress-style universal taxonomy with config-driven declarations.
 | Taxonomy | Table | Input type | Content types | Detail page |
 |---|---|---|---|---|
 | `category` | `cms_categories` (custom) | checkbox | blog | yes |
-| `tag` | `cms_terms` (universal) | tag-input (autocomplete + create-on-enter) | blog, page, portfolio | yes |
+| `tag` | `cms_terms` (universal) | tag-input (autocomplete + create-on-enter) | blog, page, portfolio, showcase | yes |
 
 **Helpers:** `getTaxonomy(id)`, `getTaxonomyByAdminSlug(slug)`, `getTaxonomiesForContentType(ctId)`.
 
@@ -189,7 +197,7 @@ src/
 │   │   │   ├── media/        — media library
 │   │   │   ├── notifications/ — notification list
 │   │   │   ├── organizations/ — org management (members, invitations)
-│   │   │   ├── settings/     — site settings, custom-fields, email-templates, import, job-queue, webhooks, billing
+│   │   │   ├── settings/     — site settings, custom-fields, email-templates, import, job-queue, webhooks, billing (admin dashboard), discount-codes, affiliates
 │   │   │   └── users/        — user management
 │   │   └── assets/       — admin CSS
 │   ├── robots.ts         — robots.txt (disallows /dashboard/, /api/webhooks/, /api/health)
@@ -280,6 +288,7 @@ Always use these instead of manual alternatives:
 - **Redis** (`src/engine/lib/redis.ts`): Use `getRedis()`, `getSubscriber()`, `getPublisher()`. Lazy init, null if no REDIS_URL
 - **Notifications** (`src/server/lib/notifications.ts`): Use `sendNotification()`, `sendOrgNotification()`, `sendBulkNotification()` — fire-and-forget (DB + WebSocket)
 - **Stripe** (`src/server/lib/stripe.ts`): Use `getStripe()` (null if no key), `getOrCreateStripeCustomer()`, `createCheckoutSession()`, `createPortalSession()`
+- **Tokens** (`src/engine/lib/payment/token-service.ts`): Use `addTokens()`, `deductTokens()`, `getTokenBalance()`. Race-safe atomic deduction. Auto-broadcasts via WebSocket
 - **WebSocket** (`src/server/lib/ws.ts`): Use `broadcastToChannel()`, `sendToUser()`, `sendToOrg()` — fire-and-forget real-time delivery
 
 ### Rich Text Editor
@@ -518,29 +527,49 @@ Better Auth `organization()` plugin. Tables: `organization`, `member`, `invitati
 
 **Router:** `src/server/routers/organizations.ts` — `protectedProcedure`: list, get, create, update, delete, setActive, inviteMember, listMembers, removeMember, leave, listInvitations, cancelInvitation, acceptInvitation.
 
-**Components:** `OrgSwitcher` (admin rail dropdown), org management page at `/dashboard/organizations`.
+**Components:** `OrgSwitcher` (admin rail dropdown, hidden when `ORGANIZATIONS_VISIBLE=false`), org management page at `/dashboard/organizations`.
 
 **Auth config:** `src/lib/auth.ts` — `organization()` plugin with `allowUserToCreateOrganization: true`, `creatorRole: 'owner'`, `membershipLimit: 100`. Invitation emails via `enqueueTemplateEmail`.
 
+**Auto-personal-org:** Every user gets a personal org on signup (via `databaseHooks.user.create.after`). Ensures billing/tokens work even in B2C mode (`ORGANIZATIONS_VISIBLE=false`). Invisible to the user.
+
+**Org visibility:** `NEXT_PUBLIC_ORGANIZATIONS_VISIBLE` (default: `true`). When `false`, `OrgSwitcher` and org management UI hidden. Personal orgs still created. Set to `false` for B2C apps.
+
+**Org resolution:** `resolveOrgId(activeOrganizationId, userId)` from `src/server/lib/resolve-org.ts` — all org-scoped protectedProcedures use this. Returns active org if set, falls back to user's first org membership.
+
 **Client:** `src/lib/auth-client.ts` — `organizationClient()` plugin.
 
-**Context:** `ctx.activeOrganizationId` available in all tRPC procedures.
+**Context:** `ctx.activeOrganizationId` available in all tRPC procedures. Use `resolveOrgId()` for safe resolution with fallback.
 
-### Stripe Billing
+### Billing & Subscriptions
 
-All guarded by `STRIPE_SECRET_KEY` — disabled if not configured. Organization-scoped (subscriptions belong to orgs, not users).
+Provider-agnostic billing system. Guarded by `STRIPE_SECRET_KEY` / `NOWPAYMENTS_API_KEY` — disabled if not configured. Organization-scoped (subscriptions belong to orgs; for B2C apps, use auto-created personal orgs).
 
-**Config:** `src/config/plans.ts` — plan definitions (free/starter/pro/enterprise). `getPlan(id)`, `getPlanByStripePriceId()`. Feature flags + limits per plan. `src/config/pricing.ts` — display config for public pricing page.
+**Config:** `src/config/plans.ts` — plan definitions (free/starter/pro/enterprise). `getPlan(id)`, `getPlanByProviderPriceId()`. Feature flags + limits per plan. `src/config/pricing.ts` — display config for public pricing page. `src/config/payment-providers.ts` — provider registry (Stripe + NOWPayments).
 
-**Schema:** `src/server/db/schema/billing.ts` — `saas_subscriptions` (orgId→Stripe mapping, plan, status, period), `saas_subscription_events` (idempotency log).
+**Schema:** `src/server/db/schema/billing.ts` — `saas_subscriptions`, `saas_subscription_events`, `saas_payment_transactions`, `saas_discount_codes`, `saas_discount_usages`, `saas_token_balances`, `saas_token_transactions`.
 
-**Stripe lib:** `src/server/lib/stripe.ts` — `getStripe()` (lazy, null if no key), `requireStripe()`, `getOrCreateStripeCustomer()`, `createCheckoutSession()`, `createPortalSession()`, `getActiveSubscription()`.
+**Providers:** `src/server/lib/payment/stripe-provider.ts` (recurring, monthly/yearly), `src/server/lib/payment/nowpayments-provider.ts` (one-time crypto, yearly only). Factory: `src/server/lib/payment/factory.ts`.
 
-**Router:** `src/server/routers/billing.ts` — `getPlans`, `getSubscription`, `createCheckoutSession`, `createPortalSession`. Org owner/admin required for mutations.
+**Services (engine):**
+- `subscription-service.ts` — `activateSubscription()`, `updateSubscription()`, `cancelSubscription()`, `getSubscription()`
+- `discount-service.ts` — `validateCode()`, `applyDiscount()`, `removeDiscount()`, `calculateFinalPrice()`
+- `token-service.ts` — `getTokenBalance()`, `addTokens()`, `deductTokens()`, `getTokenTransactions()`. Race-safe (atomic UPDATE WHERE balance >= amount). Broadcasts `token_balance_update` via WebSocket on every change
+- `feature-gate.ts` — plan feature checking
 
-**Webhook:** `src/app/api/webhooks/stripe/route.ts` — signature verification, idempotency via event log. Handles: `checkout.session.completed`, `customer.subscription.created/updated/deleted`, `invoice.payment_failed`.
+**Router:** `src/server/routers/billing.ts` — customer: `getPlans`, `getSubscription`, `createCheckoutSession`, `createPortalSession`, `applyDiscountCode`, `removeDiscountCode`, `renewSubscription`, `getTokenBalance`, `getTokenTransactions`. Admin: `getStats` (MRR, churn, plan distribution, recent transactions, cached), `listSubscriptions`, `listChurned` (with tab counts), `listDiscountCodes`, `revenueOverTime`, `getAffiliateStats`, `addTokens`, `deductTokens`.
 
-**Pages:** `/pricing` (public), `/dashboard/settings/billing` (admin).
+**Webhooks:** Stripe (`src/app/api/webhooks/stripe/route.ts`) — signature verification, idempotency, handles checkout.session.completed + subscription.updated/deleted + invoice.payment_failed. NOWPayments (`src/app/api/webhooks/nowpayments/route.ts`) — HMAC-SHA512 verification, handles subscription.activated + payment.failed/refunded.
+
+**Dunning:** `src/server/lib/payment/dunning.ts` — scheduled job checks expiring (7-day warning) and expired subscriptions, sends notifications + email reminders.
+
+**Admin dashboard** (`/dashboard/settings/billing`): Sticky filter bar (date range, plan, status — URL-persisted), subscription summary KPIs, revenue chart (Recharts), recent transactions, active subscriptions table (clickable rows), churned subscriptions (tabbed), discount codes overview, affiliate stats + top affiliates.
+
+**Token balance display:** `TokenBalance` component in admin sidebar rail. Initial load via tRPC, live updates via `useChannel('org:<orgId>')` WebSocket subscription. Scale-pulse animation on balance change.
+
+**Affiliates:** `src/server/lib/affiliates.ts` — `captureReferral()` (cookie-based, fire-and-forget), `recordConversion()` (webhook-triggered, calculates commission). Schema: `saas_affiliates`, `saas_referrals`, `saas_affiliate_events`. Admin: `/dashboard/settings/affiliates`. Customer: `/account/affiliates`.
+
+**Pages:** `/pricing` (public), `/dashboard/settings/billing` (admin dashboard), `/dashboard/settings/discount-codes` (admin CRUD), `/dashboard/settings/affiliates` (admin), `/account/billing` (customer self-service).
 
 ### WebSocket / Real-time
 

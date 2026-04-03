@@ -14,3 +14,10 @@ export const LOCALE_LABELS: Record<Locale, string> = {
   es: 'Español',
   de: 'Deutsch',
 };
+
+/**
+ * Whether multi-org UI is visible to users (OrgSwitcher, org management).
+ * When false, a personal org is still created automatically under the hood
+ * so billing/tokens work — the user just never sees org-related UI.
+ */
+export const ORGANIZATIONS_VISIBLE = process.env.NEXT_PUBLIC_ORGANIZATIONS_VISIBLE !== 'false';

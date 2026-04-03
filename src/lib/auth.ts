@@ -3,9 +3,12 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { admin, customSession, organization } from 'better-auth/plugins';
 import { role } from 'better-auth/plugins/access';
 
+import { eq, count } from 'drizzle-orm';
 import { Role } from '@/engine/policy';
 import { createLogger } from '@/engine/lib/logger';
+import { slugify } from '@/engine/lib/slug';
 import { db } from '@/server/db';
+import { organization as organizationTable, member } from '@/server/db/schema/organization';
 import { enqueueTemplateEmail } from '@/server/jobs/email';
 
 const log = createLogger('auth');
@@ -51,6 +54,42 @@ function createAuth() {
       user: {
         create: {
           after: async (user) => {
+            // Auto-create personal organization for billing/token support.
+            // Always runs — even when ORGANIZATIONS_VISIBLE=false, billing
+            // needs an org owner. The user never sees it in B2C mode.
+            try {
+              const orgName = user.name ? `${user.name}'s workspace` : 'My workspace';
+              let slug = slugify(orgName);
+              // Ensure slug uniqueness
+              const [existing] = await db
+                .select({ count: count() })
+                .from(organizationTable)
+                .where(eq(organizationTable.slug, slug));
+              if ((existing?.count ?? 0) > 0) {
+                slug = `${slug}-${user.id.slice(0, 8)}`;
+              }
+
+              const orgId = crypto.randomUUID();
+              await db.insert(organizationTable).values({
+                id: orgId,
+                name: orgName,
+                slug,
+                createdAt: new Date(),
+              });
+              await db.insert(member).values({
+                id: crypto.randomUUID(),
+                organizationId: orgId,
+                userId: user.id,
+                role: 'owner',
+                createdAt: new Date(),
+              });
+
+              log.info('Personal org created', { userId: user.id, orgId });
+            } catch (err: unknown) {
+              log.error('Failed to create personal org', { userId: user.id, error: String(err) });
+            }
+
+            // Welcome email
             const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
             enqueueTemplateEmail(user.email, 'welcome', {
               name: user.name ?? 'there',

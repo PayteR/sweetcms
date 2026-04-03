@@ -6,15 +6,7 @@ import { createTRPCRouter, protectedProcedure } from '../trpc';
 import type { Context } from '../trpc';
 import { saasProjects, member } from '@/server/db/schema';
 import { logAudit } from '@/engine/lib/audit';
-
-function requireOrg(orgId: string | null): asserts orgId is string {
-  if (!orgId) {
-    throw new TRPCError({
-      code: 'BAD_REQUEST',
-      message: 'No active organization selected',
-    });
-  }
-}
+import { resolveOrgId } from '@/server/lib/resolve-org';
 
 async function requireMember(
   db: Context['db'],
@@ -43,8 +35,7 @@ export const projectsRouter = createTRPCRouter({
       }).optional(),
     )
     .query(async ({ ctx, input }) => {
-      const orgId = ctx.activeOrganizationId;
-      requireOrg(orgId);
+      const orgId = await resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
       await requireMember(ctx.db, orgId, ctx.session.user.id);
 
       const { search, page = 1, pageSize = 20 } = input ?? {};
@@ -89,8 +80,7 @@ export const projectsRouter = createTRPCRouter({
   get: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const orgId = ctx.activeOrganizationId;
-      requireOrg(orgId);
+      const orgId = await resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
       await requireMember(ctx.db, orgId, ctx.session.user.id);
 
       const [project] = await ctx.db
@@ -121,8 +111,7 @@ export const projectsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const orgId = ctx.activeOrganizationId;
-      requireOrg(orgId);
+      const orgId = await resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
       await requireMember(ctx.db, orgId, ctx.session.user.id);
 
       const [project] = await ctx.db
@@ -158,8 +147,7 @@ export const projectsRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const orgId = ctx.activeOrganizationId;
-      requireOrg(orgId);
+      const orgId = await resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
       await requireMember(ctx.db, orgId, ctx.session.user.id);
 
       const { id, ...data } = input;
@@ -195,8 +183,7 @@ export const projectsRouter = createTRPCRouter({
   delete: protectedProcedure
     .input(z.object({ id: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
-      const orgId = ctx.activeOrganizationId;
-      requireOrg(orgId);
+      const orgId = await resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
       await requireMember(ctx.db, orgId, ctx.session.user.id);
 
       const [deleted] = await ctx.db

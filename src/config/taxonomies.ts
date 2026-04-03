@@ -39,7 +39,7 @@ const taxonomiesDef: readonly TaxonomyDeclaration[] = [
     urlPrefix: '/tag/',
     adminSlug: 'tags',
     customTable: false,
-    contentTypes: ['blog', 'page', 'portfolio'],
+    contentTypes: ['blog', 'page', 'portfolio', 'showcase'],
     inputType: 'tag-input',
     hasDetailPage: true,
     sitemapSlug: 'tag-pages',

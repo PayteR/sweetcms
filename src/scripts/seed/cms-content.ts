@@ -588,6 +588,18 @@ Built a comprehensive analytics platform for DataViz Inc that processes millions
   if (portfolioRecords[3] && tagPostgresql) relationships.push({ objectId: portfolioRecords[3].id, termId: tagPostgresql.id, taxonomyId: 'tag' });
   if (portfolioRecords[3] && tagDocker) relationships.push({ objectId: portfolioRecords[3].id, termId: tagDocker.id, taxonomyId: 'tag' });
 
+  // Showcase -> tag relationships
+  // Showcase 0 (Welcome to Showcase) -> Next.js, TypeScript
+  if (showcaseRecords[0] && tagNextjs) relationships.push({ objectId: showcaseRecords[0].id, termId: tagNextjs.id, taxonomyId: 'tag' });
+  if (showcaseRecords[0] && tagTypescript) relationships.push({ objectId: showcaseRecords[0].id, termId: tagTypescript.id, taxonomyId: 'tag' });
+
+  // Showcase 2 (Image Card Example) -> Tailwind CSS
+  if (showcaseRecords[2] && tagTailwind) relationships.push({ objectId: showcaseRecords[2].id, termId: tagTailwind.id, taxonomyId: 'tag' });
+
+  // Showcase 3 (Product Feature Highlight) -> React, Performance
+  if (showcaseRecords[3] && tagReact) relationships.push({ objectId: showcaseRecords[3].id, termId: tagReact.id, taxonomyId: 'tag' });
+  if (showcaseRecords[3] && tagPerformance) relationships.push({ objectId: showcaseRecords[3].id, termId: tagPerformance.id, taxonomyId: 'tag' });
+
   // Batch insert relationships
   const REL_BATCH_SIZE = 50;
   for (let i = 0; i < relationships.length; i += REL_BATCH_SIZE) {

@@ -32,6 +32,7 @@ import { RichTextEditor } from '@/engine/components/RichTextEditor';
 import { shortcodeConfig } from '@/lib/shortcodes/config';
 import { SEOFields } from '@/engine/components/SEOFields';
 import { SeoPreviewCard } from '@/engine/components/SeoPreviewCard';
+import { TagInput } from '@/engine/components/TagInput';
 import { TranslationBar } from '@/engine/components/TranslationBar';
 
 interface ShowcaseFormData extends Record<string, unknown> {
@@ -48,6 +49,7 @@ interface ShowcaseFormData extends Record<string, unknown> {
   seoTitle: string;
   noindex: boolean;
   publishedAt: string;
+  tagIds: string[];
   fallbackToDefault: boolean | null;
 }
 
@@ -92,7 +94,7 @@ export function ShowcaseForm({ showcaseId }: Props) {
         title: '', slug: '', description: '', cardType: 'richtext',
         mediaUrl: '', thumbnailUrl: '', status: ContentStatus.DRAFT,
         lang: DEFAULT_LOCALE, sortOrder: 0, metaDescription: '', seoTitle: '',
-        noindex: false, publishedAt: '', fallbackToDefault: null,
+        noindex: false, publishedAt: '', tagIds: [], fallbackToDefault: null,
       };
     }
     return {
@@ -109,6 +111,7 @@ export function ShowcaseForm({ showcaseId }: Props) {
       seoTitle: item.seoTitle ?? '',
       noindex: item.noindex ?? false,
       publishedAt: item.publishedAt ? convertUTCToLocal(item.publishedAt) : '',
+      tagIds: item.tagIds ?? [],
       fallbackToDefault: item.fallbackToDefault ?? null,
     };
   }, [item]);
@@ -224,6 +227,7 @@ export function ShowcaseForm({ showcaseId }: Props) {
         seoTitle: formData.seoTitle || undefined,
         noindex: formData.noindex,
         publishedAt: formData.publishedAt ? convertLocalToUTC(formData.publishedAt) : undefined,
+        tagIds: formData.tagIds.length > 0 ? formData.tagIds : undefined,
         fallbackToDefault: formData.fallbackToDefault ?? undefined,
       });
     } else {
@@ -241,6 +245,7 @@ export function ShowcaseForm({ showcaseId }: Props) {
         seoTitle: formData.seoTitle || null,
         noindex: formData.noindex,
         publishedAt: formData.publishedAt ? convertLocalToUTC(formData.publishedAt) : null,
+        tagIds: formData.tagIds,
         fallbackToDefault: formData.fallbackToDefault,
       });
     }
@@ -596,6 +601,18 @@ export function ShowcaseForm({ showcaseId }: Props) {
                     className="input mt-1"
                   />
                 </div>
+              </div>
+            </div>
+
+            {/* Tags */}
+            <div className="card p-6">
+              <h3 className="h2">{__('Tags')}</h3>
+              <div className="mt-4">
+                <TagInput
+                  selectedTagIds={formData.tagIds}
+                  onChange={(v) => handleChange('tagIds', v)}
+                  lang={formData.lang}
+                />
               </div>
             </div>
           </div>

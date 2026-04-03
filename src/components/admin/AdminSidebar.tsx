@@ -19,6 +19,7 @@ import { CommandPalette, useCommandPaletteShortcut } from '@/engine/components/C
 import { NotificationBell } from '@/engine/components/NotificationBell';
 import { OrgSwitcher } from '@/engine/components/OrgSwitcher';
 import { TokenBalance } from '@/engine/components/TokenBalance';
+import { ORGANIZATIONS_VISIBLE } from '@/lib/constants';
 
 /* ── Helpers ── */
 
@@ -160,12 +161,10 @@ export function AdminSidebar() {
     });
   }
 
-  const activeOrgId = (session?.session as Record<string, unknown> | undefined)?.activeOrganizationId as string | undefined;
-
   function renderRailBottom() {
     return (
       <>
-        <TokenBalance orgId={activeOrgId} href={adminPanel.settingsBilling} />
+        <TokenBalance href={adminPanel.settingsBilling} />
         <NotificationBell notificationsHref={adminPanel.notifications} />
         <button
           type="button"
@@ -274,7 +273,7 @@ export function AdminSidebar() {
         <Link href={adminRoutes.home} className="rail-logo">
           {logoLetter}
         </Link>
-        <OrgSwitcher manageOrgsHref={adminPanel.organizations} />
+        {ORGANIZATIONS_VISIBLE && <OrgSwitcher manageOrgsHref={adminPanel.organizations} />}
         <div className="rail-nav">
           {renderRailNav()}
         </div>
@@ -338,7 +337,7 @@ export function AdminSidebar() {
               <Link href={adminRoutes.home} onClick={closeSidebar} className="rail-logo">
                 {logoLetter}
               </Link>
-              <OrgSwitcher manageOrgsHref={adminPanel.organizations} />
+              {ORGANIZATIONS_VISIBLE && <OrgSwitcher manageOrgsHref={adminPanel.organizations} />}
               <div className="rail-nav">
                 {renderRailNav()}
               </div>

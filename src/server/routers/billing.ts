@@ -29,16 +29,7 @@ import {
   deductTokens,
   getTokenTransactions,
 } from '@/engine/lib/payment/token-service';
-
-function requireOrg(activeOrganizationId: string | null | undefined): string {
-  if (!activeOrganizationId) {
-    throw new TRPCError({
-      code: 'BAD_REQUEST',
-      message: 'No active organization selected',
-    });
-  }
-  return activeOrganizationId;
-}
+import { resolveOrgId } from '@/server/lib/resolve-org';
 
 const billingAdminProcedure = sectionProcedure('billing');
 
@@ -52,7 +43,7 @@ export const billingRouter = createTRPCRouter({
   }),
 
   getSubscription: protectedProcedure.query(async ({ ctx }) => {
-    const orgId = requireOrg(ctx.activeOrganizationId);
+    const orgId = await resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
     const sub = await getSubscription(orgId);
     if (!sub) return { planId: 'free', status: 'active' as const };
     return sub;
@@ -91,7 +82,7 @@ export const billingRouter = createTRPCRouter({
         });
       }
 
-      const orgId = requireOrg(ctx.activeOrganizationId);
+      const orgId = await resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
 
       // Verify user is owner or admin of org
       const [memberRecord] = await ctx.db
@@ -176,7 +167,7 @@ export const billingRouter = createTRPCRouter({
         });
       }
 
-      const orgId = requireOrg(ctx.activeOrganizationId);
+      const orgId = await resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
       const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
       const url = await provider.createPortalSession(
         orgId,
@@ -241,7 +232,7 @@ export const billingRouter = createTRPCRouter({
         });
       }
 
-      const orgId = requireOrg(ctx.activeOrganizationId);
+      const orgId = await resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
 
       // Verify user is owner or admin of org
       const [memberRecord] = await ctx.db
@@ -748,9 +739,10 @@ export const billingRouter = createTRPCRouter({
   // ─── Token balance (customer-facing) ────────────────────────────────────
 
   getTokenBalance: protectedProcedure.query(async ({ ctx }) => {
-    const orgId = requireOrg(ctx.activeOrganizationId);
+    const orgId = await resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
     const record = await getTokenBalanceRecord(orgId);
     return {
+      orgId,
       balance: record?.balance ?? 0,
       lifetimeAdded: record?.lifetimeAdded ?? 0,
       lifetimeUsed: record?.lifetimeUsed ?? 0,
@@ -760,7 +752,7 @@ export const billingRouter = createTRPCRouter({
   getTokenTransactions: protectedProcedure
     .input(z.object({ limit: z.number().int().min(1).max(100).default(20) }))
     .query(async ({ ctx, input }) => {
-      const orgId = requireOrg(ctx.activeOrganizationId);
+      const orgId = await resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
       return getTokenTransactions(orgId, input.limit);
     }),
 

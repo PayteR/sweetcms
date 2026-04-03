@@ -9,8 +9,6 @@ import { trpc } from '@/lib/trpc/client';
 import { useChannel } from '@/engine/lib/ws-client';
 
 interface TokenBalanceProps {
-  /** Active organization ID — required for WS channel subscription */
-  orgId?: string;
   /** Where clicking the badge navigates */
   href?: string;
 }
@@ -21,19 +19,20 @@ interface TokenWsPayload {
   timestamp: string;
 }
 
-export function TokenBalance({ orgId, href }: TokenBalanceProps) {
+export function TokenBalance({ href }: TokenBalanceProps) {
   const __ = useBlankTranslations();
   const [liveBalance, setLiveBalance] = useState<number | null>(null);
   const [animating, setAnimating] = useState(false);
   const prevBalance = useRef<number | null>(null);
 
-  const { data } = trpc.billing.getTokenBalance.useQuery(undefined, {
-    enabled: !!orgId,
-  });
+  // Server resolves the org via resolveOrgId — no orgId prop needed
+  const { data } = trpc.billing.getTokenBalance.useQuery();
 
-  // ws-client delivers msg.payload directly — duck-type check for balance field
+  // Subscribe to WS using the orgId returned from the query
+  const resolvedOrgId = data?.orgId;
+
   useChannel<Partial<TokenWsPayload>>(
-    orgId ? `org:${orgId}` : '',
+    resolvedOrgId ? `org:${resolvedOrgId}` : '',
     (msg) => {
       if (typeof msg?.balance === 'number') {
         setLiveBalance(msg.balance);
@@ -52,7 +51,8 @@ export function TokenBalance({ orgId, href }: TokenBalanceProps) {
     prevBalance.current = balance;
   }, [balance]);
 
-  if (!orgId) return null;
+  // Don't render until we have data (avoids flash of 0)
+  if (!data) return null;
 
   const content = (
     <div
