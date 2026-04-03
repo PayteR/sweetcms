@@ -11,14 +11,16 @@ import {
 import type { NavItem } from "@/engine/config/admin-nav";
 import { useSidebarStore } from "@/engine/store/sidebar-store";
 
+const DEFAULT_KNOWN_ACTIONS = new Set(["edit", "new"]);
+
 interface DashboardShellProps {
   navigation: NavItem[];
   children: React.ReactNode;
+  /** Extra URL segments (beyond "edit"/"new") to keep as section tokens */
+  extraSectionActions?: string[];
 }
 
-const KNOWN_ACTIONS = new Set(["edit", "new"]);
-
-function deriveSectionTokens(pathname: string): string {
+function deriveSectionTokens(pathname: string, knownActions: Set<string>): string {
   // Strip /dashboard prefix → space-separated tokens for CSS [attr~="token"] matching.
   // /dashboard                        → "home"
   // /dashboard/cms/pages              → "cms pages"
@@ -34,13 +36,13 @@ function deriveSectionTokens(pathname: string): string {
     .filter((s) => !/^[0-9a-f]{8}-[0-9a-f]{4}-/.test(s))
     .slice(0, 3);
   // Cap at 2 segments unless the 3rd is a known action (edit, new)
-  if (meaningful.length === 3 && !KNOWN_ACTIONS.has(meaningful[2]!)) {
+  if (meaningful.length === 3 && !knownActions.has(meaningful[2]!)) {
     meaningful.length = 2;
   }
   return meaningful.join(" ") || "home";
 }
 
-export function DashboardShell({ navigation, children }: DashboardShellProps) {
+export function DashboardShell({ navigation, children, extraSectionActions }: DashboardShellProps) {
   const pathname = usePathname();
   const isL2Collapsed = useSidebarStore((s) => s.isL2Collapsed);
   const activeSectionId = getActiveSectionId(navigation, pathname);
@@ -48,7 +50,10 @@ export function DashboardShell({ navigation, children }: DashboardShellProps) {
     ? getNavItem(navigation, activeSectionId)
     : undefined;
   const hasLevel2 = activeItem && isNavGroup(activeItem);
-  const sectionTokens = deriveSectionTokens(pathname);
+  const knownActions = extraSectionActions
+    ? new Set([...DEFAULT_KNOWN_ACTIONS, ...extraSectionActions])
+    : DEFAULT_KNOWN_ACTIONS;
+  const sectionTokens = deriveSectionTokens(pathname, knownActions);
 
   return (
     <main
