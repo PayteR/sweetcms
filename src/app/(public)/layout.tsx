@@ -18,6 +18,7 @@ import { getLocale } from '@/lib/locale-server';
 import { localePath } from '@/lib/locale';
 import type { Locale } from '@/lib/constants';
 import { adminRoutes, contentRoutes, apiRoutes } from '@/config/routes';
+import { RefCookieCapture } from '@/components/public/RefCookieCapture';
 
 async function getPublishedCategories(locale: Locale) {
   try {
@@ -92,6 +93,7 @@ export default async function PublicLayout({
 
   return (
     <>
+      <RefCookieCapture />
       <link
         rel="alternate"
         type="application/rss+xml"

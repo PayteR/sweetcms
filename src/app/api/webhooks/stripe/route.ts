@@ -16,6 +16,7 @@ import { sendOrgNotification } from '@/server/lib/notifications';
 import { NotificationType, NotificationCategory } from '@/engine/types/notifications';
 import { createLogger } from '@/engine/lib/logger';
 import { adminPanel } from '@/config/routes';
+import { recordConversion } from '@/server/lib/affiliates';
 
 const logger = createLogger('stripe-webhook');
 
@@ -110,6 +111,16 @@ export async function POST(request: Request) {
           category: NotificationCategory.BILLING,
           actionUrl: adminPanel.settingsBilling,
         });
+
+        // Record affiliate conversion if applicable
+        const checkoutUserId = metadata?.userId as string | undefined;
+        if (checkoutUserId) {
+          const activatedPlanObj = getPlanByProviderPriceId('stripe', event.providerPriceId ?? '');
+          const amountCents = activatedPlanObj
+            ? (inferredInterval === 'yearly' ? activatedPlanObj.priceYearly : activatedPlanObj.priceMonthly)
+            : 0;
+          recordConversion(checkoutUserId, event.providerSubscriptionId!, amountCents).catch(() => {});
+        }
         break;
       }
 

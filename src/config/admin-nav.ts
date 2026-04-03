@@ -20,6 +20,8 @@ import {
   Home,
   Image,
   Layers,
+  LifeBuoy,
+  Link2,
   ListChecks,
   Mail,
   Menu,
@@ -77,6 +79,8 @@ export const navigation: NavItem[] = [
       { name: 'Email Templates', href: adminPanel.settingsEmailTemplates, icon: Mail },
       { name: 'Billing', href: adminPanel.settingsBilling, icon: CreditCard },
       { name: 'Discount Codes', href: adminPanel.settingsDiscountCodes, icon: Tag },
+      { name: 'Support', href: adminPanel.settingsSupport, icon: LifeBuoy },
+      { name: 'Affiliates', href: adminPanel.settingsAffiliates, icon: Link2 },
     ],
   },
 ];

@@ -22,6 +22,10 @@ vi.mock('@/engine/lib/audit', () => ({
   logAudit: vi.fn(),
 }));
 
+vi.mock('@/server/utils/gdpr', () => ({
+  anonymizeUser: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock('@/engine/policy', () => ({
   Policy: {
     for: vi.fn().mockReturnValue({
@@ -39,7 +43,7 @@ vi.mock('@/engine/policy', () => ({
 import { asMock } from '@/test-utils';
 import { authRouter } from '../auth';
 import { auth } from '@/lib/auth';
-import { Policy } from '@/engine/policy';
+import { anonymizeUser } from '@/server/utils/gdpr';
 
 function createMockDb() {
   const selectLimitMock = vi.fn().mockResolvedValue([]);
@@ -181,40 +185,40 @@ describe('authRouter', () => {
   describe('deleteAccount', () => {
     it('anonymizes regular user account', async () => {
       const ctx = createMockCtx();
-      // Return user with 'user' role
-      ctx.db._chains.select.limit.mockResolvedValue([{ role: 'user' }]);
-      // Policy.for('user').canAccessAdmin() returns false
-      asMock(Policy.for).mockReturnValue({
-        canAccessAdmin: vi.fn().mockReturnValue(false),
-      } as never);
+      asMock(anonymizeUser).mockResolvedValue(undefined);
 
       const caller = authRouter.createCaller(ctx as never);
       const result = await caller.deleteAccount();
 
       expect(result).toEqual({ success: true });
-      // Should delete sessions
-      expect(ctx.db.delete).toHaveBeenCalled();
-      // Should update user with anonymized data
-      expect(ctx.db.update).toHaveBeenCalled();
+      expect(anonymizeUser).toHaveBeenCalledWith(ctx.db, 'user-1', 'user-1', 'full');
+    });
+
+    it('supports pseudonymize mode', async () => {
+      const ctx = createMockCtx();
+      asMock(anonymizeUser).mockResolvedValue(undefined);
+
+      const caller = authRouter.createCaller(ctx as never);
+      const result = await caller.deleteAccount({ mode: 'pseudonymize' });
+
+      expect(result).toEqual({ success: true });
+      expect(anonymizeUser).toHaveBeenCalledWith(ctx.db, 'user-1', 'user-1', 'pseudonymize');
     });
 
     it('prevents staff accounts from self-deleting', async () => {
       const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([{ role: 'admin' }]);
-      asMock(Policy.for).mockReturnValue({
-        canAccessAdmin: vi.fn().mockReturnValue(true),
-      } as never);
+      asMock(anonymizeUser).mockRejectedValue(new Error('Cannot anonymize a staff account'));
 
       const caller = authRouter.createCaller(ctx as never);
 
       await expect(caller.deleteAccount()).rejects.toThrow(
-        'Staff accounts cannot be deleted via self-service'
+        'Cannot anonymize a staff account'
       );
     });
 
-    it('throws NOT_FOUND when user does not exist', async () => {
+    it('throws when user does not exist', async () => {
       const ctx = createMockCtx();
-      ctx.db._chains.select.limit.mockResolvedValue([]);
+      asMock(anonymizeUser).mockRejectedValue(new Error('User not found'));
 
       const caller = authRouter.createCaller(ctx as never);
 

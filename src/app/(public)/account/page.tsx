@@ -56,6 +56,10 @@ export default async function AccountPage() {
           <h3 className="font-medium">Billing</h3>
           <p className="text-sm text-(--text-secondary) mt-1">Manage your subscription and payment methods.</p>
         </a>
+        <a href={accountRoutes.support} className="account-card rounded-lg border border-(--border-primary) p-4 hover:bg-(--surface-secondary) transition-colors">
+          <h3 className="font-medium">Support</h3>
+          <p className="text-sm text-(--text-secondary) mt-1">View your support tickets or create a new one.</p>
+        </a>
       </div>
     </div>
   );

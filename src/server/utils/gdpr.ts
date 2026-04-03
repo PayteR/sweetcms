@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm';
+import { createHmac } from 'crypto';
 
 import type { DbClient } from '@/server/db';
 import { user, session, account } from '@/server/db/schema/auth';
@@ -6,14 +7,38 @@ import { cmsAuditLog } from '@/server/db/schema/audit';
 import { Policy } from '@/engine/policy';
 import { logAudit } from '@/engine/lib/audit';
 
+export type AnonymizationMode = 'full' | 'pseudonymize';
+
+function pseudonymize(userId: string): { name: string; email: string } {
+  const secret = process.env.AUTH_SECRET ?? 'sweetcms-default-secret';
+  const hash = createHmac('sha256', secret).update(userId).digest('hex');
+  return {
+    name: `User-${hash.slice(0, 8)}`,
+    email: `${hash.slice(0, 12)}@anon.local`,
+  };
+}
+
+/** Check if a user record has been anonymized */
+export function isAnonymized(userRecord: { email: string }): boolean {
+  return (
+    userRecord.email.endsWith('@gdpr.invalid') ||
+    userRecord.email.endsWith('@anon.local')
+  );
+}
+
 /**
  * Anonymize a user's PII for GDPR compliance.
  * Deletes sessions + accounts, overwrites user PII, bans the account.
+ *
+ * Modes:
+ * - 'full' (default): replaces PII with non-reversible placeholder data
+ * - 'pseudonymize': replaces PII with HMAC-derived deterministic pseudonyms
  */
 export async function anonymizeUser(
   db: DbClient,
   userId: string,
-  adminId: string
+  adminId: string,
+  mode: AnonymizationMode = 'full'
 ): Promise<void> {
   // 1. Validate: user exists and is not staff
   const [target] = await db
@@ -36,27 +61,44 @@ export async function anonymizeUser(
   // 3. Delete all accounts (credentials, OAuth tokens)
   await db.delete(account).where(eq(account.userId, userId));
 
-  // 4. Overwrite user PII
-  await db
-    .update(user)
-    .set({
-      name: 'deleted_user',
-      email: `deleted-${userId}@gdpr.invalid`,
-      image: null,
-      banned: true,
-      banReason: 'GDPR deletion',
-      emailVerified: false,
-      updatedAt: new Date(),
-    })
-    .where(eq(user.id, userId));
+  // 4. Overwrite user PII based on mode
+  if (mode === 'pseudonymize') {
+    const pseudo = pseudonymize(userId);
+    await db
+      .update(user)
+      .set({
+        name: pseudo.name,
+        email: pseudo.email,
+        image: null,
+        banned: true,
+        banReason: 'GDPR pseudonymization',
+        emailVerified: false,
+        updatedAt: new Date(),
+      })
+      .where(eq(user.id, userId));
+  } else {
+    await db
+      .update(user)
+      .set({
+        name: 'deleted_user',
+        email: `deleted-${userId}@gdpr.invalid`,
+        image: null,
+        banned: true,
+        banReason: 'GDPR deletion',
+        emailVerified: false,
+        updatedAt: new Date(),
+      })
+      .where(eq(user.id, userId));
+  }
 
   // 5. Audit log
   logAudit({
     db,
     userId: adminId,
-    action: 'gdpr_anonymize',
+    action: mode === 'pseudonymize' ? 'gdpr_pseudonymize' : 'gdpr_anonymize',
     entityType: 'user',
     entityId: userId,
+    metadata: { mode },
   });
 }
 

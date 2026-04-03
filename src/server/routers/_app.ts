@@ -22,12 +22,15 @@ import { organizationsRouter } from './organizations';
 import { notificationsRouter } from './notifications';
 import { projectsRouter } from './projects';
 import { discountCodesRouter } from './discount-codes';
+import { supportRouter } from './support';
+import { affiliatesRouter } from './affiliates';
 import { webhooksRouter } from './webhooks';
 
 /**
  * Root tRPC router — combines all sub-routers
  */
 export const appRouter = createTRPCRouter({
+  affiliates: affiliatesRouter,
   analytics: analyticsRouter,
   audit: auditRouter,
   auth: authRouter,
@@ -49,6 +52,7 @@ export const appRouter = createTRPCRouter({
   projects: projectsRouter,
   redirects: redirectsRouter,
   revisions: revisionsRouter,
+  support: supportRouter,
   tags: tagsRouter,
   users: usersRouter,
   webhooks: webhooksRouter,

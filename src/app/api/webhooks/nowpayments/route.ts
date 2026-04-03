@@ -10,6 +10,7 @@ import { sendOrgNotification } from '@/server/lib/notifications';
 import { NotificationType, NotificationCategory } from '@/engine/types/notifications';
 import { createLogger } from '@/engine/lib/logger';
 import { adminPanel } from '@/config/routes';
+import { recordConversion } from '@/server/lib/affiliates';
 
 const logger = createLogger('nowpayments-webhook');
 
@@ -91,6 +92,13 @@ export async function POST(request: Request) {
           category: NotificationCategory.BILLING,
           actionUrl: adminPanel.settingsBilling,
         });
+
+        // Record affiliate conversion if applicable
+        const checkoutUserId = providerData?.userId as string | undefined;
+        const amountCents = providerData?.amountCents as number | undefined;
+        if (checkoutUserId && amountCents) {
+          recordConversion(checkoutUserId, orderId ?? 'unknown', amountCents).catch(() => {});
+        }
         break;
       }
 

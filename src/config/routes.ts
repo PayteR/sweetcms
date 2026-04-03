@@ -62,6 +62,9 @@ export const adminPanel = {
   settingsEmailTemplates: `${DASHBOARD_PREFIX}/settings/email-templates`,
   settingsImport: `${DASHBOARD_PREFIX}/settings/import`,
   settingsDiscountCodes: `${DASHBOARD_PREFIX}/settings/discount-codes`,
+  settingsSupport: `${DASHBOARD_PREFIX}/settings/support`,
+  settingsSupportDetail: (id: string) => `${DASHBOARD_PREFIX}/settings/support/${id}`,
+  settingsAffiliates: `${DASHBOARD_PREFIX}/settings/affiliates`,
 } as const;
 
 // ─── Customer-facing auth ────────────────────────────────────────────────────
@@ -80,6 +83,10 @@ export const accountRoutes = {
   settings: `${ACCOUNT_PREFIX}/settings`,
   security: `${ACCOUNT_PREFIX}/security`,
   billing: `${ACCOUNT_PREFIX}/billing`,
+  support: `${ACCOUNT_PREFIX}/support`,
+  supportNew: `${ACCOUNT_PREFIX}/support/new`,
+  supportDetail: (id: string) => `${ACCOUNT_PREFIX}/support/${id}`,
+  affiliates: `${ACCOUNT_PREFIX}/affiliates`,
 } as const;
 
 // ─── Public content ──────────────────────────────────────────────────────────

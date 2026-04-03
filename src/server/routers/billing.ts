@@ -13,6 +13,7 @@ import {
 import { PLANS, getPlan } from '@/config/plans';
 import { member } from '@/server/db/schema';
 import { saasSubscriptions, saasPaymentTransactions, saasDiscountCodes } from '@/server/db/schema';
+import { getStats as getCachedStats } from '@/server/lib/stats-cache';
 
 function requireOrg(activeOrganizationId: string | null | undefined): string {
   if (!activeOrganizationId) {
@@ -206,85 +207,151 @@ export const billingRouter = createTRPCRouter({
     return await getActiveDiscount(ctx.session.user.id);
   }),
 
+  // ─── Renewal ──────────────────────────────────────────────────────────────
+
+  /** Renew an expired or past_due subscription — creates new checkout */
+  renewSubscription: protectedProcedure
+    .input(
+      z.object({
+        planId: z.string().min(1).max(50),
+        interval: z.enum(['monthly', 'yearly']),
+        providerId: z.string().min(1).max(50).default('stripe'),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!isBillingEnabled()) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: 'Billing is not configured',
+        });
+      }
+
+      const orgId = requireOrg(ctx.activeOrganizationId);
+
+      // Verify user is owner or admin of org
+      const [memberRecord] = await ctx.db
+        .select()
+        .from(member)
+        .where(
+          and(eq(member.organizationId, orgId), eq(member.userId, ctx.session.user.id))
+        )
+        .limit(1);
+
+      if (!memberRecord || !['owner', 'admin'].includes(memberRecord.role)) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Only org owners/admins can manage billing',
+        });
+      }
+
+      const provider = await getProvider(input.providerId);
+      if (!provider) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: `Payment provider "${input.providerId}" is not available`,
+        });
+      }
+
+      const plan = getPlan(input.planId);
+      if (!plan) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Plan not found' });
+      }
+
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
+
+      const result = await provider.createCheckout({
+        organizationId: orgId,
+        planId: input.planId,
+        interval: input.interval,
+        successUrl: `${appUrl}/dashboard/settings/billing?success=true`,
+        cancelUrl: `${appUrl}/dashboard/settings/billing?canceled=true`,
+        metadata: { userId: ctx.session.user.id, renewal: 'true' },
+      });
+
+      return { url: result.url, providerId: result.providerId };
+    }),
+
   // ─── Admin billing stats ─────────────────────────────────────────────────
 
   getStats: billingAdminProcedure.query(async ({ ctx }) => {
-    // Active subscriptions by plan
-    const planDistribution = await ctx.db
-      .select({
-        planId: saasSubscriptions.planId,
-        count: sql<number>`count(*)`.as('count'),
-      })
-      .from(saasSubscriptions)
-      .where(eq(saasSubscriptions.status, 'active'))
-      .groupBy(saasSubscriptions.planId);
+    return getCachedStats('billing:stats', async () => {
+      // Active subscriptions by plan
+      const planDistribution = await ctx.db
+        .select({
+          planId: saasSubscriptions.planId,
+          count: sql<number>`count(*)`.as('count'),
+        })
+        .from(saasSubscriptions)
+        .where(eq(saasSubscriptions.status, 'active'))
+        .groupBy(saasSubscriptions.planId);
 
-    const totalActive = planDistribution.reduce((sum, p) => sum + Number(p.count), 0);
+      const totalActive = planDistribution.reduce((sum, p) => sum + Number(p.count), 0);
 
-    // MRR calculation — query individual subs to determine monthly vs yearly
-    const activeSubs = await ctx.db
-      .select({
-        planId: saasSubscriptions.planId,
-        providerPriceId: saasSubscriptions.providerPriceId,
-        providerId: saasSubscriptions.providerId,
-      })
-      .from(saasSubscriptions)
-      .where(eq(saasSubscriptions.status, 'active'))
-      .limit(10000);
+      // MRR calculation — query individual subs to determine monthly vs yearly
+      const activeSubs = await ctx.db
+        .select({
+          planId: saasSubscriptions.planId,
+          providerPriceId: saasSubscriptions.providerPriceId,
+          providerId: saasSubscriptions.providerId,
+        })
+        .from(saasSubscriptions)
+        .where(eq(saasSubscriptions.status, 'active'))
+        .limit(10000);
 
-    let mrr = 0;
-    for (const sub of activeSubs) {
-      const plan = getPlan(sub.planId);
-      if (!plan) continue;
+      let mrr = 0;
+      for (const sub of activeSubs) {
+        const plan = getPlan(sub.planId);
+        if (!plan) continue;
 
-      // Determine if this is a yearly subscription by checking the price ID
-      let isYearly = false;
-      if (sub.providerPriceId && sub.providerId) {
-        const prices = plan.providerPrices[sub.providerId];
-        if (prices) {
-          isYearly = prices.yearly === sub.providerPriceId;
+        // Determine if this is a yearly subscription by checking the price ID
+        let isYearly = false;
+        if (sub.providerPriceId && sub.providerId) {
+          const prices = plan.providerPrices[sub.providerId];
+          if (prices) {
+            isYearly = prices.yearly === sub.providerPriceId;
+          }
         }
+        // Non-recurring providers (like nowpayments) are always yearly
+        if (sub.providerId === 'nowpayments') isYearly = true;
+
+        mrr += isYearly
+          ? Math.round(plan.priceYearly / 12)
+          : plan.priceMonthly;
       }
-      // Non-recurring providers (like nowpayments) are always yearly
-      if (sub.providerId === 'nowpayments') isYearly = true;
 
-      mrr += isYearly
-        ? Math.round(plan.priceYearly / 12)
-        : plan.priceMonthly;
-    }
+      // Churn: canceled in last 30 days
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const [churnResult] = await ctx.db
+        .select({ count: sql<number>`count(*)`.as('count') })
+        .from(saasSubscriptions)
+        .where(
+          and(
+            eq(saasSubscriptions.status, 'canceled'),
+            gte(saasSubscriptions.updatedAt, thirtyDaysAgo),
+          )
+        );
 
-    // Churn: canceled in last 30 days
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const [churnResult] = await ctx.db
-      .select({ count: sql<number>`count(*)`.as('count') })
-      .from(saasSubscriptions)
-      .where(
-        and(
-          eq(saasSubscriptions.status, 'canceled'),
-          gte(saasSubscriptions.updatedAt, thirtyDaysAgo),
-        )
-      );
+      // Recent transactions
+      const recentTransactions = await ctx.db
+        .select()
+        .from(saasPaymentTransactions)
+        .orderBy(desc(saasPaymentTransactions.createdAt))
+        .limit(10);
 
-    // Recent transactions
-    const recentTransactions = await ctx.db
-      .select()
-      .from(saasPaymentTransactions)
-      .orderBy(desc(saasPaymentTransactions.createdAt))
-      .limit(10);
+      // Active discount codes count
+      const [discountResult] = await ctx.db
+        .select({ count: sql<number>`count(*)`.as('count') })
+        .from(saasDiscountCodes)
+        .where(eq(saasDiscountCodes.isActive, true));
 
-    // Active discount codes count
-    const [discountResult] = await ctx.db
-      .select({ count: sql<number>`count(*)`.as('count') })
-      .from(saasDiscountCodes)
-      .where(eq(saasDiscountCodes.isActive, true));
-
-    return {
-      totalActiveSubscriptions: totalActive,
-      mrr,
-      planDistribution,
-      churnLast30Days: Number(churnResult?.count ?? 0),
-      recentTransactions,
-      activeDiscountCodes: Number(discountResult?.count ?? 0),
-    };
+      return {
+        totalActiveSubscriptions: totalActive,
+        mrr,
+        planDistribution,
+        churnLast30Days: Number(churnResult?.count ?? 0),
+        recentTransactions,
+        activeDiscountCodes: Number(discountResult?.count ?? 0),
+      };
+    });
   }),
 });

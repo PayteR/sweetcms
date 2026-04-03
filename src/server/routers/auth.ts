@@ -3,7 +3,7 @@ import { TRPCError } from '@trpc/server';
 import { eq, and, ne } from 'drizzle-orm';
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '../trpc';
 import { auth } from '@/lib/auth';
-import { user, session, account } from '@/server/db/schema/auth';
+import { user, session } from '@/server/db/schema/auth';
 import { logAudit } from '@/engine/lib/audit';
 
 export const authRouter = createTRPCRouter({
@@ -50,58 +50,37 @@ export const authRouter = createTRPCRouter({
       }
     }),
 
-  deleteAccount: protectedProcedure.mutation(async ({ ctx }) => {
-    const userId = ctx.session.user.id;
+  deleteAccount: protectedProcedure
+    .input(
+      z
+        .object({ mode: z.enum(['full', 'pseudonymize']).default('full') })
+        .optional()
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const mode = input?.mode ?? 'full';
+      const { anonymizeUser } = await import('@/server/utils/gdpr');
 
-    // Prevent staff from self-deleting via this endpoint
-    const [targetUser] = await ctx.db
-      .select({ role: user.role })
-      .from(user)
-      .where(eq(user.id, userId))
-      .limit(1);
+      try {
+        await anonymizeUser(ctx.db, userId, userId, mode);
+      } catch (err) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: err instanceof Error ? err.message : 'Account deletion failed',
+        });
+      }
 
-    if (!targetUser) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
-    }
-
-    const { Policy } = await import('@/engine/policy');
-    if (Policy.for(targetUser.role).canAccessAdmin()) {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: 'Staff accounts cannot be deleted via self-service. Contact an administrator.',
+      logAudit({
+        db: ctx.db,
+        userId,
+        action: 'auth.deleteAccount',
+        entityType: 'user',
+        entityId: userId,
+        metadata: { mode },
       });
-    }
 
-    // Delete sessions
-    await ctx.db.delete(session).where(eq(session.userId, userId));
-
-    // Delete accounts (OAuth, credentials)
-    await ctx.db.delete(account).where(eq(account.userId, userId));
-
-    // Anonymize user PII
-    await ctx.db
-      .update(user)
-      .set({
-        name: 'deleted_user',
-        email: `deleted-${userId}@gdpr.invalid`,
-        image: null,
-        banned: true,
-        banReason: 'Self-service account deletion',
-        emailVerified: false,
-        updatedAt: new Date(),
-      })
-      .where(eq(user.id, userId));
-
-    logAudit({
-      db: ctx.db,
-      userId,
-      action: 'auth.deleteAccount',
-      entityType: 'user',
-      entityId: userId,
-    });
-
-    return { success: true };
-  }),
+      return { success: true };
+    }),
 
   activeSessions: protectedProcedure.query(async ({ ctx }) => {
     const sessions = await ctx.db

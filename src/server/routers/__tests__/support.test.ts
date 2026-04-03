@@ -1,0 +1,696 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+// ---------------------------------------------------------------------------
+// Mock ALL external dependencies BEFORE imports
+// ---------------------------------------------------------------------------
+
+vi.mock('@/lib/auth', () => ({
+  auth: {
+    api: {
+      getSession: vi.fn().mockResolvedValue(null),
+    },
+  },
+}));
+
+vi.mock('@/engine/lib/redis', () => ({
+  getRedis: vi.fn().mockReturnValue(null),
+}));
+
+vi.mock('@/server/middleware/rate-limit', () => ({
+  applyRateLimit: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('@/engine/lib/audit', () => ({
+  logAudit: vi.fn(),
+}));
+
+vi.mock('@/server/lib/notifications', () => ({
+  sendNotification: vi.fn(),
+  sendOrgNotification: vi.fn(),
+}));
+
+vi.mock('@/engine/types/notifications', () => ({
+  NotificationType: { INFO: 'info', SUCCESS: 'success', WARNING: 'warning', ERROR: 'error' },
+  NotificationCategory: { BILLING: 'billing', ORGANIZATION: 'organization', CONTENT: 'content', SYSTEM: 'system', SECURITY: 'security' },
+}));
+
+vi.mock('@/engine/policy', () => ({
+  Policy: {
+    for: vi.fn().mockReturnValue({
+      canAccessAdmin: vi.fn().mockReturnValue(true),
+      can: vi.fn().mockReturnValue(true),
+    }),
+  },
+  Role: {
+    USER: 'user',
+    EDITOR: 'editor',
+    ADMIN: 'admin',
+    SUPERADMIN: 'superadmin',
+  },
+}));
+
+vi.mock('@/engine/crud/admin-crud', () => ({
+  parsePagination: vi.fn().mockImplementation((input: { page?: number; pageSize?: number }) => {
+    const page = input?.page ?? 1;
+    const pageSize = input?.pageSize ?? 20;
+    return { page, pageSize, offset: (page - 1) * pageSize };
+  }),
+  paginatedResult: vi.fn().mockImplementation(
+    (items: unknown[], total: number, page: number, pageSize: number) => ({
+      results: items,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    })
+  ),
+}));
+
+vi.mock('@/server/db/schema/support', () => ({
+  saasTickets: {
+    id: 'saas_tickets.id',
+    organizationId: 'saas_tickets.organization_id',
+    userId: 'saas_tickets.user_id',
+    subject: 'saas_tickets.subject',
+    status: 'saas_tickets.status',
+    priority: 'saas_tickets.priority',
+    assignedTo: 'saas_tickets.assigned_to',
+    closedAt: 'saas_tickets.closed_at',
+    resolvedAt: 'saas_tickets.resolved_at',
+    createdAt: 'saas_tickets.created_at',
+    updatedAt: 'saas_tickets.updated_at',
+  },
+  saasTicketMessages: {
+    id: 'saas_ticket_messages.id',
+    ticketId: 'saas_ticket_messages.ticket_id',
+    userId: 'saas_ticket_messages.user_id',
+    isStaff: 'saas_ticket_messages.is_staff',
+    body: 'saas_ticket_messages.body',
+    attachments: 'saas_ticket_messages.attachments',
+    createdAt: 'saas_ticket_messages.created_at',
+  },
+}));
+
+vi.mock('@/server/db/schema/auth', () => ({
+  user: {
+    id: 'user.id',
+    name: 'user.name',
+    email: 'user.email',
+  },
+}));
+
+// ---------------------------------------------------------------------------
+// Imports (after mocks)
+// ---------------------------------------------------------------------------
+
+import { supportRouter } from '../support';
+import { logAudit } from '@/engine/lib/audit';
+import { sendNotification, sendOrgNotification } from '@/server/lib/notifications';
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Creates a mock DB where each `select()` call builds an independent chain.
+ * This is critical for procedures that use `Promise.all([db.select()..., db.select()...])`.
+ */
+function createMockDb() {
+  const returningMock = vi.fn().mockResolvedValue([{ id: 'new-id' }]);
+  const insertValuesMock = vi.fn().mockReturnValue({ returning: returningMock });
+  const insertMock = vi.fn().mockReturnValue({ values: insertValuesMock });
+
+  // Each select() call returns a fresh chain so parallel Promise.all works
+  const allSelectLimitMocks: ReturnType<typeof vi.fn>[] = [];
+  const selectMock = vi.fn().mockImplementation(() => {
+    const limitMock = vi.fn().mockResolvedValue([]);
+    allSelectLimitMocks.push(limitMock);
+    const offsetMock = vi.fn().mockReturnValue({ limit: limitMock });
+    const orderByMock = vi.fn().mockReturnValue({ limit: limitMock, offset: offsetMock });
+    const groupByMock = vi.fn().mockReturnValue({ orderBy: orderByMock });
+    const whereMock = vi.fn().mockReturnValue({
+      limit: limitMock,
+      orderBy: orderByMock,
+      offset: offsetMock,
+      groupBy: groupByMock,
+    });
+    const fromMock = vi.fn().mockReturnValue({
+      where: whereMock,
+      orderBy: orderByMock,
+      limit: limitMock,
+      groupBy: groupByMock,
+    });
+    return { from: fromMock };
+  });
+
+  const updateWhereMock = vi.fn().mockResolvedValue(undefined);
+  const updateSetMock = vi.fn().mockReturnValue({ where: updateWhereMock });
+  const updateMock = vi.fn().mockReturnValue({ set: updateSetMock });
+
+  const deleteWhereMock = vi.fn().mockResolvedValue(undefined);
+  const deleteMock = vi.fn().mockReturnValue({ where: deleteWhereMock });
+
+  return {
+    insert: insertMock,
+    select: selectMock,
+    update: updateMock,
+    delete: deleteMock,
+    /** Access all limitMock instances created by select chains (in order) */
+    _allSelectLimitMocks: allSelectLimitMocks,
+    _chains: {
+      insert: { values: insertValuesMock, returning: returningMock },
+      update: { set: updateSetMock, where: updateWhereMock },
+      delete: { where: deleteWhereMock },
+    },
+  };
+}
+
+function createMockCtx(overrides: Record<string, unknown> = {}) {
+  return {
+    session: { user: { id: 'user-1', email: 'test@test.com', role: 'admin' } },
+    db: createMockDb(),
+    headers: new Headers(),
+    activeOrganizationId: 'org-1',
+    ...overrides,
+  };
+}
+
+const TICKET_UUID = 'a0a0a0a0-b1b1-4c2c-8d3d-e4e4e4e4e4e4';
+const ADMIN_UUID = 'b1b1b1b1-c2c2-4d3d-8e4e-f5f5f5f5f5f5';
+
+const MOCK_TICKET = {
+  id: TICKET_UUID,
+  organizationId: 'org-1',
+  userId: 'user-1',
+  subject: 'Cannot upload files',
+  status: 'open',
+  priority: 'normal',
+  assignedTo: null,
+  closedAt: null,
+  resolvedAt: null,
+  createdAt: new Date('2026-01-15'),
+  updatedAt: new Date('2026-01-15'),
+};
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+describe('supportRouter', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // =========================================================================
+  // list
+  // =========================================================================
+  describe('list', () => {
+    it('returns paginated tickets for user\'s org', async () => {
+      const ctx = createMockCtx();
+      const tickets = [
+        { id: 't-1', subject: 'Issue A', status: 'open', priority: 'normal', createdAt: new Date(), updatedAt: new Date() },
+      ];
+
+      // Pre-set what each select chain's limit should return.
+      // list() does Promise.all: first select = items, second select = count.
+      // We configure after createMockCtx but before calling — the mock is lazy per select() call.
+      const caller = supportRouter.createCaller(ctx as never);
+
+      // We need to configure the limitMocks AFTER select() is called.
+      // Use mockImplementation on selectMock to set up per-chain returns.
+      let selectCallCount = 0;
+      ctx.db.select.mockImplementation(() => {
+        selectCallCount++;
+        const isItemsCall = selectCallCount === 1;
+        const limitMock = vi.fn().mockResolvedValue(isItemsCall ? tickets : [{ count: 1 }]);
+        const offsetMock = vi.fn().mockReturnValue({ limit: limitMock });
+        const orderByMock = vi.fn().mockReturnValue({ limit: limitMock, offset: offsetMock });
+        const whereMock = vi.fn().mockReturnValue({
+          limit: limitMock,
+          orderBy: orderByMock,
+          offset: offsetMock,
+        });
+        const fromMock = vi.fn().mockReturnValue({
+          where: whereMock,
+          orderBy: orderByMock,
+          limit: limitMock,
+        });
+        return { from: fromMock };
+      });
+
+      const result = await caller.list({ page: 1, pageSize: 20 });
+
+      expect(result).toEqual({
+        results: tickets,
+        total: 1,
+        page: 1,
+        pageSize: 20,
+        totalPages: 1,
+      });
+    });
+  });
+
+  // =========================================================================
+  // create
+  // =========================================================================
+  describe('create', () => {
+    it('inserts ticket + initial message and sends notification', async () => {
+      const ctx = createMockCtx();
+      // insert resolves without error (void for values chain)
+      ctx.db.insert.mockReturnValue({
+        values: vi.fn().mockResolvedValue(undefined),
+      });
+
+      const caller = supportRouter.createCaller(ctx as never);
+      const result = await caller.create({
+        subject: 'Need help',
+        body: 'My account is locked',
+        priority: 'high',
+      });
+
+      expect(result).toHaveProperty('id');
+      expect(typeof result.id).toBe('string');
+
+      // Two inserts: ticket + message
+      expect(ctx.db.insert).toHaveBeenCalledTimes(2);
+
+      // logAudit was called
+      expect(logAudit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          db: ctx.db,
+          userId: 'user-1',
+          action: 'support.create',
+          entityType: 'ticket',
+          metadata: expect.objectContaining({ subject: 'Need help', priority: 'high' }),
+        })
+      );
+
+      // sendOrgNotification was called
+      expect(sendOrgNotification).toHaveBeenCalledWith(
+        'org-1',
+        expect.objectContaining({
+          title: 'New support ticket',
+          body: expect.stringContaining('Need help'),
+        })
+      );
+    });
+
+    it('requires active organization', async () => {
+      const ctx = createMockCtx({ activeOrganizationId: null });
+      const caller = supportRouter.createCaller(ctx as never);
+
+      await expect(
+        caller.create({ subject: 'Help', body: 'Issue details' })
+      ).rejects.toThrow('No active organization selected');
+    });
+  });
+
+  // =========================================================================
+  // reply
+  // =========================================================================
+  describe('reply', () => {
+    it('adds message and sets status to awaiting_admin', async () => {
+      const ctx = createMockCtx();
+
+      // Configure select to return open ticket owned by user
+      ctx.db.select.mockImplementation(() => {
+        const limitMock = vi.fn().mockResolvedValue([MOCK_TICKET]);
+        const whereMock = vi.fn().mockReturnValue({ limit: limitMock });
+        const fromMock = vi.fn().mockReturnValue({ where: whereMock });
+        return { from: fromMock };
+      });
+
+      // Insert chain for message
+      ctx.db.insert.mockReturnValue({
+        values: vi.fn().mockResolvedValue(undefined),
+      });
+
+      const caller = supportRouter.createCaller(ctx as never);
+      const result = await caller.reply({
+        ticketId: TICKET_UUID,
+        body: 'Here is more info',
+      });
+
+      expect(result).toEqual({ success: true });
+
+      // Message was inserted
+      expect(ctx.db.insert).toHaveBeenCalled();
+
+      // Status updated to awaiting_admin
+      expect(ctx.db.update).toHaveBeenCalled();
+      expect(ctx.db._chains.update.set).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'awaiting_admin' })
+      );
+    });
+
+    it('rejects reply to closed ticket', async () => {
+      const ctx = createMockCtx();
+      ctx.db.select.mockImplementation(() => {
+        const limitMock = vi.fn().mockResolvedValue([{ ...MOCK_TICKET, status: 'closed' }]);
+        const whereMock = vi.fn().mockReturnValue({ limit: limitMock });
+        const fromMock = vi.fn().mockReturnValue({ where: whereMock });
+        return { from: fromMock };
+      });
+
+      const caller = supportRouter.createCaller(ctx as never);
+
+      await expect(
+        caller.reply({ ticketId: TICKET_UUID, body: 'Follow up' })
+      ).rejects.toThrow('Cannot reply to a closed ticket');
+    });
+
+    it('throws NOT_FOUND for non-existent ticket', async () => {
+      const ctx = createMockCtx();
+      // Default: select returns []
+
+      const caller = supportRouter.createCaller(ctx as never);
+
+      await expect(
+        caller.reply({ ticketId: TICKET_UUID, body: 'Hello' })
+      ).rejects.toThrow('Ticket not found');
+    });
+  });
+
+  // =========================================================================
+  // close
+  // =========================================================================
+  describe('close', () => {
+    it('closes own ticket', async () => {
+      const ctx = createMockCtx();
+      ctx.db.select.mockImplementation(() => {
+        const limitMock = vi.fn().mockResolvedValue([MOCK_TICKET]);
+        const whereMock = vi.fn().mockReturnValue({ limit: limitMock });
+        const fromMock = vi.fn().mockReturnValue({ where: whereMock });
+        return { from: fromMock };
+      });
+
+      const caller = supportRouter.createCaller(ctx as never);
+      const result = await caller.close({ ticketId: TICKET_UUID });
+
+      expect(result).toEqual({ success: true });
+      expect(ctx.db.update).toHaveBeenCalled();
+      expect(ctx.db._chains.update.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'closed',
+          closedAt: expect.any(Date),
+        })
+      );
+    });
+
+    it('throws NOT_FOUND for non-existent ticket', async () => {
+      const ctx = createMockCtx();
+      // Default: select returns []
+
+      const caller = supportRouter.createCaller(ctx as never);
+
+      await expect(
+        caller.close({ ticketId: TICKET_UUID })
+      ).rejects.toThrow('Ticket not found');
+    });
+  });
+
+  // =========================================================================
+  // adminList
+  // =========================================================================
+  describe('adminList', () => {
+    it('returns all tickets with filters', async () => {
+      const ctx = createMockCtx();
+      const tickets = [
+        { id: 't-1', subject: 'Issue A', status: 'open', priority: 'high', assignedTo: null, createdAt: new Date(), updatedAt: new Date() },
+      ];
+
+      let selectCallCount = 0;
+      ctx.db.select.mockImplementation(() => {
+        selectCallCount++;
+        const isItemsCall = selectCallCount === 1;
+        const limitMock = vi.fn().mockResolvedValue(isItemsCall ? tickets : [{ count: 1 }]);
+        const offsetMock = vi.fn().mockReturnValue({ limit: limitMock });
+        const orderByMock = vi.fn().mockReturnValue({ limit: limitMock, offset: offsetMock });
+        const whereMock = vi.fn().mockReturnValue({
+          limit: limitMock,
+          orderBy: orderByMock,
+          offset: offsetMock,
+        });
+        const fromMock = vi.fn().mockReturnValue({
+          where: whereMock,
+          orderBy: orderByMock,
+          limit: limitMock,
+        });
+        return { from: fromMock };
+      });
+
+      const caller = supportRouter.createCaller(ctx as never);
+      const result = await caller.adminList({ status: 'open', page: 1, pageSize: 20 });
+
+      expect(result).toEqual({
+        results: tickets,
+        total: 1,
+        page: 1,
+        pageSize: 20,
+        totalPages: 1,
+      });
+    });
+
+    it('returns empty results when no tickets match', async () => {
+      const ctx = createMockCtx();
+
+      let selectCallCount = 0;
+      ctx.db.select.mockImplementation(() => {
+        selectCallCount++;
+        const limitMock = vi.fn().mockResolvedValue(selectCallCount === 1 ? [] : [{ count: 0 }]);
+        const offsetMock = vi.fn().mockReturnValue({ limit: limitMock });
+        const orderByMock = vi.fn().mockReturnValue({ limit: limitMock, offset: offsetMock });
+        const whereMock = vi.fn().mockReturnValue({
+          limit: limitMock,
+          orderBy: orderByMock,
+          offset: offsetMock,
+        });
+        const fromMock = vi.fn().mockReturnValue({
+          where: whereMock,
+          orderBy: orderByMock,
+          limit: limitMock,
+        });
+        return { from: fromMock };
+      });
+
+      const caller = supportRouter.createCaller(ctx as never);
+      const result = await caller.adminList({ page: 1, pageSize: 20 });
+
+      expect(result).toEqual({
+        results: [],
+        total: 0,
+        page: 1,
+        pageSize: 20,
+        totalPages: 0,
+      });
+    });
+  });
+
+  // =========================================================================
+  // adminReply
+  // =========================================================================
+  describe('adminReply', () => {
+    it('adds staff message, sets status to awaiting_user, notifies creator', async () => {
+      const ctx = createMockCtx();
+      ctx.db.select.mockImplementation(() => {
+        const limitMock = vi.fn().mockResolvedValue([MOCK_TICKET]);
+        const orderByMock = vi.fn().mockReturnValue({ limit: limitMock });
+        const whereMock = vi.fn().mockReturnValue({ limit: limitMock, orderBy: orderByMock });
+        const fromMock = vi.fn().mockReturnValue({ where: whereMock });
+        return { from: fromMock };
+      });
+      ctx.db.insert.mockReturnValue({
+        values: vi.fn().mockResolvedValue(undefined),
+      });
+
+      const caller = supportRouter.createCaller(ctx as never);
+      const result = await caller.adminReply({
+        ticketId: TICKET_UUID,
+        body: 'We are looking into this.',
+      });
+
+      expect(result).toEqual({ success: true });
+
+      // Message was inserted
+      expect(ctx.db.insert).toHaveBeenCalled();
+
+      // Status updated to awaiting_user
+      expect(ctx.db.update).toHaveBeenCalled();
+      expect(ctx.db._chains.update.set).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'awaiting_user' })
+      );
+
+      // Notifies ticket creator
+      expect(sendNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: MOCK_TICKET.userId,
+          title: 'Staff reply on your ticket',
+          body: expect.stringContaining(MOCK_TICKET.subject),
+        })
+      );
+    });
+
+    it('throws NOT_FOUND when ticket does not exist', async () => {
+      const ctx = createMockCtx();
+      // Default: select returns []
+
+      const caller = supportRouter.createCaller(ctx as never);
+
+      await expect(
+        caller.adminReply({ ticketId: TICKET_UUID, body: 'Reply' })
+      ).rejects.toThrow('Ticket not found');
+    });
+  });
+
+  // =========================================================================
+  // changeStatus
+  // =========================================================================
+  describe('changeStatus', () => {
+    it('updates status and notifies creator', async () => {
+      const ctx = createMockCtx();
+      // changeStatus does update then select to fetch ticket for notification
+      ctx.db.select.mockImplementation(() => {
+        const limitMock = vi.fn().mockResolvedValue([{ userId: 'user-1', subject: 'Cannot upload files' }]);
+        const whereMock = vi.fn().mockReturnValue({ limit: limitMock });
+        const fromMock = vi.fn().mockReturnValue({ where: whereMock });
+        return { from: fromMock };
+      });
+
+      const caller = supportRouter.createCaller(ctx as never);
+      const result = await caller.changeStatus({
+        ticketId: TICKET_UUID,
+        status: 'resolved',
+      });
+
+      expect(result).toEqual({ success: true });
+
+      // Status was updated
+      expect(ctx.db.update).toHaveBeenCalled();
+      expect(ctx.db._chains.update.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'resolved',
+          resolvedAt: expect.any(Date),
+        })
+      );
+
+      // Creator was notified
+      expect(sendNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'user-1',
+          title: 'Ticket resolved',
+        })
+      );
+    });
+
+    it('sets closedAt when status is closed', async () => {
+      const ctx = createMockCtx();
+      ctx.db.select.mockImplementation(() => {
+        const limitMock = vi.fn().mockResolvedValue([{ userId: 'user-1', subject: 'Issue' }]);
+        const whereMock = vi.fn().mockReturnValue({ limit: limitMock });
+        const fromMock = vi.fn().mockReturnValue({ where: whereMock });
+        return { from: fromMock };
+      });
+
+      const caller = supportRouter.createCaller(ctx as never);
+      await caller.changeStatus({
+        ticketId: TICKET_UUID,
+        status: 'closed',
+      });
+
+      expect(ctx.db._chains.update.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'closed',
+          closedAt: expect.any(Date),
+        })
+      );
+    });
+  });
+
+  // =========================================================================
+  // assign
+  // =========================================================================
+  describe('assign', () => {
+    it('updates assignedTo', async () => {
+      const ctx = createMockCtx();
+      const caller = supportRouter.createCaller(ctx as never);
+      const result = await caller.assign({
+        ticketId: TICKET_UUID,
+        assignedTo: ADMIN_UUID,
+      });
+
+      expect(result).toEqual({ success: true });
+      expect(ctx.db.update).toHaveBeenCalled();
+      expect(ctx.db._chains.update.set).toHaveBeenCalledWith(
+        expect.objectContaining({ assignedTo: ADMIN_UUID })
+      );
+
+      // logAudit called
+      expect(logAudit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          action: 'support.assign',
+          entityType: 'ticket',
+          entityId: TICKET_UUID,
+          metadata: { assignedTo: ADMIN_UUID },
+        })
+      );
+    });
+
+    it('allows setting assignedTo to null', async () => {
+      const ctx = createMockCtx();
+      const caller = supportRouter.createCaller(ctx as never);
+      const result = await caller.assign({
+        ticketId: TICKET_UUID,
+        assignedTo: null,
+      });
+
+      expect(result).toEqual({ success: true });
+      expect(ctx.db._chains.update.set).toHaveBeenCalledWith(
+        expect.objectContaining({ assignedTo: null })
+      );
+    });
+  });
+
+  // =========================================================================
+  // getStats
+  // =========================================================================
+  describe('getStats', () => {
+    it('returns counts by status', async () => {
+      const ctx = createMockCtx();
+      const statusRows = [
+        { status: 'open', count: 5 },
+        { status: 'awaiting_admin', count: 3 },
+        { status: 'closed', count: 10 },
+      ];
+      // getStats: select().from().groupBy() — groupBy resolves
+      ctx.db.select.mockImplementation(() => {
+        const groupByMock = vi.fn().mockResolvedValue(statusRows);
+        const fromMock = vi.fn().mockReturnValue({ groupBy: groupByMock });
+        return { from: fromMock };
+      });
+
+      const caller = supportRouter.createCaller(ctx as never);
+      const result = await caller.getStats();
+
+      expect(result).toEqual({
+        total: 18,
+        open: 5,
+        awaiting_admin: 3,
+        closed: 10,
+      });
+    });
+
+    it('returns total=0 when no tickets exist', async () => {
+      const ctx = createMockCtx();
+      ctx.db.select.mockImplementation(() => {
+        const groupByMock = vi.fn().mockResolvedValue([]);
+        const fromMock = vi.fn().mockReturnValue({ groupBy: groupByMock });
+        return { from: fromMock };
+      });
+
+      const caller = supportRouter.createCaller(ctx as never);
+      const result = await caller.getStats();
+
+      expect(result).toEqual({ total: 0 });
+    });
+  });
+});

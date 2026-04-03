@@ -206,10 +206,15 @@ export const usersRouter = createTRPCRouter({
 
   /** GDPR: anonymize a user (delete PII, ban account) */
   gdprAnonymize: usersProcedure
-    .input(z.object({ id: z.string() }))
+    .input(
+      z.object({
+        id: z.string(),
+        mode: z.enum(['full', 'pseudonymize']).default('full'),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       try {
-        await anonymizeUser(ctx.db, input.id, ctx.session.user.id);
+        await anonymizeUser(ctx.db, input.id, ctx.session.user.id, input.mode);
         return { success: true };
       } catch (err) {
         throw new TRPCError({

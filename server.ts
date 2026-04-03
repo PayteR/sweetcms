@@ -72,6 +72,46 @@ async function main() {
     startEmailWorker();
     startContentWorker();
     console.log('BullMQ workers ready (email + content workers started)');
+
+    // Schedule dunning checks (daily)
+    const { getRedis } = await import('./src/engine/lib/redis');
+    const redis = getRedis();
+    if (redis) {
+      const { createQueue, createWorker } = await import('./src/server/jobs/queue');
+      const dunningQueue = createQueue('dunning');
+      if (dunningQueue) {
+        await dunningQueue.add('check', {}, {
+          repeat: { pattern: '0 8 * * *' }, // Daily at 8 AM
+        });
+        createWorker('dunning', async () => {
+          const { runDunningChecks } = await import('./src/server/lib/payment/dunning');
+          await runDunningChecks();
+        });
+        console.log('Dunning worker ready (daily at 8 AM)');
+      }
+    } else {
+      const { startDbQueueWorker } = await import('./src/server/jobs/db-queue');
+      const { enqueueTask } = await import('./src/server/jobs/db-queue');
+      await enqueueTask('dunning', { action: 'check' });
+      startDbQueueWorker('dunning', async () => {
+        const { runDunningChecks } = await import('./src/server/lib/payment/dunning');
+        await runDunningChecks();
+        // Re-enqueue for next day
+        await enqueueTask('dunning', { action: 'check' }, {
+          runAfter: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        });
+      }, 60_000);
+      console.log('Dunning DB queue worker ready');
+    }
+
+    // Recover stale DB queue tasks on startup
+    try {
+      const { recoverStaleTasks } = await import('./src/server/jobs/db-queue');
+      const recovered = await recoverStaleTasks();
+      if (recovered > 0) console.log(`Recovered ${recovered} stale DB queue tasks`);
+    } catch {
+      // DB queue table may not exist yet
+    }
   }
 
   // Initialize WebSocket server

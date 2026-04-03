@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { User, Settings, Shield, CreditCard } from 'lucide-react';
+import { User, Settings, Shield, CreditCard, LifeBuoy, Link2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { accountRoutes } from '@/config/routes';
 
@@ -11,6 +11,8 @@ const NAV_ITEMS = [
   { href: accountRoutes.settings, label: 'Settings', icon: Settings },
   { href: accountRoutes.security, label: 'Security', icon: Shield },
   { href: accountRoutes.billing, label: 'Billing', icon: CreditCard },
+  { href: accountRoutes.support, label: 'Support', icon: LifeBuoy },
+  { href: accountRoutes.affiliates, label: 'Affiliates', icon: Link2 },
 ];
 
 export function AccountSidebar() {
