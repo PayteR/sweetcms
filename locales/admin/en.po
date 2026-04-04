@@ -2418,6 +2418,15 @@ msgstr "Configure panels"
 msgid "Editor Layout"
 msgstr "Editor Layout"
 
+msgid "Move to sidebar"
+msgstr "Move to sidebar"
+
+msgid "Move to content"
+msgstr "Move to content"
+
+msgid "No panels"
+msgstr "No panels"
+
 #: src/components/admin/QuickActionsWidget.tsx:20
 msgid "Quick Actions"
 msgstr "Quick Actions"
@@ -3241,8 +3250,8 @@ msgid "SEO Title"
 msgstr "SEO Title"
 
 #: src/engine/components/SEOFields.tsx:33
-msgid "Optional SEO title for <title> tag"
-msgstr "Optional SEO title for <title> tag"
+msgid "Optional SEO title for {titleTag} tag"
+msgstr "Optional SEO title for {titleTag} tag"
 
 #: src/engine/components/SEOFields.tsx:40
 msgid "Falls back to Title if empty"

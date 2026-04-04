@@ -17,19 +17,17 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Eye, EyeOff, Settings2 } from 'lucide-react';
+import { GripVertical, Eye, EyeOff, Settings2, ArrowRight } from 'lucide-react';
 
 import { useBlankTranslations } from '@/lib/translations';
 import { cn } from '@/lib/utils';
 import { SlideOver } from '@/engine/components/SlideOver';
 import { usePreferencesStore } from '@/engine/store/preferences-store';
 import {
-  MAIN_PANELS,
-  SIDEBAR_PANELS,
+  ALL_PANELS,
   DEFAULT_MAIN_ORDER,
   DEFAULT_SIDEBAR_ORDER,
   DEFAULT_HIDDEN_PANELS,
-  type PostFormPanelDef,
 } from '@/config/post-form-panels';
 
 // ── Sortable panel row ───────────────────────────────────────
@@ -38,11 +36,15 @@ function SortablePanelRow({
   label,
   isHidden,
   onToggle,
+  onMoveColumn,
+  moveLabel,
 }: {
   id: string;
   label: string;
   isHidden: boolean;
   onToggle: () => void;
+  onMoveColumn: () => void;
+  moveLabel: string;
 }) {
   const {
     attributes,
@@ -91,6 +93,15 @@ function SortablePanelRow({
 
       <button
         type="button"
+        onClick={onMoveColumn}
+        className="rounded-md p-1 text-(--text-muted) hover:bg-(--surface-inset) hover:text-(--text-primary)"
+        title={moveLabel}
+      >
+        <ArrowRight className="h-3.5 w-3.5" />
+      </button>
+
+      <button
+        type="button"
         onClick={onToggle}
         className="rounded-md p-1 text-(--text-muted) hover:bg-(--surface-inset) hover:text-(--text-primary)"
         title={isHidden ? __('Show panel') : __('Hide panel')}
@@ -104,23 +115,25 @@ function SortablePanelRow({
 // ── Panel group (one DnD context per column) ──────────────────
 function PanelGroup({
   title,
-  panels,
   orderedIds,
   hiddenPanels,
   preferenceKey,
   onToggle,
+  onMoveColumn,
+  moveLabel,
   __,
 }: {
   title: string;
-  panels: PostFormPanelDef[];
   orderedIds: string[];
   hiddenPanels: string[];
   preferenceKey: 'postForm.mainPanelOrder' | 'postForm.sidebarPanelOrder';
   onToggle: (id: string) => void;
+  onMoveColumn: (id: string) => void;
+  moveLabel: string;
   __: (s: string) => string;
 }) {
   const setPreference = usePreferencesStore((s) => s.set);
-  const panelMap = Object.fromEntries(panels.map((p) => [p.id, p]));
+  const panelMap = Object.fromEntries(ALL_PANELS.map((p) => [p.id, p]));
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -150,6 +163,11 @@ function PanelGroup({
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext items={orderedIds} strategy={verticalListSortingStrategy}>
           <div className="flex flex-col gap-2">
+            {orderedIds.length === 0 && (
+              <div className="rounded-lg border border-dashed border-(--border-secondary) px-3 py-4 text-center text-xs text-(--text-muted)">
+                {__('No panels')}
+              </div>
+            )}
             {orderedIds.map((id) => {
               const panel = panelMap[id];
               if (!panel) return null;
@@ -160,6 +178,8 @@ function PanelGroup({
                   label={__(panel.label)}
                   isHidden={hiddenPanels.includes(id)}
                   onToggle={() => onToggle(id)}
+                  onMoveColumn={() => onMoveColumn(id)}
+                  moveLabel={moveLabel}
                 />
               );
             })}
@@ -183,17 +203,16 @@ function PostFormConfigPanel({ __ }: { __: (s: string) => string }) {
   );
   const setPreference = usePreferencesStore((s) => s.set);
 
-  // Build ordered lists — include any panels not in saved order at the end
-  const mainIds = MAIN_PANELS.map((p) => p.id);
-  const sidebarIds = SIDEBAR_PANELS.map((p) => p.id);
+  // Build effective ordered lists
+  const allIds = ALL_PANELS.map((p) => p.id);
 
   const effectiveMainOrder = [
-    ...mainOrder.filter((id) => mainIds.includes(id)),
-    ...mainIds.filter((id) => !mainOrder.includes(id)),
+    ...mainOrder.filter((id) => allIds.includes(id)),
+    ...DEFAULT_MAIN_ORDER.filter((id) => !mainOrder.includes(id) && !sidebarOrder.includes(id)),
   ];
   const effectiveSidebarOrder = [
-    ...sidebarOrder.filter((id) => sidebarIds.includes(id)),
-    ...sidebarIds.filter((id) => !sidebarOrder.includes(id)),
+    ...sidebarOrder.filter((id) => allIds.includes(id)),
+    ...DEFAULT_SIDEBAR_ORDER.filter((id) => !sidebarOrder.includes(id) && !mainOrder.includes(id)),
   ];
 
   function togglePanel(id: string) {
@@ -206,6 +225,20 @@ function PostFormConfigPanel({ __ }: { __: (s: string) => string }) {
     setPreference('postForm.hiddenPanels', [...current]);
   }
 
+  function moveToSidebar(id: string) {
+    const newMain = effectiveMainOrder.filter((i) => i !== id);
+    const newSidebar = [...effectiveSidebarOrder.filter((i) => i !== id), id];
+    setPreference('postForm.mainPanelOrder', newMain);
+    setPreference('postForm.sidebarPanelOrder', newSidebar);
+  }
+
+  function moveToMain(id: string) {
+    const newSidebar = effectiveSidebarOrder.filter((i) => i !== id);
+    const newMain = [...effectiveMainOrder.filter((i) => i !== id), id];
+    setPreference('postForm.mainPanelOrder', newMain);
+    setPreference('postForm.sidebarPanelOrder', newSidebar);
+  }
+
   return (
     <>
       <p className="mb-4 text-sm text-(--text-secondary)">
@@ -215,20 +248,22 @@ function PostFormConfigPanel({ __ }: { __: (s: string) => string }) {
       <div className="space-y-6">
         <PanelGroup
           title={__('Content Panels')}
-          panels={MAIN_PANELS}
           orderedIds={effectiveMainOrder}
           hiddenPanels={hiddenPanels}
           preferenceKey="postForm.mainPanelOrder"
           onToggle={togglePanel}
+          onMoveColumn={moveToSidebar}
+          moveLabel={__('Move to sidebar')}
           __={__}
         />
         <PanelGroup
           title={__('Sidebar Panels')}
-          panels={SIDEBAR_PANELS}
           orderedIds={effectiveSidebarOrder}
           hiddenPanels={hiddenPanels}
           preferenceKey="postForm.sidebarPanelOrder"
           onToggle={togglePanel}
+          onMoveColumn={moveToMain}
+          moveLabel={__('Move to content')}
           __={__}
         />
       </div>

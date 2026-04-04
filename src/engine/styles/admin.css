@@ -60,9 +60,14 @@
    *
    * Uncomment or add overrides as needed:
    *   .dashboard-shell-content[data-section~="cms"]    { --content-max-width: 90rem; }
-   *   .dashboard-shell-content[data-section~="edit"]   { --content-max-width: 60rem; }
    *   .dashboard-shell-content[data-section~="media"]  { --content-max-width: 100%; }
    */
+
+  /* When a form shell is present, remove the shell's max-width constraint so the
+     sticky toolbar can span edge to edge. The form body's own max-w handles centering. */
+  .dashboard-shell-content:has(> .form-shell) {
+    --content-max-width: 100%;
+  }
 
   /* ===================== Cards ===================== */
   .card {
@@ -567,6 +572,7 @@
     border: 1px solid var(--border-primary);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-lg);
+    overflow: hidden;
   }
 
   .dialog-header {

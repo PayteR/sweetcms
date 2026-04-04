@@ -30,7 +30,7 @@ export function SEOFields({
           type="text"
           value={seoTitle}
           onChange={(e) => onSeoTitleChange(e.target.value)}
-          placeholder={__('Optional SEO title for <title> tag')}
+          placeholder={__('Optional SEO title for {titleTag} tag', { titleTag: '<title>' })}
           maxLength={255}
           className={cn('input', fieldErrors?.seoTitle && '!border-red-500 focus:!border-red-500')}
         />

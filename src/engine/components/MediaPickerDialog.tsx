@@ -177,6 +177,7 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
       open={open}
       onClose={handleClose}
       size="5xl"
+      zoomFromClick
       className="max-w-7xl! h-[calc(100vh-80px)]"
     >
       {/* Header */}

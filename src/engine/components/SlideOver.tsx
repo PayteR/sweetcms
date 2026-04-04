@@ -1,6 +1,7 @@
 'use client';
 
 import type { ReactNode, RefObject } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -70,7 +71,7 @@ export function SlideOver({
     ? { ...ADMIN_CLASSES, ...classNames }
     : ADMIN_CLASSES;
 
-  return (
+  const slideOver = (
     <div
       className={cn('overlay-slide-over', animateOpen && 'overlay-slide-over-open')}
       role="dialog"
@@ -111,4 +112,9 @@ export function SlideOver({
       </div>
     </div>
   );
+
+  if (typeof document !== 'undefined') {
+    return createPortal(slideOver, document.body);
+  }
+  return slideOver;
 }

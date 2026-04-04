@@ -6,11 +6,15 @@ import { ArrowLeft, Save, Eye, Loader2, ImageIcon, X, History } from 'lucide-rea
 import {
   DndContext,
   closestCenter,
+  pointerWithin,
+  rectIntersection,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
+  useDroppable,
   type DragEndEvent,
+  type DragOverEvent,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -20,8 +24,7 @@ import {
 
 import type { ContentTypeDeclaration } from '@/config/cms';
 import {
-  MAIN_PANELS,
-  SIDEBAR_PANELS,
+  ALL_PANELS,
   DEFAULT_MAIN_ORDER,
   DEFAULT_SIDEBAR_ORDER,
   DEFAULT_HIDDEN_PANELS,
@@ -62,6 +65,26 @@ import { PostFormConfig } from './PostFormConfig';
 
 /** Panels that render their own .card wrapper — use SortableFormWrapper (no double-card) */
 const SELF_WRAPPING_PANELS = new Set(['seo-preview', 'custom-fields']);
+
+/** Droppable container for main column panels */
+function MainDroppable({ children }: { children: React.ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({ id: 'main-droppable' });
+  return (
+    <div ref={setNodeRef} className={isOver ? 'min-h-16' : ''}>
+      {children}
+    </div>
+  );
+}
+
+/** Droppable container for sidebar panels */
+function SidebarDroppable({ children }: { children: React.ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({ id: 'sidebar-droppable' });
+  return (
+    <div ref={setNodeRef} className={isOver ? 'min-h-16' : ''}>
+      {children}
+    </div>
+  );
+}
 
 interface PostFormData extends Record<string, unknown> {
   title: string;
@@ -345,10 +368,10 @@ export function PostForm({ contentType, postId }: Props) {
   }
 
   // ── Panel preferences ───────────────────────────────────────
-  const mainPanelOrder = usePreferencesStore((s) =>
+  const savedMainOrder = usePreferencesStore((s) =>
     (s.data['postForm.mainPanelOrder'] as string[] | undefined) ?? DEFAULT_MAIN_ORDER,
   );
-  const sidebarPanelOrder = usePreferencesStore((s) =>
+  const savedSidebarOrder = usePreferencesStore((s) =>
     (s.data['postForm.sidebarPanelOrder'] as string[] | undefined) ?? DEFAULT_SIDEBAR_ORDER,
   );
   const hiddenPanels = usePreferencesStore((s) =>
@@ -361,53 +384,125 @@ export function PostForm({ contentType, postId }: Props) {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
-  // Build ordered panel IDs, filtering hidden ones
-  const mainAllIds = MAIN_PANELS.map((p) => p.id);
-  const orderedMainIds = [
-    ...mainPanelOrder.filter((id) => mainAllIds.includes(id)),
-    ...mainAllIds.filter((id) => !mainPanelOrder.includes(id)),
-  ].filter((id) => !hiddenPanels.includes(id));
+  // All panel IDs
+  const allPanelIds = useMemo(() => ALL_PANELS.map((p) => p.id), []);
 
-  const sidebarAllIds = SIDEBAR_PANELS.map((p) => p.id);
-  const orderedSidebarIds = [
-    ...sidebarPanelOrder.filter((id) => sidebarAllIds.includes(id)),
-    ...sidebarAllIds.filter((id) => !sidebarPanelOrder.includes(id)),
-  ].filter((id) => !hiddenPanels.includes(id));
-
-  function handleMainDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const fullOrder = [
-      ...mainPanelOrder.filter((id) => mainAllIds.includes(id)),
-      ...mainAllIds.filter((id) => !mainPanelOrder.includes(id)),
+  // Build ordered lists from saved preferences
+  function buildOrdered(saved: string[], defaults: string[]) {
+    return [
+      ...saved.filter((id) => allPanelIds.includes(id)),
+      ...defaults.filter((id) => !saved.includes(id)),
     ];
-    const oldIdx = fullOrder.indexOf(active.id as string);
-    const newIdx = fullOrder.indexOf(over.id as string);
-    if (oldIdx === -1 || newIdx === -1) return;
-    const newOrder = [...fullOrder];
-    newOrder.splice(oldIdx, 1);
-    newOrder.splice(newIdx, 0, active.id as string);
-    setPreference('postForm.mainPanelOrder', newOrder);
   }
 
-  function handleSidebarDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (!over || active.id === over.id) return;
-    const fullOrder = [
-      ...sidebarPanelOrder.filter((id) => sidebarAllIds.includes(id)),
-      ...sidebarAllIds.filter((id) => !sidebarPanelOrder.includes(id)),
-    ];
-    const oldIdx = fullOrder.indexOf(active.id as string);
-    const newIdx = fullOrder.indexOf(over.id as string);
-    if (oldIdx === -1 || newIdx === -1) return;
-    const newOrder = [...fullOrder];
-    newOrder.splice(oldIdx, 1);
-    newOrder.splice(newIdx, 0, active.id as string);
-    setPreference('postForm.sidebarPanelOrder', newOrder);
+  // Single state object for both columns — atomic updates prevent race conditions during drag
+  type Columns = { main: string[]; sidebar: string[] };
+  const [columns, setColumns] = useState<Columns>(() => ({
+    main: buildOrdered(savedMainOrder, DEFAULT_MAIN_ORDER),
+    sidebar: buildOrdered(savedSidebarOrder, DEFAULT_SIDEBAR_ORDER),
+  }));
+
+  // Sync from preferences when changed externally (e.g. config panel)
+  useEffect(() => {
+    setColumns({
+      main: buildOrdered(savedMainOrder, DEFAULT_MAIN_ORDER),
+      sidebar: buildOrdered(savedSidebarOrder, DEFAULT_SIDEBAR_ORDER),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [savedMainOrder, savedSidebarOrder]);
+
+  // Visible panels (filter hidden)
+  const visibleMainIds = columns.main.filter((id) => !hiddenPanels.includes(id));
+  const visibleSidebarIds = columns.sidebar.filter((id) => !hiddenPanels.includes(id));
+
+  // Find which container an item is in (reads from latest state via setter)
+  function findContainerIn(cols: Columns, id: string): 'main' | 'sidebar' | null {
+    if (cols.main.includes(id)) return 'main';
+    if (cols.sidebar.includes(id)) return 'sidebar';
+    return null;
   }
 
-  // ── Panel renderers (main column) ──────────────────────────
-  const mainPanelRenderers: Record<string, () => React.ReactNode> = {
+  function resolveOverContainer(cols: Columns, overId: string): 'main' | 'sidebar' | null {
+    if (overId === 'main-droppable') return 'main';
+    if (overId === 'sidebar-droppable') return 'sidebar';
+    return findContainerIn(cols, overId);
+  }
+
+  function handleDragOver(event: DragOverEvent) {
+    const { active, over } = event;
+    if (!over) return;
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    setColumns((prev) => {
+      const activeContainer = findContainerIn(prev, activeId);
+      const overContainer = resolveOverContainer(prev, overId);
+      if (!activeContainer || !overContainer || activeContainer === overContainer) return prev;
+
+      const sourceList = prev[activeContainer].filter((id) => id !== activeId);
+      const targetList = [...prev[overContainer]];
+
+      // Insert at the position of the hovered item, or at the end
+      const overIdx = targetList.indexOf(overId);
+      if (overIdx >= 0) {
+        targetList.splice(overIdx, 0, activeId);
+      } else {
+        targetList.push(activeId);
+      }
+
+      return {
+        ...prev,
+        [activeContainer]: sourceList,
+        [overContainer]: targetList,
+      };
+    });
+  }
+
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over) return;
+    const activeId = active.id as string;
+    const overId = over.id as string;
+
+    setColumns((prev) => {
+      const activeContainer = findContainerIn(prev, activeId);
+      if (!activeContainer) return prev;
+
+      // Same-container reorder
+      if (overId !== 'main-droppable' && overId !== 'sidebar-droppable') {
+        const overContainer = findContainerIn(prev, overId);
+        if (overContainer === activeContainer) {
+          const list = [...prev[activeContainer]];
+          const oldIdx = list.indexOf(activeId);
+          const newIdx = list.indexOf(overId);
+          if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
+            list.splice(oldIdx, 1);
+            list.splice(newIdx, 0, activeId);
+            return { ...prev, [activeContainer]: list };
+          }
+        }
+      }
+      return prev;
+    });
+
+    // Persist — read latest via setter to avoid stale closure
+    setColumns((final) => {
+      setPreference('postForm.mainPanelOrder', final.main);
+      setPreference('postForm.sidebarPanelOrder', final.sidebar);
+      return final;
+    });
+  }
+
+  // Custom collision detection: try pointer-within first (for droppable containers),
+  // then closest-center (for sortable items within)
+  const collisionDetection = useCallback((args: Parameters<typeof closestCenter>[0]) => {
+    const pointerCollisions = pointerWithin(args);
+    if (pointerCollisions.length > 0) return pointerCollisions;
+    return rectIntersection(args);
+  }, []);
+
+  // ── Panel renderers (all panels — any can be in either column) ──
+  const panelRenderers: Record<string, () => React.ReactNode> = {
     seo: () => (
       <SEOFields
         seoTitle={formData.seoTitle}
@@ -446,10 +541,7 @@ export function PostForm({ contentType, postId }: Props) {
           placeholder='{"@context": "https://schema.org", ...}'
         />
       ) : null,
-  };
-
-  // ── Panel renderers (sidebar) ──────────────────────────────
-  const sidebarPanelRenderers: Record<string, () => React.ReactNode> = {
+    // ── Sidebar panels ──
     language: () => (
       <div className="space-y-4">
         {post && translationSiblings.data ? (
@@ -603,14 +695,14 @@ export function PostForm({ contentType, postId }: Props) {
 
   // Panel label lookup
   const panelLabels: Record<string, string> = Object.fromEntries(
-    [...MAIN_PANELS, ...SIDEBAR_PANELS].map((p) => [p.id, __(p.label)]),
+    ALL_PANELS.map((p) => [p.id, __(p.label)]),
   );
 
   // Panels that render their own .card wrapper — use SortableFormWrapper (no double-card)
 
   // ── Render a sortable panel by ID ──────────────────────────
-  function renderSortablePanel(id: string, renderers: Record<string, () => React.ReactNode>) {
-    const render = renderers[id];
+  function renderSortablePanel(id: string) {
+    const render = panelRenderers[id];
     if (!render) return null;
     const content = render();
     if (content === null) return null;
@@ -710,6 +802,12 @@ export function PostForm({ contentType, postId }: Props) {
       <BrokenLinksBanner urls={brokenLinks} onDismiss={dismissBrokenLinks} />
 
       <form id="post-form" onSubmit={handleSubmit}>
+       <DndContext
+         sensors={dndSensors}
+         collisionDetection={collisionDetection}
+         onDragOver={handleDragOver}
+         onDragEnd={handleDragEnd}
+       >
         <div className="post-form-layout grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* Main content — 2/3 */}
           <div className="post-form-main space-y-6 lg:col-span-2">
@@ -764,14 +862,14 @@ export function PostForm({ contentType, postId }: Props) {
               }}
             />
 
-            {/* Sortable main panels */}
-            <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={handleMainDragEnd}>
-              <SortableContext items={orderedMainIds} strategy={verticalListSortingStrategy}>
+            {/* Sortable main panels (droppable target for cross-column) */}
+            <MainDroppable>
+              <SortableContext items={visibleMainIds} strategy={verticalListSortingStrategy}>
                 <div className="space-y-6">
-                  {orderedMainIds.map((id) => renderSortablePanel(id, mainPanelRenderers))}
+                  {visibleMainIds.map((id) => renderSortablePanel(id))}
                 </div>
               </SortableContext>
-            </DndContext>
+            </MainDroppable>
           </div>
 
           {/* Sidebar — 1/3 */}
@@ -825,16 +923,17 @@ export function PostForm({ contentType, postId }: Props) {
               </div>
             </FormPanel>
 
-            {/* Sortable sidebar panels */}
-            <DndContext sensors={dndSensors} collisionDetection={closestCenter} onDragEnd={handleSidebarDragEnd}>
-              <SortableContext items={orderedSidebarIds} strategy={verticalListSortingStrategy}>
+            {/* Sortable sidebar panels (droppable target for cross-column) */}
+            <SidebarDroppable>
+              <SortableContext items={visibleSidebarIds} strategy={verticalListSortingStrategy}>
                 <div className="space-y-6">
-                  {orderedSidebarIds.map((id) => renderSortablePanel(id, sidebarPanelRenderers))}
+                  {visibleSidebarIds.map((id) => renderSortablePanel(id))}
                 </div>
               </SortableContext>
-            </DndContext>
+            </SidebarDroppable>
           </div>
         </div>
+       </DndContext>
       </form>
 
       {/* Revisions Dialog */}
