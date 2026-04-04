@@ -17,6 +17,7 @@ import {
   X,
 } from 'lucide-react';
 
+import Image from 'next/image';
 import { trpc } from '@/lib/trpc/client';
 import { useAdminTranslations } from '@/lib/translations';
 import { Role, ROLES } from '@/engine/policy';
@@ -242,10 +243,13 @@ export default function UsersPage() {
                       <td className="td">
                         <div className="users-cell flex items-center gap-3">
                           {u.image ? (
-                            <img
+                            <Image
                               src={u.image}
                               alt=""
-                              className="h-8 w-8 rounded-full object-cover"
+                              width={32}
+                              height={32}
+                              className="rounded-full object-cover"
+                              unoptimized
                             />
                           ) : (
                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-(--border-primary) text-xs font-medium text-(--text-secondary)">

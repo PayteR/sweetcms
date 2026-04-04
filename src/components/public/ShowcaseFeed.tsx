@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { ChevronDown, ChevronUp, Play } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -69,10 +70,11 @@ function VideoCard({ item, isActive }: { item: ShowcaseItem; isActive: boolean }
       ) : (
         <div className="relative flex h-full w-full items-center justify-center">
           {item.thumbnailUrl ? (
-            <img
+            <Image
               src={item.thumbnailUrl}
               alt={item.title}
-              className="absolute inset-0 h-full w-full object-cover"
+              fill
+              className="object-cover"
             />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-(--color-brand-900) to-(--color-accent-900)" />
@@ -91,10 +93,11 @@ function ImageCard({ item }: { item: ShowcaseItem }) {
   return (
     <div className="relative flex h-full w-full items-center justify-center">
       {item.mediaUrl ? (
-        <img
+        <Image
           src={item.mediaUrl}
           alt={item.title}
-          className="absolute inset-0 h-full w-full object-cover"
+          fill
+          className="object-cover"
         />
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-(--color-brand-800) to-(--color-accent-800)" />

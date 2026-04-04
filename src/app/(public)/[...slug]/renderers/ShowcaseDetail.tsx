@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { ShortcodeRenderer } from '@/engine/components/ShortcodeRenderer';
 import { SHORTCODE_COMPONENTS } from '@/config/shortcodes';
 import { getLocale } from '@/lib/locale-server';
@@ -33,12 +34,14 @@ export async function ShowcaseDetail({ slug, preview }: Props) {
       )}
 
       {item.cardType === 'image' && item.mediaUrl && (
-        <img
-          src={item.mediaUrl}
-          alt={item.title}
-          className="mb-8 w-full rounded-lg object-cover"
-          style={{ maxHeight: '400px' }}
-        />
+        <div className="relative mb-8 w-full" style={{ maxHeight: '400px', height: '400px' }}>
+          <Image
+            src={item.mediaUrl}
+            alt={item.title}
+            fill
+            className="rounded-lg object-cover"
+          />
+        </div>
       )}
 
       <h1 className="text-3xl font-bold text-(--text-primary) sm:text-4xl">

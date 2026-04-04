@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useSession, signOut } from '@/lib/auth-client';
 import { User, Settings, Shield, CreditCard, LogOut } from 'lucide-react';
@@ -62,10 +63,13 @@ export function UserMenu() {
         )}
       >
         {userImage ? (
-          <img
+          <Image
             src={userImage}
             alt=""
+            width={32}
+            height={32}
             className="w-8 h-8 rounded-full object-cover"
+            unoptimized
           />
         ) : (
           <div className="w-8 h-8 rounded-full bg-(--color-brand-500) flex items-center justify-center text-white text-sm font-medium">

@@ -8,12 +8,12 @@ import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
 import { sendNotification, sendOrgNotification } from '@/server/lib/notifications';
 import { NotificationType, NotificationCategory } from '@/engine/types/notifications';
 import { resolveOrgId } from '@/server/lib/resolve-org';
-import { chatConfig } from '@/config/chat';
+import { supportChatConfig } from '@/config/support-chat';
 import { createLogger } from '@/engine/lib/logger';
 import { getRedis } from '@/engine/lib/redis';
 import { checkRateLimit } from '@/engine/lib/rate-limit';
 
-const logger = createLogger('chat');
+const logger = createLogger('support-chat');
 
 /** Stricter rate limit for chat messages: 20 per minute per IP */
 const CHAT_RATE_LIMIT = { windowMs: 60_000, maxRequests: 20 };
@@ -21,7 +21,7 @@ const CHAT_RATE_LIMIT = { windowMs: 60_000, maxRequests: 20 };
 async function applyChatRateLimit(headers: Headers): Promise<void> {
   const redis = getRedis();
   const ip = headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
-  const result = await checkRateLimit(redis, `rl:chat:${ip}`, CHAT_RATE_LIMIT);
+  const result = await checkRateLimit(redis, `rl:supportChat:${ip}`, CHAT_RATE_LIMIT);
   if (!result.allowed) {
     throw new TRPCError({
       code: 'TOO_MANY_REQUESTS',
@@ -35,9 +35,9 @@ const DEFAULT_MODEL = 'gpt-4o-mini';
 const ESCALATE_PREFIX = '[ESCALATE]';
 
 /** Fire-and-forget WS broadcast */
-function broadcastChatEvent(sessionId: string, type: string, payload: Record<string, unknown>): void {
+function broadcastSupportChatEvent(sessionId: string, type: string, payload: Record<string, unknown>): void {
   import('@/server/lib/ws')
-    .then(({ broadcastToChannel }) => broadcastToChannel(`chat:${sessionId}`, type, { ...payload, type }))
+    .then(({ broadcastToChannel }) => broadcastToChannel(`supportChat:${sessionId}`, type, { ...payload, type }))
     .catch(() => {/* WS not available */});
 }
 
@@ -47,10 +47,10 @@ async function callAI(messages: { role: string; body: string }[]): Promise<strin
   if (!env.AI_API_KEY) return null;
 
   const apiUrl = env.AI_API_URL ?? DEFAULT_API_URL;
-  const model = chatConfig.model ?? env.AI_MODEL ?? DEFAULT_MODEL;
+  const model = supportChatConfig.model ?? env.AI_MODEL ?? DEFAULT_MODEL;
 
   const apiMessages = [
-    { role: 'system', content: chatConfig.systemPrompt },
+    { role: 'system', content: supportChatConfig.systemPrompt },
     ...messages.map((m) => ({
       role: m.role === 'ai' ? 'assistant' : 'user',
       content: m.body,
@@ -97,13 +97,13 @@ async function processAiResponse(db: typeof import('@/server/db').db, sessionId:
     .from(saasSupportChatMessages)
     .where(eq(saasSupportChatMessages.sessionId, sessionId));
 
-  if ((msgCount?.count ?? 0) >= chatConfig.maxMessagesBeforeEscalation) {
+  if ((msgCount?.count ?? 0) >= supportChatConfig.maxMessagesBeforeEscalation) {
     await db
       .update(saasSupportChatSessions)
       .set({ status: 'escalated' })
       .where(eq(saasSupportChatSessions.id, sessionId));
 
-    broadcastChatEvent(sessionId, 'chat_status', { sessionId, status: 'escalated' });
+    broadcastSupportChatEvent(sessionId, 'chat_status', { sessionId, status: 'escalated' });
     return;
   }
 
@@ -120,7 +120,7 @@ async function processAiResponse(db: typeof import('@/server/db').db, sessionId:
 
   const shouldEscalate = aiText.startsWith(ESCALATE_PREFIX);
   const cleanAiText = shouldEscalate
-    ? aiText.slice(ESCALATE_PREFIX.length).trim() || chatConfig.escalationMessage
+    ? aiText.slice(ESCALATE_PREFIX.length).trim() || supportChatConfig.escalationMessage
     : aiText;
 
   // Store AI message
@@ -135,7 +135,7 @@ async function processAiResponse(db: typeof import('@/server/db').db, sessionId:
   });
 
   // Broadcast AI message via WS
-  broadcastChatEvent(sessionId, 'chat_message', {
+  broadcastSupportChatEvent(sessionId, 'chat_message', {
     id: aiMsgId,
     sessionId,
     role: 'ai',
@@ -149,13 +149,13 @@ async function processAiResponse(db: typeof import('@/server/db').db, sessionId:
       .set({ status: 'escalated' })
       .where(eq(saasSupportChatSessions.id, sessionId));
 
-    broadcastChatEvent(sessionId, 'chat_status', { sessionId, status: 'escalated' });
+    broadcastSupportChatEvent(sessionId, 'chat_status', { sessionId, status: 'escalated' });
   }
 }
 
-const chatAdminProcedure = sectionProcedure('settings');
+const supportChatAdminProcedure = sectionProcedure('settings');
 
-export const chatRouter = createTRPCRouter({
+export const supportChatRouter = createTRPCRouter({
   // ─── Public procedures ──────────────────────────────────────────────────────
 
   /** Start or resume a chat session */
@@ -272,7 +272,7 @@ export const chatRouter = createTRPCRouter({
       });
 
       // Broadcast user message via WS (for admin monitoring)
-      broadcastChatEvent(input.sessionId, 'chat_message', {
+      broadcastSupportChatEvent(input.sessionId, 'chat_message', {
         id: userMsgId,
         sessionId: input.sessionId,
         role: 'user',
@@ -414,7 +414,7 @@ export const chatRouter = createTRPCRouter({
           actionUrl: `/dashboard/settings/support/${ticketId}`,
         });
 
-        broadcastChatEvent(input.sessionId, 'chat_status', {
+        broadcastSupportChatEvent(input.sessionId, 'chat_status', {
           sessionId: input.sessionId,
           status: 'escalated',
           ticketId,
@@ -433,7 +433,7 @@ export const chatRouter = createTRPCRouter({
         .set({ status: 'escalated', email: input.email, subject })
         .where(eq(saasSupportChatSessions.id, input.sessionId));
 
-      broadcastChatEvent(input.sessionId, 'chat_status', {
+      broadcastSupportChatEvent(input.sessionId, 'chat_status', {
         sessionId: input.sessionId,
         status: 'escalated',
       });
@@ -495,7 +495,7 @@ export const chatRouter = createTRPCRouter({
         .set({ status: 'closed', closedAt: new Date() })
         .where(eq(saasSupportChatSessions.id, input.sessionId));
 
-      broadcastChatEvent(input.sessionId, 'chat_status', {
+      broadcastSupportChatEvent(input.sessionId, 'chat_status', {
         sessionId: input.sessionId,
         status: 'closed',
       });
@@ -506,7 +506,7 @@ export const chatRouter = createTRPCRouter({
   // ─── Admin procedures ───────────────────────────────────────────────────────
 
   /** List active chat sessions */
-  adminList: chatAdminProcedure
+  adminList: supportChatAdminProcedure
     .input(z.object({
       status: z.enum(['ai_active', 'agent_active', 'escalated', 'closed']).optional(),
       page: z.number().int().min(1).default(1),
@@ -600,7 +600,7 @@ export const chatRouter = createTRPCRouter({
     }),
 
   /** Get chat session with all messages (admin) */
-  adminGet: chatAdminProcedure
+  adminGet: supportChatAdminProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
       const [session] = await ctx.db
@@ -641,7 +641,7 @@ export const chatRouter = createTRPCRouter({
     }),
 
   /** Admin sends a message in a chat session (takes over from AI) */
-  adminReply: chatAdminProcedure
+  adminReply: supportChatAdminProcedure
     .input(z.object({
       sessionId: z.string().uuid(),
       body: z.string().min(1).max(5000),
@@ -680,7 +680,7 @@ export const chatRouter = createTRPCRouter({
       }
 
       // Broadcast message to chat channel
-      broadcastChatEvent(input.sessionId, 'chat_message', {
+      broadcastSupportChatEvent(input.sessionId, 'chat_message', {
         id: messageId,
         sessionId: input.sessionId,
         role: 'agent',
@@ -704,7 +704,7 @@ export const chatRouter = createTRPCRouter({
     }),
 
   /** Admin closes a chat session */
-  adminClose: chatAdminProcedure
+  adminClose: supportChatAdminProcedure
     .input(z.object({ sessionId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       await ctx.db
@@ -712,7 +712,7 @@ export const chatRouter = createTRPCRouter({
         .set({ status: 'closed', closedAt: new Date() })
         .where(eq(saasSupportChatSessions.id, input.sessionId));
 
-      broadcastChatEvent(input.sessionId, 'chat_status', {
+      broadcastSupportChatEvent(input.sessionId, 'chat_status', {
         sessionId: input.sessionId,
         status: 'closed',
       });
@@ -721,7 +721,7 @@ export const chatRouter = createTRPCRouter({
     }),
 
   /** Get chat stats (admin) */
-  getStats: chatAdminProcedure.query(async ({ ctx }) => {
+  getStats: supportChatAdminProcedure.query(async ({ ctx }) => {
     const rows = await ctx.db
       .select({
         status: saasSupportChatSessions.status,

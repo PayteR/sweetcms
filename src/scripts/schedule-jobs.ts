@@ -19,10 +19,10 @@ async function main() {
     every: 60_000,
   });
 
-  // Chat session cleanup every hour
-  const chatQueue = createQueue('chat-cleanup');
-  if (chatQueue) {
-    await chatQueue.upsertJobScheduler('chat-cleanup', {
+  // Support chat session cleanup every hour
+  const supportChatQueue = createQueue('support-chat-cleanup');
+  if (supportChatQueue) {
+    await supportChatQueue.upsertJobScheduler('support-chat-cleanup', {
       every: 60 * 60 * 1000, // 1 hour
     });
   }

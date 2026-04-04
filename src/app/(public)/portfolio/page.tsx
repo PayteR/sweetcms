@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Image from 'next/image';
 import Link from 'next/link';
 
 import { siteConfig } from '@/config/site';
@@ -37,11 +38,14 @@ export default async function PortfolioListPage() {
               className="group overflow-hidden rounded-lg border border-(--border-primary) bg-(--surface-primary) transition-shadow hover:shadow-md"
             >
               {item.featuredImage && (
-                <img
-                  src={item.featuredImage}
-                  alt={item.featuredImageAlt ?? item.title}
-                  className="h-48 w-full object-cover transition-transform group-hover:scale-105"
-                />
+                <div className="relative h-48 w-full">
+                  <Image
+                    src={item.featuredImage}
+                    alt={item.featuredImageAlt ?? item.title}
+                    fill
+                    className="object-cover transition-transform group-hover:scale-105"
+                  />
+                </div>
               )}
               <div className="p-4">
                 <h2 className="text-lg font-semibold text-(--text-primary) group-hover:text-(--color-brand-600)">

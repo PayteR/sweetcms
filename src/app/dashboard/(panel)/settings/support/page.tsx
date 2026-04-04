@@ -195,8 +195,8 @@ function LiveChatsTab({ __: t }: { __: (s: string) => string }) {
   const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
   const [page, setPage] = useState(1);
 
-  const { data: stats } = trpc.chat.getStats.useQuery();
-  const { data, isLoading } = trpc.chat.adminList.useQuery({
+  const { data: stats } = trpc.supportChat.getStats.useQuery();
+  const { data, isLoading } = trpc.supportChat.adminList.useQuery({
     status: statusFilter as 'ai_active' | 'agent_active' | 'escalated' | 'closed' | undefined,
     page,
     pageSize: 20,

@@ -50,18 +50,18 @@ export default function AdminChatDetailPage() {
   const messagesRef = useRef<HTMLDivElement>(null);
   const shouldScrollRef = useRef(true);
 
-  const { data: session, isLoading } = trpc.chat.adminGet.useQuery({ id });
-  const replyMut = trpc.chat.adminReply.useMutation({
+  const { data: session, isLoading } = trpc.supportChat.adminGet.useQuery({ id });
+  const replyMut = trpc.supportChat.adminReply.useMutation({
     onSuccess: () => {
       setReplyBody('');
-      utils.chat.adminGet.invalidate({ id });
+      utils.supportChat.adminGet.invalidate({ id });
     },
     onError: (err) => toast.error(err.message),
   });
-  const closeMut = trpc.chat.adminClose.useMutation({
+  const closeMut = trpc.supportChat.adminClose.useMutation({
     onSuccess: () => {
       setStatus('closed');
-      utils.chat.adminGet.invalidate({ id });
+      utils.supportChat.adminGet.invalidate({ id });
       toast.success(__('Chat closed'));
     },
   });
@@ -73,9 +73,9 @@ export default function AdminChatDetailPage() {
   }
 
   // Real-time updates
-  useChannel<ChatWsEvent>(`chat:${id}`, useCallback((event: ChatWsEvent) => {
+  useChannel<ChatWsEvent>(`supportChat:${id}`, useCallback((event: ChatWsEvent) => {
     if (event.type === 'chat_message') {
-      utils.chat.adminGet.invalidate({ id });
+      utils.supportChat.adminGet.invalidate({ id });
     }
     if (event.type === 'chat_status' && event.status) {
       setStatus(event.status);

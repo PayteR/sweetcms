@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useAdminTranslations } from '@/engine/lib/translations';
 import { cn } from '@/lib/utils';
 
@@ -76,9 +77,9 @@ export function SeoPreviewCard({ title, description, slug, urlPrefix, featuredIm
       {activeTab === 'facebook' && (
         <div className="mt-4 overflow-hidden rounded-md border border-(--border-primary)">
           {/* Image area - 16:9 */}
-          <div className="aspect-video bg-(--surface-secondary)">
+          <div className="relative aspect-video bg-(--surface-secondary)">
             {featuredImage ? (
-              <img src={featuredImage} alt="" className="h-full w-full object-cover" />
+              <Image src={featuredImage} alt="" fill className="object-cover" />
             ) : (
               <ImagePlaceholder __={__} />
             )}
@@ -98,9 +99,9 @@ export function SeoPreviewCard({ title, description, slug, urlPrefix, featuredIm
       {activeTab === 'twitter' && (
         <div className="mt-4 overflow-hidden rounded-md border border-(--border-primary)">
           {/* Image area - 2:1 */}
-          <div className="bg-(--surface-secondary)" style={{ aspectRatio: '2 / 1' }}>
+          <div className="relative bg-(--surface-secondary)" style={{ aspectRatio: '2 / 1' }}>
             {featuredImage ? (
-              <img src={featuredImage} alt="" className="h-full w-full object-cover" />
+              <Image src={featuredImage} alt="" fill className="object-cover" />
             ) : (
               <ImagePlaceholder __={__} />
             )}

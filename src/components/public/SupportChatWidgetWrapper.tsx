@@ -1,21 +1,21 @@
 'use client';
 
-import { ChatWidget } from '@/engine/components/ChatWidget';
+import { SupportChatWidget } from '@/engine/components/SupportChatWidget';
 import { useBlankTranslations } from '@/lib/translations';
 import { clientEnv } from '@/lib/env-client';
-import { chatConfig } from '@/config/chat';
+import { supportChatConfig } from '@/config/support-chat';
 import { accountRoutes } from '@/config/routes';
 
-export function ChatWidgetWrapper() {
+export function SupportChatWidgetWrapper() {
   const __ = useBlankTranslations();
 
   if (!clientEnv.NEXT_PUBLIC_SUPPORT_CHAT_ENABLED) return null;
 
   return (
-    <ChatWidget
+    <SupportChatWidget
       __={__}
-      welcomeMessage={chatConfig.welcomeMessage}
-      placeholder={chatConfig.placeholder}
+      welcomeMessage={supportChatConfig.welcomeMessage}
+      placeholder={supportChatConfig.placeholder}
       supportUrl={accountRoutes.supportDetail}
     />
   );

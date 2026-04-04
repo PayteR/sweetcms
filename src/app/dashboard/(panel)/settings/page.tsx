@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Save, Loader2, CheckCircle2, XCircle, Globe, RotateCcw } from 'lucide-react';
 
+import Image from 'next/image';
 import { trpc } from '@/lib/trpc/client';
 import { useAdminTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
@@ -168,11 +169,14 @@ export default function SettingsPage() {
               placeholder="https://..."
             />
             {item.key === 'site.logo' && value && (
-              <img
-                src={value as string}
-                alt="Logo preview"
-                className="mt-2 h-12 object-contain"
-              />
+              <div className="relative mt-2 h-12 w-48">
+                <Image
+                  src={value as string}
+                  alt="Logo preview"
+                  fill
+                  className="object-contain"
+                />
+              </div>
             )}
           </>
         );

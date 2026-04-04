@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { ArrowLeft, Save, Eye, Loader2, ImageIcon, X, History } from 'lucide-react';
 import {
   DndContext,
@@ -744,11 +745,14 @@ export function PostForm({ contentType, postId }: Props) {
         <div className="space-y-3">
           {formData.featuredImage ? (
             <div className="post-form-image-preview relative">
-              <img
-                src={formData.featuredImage}
-                alt={formData.featuredImageAlt || 'Preview'}
-                className="h-32 w-full rounded-md border border-(--border-primary) object-cover"
-              />
+              <div className="relative h-32 w-full">
+                <Image
+                  src={formData.featuredImage}
+                  alt={formData.featuredImageAlt || 'Preview'}
+                  fill
+                  className="rounded-md border border-(--border-primary) object-cover"
+                />
+              </div>
               <button
                 type="button"
                 onClick={() => {

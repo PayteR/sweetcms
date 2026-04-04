@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { ArrowLeft, Save, Loader2, X } from 'lucide-react';
 
 import { getContentType } from '@/config/cms';
@@ -394,12 +395,12 @@ export function ShowcaseForm({ showcaseId }: Props) {
                       )}
                     </div>
                     {formData.mediaUrl && formData.cardType === 'image' && (
-                      <div className="relative mt-2">
-                        <img
+                      <div className="relative mt-2" style={{ height: '200px' }}>
+                        <Image
                           src={formData.mediaUrl}
                           alt=""
-                          className="w-full rounded-md object-cover"
-                          style={{ maxHeight: '200px' }}
+                          fill
+                          className="rounded-md object-cover"
                         />
                         <button
                           type="button"
@@ -438,12 +439,12 @@ export function ShowcaseForm({ showcaseId }: Props) {
                       </button>
                     </div>
                     {formData.thumbnailUrl && (
-                      <div className="relative mt-2">
-                        <img
+                      <div className="relative mt-2" style={{ height: '150px' }}>
+                        <Image
                           src={formData.thumbnailUrl}
                           alt=""
-                          className="w-full rounded-md object-cover"
-                          style={{ maxHeight: '150px' }}
+                          fill
+                          className="rounded-md object-cover"
                         />
                         <button
                           type="button"

@@ -26,7 +26,7 @@ import { notificationsRouter } from './notifications';
 import { projectsRouter } from './projects';
 import { discountCodesRouter } from './discount-codes';
 import { supportRouter } from './support';
-import { chatRouter } from './chat';
+import { supportChatRouter } from './support-chat';
 import { affiliatesRouter } from './affiliates';
 import { aiRouter } from './ai';
 import { webhooksRouter } from './webhooks';
@@ -44,7 +44,7 @@ export const appRouter = createTRPCRouter({
   cms: cmsRouter,
   comments: commentsRouter,
   categories: categoriesRouter,
-  chat: chatRouter,
+  supportChat: supportChatRouter,
   contentSearch: contentSearchRouter,
   discountCodes: discountCodesRouter,
   customFields: customFieldsRouter,

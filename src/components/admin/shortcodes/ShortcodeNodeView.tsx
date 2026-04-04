@@ -5,6 +5,7 @@ import { NodeViewWrapper } from '@tiptap/react';
 import type { NodeViewProps } from '@tiptap/react';
 import { Info, AlertTriangle, CheckCircle, XCircle, X, Pencil, MousePointer, Play, Images } from 'lucide-react';
 
+import Image from 'next/image';
 import { getShortcodeDef } from '@/lib/shortcodes/registry';
 import { cn } from '@/lib/utils';
 import { ShortcodeEditDialog } from '@/engine/components/shortcodes/ShortcodeEditDialog';
@@ -104,11 +105,13 @@ export function ShortcodeNodeView({ node, updateAttributes, deleteNode }: NodeVi
       <NodeViewWrapper>
         <div className="relative my-2 rounded-md border border-(--border-primary) overflow-hidden">
           {attrs.videoId ? (
-            <div className="aspect-video bg-black">
-              <img
+            <div className="relative aspect-video bg-black">
+              <Image
                 src={`https://img.youtube.com/vi/${attrs.videoId}/hqdefault.jpg`}
                 alt="YouTube thumbnail"
-                className="h-full w-full object-cover opacity-80"
+                fill
+                className="object-cover opacity-80"
+                unoptimized
               />
             </div>
           ) : (

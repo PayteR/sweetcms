@@ -1,12 +1,12 @@
 /**
- * Chat widget configuration — system prompt, welcome message, escalation settings.
+ * Support chat widget configuration — system prompt, welcome message, escalation settings.
  *
  * The AI uses an OpenAI-compatible API (same as the editor AI assist).
  * Set AI_API_KEY + optionally AI_API_URL / AI_MODEL in env to enable AI responses.
  * Without AI_API_KEY the widget still works — it just creates tickets immediately.
  */
 
-export const chatConfig = {
+export const supportChatConfig = {
   /** Greeting shown when the chat panel opens */
   welcomeMessage: 'Hi! 👋 How can I help you today?',
 
@@ -31,4 +31,4 @@ Do not make up information you are not sure about. When in doubt, escalate to hu
   model: undefined as string | undefined,
 } as const;
 
-export type ChatConfig = typeof chatConfig;
+export type SupportChatConfig = typeof supportChatConfig;

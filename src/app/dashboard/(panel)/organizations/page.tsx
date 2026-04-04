@@ -15,6 +15,7 @@ import {
   UserIcon,
 } from 'lucide-react';
 
+import Image from 'next/image';
 import { trpc } from '@/lib/trpc/client';
 import { useAdminTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
@@ -260,7 +261,7 @@ export default function OrganizationsPage() {
                           className="flex items-center gap-3 text-left hover:text-(--color-brand-600)"
                         >
                           {org.orgLogo ? (
-                            <img src={org.orgLogo} alt="" className="h-8 w-8 rounded-full object-cover" />
+                            <Image src={org.orgLogo} alt="" width={32} height={32} className="rounded-full object-cover" unoptimized />
                           ) : (
                             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-(--border-primary) text-xs font-medium text-(--text-secondary)">
                               {(org.orgName ?? '?').charAt(0).toUpperCase()}
@@ -400,7 +401,7 @@ export default function OrganizationsPage() {
                           <td className="td">
                             <div className="flex items-center gap-3">
                               {m.user?.image ? (
-                                <img src={m.user.image} alt="" className="h-7 w-7 rounded-full object-cover" />
+                                <Image src={m.user.image} alt="" width={28} height={28} className="rounded-full object-cover" unoptimized />
                               ) : (
                                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-(--border-primary) text-xs font-medium text-(--text-secondary)">
                                   {(m.user?.name ?? '?').charAt(0).toUpperCase()}

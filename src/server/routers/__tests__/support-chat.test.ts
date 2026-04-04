@@ -80,25 +80,25 @@ vi.mock('@/engine/crud/admin-crud', () => ({
 }));
 
 vi.mock('@/server/db/schema/support', () => ({
-  saasChatSessions: {
-    id: 'saas_chat_sessions.id',
-    visitorId: 'saas_chat_sessions.visitor_id',
-    userId: 'saas_chat_sessions.user_id',
-    email: 'saas_chat_sessions.email',
-    status: 'saas_chat_sessions.status',
-    ticketId: 'saas_chat_sessions.ticket_id',
-    subject: 'saas_chat_sessions.subject',
-    metadata: 'saas_chat_sessions.metadata',
-    createdAt: 'saas_chat_sessions.created_at',
-    closedAt: 'saas_chat_sessions.closed_at',
+  saasSupportChatSessions: {
+    id: 'saas_support_chat_sessions.id',
+    visitorId: 'saas_support_chat_sessions.visitor_id',
+    userId: 'saas_support_chat_sessions.user_id',
+    email: 'saas_support_chat_sessions.email',
+    status: 'saas_support_chat_sessions.status',
+    ticketId: 'saas_support_chat_sessions.ticket_id',
+    subject: 'saas_support_chat_sessions.subject',
+    metadata: 'saas_support_chat_sessions.metadata',
+    createdAt: 'saas_support_chat_sessions.created_at',
+    closedAt: 'saas_support_chat_sessions.closed_at',
   },
-  saasChatMessages: {
-    id: 'saas_chat_messages.id',
-    sessionId: 'saas_chat_messages.session_id',
-    role: 'saas_chat_messages.role',
-    body: 'saas_chat_messages.body',
-    metadata: 'saas_chat_messages.metadata',
-    createdAt: 'saas_chat_messages.created_at',
+  saasSupportChatMessages: {
+    id: 'saas_support_chat_messages.id',
+    sessionId: 'saas_support_chat_messages.session_id',
+    role: 'saas_support_chat_messages.role',
+    body: 'saas_support_chat_messages.body',
+    metadata: 'saas_support_chat_messages.metadata',
+    createdAt: 'saas_support_chat_messages.created_at',
   },
   saasTickets: {
     id: 'saas_tickets.id',
@@ -136,8 +136,8 @@ vi.mock('@/server/db/schema/auth', () => ({
 
 // env is dynamically imported in callAI — no static mock needed
 
-vi.mock('@/config/chat', () => ({
-  chatConfig: {
+vi.mock('@/config/support-chat', () => ({
+  supportChatConfig: {
     systemPrompt: 'test',
     escalationMessage: 'Escalating...',
     maxMessagesBeforeEscalation: 20,
@@ -157,7 +157,7 @@ vi.mock('@/server/lib/ws', () => ({
 // Imports (after mocks)
 // ---------------------------------------------------------------------------
 
-import { chatRouter } from '../chat';
+import { supportChatRouter } from '../support-chat';
 import { sendNotification } from '@/server/lib/notifications';
 
 // ---------------------------------------------------------------------------
@@ -275,7 +275,7 @@ const MOCK_SESSION = {
 // Tests
 // ---------------------------------------------------------------------------
 
-describe('chatRouter', () => {
+describe('supportChatRouter', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -289,7 +289,7 @@ describe('chatRouter', () => {
       // First select: no existing session found
       setupSelectSequence(ctx.db, [[]]);
 
-      const caller = chatRouter.createCaller(ctx as never);
+      const caller = supportChatRouter.createCaller(ctx as never);
       const result = await caller.startSession({ visitorId: VISITOR_ID });
 
       expect(result).toHaveProperty('id');
@@ -315,7 +315,7 @@ describe('chatRouter', () => {
       // First select: existing session found; Second select: messages
       setupSelectSequence(ctx.db, [[existingSession], existingMessages]);
 
-      const caller = chatRouter.createCaller(ctx as never);
+      const caller = supportChatRouter.createCaller(ctx as never);
       const result = await caller.startSession({ visitorId: VISITOR_ID });
 
       expect(result.id).toBe(SESSION_UUID);
@@ -339,7 +339,7 @@ describe('chatRouter', () => {
         values: vi.fn().mockResolvedValue(undefined),
       });
 
-      const caller = chatRouter.createCaller(ctx as never);
+      const caller = supportChatRouter.createCaller(ctx as never);
       const result = await caller.sendMessage({
         sessionId: SESSION_UUID,
         visitorId: VISITOR_ID,
@@ -355,7 +355,7 @@ describe('chatRouter', () => {
       const ctx = createPublicCtx();
       // Default: returns [] (no session)
 
-      const caller = chatRouter.createCaller(ctx as never);
+      const caller = supportChatRouter.createCaller(ctx as never);
 
       await expect(
         caller.sendMessage({
@@ -370,7 +370,7 @@ describe('chatRouter', () => {
       const ctx = createPublicCtx();
       setupSelectSequence(ctx.db, [[{ ...MOCK_SESSION, status: 'closed' }]]);
 
-      const caller = chatRouter.createCaller(ctx as never);
+      const caller = supportChatRouter.createCaller(ctx as never);
 
       await expect(
         caller.sendMessage({
@@ -390,7 +390,7 @@ describe('chatRouter', () => {
       const ctx = createPublicCtx();
       setupSelectSequence(ctx.db, [[{ id: SESSION_UUID }]]);
 
-      const caller = chatRouter.createCaller(ctx as never);
+      const caller = supportChatRouter.createCaller(ctx as never);
       const result = await caller.close({
         sessionId: SESSION_UUID,
         visitorId: VISITOR_ID,
@@ -410,7 +410,7 @@ describe('chatRouter', () => {
       const ctx = createPublicCtx();
       // Default: returns [] (no session matching visitor)
 
-      const caller = chatRouter.createCaller(ctx as never);
+      const caller = supportChatRouter.createCaller(ctx as never);
 
       await expect(
         caller.close({
@@ -436,7 +436,7 @@ describe('chatRouter', () => {
         values: vi.fn().mockResolvedValue(undefined),
       });
 
-      const caller = chatRouter.createCaller(ctx as never);
+      const caller = supportChatRouter.createCaller(ctx as never);
       const result = await caller.escalate({
         sessionId: SESSION_UUID,
         visitorId: VISITOR_ID,
@@ -455,7 +455,7 @@ describe('chatRouter', () => {
       const escalatedSession = { ...MOCK_SESSION, ticketId: 'existing-ticket-id' };
       setupSelectSequence(ctx.db, [[escalatedSession]]);
 
-      const caller = chatRouter.createCaller(ctx as never);
+      const caller = supportChatRouter.createCaller(ctx as never);
       const result = await caller.escalate({
         sessionId: SESSION_UUID,
         visitorId: VISITOR_ID,
@@ -469,7 +469,7 @@ describe('chatRouter', () => {
       const ctx = createPublicCtx(); // no session.user
       setupSelectSequence(ctx.db, [[MOCK_SESSION]]);
 
-      const caller = chatRouter.createCaller(ctx as never);
+      const caller = supportChatRouter.createCaller(ctx as never);
       await expect(
         caller.escalate({ sessionId: SESSION_UUID, visitorId: VISITOR_ID })
       ).rejects.toThrow('Email is required for anonymous escalation');
@@ -479,7 +479,7 @@ describe('chatRouter', () => {
       const ctx = createPublicCtx();
       setupSelectSequence(ctx.db, [[MOCK_SESSION]]);
 
-      const caller = chatRouter.createCaller(ctx as never);
+      const caller = supportChatRouter.createCaller(ctx as never);
       const result = await caller.escalate({
         sessionId: SESSION_UUID,
         visitorId: VISITOR_ID,
@@ -495,7 +495,7 @@ describe('chatRouter', () => {
       const ctx = createPublicCtx();
       // Default: returns [] (no session matching visitor)
 
-      const caller = chatRouter.createCaller(ctx as never);
+      const caller = supportChatRouter.createCaller(ctx as never);
       await expect(
         caller.escalate({ sessionId: SESSION_UUID, visitorId: 'wrong-visitor' })
       ).rejects.toThrow('Session not found');
@@ -510,7 +510,7 @@ describe('chatRouter', () => {
       const ctx = createPublicCtx();
       setupSelectSequence(ctx.db, [[{ id: SESSION_UUID }]]);
 
-      const caller = chatRouter.createCaller(ctx as never);
+      const caller = supportChatRouter.createCaller(ctx as never);
       const result = await caller.setEmail({
         sessionId: SESSION_UUID,
         visitorId: VISITOR_ID,
@@ -524,7 +524,7 @@ describe('chatRouter', () => {
     it('rejects if wrong visitorId', async () => {
       const ctx = createPublicCtx();
 
-      const caller = chatRouter.createCaller(ctx as never);
+      const caller = supportChatRouter.createCaller(ctx as never);
       await expect(
         caller.setEmail({
           sessionId: SESSION_UUID,
@@ -556,7 +556,7 @@ describe('chatRouter', () => {
       // Promise.all: items + count, then user lookup (empty), then last messages (execute)
       setupSelectSequence(ctx.db, [sessions, [{ count: 1 }]]);
 
-      const caller = chatRouter.createCaller(ctx as never);
+      const caller = supportChatRouter.createCaller(ctx as never);
       const result = await caller.adminList({ page: 1, pageSize: 20 });
 
       expect(result).toEqual({
@@ -582,7 +582,7 @@ describe('chatRouter', () => {
         values: vi.fn().mockResolvedValue(undefined),
       });
 
-      const caller = chatRouter.createCaller(ctx as never);
+      const caller = supportChatRouter.createCaller(ctx as never);
       const result = await caller.adminReply({
         sessionId: SESSION_UUID,
         body: 'Let me help you with that.',
@@ -611,7 +611,7 @@ describe('chatRouter', () => {
         values: vi.fn().mockResolvedValue(undefined),
       });
 
-      const caller = chatRouter.createCaller(ctx as never);
+      const caller = supportChatRouter.createCaller(ctx as never);
       await caller.adminReply({
         sessionId: SESSION_UUID,
         body: 'We are looking into this.',
@@ -629,7 +629,7 @@ describe('chatRouter', () => {
       const ctx = createAdminCtx();
       // Default: returns []
 
-      const caller = chatRouter.createCaller(ctx as never);
+      const caller = supportChatRouter.createCaller(ctx as never);
 
       await expect(
         caller.adminReply({ sessionId: SESSION_UUID, body: 'Reply' })
@@ -644,7 +644,7 @@ describe('chatRouter', () => {
     it('closes session', async () => {
       const ctx = createAdminCtx();
 
-      const caller = chatRouter.createCaller(ctx as never);
+      const caller = supportChatRouter.createCaller(ctx as never);
       const result = await caller.adminClose({ sessionId: SESSION_UUID });
 
       expect(result).toEqual({ success: true });

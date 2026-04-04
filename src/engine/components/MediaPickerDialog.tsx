@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import Image from "next/image";
 import {
   X,
   Upload,
@@ -36,6 +37,7 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
   const [searchDebounced, setSearchDebounced] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [fileTypeFilter, setFileTypeFilter] = useState<number | undefined>(FileType.IMAGE);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
   // Debounce search
@@ -51,7 +53,7 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
     {
       page,
       pageSize: 20,
-      fileType: FileType.IMAGE,
+      fileType: fileTypeFilter,
       search: searchDebounced || undefined,
     },
     { enabled: open },
@@ -200,12 +202,27 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
               className="input pl-9 w-56 text-sm"
             />
           </div>
+          {/* Type filter */}
+          <select
+            value={fileTypeFilter ?? ''}
+            onChange={(e) => {
+              setFileTypeFilter(e.target.value ? Number(e.target.value) : undefined);
+              setPage(1);
+            }}
+            className="select text-sm h-9"
+          >
+            <option value="">{__("All types")}</option>
+            <option value={FileType.IMAGE}>{__("Images")}</option>
+            <option value={FileType.VIDEO}>{__("Videos")}</option>
+            <option value={FileType.DOCUMENT}>{__("Documents")}</option>
+            <option value={FileType.OTHER}>{__("Other")}</option>
+          </select>
           {/* Upload button */}
           <input
             ref={fileInputRef}
             type="file"
             multiple
-            accept="image/*"
+            accept={fileTypeFilter === FileType.IMAGE ? "image/*" : fileTypeFilter === FileType.VIDEO ? "video/*" : "*/*"}
             onChange={(e) => {
               if (e.target.files) uploadFiles(e.target.files);
             }}
@@ -288,10 +305,11 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
                         : "border-transparent hover:border-(--border-primary)",
                     )}
                   >
-                    <img
+                    <Image
                       src={item.url}
                       alt={item.altText ?? item.filename}
-                      className="h-full w-full object-cover"
+                      fill
+                      className="object-cover"
                     />
                     {selectedId === item.id && (
                       <div className="absolute inset-0 flex items-center justify-center bg-(--color-brand-500)/20">
@@ -336,11 +354,14 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
           {selectedItem ? (
             <div key={selectedItem.id} className="p-4 space-y-4">
               {/* Preview */}
-              <img
-                src={selectedItem.url}
-                alt={selectedItem.altText ?? selectedItem.filename}
-                className="w-full rounded-lg border border-(--border-primary) object-contain max-h-48"
-              />
+              <div className="relative w-full max-h-48 h-48">
+                <Image
+                  src={selectedItem.url}
+                  alt={selectedItem.altText ?? selectedItem.filename}
+                  fill
+                  className="rounded-lg border border-(--border-primary) object-contain"
+                />
+              </div>
 
               {/* Filename */}
               <div

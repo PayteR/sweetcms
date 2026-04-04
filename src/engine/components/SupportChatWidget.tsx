@@ -8,14 +8,14 @@ import { cn } from '@/lib/utils';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-interface ChatMessage {
+interface SupportChatMessage {
   id: string;
   role: string;
   body: string;
   createdAt: string;
 }
 
-interface ChatWsEvent {
+interface SupportChatWsEvent {
   type: 'chat_message' | 'chat_status';
   id?: string;
   sessionId: string;
@@ -26,7 +26,7 @@ interface ChatWsEvent {
   ticketId?: string;
 }
 
-export interface ChatWidgetProps {
+export interface SupportChatWidgetProps {
   /** Translation function — pass useBlankTranslations() or a real translator */
   __: (s: string) => string;
   /** Greeting shown when the chat panel opens */
@@ -55,16 +55,16 @@ function isNearBottom(el: HTMLElement, threshold = 120): boolean {
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
-export function ChatWidget({
+export function SupportChatWidget({
   __,
   welcomeMessage,
   placeholder,
   supportUrl = (id) => `/account/support/${id}`,
-}: ChatWidgetProps) {
+}: SupportChatWidgetProps) {
   const [open, setOpen] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [sessionStatus, setSessionStatus] = useState<string>('ai_active');
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<SupportChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [isAiTyping, setIsAiTyping] = useState(false);
   const [ticketId, setTicketId] = useState<string | null>(null);
@@ -77,15 +77,15 @@ export function ChatWidget({
   const shouldScrollRef = useRef(true);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const startSession = trpc.chat.startSession.useMutation();
-  const sendMessage = trpc.chat.sendMessage.useMutation();
-  const escalateMut = trpc.chat.escalate.useMutation();
-  const closeMut = trpc.chat.close.useMutation();
+  const startSession = trpc.supportChat.startSession.useMutation();
+  const sendMessage = trpc.supportChat.sendMessage.useMutation();
+  const escalateMut = trpc.supportChat.escalate.useMutation();
+  const closeMut = trpc.supportChat.close.useMutation();
 
   // ─── WS real-time (empty string = no subscription, useChannel guards it) ─
-  useChannel<ChatWsEvent>(sessionId ? `chat:${sessionId}` : '', useCallback((event: ChatWsEvent) => {
+  useChannel<SupportChatWsEvent>(sessionId ? `supportChat:${sessionId}` : '', useCallback((event: SupportChatWsEvent) => {
     if (event.type === 'chat_message' && (event.role === 'agent' || event.role === 'ai')) {
-      const msg: ChatMessage = {
+      const msg: SupportChatMessage = {
         id: event.id ?? crypto.randomUUID(),
         role: event.role,
         body: event.body ?? '',
@@ -166,7 +166,7 @@ export function ChatWidget({
     const visitorId = getVisitorId();
 
     const tempId = crypto.randomUUID();
-    const userMsg: ChatMessage = {
+    const userMsg: SupportChatMessage = {
       id: tempId,
       role: 'user',
       body,
@@ -276,19 +276,19 @@ export function ChatWidget({
   return (
     <>
       {/* ═══ Chat Panel ═══ */}
-      <div className={cn('chat-widget-panel', open && 'chat-widget-panel-open')}>
+      <div className={cn('support-chat-widget-panel', open && 'support-chat-widget-panel-open')}>
         {/* Header */}
-        <div className="chat-widget-header">
+        <div className="support-chat-widget-header">
           <div className="flex items-center gap-2">
             <MessageCircle className="h-5 w-5" />
             <span className="font-semibold">{__('Support Chat')}</span>
             {sessionStatus === 'agent_active' && (
-              <span className="chat-widget-live-dot" />
+              <span className="support-chat-widget-live-dot" />
             )}
           </div>
           <button
             onClick={() => setOpen(false)}
-            className="chat-widget-close-btn"
+            className="support-chat-widget-close-btn"
           >
             <X className="h-4 w-4" />
           </button>
@@ -298,11 +298,11 @@ export function ChatWidget({
         <div
           ref={messagesRef}
           onScroll={handleScroll}
-          className="chat-widget-messages"
+          className="support-chat-widget-messages"
         >
           {/* Welcome message */}
-          <div className="chat-widget-msg chat-widget-msg-ai">
-            <div className="chat-widget-bubble chat-widget-bubble-ai">
+          <div className="support-chat-widget-msg support-chat-widget-msg-ai">
+            <div className="support-chat-widget-bubble support-chat-widget-bubble-ai">
               {welcomeText}
             </div>
           </div>
@@ -311,24 +311,24 @@ export function ChatWidget({
             <div
               key={msg.id}
               className={cn(
-                'chat-widget-msg',
+                'support-chat-widget-msg',
                 msg.role === 'user'
-                  ? 'chat-widget-msg-user'
-                  : 'chat-widget-msg-ai'
+                  ? 'support-chat-widget-msg-user'
+                  : 'support-chat-widget-msg-ai'
               )}
             >
               <div
                 className={cn(
-                  'chat-widget-bubble',
+                  'support-chat-widget-bubble',
                   msg.role === 'user'
-                    ? 'chat-widget-bubble-user'
+                    ? 'support-chat-widget-bubble-user'
                     : msg.role === 'agent'
-                      ? 'chat-widget-bubble-agent'
-                      : 'chat-widget-bubble-ai'
+                      ? 'support-chat-widget-bubble-agent'
+                      : 'support-chat-widget-bubble-ai'
                 )}
               >
                 {msg.role === 'agent' && (
-                  <span className="chat-widget-agent-label">{__('Support Agent')}</span>
+                  <span className="support-chat-widget-agent-label">{__('Support Agent')}</span>
                 )}
                 {msg.body}
               </div>
@@ -336,8 +336,8 @@ export function ChatWidget({
           ))}
 
           {isAiTyping && (
-            <div className="chat-widget-msg chat-widget-msg-ai">
-              <div className="chat-widget-bubble chat-widget-bubble-ai chat-widget-typing">
+            <div className="support-chat-widget-msg support-chat-widget-msg-ai">
+              <div className="support-chat-widget-bubble support-chat-widget-bubble-ai support-chat-widget-typing">
                 <span /><span /><span />
               </div>
             </div>
@@ -345,11 +345,11 @@ export function ChatWidget({
 
           {/* Email form — shown when anonymous user requests escalation */}
           {needsEmail && !emailCaptured && !ticketId && (
-            <div className="chat-widget-escalation">
+            <div className="support-chat-widget-escalation">
               <p>{__('Enter your email so our team can follow up:')}</p>
               <form
                 onSubmit={(e) => { e.preventDefault(); handleEmailSubmit(); }}
-                className="chat-widget-email-form"
+                className="support-chat-widget-email-form"
               >
                 <input
                   type="email"
@@ -357,9 +357,9 @@ export function ChatWidget({
                   value={emailInput}
                   onChange={(e) => setEmailInput(e.target.value)}
                   placeholder={__('your@email.com')}
-                  className="chat-widget-email-input"
+                  className="support-chat-widget-email-input"
                 />
-                <button type="submit" className="chat-widget-escalate-btn" disabled={escalateMut.isPending || !emailInput.trim()}>
+                <button type="submit" className="support-chat-widget-escalate-btn" disabled={escalateMut.isPending || !emailInput.trim()}>
                   {escalateMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
                   {__('Connect with support')}
                 </button>
@@ -369,9 +369,9 @@ export function ChatWidget({
 
           {/* Escalated by AI — authenticated user can create ticket */}
           {isEscalated && !ticketId && !emailCaptured && !needsEmail && (
-            <div className="chat-widget-escalation">
+            <div className="support-chat-widget-escalation">
               <p>{__('Would you like to create a support ticket so our team can follow up?')}</p>
-              <button onClick={() => handleEscalate()} className="chat-widget-escalate-btn" disabled={escalateMut.isPending}>
+              <button onClick={() => handleEscalate()} className="support-chat-widget-escalate-btn" disabled={escalateMut.isPending}>
                 {escalateMut.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowUpRight className="h-4 w-4" />}
                 {__('Create Support Ticket')}
               </button>
@@ -379,15 +379,15 @@ export function ChatWidget({
           )}
 
           {emailCaptured && !ticketId && (
-            <div className="chat-widget-escalation">
+            <div className="support-chat-widget-escalation">
               <p>{__('Thanks! Our team will follow up at your email soon.')}</p>
             </div>
           )}
 
           {ticketId && (
-            <div className="chat-widget-escalation">
+            <div className="support-chat-widget-escalation">
               <p>{__('Your ticket has been created. Our team will follow up soon.')}</p>
-              <a href={supportUrl(ticketId)} className="chat-widget-ticket-link">
+              <a href={supportUrl(ticketId)} className="support-chat-widget-ticket-link">
                 <ArrowUpRight className="h-4 w-4" />
                 {__('View Ticket')}
               </a>
@@ -397,8 +397,8 @@ export function ChatWidget({
 
         {/* Input area */}
         {!isClosed ? (
-          <div className="chat-widget-input-area">
-            <div className="chat-widget-input-row">
+          <div className="support-chat-widget-input-area">
+            <div className="support-chat-widget-input-row">
               <textarea
                 ref={inputRef}
                 value={input}
@@ -406,13 +406,13 @@ export function ChatWidget({
                 onKeyDown={handleKeyDown}
                 placeholder={placeholderText}
                 rows={1}
-                className="chat-widget-input"
+                className="support-chat-widget-input"
                 disabled={isAiTyping}
               />
               <button
                 onClick={handleSend}
                 disabled={!input.trim() || isAiTyping}
-                className="chat-widget-send-btn"
+                className="support-chat-widget-send-btn"
               >
                 <Send className="h-4 w-4" />
               </button>
@@ -420,15 +420,15 @@ export function ChatWidget({
             {sessionStatus === 'ai_active' && messages.length > 0 && !needsEmail && (
               <button
                 onClick={() => handleEscalate()}
-                className="chat-widget-human-btn"
+                className="support-chat-widget-human-btn"
               >
                 {__('Talk to a human')}
               </button>
             )}
           </div>
         ) : (
-          <div className="chat-widget-input-area">
-            <button onClick={handleNewChat} className="chat-widget-new-btn">
+          <div className="support-chat-widget-input-area">
+            <button onClick={handleNewChat} className="support-chat-widget-new-btn">
               {__('Start New Chat')}
             </button>
           </div>
@@ -438,7 +438,7 @@ export function ChatWidget({
       {/* ═══ Floating Bubble ═══ */}
       <button
         onClick={() => (open ? setOpen(false) : handleOpen())}
-        className={cn('chat-widget-bubble-btn', open && 'chat-widget-bubble-btn-active')}
+        className={cn('support-chat-widget-bubble-btn', open && 'support-chat-widget-bubble-btn-active')}
         aria-label={open ? __('Close chat') : __('Open chat')}
       >
         {open ? (
@@ -447,7 +447,7 @@ export function ChatWidget({
           <>
             <MessageCircle className="h-6 w-6" />
             {unread > 0 && (
-              <span className="chat-widget-unread">{unread > 9 ? '9+' : unread}</span>
+              <span className="support-chat-widget-unread">{unread > 9 ? '9+' : unread}</span>
             )}
           </>
         )}

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { trpc } from '@/lib/trpc/client';
 
 interface Props {
@@ -44,14 +45,13 @@ export function GalleryBlock({ attrs }: Props) {
   return (
     <div className="gallery my-6 grid grid-cols-2 gap-2 md:grid-cols-3 lg:grid-cols-4">
       {ordered.map((m) => (
-        <div key={m.id} className="gallery-item aspect-square overflow-hidden rounded-md bg-(--surface-secondary)">
-          <img
+        <div key={m.id} className="gallery-item relative aspect-square overflow-hidden rounded-md bg-(--surface-secondary)">
+          <Image
             src={m.mediumUrl ?? m.url}
             alt={m.altText ?? ''}
-            width={m.width ?? undefined}
-            height={m.height ?? undefined}
-            className="h-full w-full object-cover"
-            loading="lazy"
+            fill
+            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className="object-cover"
           />
         </div>
       ))}

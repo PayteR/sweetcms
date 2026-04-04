@@ -4,7 +4,7 @@ import type { Server } from 'http';
 import { eq, and } from 'drizzle-orm';
 import { db } from '@/server/db';
 import { member as memberTable } from '@/server/db/schema/organization';
-import { saasTickets, saasChatSessions } from '@/server/db/schema/support';
+import { saasTickets, saasSupportChatSessions } from '@/server/db/schema/support';
 import { user as userTable } from '@/server/db/schema/auth';
 import { Policy } from '@/engine/policy';
 
@@ -198,15 +198,15 @@ async function canSubscribe(ws: AuthenticatedSocket, channel: string): Promise<b
       return false;
     }
   }
-  // chat:<sessionId> — session owner (by userId), staff, or anonymous
+  // supportChat:<sessionId> — session owner (by userId), staff, or anonymous
   // with matching visitorId (passed as chat-visitor:<visitorId>:<sessionId>)
-  if (channel.startsWith('chat:')) {
-    const sessionId = channel.slice(5);
+  if (channel.startsWith('supportChat:')) {
+    const sessionId = channel.slice(12);
     try {
       const [session] = await db
-        .select({ visitorId: saasChatSessions.visitorId, userId: saasChatSessions.userId })
-        .from(saasChatSessions)
-        .where(eq(saasChatSessions.id, sessionId))
+        .select({ visitorId: saasSupportChatSessions.visitorId, userId: saasSupportChatSessions.userId })
+        .from(saasSupportChatSessions)
+        .where(eq(saasSupportChatSessions.id, sessionId))
         .limit(1);
       if (!session) return false;
       // Authenticated owner

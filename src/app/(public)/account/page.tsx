@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import { serverTRPC } from '@/lib/trpc/server';
@@ -30,7 +31,7 @@ export default async function AccountPage() {
       <div className="account-card rounded-lg border border-(--border-primary) p-6 mb-6">
         <div className="flex items-center gap-4">
           {userImage ? (
-            <img src={userImage} alt="" className="w-16 h-16 rounded-full object-cover" />
+            <Image src={userImage} alt="" width={64} height={64} className="w-16 h-16 rounded-full object-cover" unoptimized />
           ) : (
             <div className="w-16 h-16 rounded-full bg-(--color-brand-500) flex items-center justify-center text-white text-2xl font-medium">
               {(user.name?.[0] ?? '?').toUpperCase()}

@@ -26,4 +26,9 @@ export const WS_CHANNELS: WsChannel[] = [
     pattern: 'support:*',
     requiresAuth: true,
   },
+  {
+    name: 'Support chat',
+    pattern: 'supportChat:*',
+    requiresAuth: false,
+  },
 ];

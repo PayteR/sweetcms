@@ -21,7 +21,7 @@ import type { Locale } from '@/lib/constants';
 import { adminRoutes, contentRoutes, apiRoutes } from '@/config/routes';
 import { RefCookieCapture } from '@/components/public/RefCookieCapture';
 import { AuthDialogs } from '@/components/public/AuthDialogs';
-import { ChatWidgetWrapper } from '@/components/public/ChatWidgetWrapper';
+import { SupportChatWidgetWrapper } from '@/components/public/SupportChatWidgetWrapper';
 
 async function getPublishedCategories(locale: Locale) {
   try {
@@ -155,7 +155,7 @@ export default async function PublicLayout({
 
       <AuthDialogs />
       <main className="flex-1">{children}</main>
-      <ChatWidgetWrapper />
+      <SupportChatWidgetWrapper />
 
       {/* ═══ Footer ═══ */}
       <footer className="footer">

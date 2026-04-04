@@ -17,6 +17,7 @@ import {
   UserX,
 } from 'lucide-react';
 
+import Image from 'next/image';
 import { trpc } from '@/lib/trpc/client';
 import { useAdminTranslations } from '@/lib/translations';
 import { ROLES, Role } from '@/engine/policy';
@@ -184,7 +185,7 @@ export default function UserDetailPage() {
         </button>
         <div className="flex items-center gap-3">
           {u.image ? (
-            <img src={u.image} alt="" className="h-10 w-10 rounded-full object-cover" />
+            <Image src={u.image} alt="" width={40} height={40} className="rounded-full object-cover" unoptimized />
           ) : (
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-(--border-primary) text-sm font-medium text-(--text-secondary)">
               {(u.name ?? '?').charAt(0).toUpperCase()}

@@ -15,6 +15,7 @@ import {
   Check,
 } from 'lucide-react';
 
+import Image from 'next/image';
 import { trpc } from '@/lib/trpc/client';
 import { useAdminTranslations } from '@/lib/translations';
 import { FileType } from '@/engine/types/cms';
@@ -233,12 +234,13 @@ export default function MediaPage() {
                   className="card group relative overflow-hidden"
                 >
                   {/* Preview */}
-                  <div className="aspect-square bg-(--surface-secondary)">
+                  <div className="relative aspect-square bg-(--surface-secondary)">
                     {isImage ? (
-                      <img
+                      <Image
                         src={item.url ?? ''}
                         alt={item.altText ?? item.filename}
-                        className="h-full w-full object-cover"
+                        fill
+                        className="object-cover"
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center">

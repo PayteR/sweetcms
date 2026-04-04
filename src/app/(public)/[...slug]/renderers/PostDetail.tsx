@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 import { PostType } from '@/engine/types/cms';
@@ -58,12 +59,14 @@ export async function PostDetail({ slug, postType, preview }: Props) {
       )}
 
       {post.featuredImage && (
-        <img
-          src={post.featuredImage}
-          alt={post.featuredImageAlt ?? post.title}
-          className="mb-8 w-full rounded-lg object-cover"
-          style={{ maxHeight: '400px' }}
-        />
+        <div className="relative mb-8 w-full" style={{ maxHeight: '400px', height: '400px' }}>
+          <Image
+            src={post.featuredImage}
+            alt={post.featuredImageAlt ?? post.title}
+            fill
+            className="rounded-lg object-cover"
+          />
+        </div>
       )}
 
       <h1 className="text-3xl font-bold text-(--text-primary) sm:text-4xl">

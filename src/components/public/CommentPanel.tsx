@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronDown, Loader2, Send, X } from 'lucide-react';
 
@@ -19,10 +20,13 @@ interface Props {
 function UserAvatar({ name, image }: { name: string; image: string | null }) {
   if (image) {
     return (
-      <img
+      <Image
         src={image}
         alt={name}
+        width={32}
+        height={32}
         className="h-8 w-8 shrink-0 rounded-full object-cover"
+        unoptimized
       />
     );
   }
