@@ -19,6 +19,6 @@
 :root {
   /* Dashboard content area max-width (centered).
    * Override per-section via data-section attribute:
-   *   .page-container[data-section~="media"] { --content-max-width: 100%; } */
+   *   .dash-container[data-section~="media"] { --content-max-width: 100%; } */
   --content-max-width: 80rem;
 }

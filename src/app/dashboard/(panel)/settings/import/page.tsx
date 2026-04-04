@@ -293,7 +293,7 @@ export default function ImportPage() {
   // ── Render ─────────────────────────────────────────────────────────
 
   return (
-    <main className="page-main"><div className="page-inner import-page">
+    <main className="dash-main"><div className="dash-inner import-page">
       <h1 className="text-2xl font-bold text-(--text-primary)">
         {__('Import Content')}
       </h1>

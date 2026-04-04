@@ -97,7 +97,7 @@ export default function RedirectsPage() {
   }
 
   return (
-    <main className="page-main"><div className="page-inner redirects-page">
+    <main className="dash-main"><div className="dash-inner redirects-page">
       {/* Header */}
       <div className="redirects-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">

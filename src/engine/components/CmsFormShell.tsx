@@ -10,14 +10,14 @@ interface CmsFormShellProps {
 export default function CmsFormShell({ toolbar, children }: CmsFormShellProps) {
   return (
     <>
-      <header className="page-header">
-        <div className="page-toolbar">
+      <header className="dash-header">
+        <div className="dash-toolbar">
           {toolbar}
         </div>
       </header>
 
-      <main className="page-main">
-        <div className="page-inner">
+      <main className="dash-main">
+        <div className="dash-inner">
           {children}
         </div>
       </main>

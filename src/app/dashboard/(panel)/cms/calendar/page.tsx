@@ -8,7 +8,7 @@ import { adminPanel } from '@/config/routes';
 
 export default function CalendarPage() {
   return (
-    <main className="page-main"><div className="page-inner">
+    <main className="dash-main"><div className="dash-inner">
       <Suspense
         fallback={
           <div className="calendar-loading flex items-center justify-center py-20">

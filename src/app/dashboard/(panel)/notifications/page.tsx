@@ -34,7 +34,7 @@ export default function NotificationsPage() {
   });
 
   return (
-    <main className="page-main"><div className="page-inner">
+    <main className="dash-main"><div className="dash-inner">
       <div className="flex items-center justify-between mb-6">
         <h1 className="h2">{__('Notifications')}</h1>
         <button

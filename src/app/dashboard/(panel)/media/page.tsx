@@ -162,7 +162,7 @@ export default function MediaPage() {
   ];
 
   return (
-    <main className="page-main"><div className="page-inner media-page">
+    <main className="dash-main"><div className="dash-inner media-page">
       <div className="media-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">{__('Media Library')}</h1>
         <div className="media-upload">

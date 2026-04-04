@@ -175,6 +175,8 @@ export function RichTextEditor({
   const wrapperRef = useRef<HTMLDivElement>(null);
   const sourceTextareaRef = useRef<HTMLTextAreaElement>(null);
   const editorIdRef = useRef(`editor-${Math.random().toString(36).slice(2, 9)}`);
+  const [editorHeight, setEditorHeight] = useState(height ?? '400px');
+  const heightInitialized = useRef(false);
 
   // Clear pending debounce on unmount (editor may already be destroyed)
   useEffect(() => {
@@ -196,18 +198,26 @@ export function RichTextEditor({
     return () => document.removeEventListener(eventName, handleInsertImage);
   }, []);
 
-  // Height persistence — restore from localStorage on mount, save on resize
+  // Height persistence — restore from localStorage on mount (client only)
+  useEffect(() => {
+    if (!storageKey || heightInitialized.current) return;
+    heightInitialized.current = true;
+    const saved = localStorage.getItem(HEIGHT_STORAGE_PREFIX + storageKey);
+    if (saved) setEditorHeight(saved);
+  }, [storageKey]);
+
+  // Save height to localStorage on resize
   useEffect(() => {
     const wrapper = wrapperRef.current;
     if (!wrapper || !storageKey) return;
-    // Restore saved height
-    const saved = localStorage.getItem(HEIGHT_STORAGE_PREFIX + storageKey);
-    if (saved) wrapper.style.height = saved;
-    // Observe future resizes and persist
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const h = Math.round(entry.contentRect.height);
-        if (h > 0) localStorage.setItem(HEIGHT_STORAGE_PREFIX + storageKey, `${h}px`);
+        if (h > 0) {
+          const val = `${h}px`;
+          localStorage.setItem(HEIGHT_STORAGE_PREFIX + storageKey, val);
+          setEditorHeight(val);
+        }
       }
     });
     observer.observe(wrapper);
@@ -470,7 +480,7 @@ export function RichTextEditor({
       {/* Editor */}
       <div
         ref={wrapperRef}
-        style={{ height: height ?? '400px', resize: 'vertical', overflow: 'hidden' }}
+        style={{ height: editorHeight, resize: 'vertical', overflow: 'hidden' }}
         className={cn(
           'relative flex flex-col overflow-hidden rounded-md border border-(--border-primary) focus-within:border-(--color-accent-500) focus-within:ring-1 focus-within:ring-(--color-accent-500)',
           wrapperClassName,
@@ -830,7 +840,7 @@ export function RichTextEditor({
 
       {/* Live Preview Panel */}
       {showPreview && (
-        <div className="rounded-md border border-(--border-primary) overflow-auto" style={{ height: height ?? '400px' }}>
+        <div className="rounded-md border border-(--border-primary) overflow-auto" style={{ height: editorHeight }}>
           <div className="border-b border-(--border-primary) px-3 py-2 text-xs font-medium text-(--text-muted) uppercase tracking-wider">
             {__('Preview')}
           </div>

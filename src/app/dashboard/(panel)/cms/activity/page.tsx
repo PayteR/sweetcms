@@ -43,7 +43,7 @@ export default function ActivityPage() {
   }
 
   return (
-    <main className="page-main"><div className="page-inner activity-page">
+    <main className="dash-main"><div className="dash-inner activity-page">
       <h1 className="text-2xl font-bold text-(--text-primary)">{__('Activity Log')}</h1>
 
       {/* Filters */}

@@ -153,7 +153,7 @@ export default function UsersPage() {
   }
 
   return (
-    <main className="page-main"><div className="page-inner users-page">
+    <main className="dash-main"><div className="dash-inner users-page">
       <h1 className="text-2xl font-bold text-(--text-primary)">{__('Users')}</h1>
 
       {/* Role tabs */}

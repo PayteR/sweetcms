@@ -66,7 +66,7 @@ export default function FormsPage() {
   }
 
   return (
-    <main className="page-main"><div className="page-inner forms-page">
+    <main className="dash-main"><div className="dash-inner forms-page">
       {/* Header */}
       <div className="forms-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">

@@ -173,7 +173,7 @@ export default function UserDetailPage() {
   const RoleIcon = ROLE_ICONS[u.role] ?? Shield;
 
   return (
-    <main className="page-main"><div className="page-inner">
+    <main className="dash-main"><div className="dash-inner">
       {/* Header */}
       <div className="flex items-center gap-3">
         <button

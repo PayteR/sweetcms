@@ -38,21 +38,21 @@
    * Universal page layout classes.
    *
    * Structure (semantic HTML):
-   *   .page-container                    ← full width, data-section (div)
-   *     <header class="page-header">     ← sticky, full width bg, scroll-driven fade
-   *       .page-toolbar                  ← centered flex row (max-width, fixed height)
-   *     <main class="page-main">         ← content slot (no constraints)
-   *       .page-inner                    ← centered content (max-width, padding)
-   *     <footer class="page-footer">     ← sticky bottom, full width bg
-   *       .page-toolbar                  ← centered flex row (reused)
+   *   .dash-container                    ← full width, data-section (div)
+   *     <header class="dash-header">     ← sticky, full width bg, scroll-driven fade
+   *       .dash-toolbar                  ← centered flex row (max-width, fixed height)
+   *     <main class="dash-main">         ← content slot (no constraints)
+   *       .dash-inner                    ← centered content (max-width, padding)
+   *     <footer class="dash-footer">     ← sticky bottom, full width bg
+   *       .dash-toolbar                  ← centered flex row (reused)
    */
 
-  .page-container {
+  .dash-container {
     /* no constraints — full width of <main> */
   }
 
   /* Centered content block — max-width + padding. Used inside main, header, or footer. */
-  .page-inner {
+  .dash-inner {
     max-width: var(--content-max-width);
     margin-inline: auto;
     padding-inline: 1.5rem;
@@ -61,25 +61,25 @@
   }
 
   /* Sticky header — full-width, scroll-driven background fade. */
-  .page-header {
+  .dash-header {
     margin-top: 1rem;
     position: sticky;
     top: 3rem;
     z-index: 30;
     background-color: transparent;
     border-bottom: 1px solid transparent;
-    animation: page-header-fade linear both;
+    animation: dash-header-fade linear both;
     animation-timeline: scroll();
     animation-range: 0px 80px;
   }
 
   @media (min-width: 80rem) {
-    .page-header {
+    .dash-header {
       top: 0;
     }
   }
 
-  @keyframes page-header-fade {
+  @keyframes dash-header-fade {
     from {
       background-color: transparent;
       border-bottom-color: transparent;
@@ -91,7 +91,7 @@
   }
 
   /* Centered toolbar — fixed height, flex row. Used inside header and footer. */
-  .page-toolbar {
+  .dash-toolbar {
     max-width: var(--content-max-width);
     margin-inline: auto;
     padding-inline: 1.5rem;
@@ -102,7 +102,7 @@
   }
 
   /* Sticky footer — full-width, sticks to bottom. */
-  .page-footer {
+  .dash-footer {
     position: sticky;
     bottom: 0;
     z-index: 30;
@@ -110,7 +110,7 @@
     background-color: var(--surface-secondary);
   }
 
-  .page-footer .page-toolbar {
+  .dash-footer .dash-toolbar {
     height: 3rem;
   }
 
@@ -128,8 +128,8 @@
    *   /dashboard/settings/billing      → "settings billing"
    *
    * Selector examples:
-   *   .page-container[data-section~="cms"]    { --content-max-width: 90rem; }
-   *   .page-container[data-section~="media"]  { --content-max-width: 100%; }
+   *   .dash-container[data-section~="cms"]    { --content-max-width: 90rem; }
+   *   .dash-container[data-section~="media"]  { --content-max-width: 100%; }
    */
 
   /* ===================== Global button cursor ===================== */
@@ -257,7 +257,7 @@
   }
 
   /* ===================== Sidebar ===================== */
-  .sidebar-link {
+  .dash-sidebar-link {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -269,19 +269,19 @@
     transition: color var(--duration-fast) ease, background-color var(--duration-fast) ease;
   }
 
-  .sidebar-link:hover {
+  .dash-sidebar-link:hover {
     color: var(--text-primary);
     background-color: var(--surface-inset);
   }
 
-  .sidebar-link.active {
+  .dash-sidebar-link.active {
     color: var(--color-brand-700);
     background: linear-gradient(135deg, oklch(0.65 0.24 var(--brand-hue) / 0.12), oklch(0.55 0.27 var(--accent-hue) / 0.08));
     font-weight: 500;
   }
 
   /* ===================== Rail (Level 1) ===================== */
-  .rail {
+  .dash-rail {
     position: fixed;
     left: 0;
     top: 0;
@@ -295,7 +295,7 @@
     z-index: 60;
   }
 
-  .rail-logo {
+  .dash-rail-logo {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -311,7 +311,7 @@
     flex-shrink: 0;
   }
 
-  .rail-nav {
+  .dash-rail-nav {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -321,7 +321,7 @@
     overflow-y: auto;
   }
 
-  .rail-btn {
+  .dash-rail-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -335,17 +335,17 @@
     flex-shrink: 0;
   }
 
-  .rail-btn:hover {
+  .dash-rail-btn:hover {
     color: var(--text-primary);
     background-color: var(--surface-secondary);
   }
 
-  .rail-btn.active {
+  .dash-rail-btn.active {
     color: var(--color-brand-700);
     background: linear-gradient(135deg, oklch(0.65 0.24 var(--brand-hue) / 0.12), oklch(0.55 0.27 var(--accent-hue) / 0.08));
   }
 
-  .rail-bottom {
+  .dash-rail-bottom {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -355,7 +355,7 @@
   }
 
   /* ===================== Level 2 Panel ===================== */
-  .l2-panel {
+  .dash-nav {
     position: fixed;
     left: 48px;
     top: 0;
@@ -368,17 +368,17 @@
     padding: 1rem 0.75rem;
   }
 
-  .l2-panel.l2-collapsed {
+  .dash-panel.dash-nav-collapsed {
     width: 48px;
     padding: 1rem 0.375rem;
   }
 
-  .l2-collapsed .sidebar-link {
+  .dash-nav-collapsed .dash-sidebar-link {
     justify-content: center;
     padding: 0.375rem;
   }
 
-  .l2-title {
+  .dash-nav-title {
     font-size: 0.6875rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -403,7 +403,7 @@
 
   /* ===================== Mobile Top Bar ===================== */
   /* ===================== Mobile Rail (overlay, not fixed) ===================== */
-  .mobile-rail {
+  .dash-mobile-rail {
     display: flex;
     width: 48px;
     flex-direction: column;
@@ -413,7 +413,7 @@
   }
 
   /* ===================== Mobile Top Bar ===================== */
-  .mobile-topbar {
+  .dash-mobile-topbar {
     position: fixed;
     top: 0;
     left: 0;
@@ -687,13 +687,13 @@ html.dark {
   }
 
   /* Rail: surface-inset in dark = oklch(0.20), border = white tint */
-  .rail {
+  .dash-rail {
     background: var(--surface-inset);
     border-right-color: oklch(1 0 0 / 0.08);
   }
 
   /* L2 panel: solid dark (oklch 0.26) */
-  .l2-panel {
+  .dash-nav {
     background: oklch(0.26 0.02 260);
     border-right-color: oklch(1 0 0 / 0.08);
     box-shadow: 1px 0 8px oklch(0 0 0 / 0.15);
@@ -740,32 +740,32 @@ html.dark {
   }
 
   /* Mobile rail + topbar: solid dark with white-tint borders */
-  .mobile-rail {
+  .dash-mobile-rail {
     background: var(--surface-inset);
     border-right-color: oklch(1 0 0 / 0.08);
   }
 
-  .mobile-topbar {
+  .dash-mobile-topbar {
     background: var(--surface-inset);
     border-bottom-color: oklch(1 0 0 / 0.08);
   }
 
-  .sidebar-link.active {
+  .dash-sidebar-link.active {
     color: var(--color-brand-300);
     background: linear-gradient(135deg, oklch(0.65 0.24 var(--brand-hue) / 0.22), oklch(0.55 0.27 var(--accent-hue) / 0.22));
   }
 
-  .rail-btn.active {
+  .dash-rail-btn.active {
     color: var(--color-brand-300);
     background: linear-gradient(135deg, oklch(0.65 0.24 var(--brand-hue) / 0.22), oklch(0.55 0.27 var(--accent-hue) / 0.22));
   }
 
   /* White-tint hovers */
-  .sidebar-link:hover {
+  .dash-sidebar-link:hover {
     background-color: oklch(1 0 0 / 0.06);
   }
 
-  .rail-btn:hover {
+  .dash-rail-btn:hover {
     background-color: oklch(1 0 0 / 0.08);
   }
 

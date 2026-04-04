@@ -42,7 +42,7 @@ export function OrgSwitcher({ manageOrgsHref }: OrgSwitcherProps) {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className={cn('rail-btn flex items-center gap-1 w-full px-2 py-1.5 text-xs')}
+        className={cn('dash-rail-btn flex items-center gap-1 w-full px-2 py-1.5 text-xs')}
         title={__('Switch organization')}
       >
         <Building2 size={16} />
@@ -53,7 +53,7 @@ export function OrgSwitcher({ manageOrgsHref }: OrgSwitcherProps) {
         <div className="absolute left-full top-0 ml-1 w-56 card p-1 shadow-lg z-50">
           <button
             onClick={() => handleSwitch(null)}
-            className="sidebar-link w-full text-left text-xs px-3 py-2"
+            className="dash-sidebar-link w-full text-left text-xs px-3 py-2"
           >
             {__('Personal')}
           </button>
@@ -61,7 +61,7 @@ export function OrgSwitcher({ manageOrgsHref }: OrgSwitcherProps) {
             <button
               key={org.orgId}
               onClick={() => handleSwitch(org.orgId)}
-              className="sidebar-link w-full text-left text-xs px-3 py-2"
+              className="dash-sidebar-link w-full text-left text-xs px-3 py-2"
             >
               {org.orgName}
             </button>
@@ -71,7 +71,7 @@ export function OrgSwitcher({ manageOrgsHref }: OrgSwitcherProps) {
               <hr className="my-1 border-(--border-primary)" />
               <a
                 href={manageOrgsHref}
-                className="sidebar-link flex items-center gap-1.5 w-full text-left text-xs px-3 py-2"
+                className="dash-sidebar-link flex items-center gap-1.5 w-full text-left text-xs px-3 py-2"
               >
                 <Plus size={14} />
                 {__('Manage organizations')}

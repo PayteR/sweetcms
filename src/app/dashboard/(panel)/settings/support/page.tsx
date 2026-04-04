@@ -49,7 +49,7 @@ export default function AdminSupportPage() {
   });
 
   return (
-    <main className="page-main"><div className="page-inner support-page">
+    <main className="dash-main"><div className="dash-inner support-page">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">

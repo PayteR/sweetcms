@@ -57,7 +57,7 @@ export function NotificationBell({ notificationsHref }: NotificationBellProps) {
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="rail-btn relative"
+        className="dash-rail-btn relative"
         title={__('Notifications')}
       >
         <Bell className="h-5 w-5" />

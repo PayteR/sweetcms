@@ -140,7 +140,7 @@ export function AdminSidebar() {
               if (firstChild) router.push(firstChild.href);
               closeSidebar();
             }}
-            className={cn('rail-btn', isActive && 'active')}
+            className={cn('dash-rail-btn', isActive && 'active')}
           >
             <Icon className="h-5 w-5" />
           </button>
@@ -153,7 +153,7 @@ export function AdminSidebar() {
           href={item.href}
           title={item.name}
           onClick={closeSidebar}
-          className={cn('rail-btn', isActive && 'active')}
+          className={cn('dash-rail-btn', isActive && 'active')}
         >
           <Icon className="h-5 w-5" />
         </Link>
@@ -170,7 +170,7 @@ export function AdminSidebar() {
           type="button"
           title={__('Search')}
           onClick={openPalette}
-          className="rail-btn"
+          className="dash-rail-btn"
         >
           <Search className="h-5 w-5" />
         </button>
@@ -178,7 +178,7 @@ export function AdminSidebar() {
           type="button"
           title={`${__('Theme')}: ${themeLabels[theme]}`}
           onClick={cycleTheme}
-          className="rail-btn"
+          className="dash-rail-btn"
         >
           <ThemeIcon className="h-5 w-5" />
         </button>
@@ -188,7 +188,7 @@ export function AdminSidebar() {
             type="button"
             title={session?.user?.name ?? __('User')}
             onClick={() => setUserPopoverOpen((v) => !v)}
-            className="rail-btn"
+            className="dash-rail-btn"
           >
             <User className="h-5 w-5" />
           </button>
@@ -232,13 +232,13 @@ export function AdminSidebar() {
     return (
       <>
         <div className="flex items-center justify-between mb-1">
-          <div className={cn('l2-title', isL2Collapsed && 'sr-only')}>
+          <div className={cn('dash-nav-title', isL2Collapsed && 'sr-only')}>
             {activeItem.name}
           </div>
           <button
             type="button"
             onClick={toggleL2Collapsed}
-            className="rail-btn !w-7 !h-7"
+            className="dash-rail-btn !w-7 !h-7"
             title={isL2Collapsed ? __('Expand panel') : __('Collapse panel')}
           >
             <CollapseIcon className="h-3.5 w-3.5" />
@@ -254,7 +254,7 @@ export function AdminSidebar() {
                 href={child.href}
                 onClick={closeSidebar}
                 title={isL2Collapsed ? child.name : undefined}
-                className={cn('sidebar-link', active && 'active')}
+                className={cn('dash-sidebar-link', active && 'active')}
               >
                 <Icon className="h-4 w-4 shrink-0" />
                 {!isL2Collapsed && <span>{child.name}</span>}
@@ -269,20 +269,20 @@ export function AdminSidebar() {
   return (
     <>
       {/* ── Desktop Rail ── */}
-      <aside className="rail hidden xl:flex">
-        <Link href={adminRoutes.home} className="rail-logo">
+      <aside className="dash-rail hidden xl:flex">
+        <Link href={adminRoutes.home} className="dash-rail-logo">
           {logoLetter}
         </Link>
         {ORGANIZATIONS_VISIBLE && <OrgSwitcher manageOrgsHref={adminPanel.organizations} />}
-        <div className="rail-nav">
+        <div className="dash-rail-nav">
           {renderRailNav()}
         </div>
-        <div className="rail-bottom">
+        <div className="dash-rail-bottom">
           <a
             href="/"
             target="_blank"
             rel="noopener noreferrer"
-            className="rail-btn"
+            className="dash-rail-btn"
             title={__('View site')}
           >
             <ExternalLink size={16} />
@@ -294,22 +294,22 @@ export function AdminSidebar() {
       {/* ── Desktop Level 2 Panel (always mounted for transition) ── */}
       <aside
         className={cn(
-          'l2-panel hidden xl:block transition-[translate,opacity,width] duration-300 ease-in-out',
+          'dash-nav hidden xl:block transition-[translate,opacity,width] duration-300 ease-in-out',
           hasLevel2
             ? 'translate-x-0 opacity-100'
             : '-translate-x-full opacity-0 pointer-events-none',
-          hasLevel2 && isL2Collapsed && 'l2-collapsed'
+          hasLevel2 && isL2Collapsed && 'dash-nav-collapsed'
         )}
       >
         {hasLevel2 && renderLevel2()}
       </aside>
 
       {/* ── Mobile Top Bar ── */}
-      <div className="mobile-topbar xl:hidden">
+      <div className="dash-mobile-topbar xl:hidden">
         <button
           type="button"
           onClick={toggleSidebar}
-          className="rail-btn"
+          className="dash-rail-btn"
         >
           <Menu className="h-5 w-5" />
         </button>
@@ -317,7 +317,7 @@ export function AdminSidebar() {
           <button
             type="button"
             onClick={openPalette}
-            className="rail-btn"
+            className="dash-rail-btn"
           >
             <Search className="h-5 w-5" />
           </button>
@@ -332,21 +332,21 @@ export function AdminSidebar() {
             onClick={closeSidebar}
           />
           <div className="fixed inset-y-0 left-0 z-[60] flex xl:hidden">
-            {/* Mobile Rail — inline layout instead of reusing .rail (which is position:fixed) */}
-            <aside className="mobile-rail">
-              <Link href={adminRoutes.home} onClick={closeSidebar} className="rail-logo">
+            {/* Mobile Rail — inline layout instead of reusing .dash-rail (which is position:fixed) */}
+            <aside className="dash-mobile-rail">
+              <Link href={adminRoutes.home} onClick={closeSidebar} className="dash-rail-logo">
                 {logoLetter}
               </Link>
               {ORGANIZATIONS_VISIBLE && <OrgSwitcher manageOrgsHref={adminPanel.organizations} />}
-              <div className="rail-nav">
+              <div className="dash-rail-nav">
                 {renderRailNav()}
               </div>
-              <div className="rail-bottom">
+              <div className="dash-rail-bottom">
                 <a
                   href="/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="rail-btn"
+                  className="dash-rail-btn"
                   title={__('View site')}
                 >
                   <ExternalLink size={16} />

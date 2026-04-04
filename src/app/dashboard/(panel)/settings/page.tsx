@@ -189,7 +189,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="page-main"><div className="page-inner settings-page">
+    <main className="dash-main"><div className="dash-inner settings-page">
       <div className="settings-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">{__('Settings')}</h1>
         <button

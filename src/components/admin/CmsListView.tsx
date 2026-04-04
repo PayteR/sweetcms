@@ -544,8 +544,8 @@ export function CmsListView({ contentType }: Props) {
   return (
     <>
       {/* Sticky header */}
-      <header className="page-header">
-        <div className="page-toolbar">
+      <header className="dash-header">
+        <div className="dash-toolbar">
         <h1 className="text-2xl font-bold text-(--text-primary)">
           {__(contentType.labelPlural)}
         </h1>
@@ -629,8 +629,8 @@ export function CmsListView({ contentType }: Props) {
       </header>
 
       {/* Body */}
-      <main className="page-main">
-      <div className="page-inner">
+      <main className="dash-main">
+      <div className="dash-inner">
 
       {/* Taxonomy overview for tags */}
       {isTagType && <div className="mb-4"><TaxonomyOverview /></div>}

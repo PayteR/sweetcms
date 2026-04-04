@@ -127,7 +127,7 @@ export default function EmailTemplatesPage() {
   if (editing) {
     const template = TEMPLATES.find((t) => t.name === editing)!;
     return (
-      <main className="page-main"><div className="page-inner email-editor-page">
+      <main className="dash-main"><div className="dash-inner email-editor-page">
         <div className="email-templates-header flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
@@ -237,7 +237,7 @@ export default function EmailTemplatesPage() {
   }
 
   return (
-    <main className="page-main"><div className="page-inner email-templates-page">
+    <main className="dash-main"><div className="dash-inner email-templates-page">
       <h1 className="text-2xl font-bold text-(--text-primary)">
         {__('Email Templates')}
       </h1>
