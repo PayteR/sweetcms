@@ -12,9 +12,9 @@
  */
 
 import { useTranslations as useBaseTranslations } from 'next-intl';
-import { createTranslationFunction, type TranslationFn } from './translation-utils';
+import { createTranslationFunction, type TranslationFn } from './translation-shared';
 
-export type { TranslationFn } from './translation-utils';
+export type { TranslationFn } from './translation-shared';
 
 /** Client-side translation hook — wraps next-intl's useTranslations with safe fallback */
 export const useAdminTranslations = (

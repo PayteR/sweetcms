@@ -10,9 +10,9 @@
 import 'server-only';
 
 import { getTranslations as getBaseTranslations } from 'next-intl/server';
-import { createTranslationFunction, type TranslationFn } from './translation-utils';
+import { createTranslationFunction, type TranslationFn } from './translation-shared';
 
-export type { TranslationFn } from './translation-utils';
+export type { TranslationFn } from './translation-shared';
 
 /** Server-side translation function — wraps next-intl's getTranslations */
 export const getServerTranslations = async (
