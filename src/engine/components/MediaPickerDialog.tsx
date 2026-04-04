@@ -20,13 +20,29 @@ import { cn } from "@/lib/utils";
 import { Dialog } from "@/engine/components/Dialog";
 import { ConfirmDialog } from "@/engine/components/ConfirmDialog";
 
-interface Props {
+export interface MediaPickerDialogProps {
   open: boolean;
   onClose: () => void;
   onSelect: (url: string, alt?: string) => void;
+  /** Pre-filter by file type (e.g., FileType.IMAGE for featured image picker). Undefined = all types. */
+  defaultFileType?: number;
+  /** Lock the file type filter — hides the dropdown when set */
+  lockFileType?: boolean;
+  /** Pre-filter by uploader user ID */
+  defaultUserId?: string;
+  /** Show user filter dropdown (for admin to browse other users' media) */
+  showUserFilter?: boolean;
 }
 
-export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
+export function MediaPickerDialog({
+  open,
+  onClose,
+  onSelect,
+  defaultFileType = FileType.IMAGE,
+  lockFileType = false,
+  defaultUserId,
+  showUserFilter = false,
+}: MediaPickerDialogProps) {
   const __ = useAdminTranslations();
   const utils = trpc.useUtils();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -37,7 +53,8 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
   const [searchDebounced, setSearchDebounced] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [fileTypeFilter, setFileTypeFilter] = useState<number | undefined>(FileType.IMAGE);
+  const [fileTypeFilter, setFileTypeFilter] = useState<number | undefined>(defaultFileType);
+  const [userIdFilter, setUserIdFilter] = useState<string | undefined>(defaultUserId);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
   // Debounce search
@@ -54,9 +71,16 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
       page,
       pageSize: 20,
       fileType: fileTypeFilter,
+      uploadedById: userIdFilter || undefined,
       search: searchDebounced || undefined,
     },
     { enabled: open },
+  );
+
+  // User list for filter (only fetched when showUserFilter is true)
+  const userList = trpc.users.list.useQuery(
+    { page: 1, pageSize: 100 },
+    { enabled: open && showUserFilter },
   );
 
   const registerMedia = trpc.media.register.useMutation({
@@ -203,20 +227,38 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
             />
           </div>
           {/* Type filter */}
-          <select
-            value={fileTypeFilter ?? ''}
-            onChange={(e) => {
-              setFileTypeFilter(e.target.value ? Number(e.target.value) : undefined);
-              setPage(1);
-            }}
-            className="select text-sm h-9"
-          >
-            <option value="">{__("All types")}</option>
-            <option value={FileType.IMAGE}>{__("Images")}</option>
-            <option value={FileType.VIDEO}>{__("Videos")}</option>
-            <option value={FileType.DOCUMENT}>{__("Documents")}</option>
-            <option value={FileType.OTHER}>{__("Other")}</option>
-          </select>
+          {!lockFileType && (
+            <select
+              value={fileTypeFilter ?? ''}
+              onChange={(e) => {
+                setFileTypeFilter(e.target.value ? Number(e.target.value) : undefined);
+                setPage(1);
+              }}
+              className="select text-sm h-9"
+            >
+              <option value="">{__("All types")}</option>
+              <option value={FileType.IMAGE}>{__("Images")}</option>
+              <option value={FileType.VIDEO}>{__("Videos")}</option>
+              <option value={FileType.DOCUMENT}>{__("Documents")}</option>
+              <option value={FileType.OTHER}>{__("Other")}</option>
+            </select>
+          )}
+          {/* User filter */}
+          {showUserFilter && (
+            <select
+              value={userIdFilter ?? ''}
+              onChange={(e) => {
+                setUserIdFilter(e.target.value || undefined);
+                setPage(1);
+              }}
+              className="select text-sm h-9"
+            >
+              <option value="">{__("All users")}</option>
+              {(userList.data?.results ?? []).map((u: { id: string; name: string; email: string }) => (
+                <option key={u.id} value={u.id}>{u.name || u.email}</option>
+              ))}
+            </select>
+          )}
           {/* Upload button */}
           <input
             ref={fileInputRef}

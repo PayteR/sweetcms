@@ -45,6 +45,7 @@ export const mediaRouter = createTRPCRouter({
         page: z.number().int().min(1).default(1),
         pageSize: z.number().int().min(1).max(100).default(20),
         fileType: z.number().int().optional(),
+        uploadedById: z.string().max(200).optional(),
         search: z.string().max(200).optional(),
       })
     )
@@ -54,6 +55,9 @@ export const mediaRouter = createTRPCRouter({
       const conditions = [isNull(cmsMedia.deletedAt)];
       if (input.fileType != null) {
         conditions.push(eq(cmsMedia.fileType, input.fileType));
+      }
+      if (input.uploadedById) {
+        conditions.push(eq(cmsMedia.uploadedById, input.uploadedById));
       }
       if (input.search) {
         const pattern = `%${input.search}%`;
