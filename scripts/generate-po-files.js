@@ -49,10 +49,19 @@ msgstr ""
 }
 
 // Convert a translation entry to .po format with context
-function formatPoEntryWithContext(key, value = '', context = '') {
+function formatPoEntryWithContext(key, value = '', context = '', plural = null) {
   const escapedKey = key.replace(/"/g, '\\"');
   const escapedValue = value.replace(/"/g, '\\"');
   const contextLine = context ? `msgctxt "${context}"\n` : '';
+
+  if (plural) {
+    const escapedPlural = plural.replace(/"/g, '\\"');
+    return `${contextLine}msgid "${escapedKey}"
+msgid_plural "${escapedPlural}"
+msgstr[0] "${escapedValue}"
+msgstr[1] "${escapedPlural}"
+`;
+  }
 
   return `${contextLine}msgid "${escapedKey}"
 msgstr "${escapedValue}"
@@ -320,6 +329,62 @@ async function extractTranslationsFromFile(filePath) {
         }
       }
 
+      // Check for __._n('singular', 'plural', count) calls (plural translations)
+      if (
+        ts.isCallExpression(node) &&
+        ts.isPropertyAccessExpression(node.expression) &&
+        node.expression.name.text === '_n' &&
+        ts.isIdentifier(node.expression.expression) &&
+        translationFunctions.has(node.expression.expression.text) &&
+        node.arguments.length >= 2
+      ) {
+        const singularKey = getStringLiteralValue(node.arguments[0]);
+        const pluralKey = getStringLiteralValue(node.arguments[1]);
+        const namespace = translationFunctions.get(node.expression.expression.text);
+
+        if (singularKey && pluralKey) {
+          const fullKey = namespace
+            ? `${namespace}${NAMESPACE_DELIMITER}${singularKey}`
+            : singularKey;
+
+          if (!translations[fullKey]) {
+            translations[fullKey] = { value: singularKey, references: [], plural: pluralKey };
+          } else {
+            translations[fullKey].plural = pluralKey;
+          }
+          translations[fullKey].references.push(
+            `${makeRelativePath(filePath)}:${line + 1}`
+          );
+        }
+      }
+
+      // Check for __._x('key', 'context') calls (context translations)
+      if (
+        ts.isCallExpression(node) &&
+        ts.isPropertyAccessExpression(node.expression) &&
+        node.expression.name.text === '_x' &&
+        ts.isIdentifier(node.expression.expression) &&
+        translationFunctions.has(node.expression.expression.text) &&
+        node.arguments.length >= 2
+      ) {
+        const key = getStringLiteralValue(node.arguments[0]);
+        const context = getStringLiteralValue(node.arguments[1]);
+        const namespace = translationFunctions.get(node.expression.expression.text);
+
+        if (key && context) {
+          // Encode context into namespace: "General::verb"
+          const ctxNamespace = `${namespace || 'General'}::${context}`;
+          const fullKey = `${ctxNamespace}${NAMESPACE_DELIMITER}${key}`;
+
+          if (!translations[fullKey]) {
+            translations[fullKey] = { value: key, references: [], context };
+          }
+          translations[fullKey].references.push(
+            `${makeRelativePath(filePath)}:${line + 1}`
+          );
+        }
+      }
+
       ts.forEachChild(node, visit);
     }
 
@@ -355,7 +420,7 @@ async function writePoFile(outputPath, locale, allTranslations) {
     ...Object.keys(existingCommentedTranslations),
   ]);
 
-  for (const [key, { value: defaultValue, references }] of Object.entries(
+  for (const [key, { value: defaultValue, references, plural }] of Object.entries(
     allTranslations
   )) {
     const [context, actualKey] = key.includes(NAMESPACE_DELIMITER)
@@ -371,7 +436,9 @@ async function writePoFile(outputPath, locale, allTranslations) {
 
     if (
       !(key in existingTranslations) ||
-      existingTranslations[key] !== translationValue
+      existingTranslations[key] !== translationValue ||
+      (plural && !(key in existingTranslations)) ||  // new plural entry
+      (context && !(key in existingTranslations))     // new context entry
     ) {
       hasChanges = true;
     }
@@ -384,7 +451,7 @@ async function writePoFile(outputPath, locale, allTranslations) {
       .join('\n');
     const poEntry = `
 ${referenceLines}
-${formatPoEntryWithContext(actualKey, translationValue, context)}`;
+${formatPoEntryWithContext(actualKey, translationValue, context, plural)}`;
     poContent += poEntry;
   }
 
@@ -453,13 +520,13 @@ async function generatePoFiles() {
     const fileTranslations = await extractTranslationsFromFile(file);
     const target = isAdminFile(file) ? adminTranslations : publicTranslations;
 
-    for (const [key, { value, references }] of Object.entries(
-      fileTranslations
-    )) {
+    for (const [key, entry] of Object.entries(fileTranslations)) {
       if (!target[key]) {
-        target[key] = { value, references: [] };
+        target[key] = { value: entry.value, references: [] };
       }
-      target[key].references.push(...references);
+      if (entry.plural) target[key].plural = entry.plural;
+      if (entry.context) target[key].context = entry.context;
+      target[key].references.push(...entry.references);
     }
   }
 

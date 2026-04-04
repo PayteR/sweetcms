@@ -49,7 +49,7 @@ export function useBulkActions({
       if (failed > 0) {
         toast.info(__('{succeeded} {action}, {failed} failed', { succeeded, action, failed }));
       } else {
-        toast.success(__('{count} items {action}', { count: succeeded, action }));
+        toast.success(__._n('1 item {action}', '{count} items {action}', succeeded, { action }));
       }
     },
     [__]

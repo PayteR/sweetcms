@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { ArrowLeft, Save, Eye, Loader2, ImageIcon, X, History } from 'lucide-react';
+import { ArrowLeft, Save, Eye, Loader2, ImageIcon, History } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -54,6 +53,7 @@ import { CustomFieldsEditor, type CustomFieldsEditorHandle } from '@/engine/comp
 import { FallbackRadio } from '@/engine/components/FallbackRadio';
 import InternalLinkDialog from '@/engine/components/InternalLinkDialog';
 import { INTERNAL_LINK_TYPE_CONFIG } from '@/components/admin/internal-link-config';
+import { MediaPickerButton } from '@/engine/components/MediaPickerButton';
 import { MediaPickerDialog } from '@/engine/components/MediaPickerDialog';
 import { RevisionHistory } from '@/engine/components/RevisionHistory';
 import { RichTextEditor } from '@/engine/components/RichTextEditor';
@@ -213,7 +213,6 @@ export function PostForm({ contentType, postId }: Props) {
 
   // UI-only state (not part of form data)
   const [slugManual, setSlugManual] = useState(false);
-  const [showMediaPicker, setShowMediaPicker] = useState(false);
   const [showContentMediaPicker, setShowContentMediaPicker] = useState(false);
   const [replaceImageCallback, setReplaceImageCallback] = useState<((url: string, alt?: string) => void) | null>(null);
   const [showRevisions, setShowRevisions] = useState(false);
@@ -742,64 +741,16 @@ export function PostForm({ contentType, postId }: Props) {
     ),
     'featured-image': () =>
       contentType.postFormFields?.featuredImage ? (
-        <div className="space-y-3">
-          {formData.featuredImage ? (
-            <div className="post-form-image-preview relative">
-              <div className="relative h-32 w-full">
-                <Image
-                  src={formData.featuredImage}
-                  alt={formData.featuredImageAlt || 'Preview'}
-                  fill
-                  className="rounded-md border border-(--border-primary) object-cover"
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  handleChange('featuredImage', '');
-                  handleChange('featuredImageAlt', '');
-                }}
-                className="absolute right-1 top-1 rounded bg-(--surface-primary)/90 p-1 shadow-sm hover:bg-(--surface-primary)"
-              >
-                <X className="h-3.5 w-3.5 text-(--text-secondary)" />
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setShowMediaPicker(true)}
-              className="flex w-full items-center justify-center gap-2 rounded-md border-2 border-dashed border-(--border-primary) px-4 py-6 text-sm text-(--text-muted) hover:border-(--border-primary) hover:text-(--text-secondary)"
-            >
-              <ImageIcon className="h-5 w-5" />
-              {__('Select Image')}
-            </button>
-          )}
-          {formData.featuredImage && (
-            <div className="post-form-image-actions flex gap-2">
-              <button
-                type="button"
-                onClick={() => setShowMediaPicker(true)}
-                className="text-xs text-(--color-brand-600) hover:text-(--color-brand-700)"
-              >
-                {__('Change')}
-              </button>
-            </div>
-          )}
-          {formData.featuredImage && (
-            <div>
-              <label className="block text-sm font-medium text-(--text-secondary)">
-                {__('Alt Text')}
-              </label>
-              <input
-                type="text"
-                value={formData.featuredImageAlt}
-                onChange={(e) => handleChange('featuredImageAlt', e.target.value)}
-                className="input mt-1"
-                placeholder={__('Describe the image')}
-              />
-            </div>
-          )}
-        </div>
+        <MediaPickerButton
+          value={formData.featuredImage || undefined}
+          alt={formData.featuredImageAlt}
+          onChange={(url, alt) => {
+            handleChange('featuredImage', url);
+            if (alt !== undefined) handleChange('featuredImageAlt', alt);
+          }}
+          showAltInput
+          lockFileType
+        />
       ) : null,
   };
 
@@ -1060,16 +1011,6 @@ export function PostForm({ contentType, postId }: Props) {
           onClose={() => setShowRevisions(false)}
         />
       )}
-
-      {/* Media Picker — Featured Image */}
-      <MediaPickerDialog
-        open={showMediaPicker}
-        onClose={() => setShowMediaPicker(false)}
-        onSelect={(url, alt) => {
-          handleChange('featuredImage', url);
-          if (alt) handleChange('featuredImageAlt', alt);
-        }}
-      />
 
       {/* Media Picker — Insert into Content */}
       <MediaPickerDialog

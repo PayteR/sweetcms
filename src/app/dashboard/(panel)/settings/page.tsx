@@ -63,7 +63,7 @@ export default function SettingsPage() {
   const [seoDialogOpen, setSeoDialogOpen] = useState(false);
   const createSeoOverrides = trpc.cms.createMissingSeoOverrides.useMutation({
     onSuccess: (data) => {
-      toast.success(__('Created {count} SEO override page(s)', { count: data.created }));
+      toast.success(__._n('Created 1 SEO override page', 'Created {count} SEO override pages', data.created));
       setSeoDialogOpen(false);
     },
     onError: (err) => toast.error(err.message),

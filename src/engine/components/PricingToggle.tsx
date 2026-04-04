@@ -1,5 +1,7 @@
 'use client';
 
+import '@/engine/styles/frontend/pricing.css';
+
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 

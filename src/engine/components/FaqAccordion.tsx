@@ -1,5 +1,7 @@
 'use client';
 
+import '@/engine/styles/frontend/pricing.css';
+
 interface FaqItem {
   question: string;
   answer: string;

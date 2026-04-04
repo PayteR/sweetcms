@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { ArrowLeft, Save, Loader2, X } from 'lucide-react';
+import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 
 import { getContentType } from '@/config/cms';
 import { adminPanel } from '@/config/routes';
@@ -29,7 +28,7 @@ import { CustomFieldsEditor, type CustomFieldsEditorHandle } from '@/engine/comp
 import { FallbackRadio } from '@/engine/components/FallbackRadio';
 import InternalLinkDialog from '@/engine/components/InternalLinkDialog';
 import { INTERNAL_LINK_TYPE_CONFIG } from '@/components/admin/internal-link-config';
-import { MediaPickerDialog } from '@/engine/components/MediaPickerDialog';
+import { MediaPickerButton } from '@/engine/components/MediaPickerButton';
 import { RevisionHistory } from '@/engine/components/RevisionHistory';
 import { RichTextEditor } from '@/engine/components/RichTextEditor';
 import { shortcodeConfig } from '@/lib/shortcodes/config';
@@ -77,8 +76,6 @@ export function ShowcaseForm({ showcaseId }: Props) {
 
   const aiTransform = useAiTransform();
   const [slugManual, setSlugManual] = useState(false);
-  const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
-  const [mediaPickerTarget, setMediaPickerTarget] = useState<'mediaUrl' | 'thumbnailUrl'>('mediaUrl');
 
   const existingItem = trpc.showcase.get.useQuery(
     { id: showcaseId! },
@@ -368,49 +365,33 @@ export function ShowcaseForm({ showcaseId }: Props) {
                   </select>
                 </div>
 
-                {(formData.cardType === 'video' || formData.cardType === 'image') && (
+                {formData.cardType === 'video' && (
                   <div className="field-group">
                     <label className="block text-sm font-medium text-(--text-secondary)">
-                      {formData.cardType === 'video' ? __('Video Embed URL') : __('Image URL')}
+                      {__('Video Embed URL')}
                     </label>
-                    <div className="mt-1 flex gap-2">
-                      <input
-                        type="url"
-                        value={formData.mediaUrl}
-                        onChange={(e) => handleChange('mediaUrl', e.target.value)}
-                        className="input flex-1"
-                        placeholder={formData.cardType === 'video' ? 'https://youtube.com/watch?v=...' : 'https://...'}
+                    <input
+                      type="url"
+                      value={formData.mediaUrl}
+                      onChange={(e) => handleChange('mediaUrl', e.target.value)}
+                      className="input mt-1"
+                      placeholder="https://youtube.com/watch?v=..."
+                    />
+                  </div>
+                )}
+
+                {formData.cardType === 'image' && (
+                  <div className="field-group">
+                    <label className="block text-sm font-medium text-(--text-secondary)">
+                      {__('Image URL')}
+                    </label>
+                    <div className="mt-1">
+                      <MediaPickerButton
+                        value={formData.mediaUrl || undefined}
+                        onChange={(url) => handleChange('mediaUrl', url)}
+                        lockFileType
                       />
-                      {formData.cardType === 'image' && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setMediaPickerTarget('mediaUrl');
-                            setMediaPickerOpen(true);
-                          }}
-                          className="btn btn-secondary shrink-0"
-                        >
-                          {__('Browse')}
-                        </button>
-                      )}
                     </div>
-                    {formData.mediaUrl && formData.cardType === 'image' && (
-                      <div className="relative mt-2" style={{ height: '200px' }}>
-                        <Image
-                          src={formData.mediaUrl}
-                          alt=""
-                          fill
-                          className="rounded-md object-cover"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleChange('mediaUrl', '')}
-                          className="absolute right-2 top-2 rounded-full bg-red-600 p-1 text-white hover:bg-red-700"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    )}
                   </div>
                 )}
 
@@ -419,42 +400,13 @@ export function ShowcaseForm({ showcaseId }: Props) {
                     <label className="block text-sm font-medium text-(--text-secondary)">
                       {__('Thumbnail URL')}
                     </label>
-                    <div className="mt-1 flex gap-2">
-                      <input
-                        type="url"
-                        value={formData.thumbnailUrl}
-                        onChange={(e) => handleChange('thumbnailUrl', e.target.value)}
-                        className="input flex-1"
-                        placeholder="https://..."
+                    <div className="mt-1">
+                      <MediaPickerButton
+                        value={formData.thumbnailUrl || undefined}
+                        onChange={(url) => handleChange('thumbnailUrl', url)}
+                        lockFileType
                       />
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMediaPickerTarget('thumbnailUrl');
-                          setMediaPickerOpen(true);
-                        }}
-                        className="btn btn-secondary shrink-0"
-                      >
-                        {__('Browse')}
-                      </button>
                     </div>
-                    {formData.thumbnailUrl && (
-                      <div className="relative mt-2" style={{ height: '150px' }}>
-                        <Image
-                          src={formData.thumbnailUrl}
-                          alt=""
-                          fill
-                          className="rounded-md object-cover"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => handleChange('thumbnailUrl', '')}
-                          className="absolute right-2 top-2 rounded-full bg-red-600 p-1 text-white hover:bg-red-700"
-                        >
-                          <X className="h-3 w-3" />
-                        </button>
-                      </div>
-                    )}
                   </div>
                 )}
 
@@ -631,14 +583,6 @@ export function ShowcaseForm({ showcaseId }: Props) {
         typeConfig={INTERNAL_LINK_TYPE_CONFIG}
       />
 
-      <MediaPickerDialog
-        open={mediaPickerOpen}
-        onClose={() => setMediaPickerOpen(false)}
-        onSelect={(url) => {
-          handleChange(mediaPickerTarget, url);
-          setMediaPickerOpen(false);
-        }}
-      />
     </CmsFormShell>
   );
 }

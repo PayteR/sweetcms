@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { ArrowLeft, Save, Loader2, X } from 'lucide-react';
 
 import { getContentType } from '@/config/cms';
@@ -29,7 +28,7 @@ import { CustomFieldsEditor, type CustomFieldsEditorHandle } from '@/engine/comp
 import { FallbackRadio } from '@/engine/components/FallbackRadio';
 import InternalLinkDialog from '@/engine/components/InternalLinkDialog';
 import { INTERNAL_LINK_TYPE_CONFIG } from '@/components/admin/internal-link-config';
-import { MediaPickerDialog } from '@/engine/components/MediaPickerDialog';
+import { MediaPickerButton } from '@/engine/components/MediaPickerButton';
 import { RevisionHistory } from '@/engine/components/RevisionHistory';
 import { RichTextEditor } from '@/engine/components/RichTextEditor';
 import { shortcodeConfig } from '@/lib/shortcodes/config';
@@ -76,7 +75,7 @@ export function PortfolioForm({ portfolioId }: Props) {
   const [slugManual, setSlugManual] = useState(false);
   const [titleManual, setTitleManual] = useState(false);
   const [techInput, setTechInput] = useState('');
-  const [mediaPickerOpen, setMediaPickerOpen] = useState(false);
+
 
   // Fetch existing portfolio item
   const existingItem = trpc.portfolio.get.useQuery(
@@ -531,41 +530,16 @@ export function PortfolioForm({ portfolioId }: Props) {
             <div className="card p-6">
               <h3 className="h2">{__('Featured Image')}</h3>
               <div className="mt-4">
-                {formData.featuredImage ? (
-                  <div className="relative" style={{ height: '200px' }}>
-                    <Image
-                      src={formData.featuredImage}
-                      alt={formData.featuredImageAlt || ''}
-                      fill
-                      className="rounded-md object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        handleChange('featuredImage', '');
-                        handleChange('featuredImageAlt', '');
-                      }}
-                      className="absolute right-2 top-2 rounded-full bg-red-600 p-1 text-white hover:bg-red-700"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                    <input
-                      type="text"
-                      value={formData.featuredImageAlt}
-                      onChange={(e) => handleChange('featuredImageAlt', e.target.value)}
-                      className="input mt-2"
-                      placeholder={__('Alt text')}
-                    />
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setMediaPickerOpen(true)}
-                    className="btn btn-secondary w-full"
-                  >
-                    {__('Select Image')}
-                  </button>
-                )}
+                <MediaPickerButton
+                  value={formData.featuredImage || undefined}
+                  alt={formData.featuredImageAlt}
+                  onChange={(url, alt) => {
+                    handleChange('featuredImage', url);
+                    if (alt !== undefined) handleChange('featuredImageAlt', alt);
+                  }}
+                  showAltInput
+                  lockFileType
+                />
               </div>
             </div>
 
@@ -666,14 +640,6 @@ export function PortfolioForm({ portfolioId }: Props) {
         typeConfig={INTERNAL_LINK_TYPE_CONFIG}
       />
 
-      <MediaPickerDialog
-        open={mediaPickerOpen}
-        onClose={() => setMediaPickerOpen(false)}
-        onSelect={(url) => {
-          handleChange('featuredImage', url);
-          setMediaPickerOpen(false);
-        }}
-      />
     </CmsFormShell>
   );
 }

@@ -89,7 +89,7 @@ export default function MediaPage() {
 
         if (!res.ok) {
           const err = await res.json();
-          toast.error(err.error ?? 'Upload failed');
+          toast.error(err.error ?? __('Upload failed'));
           continue;
         }
 
@@ -110,7 +110,7 @@ export default function MediaPage() {
     }
 
     if (uploaded > 0) {
-      toast.success(__('{count} file(s) uploaded', { count: uploaded }));
+      toast.success(__._n('1 file uploaded', '{count} files uploaded', uploaded));
     }
 
     setUploading(false);

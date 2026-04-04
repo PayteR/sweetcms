@@ -1,5 +1,5 @@
 import '@/engine/styles/tokens-public.css';
-import '@/engine/styles/frontend.css';
+import '@/engine/styles/frontend/index.css';
 
 import { Suspense } from 'react';
 import Link from 'next/link';

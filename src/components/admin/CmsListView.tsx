@@ -21,7 +21,7 @@ import {
 import type { ContentTypeDeclaration } from '@/config/cms';
 import { adminPanel } from '@/config/routes';
 import { trpc } from '@/lib/trpc/client';
-import { useAdminTranslations } from '@/lib/translations';
+import { useAdminTranslations, dataTranslations } from '@/lib/translations';
 import { ContentStatus } from '@/engine/types/cms';
 import { LOCALES, LOCALE_LABELS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
@@ -35,10 +35,11 @@ import { useBulkActions } from '@/engine/hooks/useBulkActions';
 import { useColumnVisibility } from '@/engine/hooks/useColumnVisibility';
 import BulkActionBar from '@/engine/components/BulkActionBar';
 
+const _d = dataTranslations('General');
 const STATUS_LABELS: Record<number, string> = {
-  [ContentStatus.DRAFT]: 'Draft',
-  [ContentStatus.PUBLISHED]: 'Published',
-  [ContentStatus.SCHEDULED]: 'Scheduled',
+  [ContentStatus.DRAFT]: _d('Draft'),
+  [ContentStatus.PUBLISHED]: _d('Published'),
+  [ContentStatus.SCHEDULED]: _d('Scheduled'),
 };
 
 const STATUS_COLORS: Record<number, string> = {
@@ -362,7 +363,7 @@ export function CmsListView({ contentType }: Props) {
       a.download = `${contentType.adminSlug}-export-${ids.length}items.${format}`;
       a.click();
       URL.revokeObjectURL(url);
-      toast.success(__('Exported {count} items', { count: ids.length }));
+      toast.success(__._n('Exported 1 item', 'Exported {count} items', ids.length));
     } catch {
       toast.error(__('Export failed'));
     }
@@ -840,7 +841,7 @@ export function CmsListView({ contentType }: Props) {
                             STATUS_COLORS[item.status] ?? 'bg-(--surface-secondary) text-(--text-secondary)'
                           )}
                         >
-                          {STATUS_LABELS[item.status] ?? 'Unknown'}
+                          {__(STATUS_LABELS[item.status] ?? 'Unknown')}
                         </span>
                       </td>
                     )}
@@ -980,7 +981,7 @@ export function CmsListView({ contentType }: Props) {
       <ConfirmDialog
         open={confirmAction === 'trash'}
         title={__('Move to trash?')}
-        message={__('{count} items will be moved to trash.', { count: selectedCount })}
+        message={__._n('1 item will be moved to trash.', '{count} items will be moved to trash.', selectedCount)}
         confirmLabel={__('Trash')}
         variant="danger"
         onConfirm={executeBulkTrash}
@@ -997,7 +998,7 @@ export function CmsListView({ contentType }: Props) {
               onSuccess: (result) => {
                 setSeoDialogOpen(false);
                 if (result.created > 0) {
-                  toast.success(__('Created {count} SEO override(s)', { count: result.created }));
+                  toast.success(__._n('Created 1 SEO override', 'Created {count} SEO overrides', result.created));
                   utils.cms.list.invalidate();
                   utils.cms.counts.invalidate();
                 } else {

@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Briefcase, ChevronsLeft, ChevronsRight, ExternalLink, FolderOpen, Hash, LogOut, Menu, Monitor, Moon, Search, Sun, User, FileText } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { useAdminTranslations } from '@/lib/translations';
+import { useAdminTranslations, dataTranslations } from '@/lib/translations';
 import { signOut, useSession } from '@/lib/auth-client';
 import { useSidebarStore } from '@/engine/store/sidebar-store';
 import { useThemeStore } from '@/engine/store/theme-store';
@@ -46,7 +46,8 @@ function RoleBadge({ role }: { role: string }) {
 
 const themeOrder = ['light', 'dark', 'system'] as const;
 const themeIcons = { light: Sun, dark: Moon, system: Monitor } as const;
-const themeLabels = { light: 'Light', dark: 'Dark', system: 'System' } as const;
+const _d = dataTranslations('General');
+const themeLabels = { light: _d('Light'), dark: _d('Dark'), system: _d('System') };
 
 /* ── Main Component ── */
 
@@ -178,7 +179,7 @@ export function AdminSidebar() {
         </button>
         <button
           type="button"
-          title={`${__('Theme')}: ${themeLabels[theme]}`}
+          title={`${__('Theme')}: ${__(themeLabels[theme])}`}
           onClick={cycleTheme}
           className="dash-rail-btn"
         >
