@@ -3,7 +3,7 @@
 /*
  * Shared structural overlay classes for Dialog, Lightbox, and SlideOver.
  * Positioning, visibility, transitions, focus trap boundaries.
- * Visual styling (colors, borders, shadows, padding) lives in admin.css / content.css.
+ * Visual styling (colors, borders, shadows, padding) lives in admin.css / frontend.css.
  */
 
 @layer components {

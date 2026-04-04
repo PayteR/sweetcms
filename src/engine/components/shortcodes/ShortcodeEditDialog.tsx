@@ -9,11 +9,12 @@ interface Props {
   def: ShortcodeDef;
   attrs: Record<string, string>;
   content: string;
+  open?: boolean;
   onSave: (attrs: Record<string, string>, content: string) => void;
   onClose: () => void;
 }
 
-export function ShortcodeEditDialog({ def, attrs, content, onSave, onClose }: Props) {
+export function ShortcodeEditDialog({ def, attrs, content, open = true, onSave, onClose }: Props) {
   const __ = useBlankTranslations();
   const [formAttrs, setFormAttrs] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
@@ -30,7 +31,7 @@ export function ShortcodeEditDialog({ def, attrs, content, onSave, onClose }: Pr
   }
 
   return (
-    <Dialog open onClose={onClose} size="md">
+    <Dialog open={open} onClose={onClose} size="md">
       <Dialog.Header onClose={onClose}>{__('Edit {label}', { label: def.label })}</Dialog.Header>
       <Dialog.Body>
         <form id="shortcode-edit-form" onSubmit={handleSubmit} className="space-y-4">

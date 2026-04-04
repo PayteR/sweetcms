@@ -1,5 +1,5 @@
 import '@/engine/styles/tokens-public.css';
-import '@/engine/styles/content.css';
+import '@/engine/styles/frontend.css';
 
 import Link from 'next/link';
 import { Compass, BookOpen, Briefcase, Home } from 'lucide-react';

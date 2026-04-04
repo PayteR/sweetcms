@@ -10,7 +10,7 @@ import { TokenBalance } from '@/engine/components/TokenBalance';
  * Shows a "Subscribe" button if the user has no active subscription,
  * or the live token balance if they do. Hidden when not logged in.
  *
- * Styles: .app-subscribe-btn (content.css)
+ * Styles: .app-subscribe-btn (frontend.css)
  */
 export function SubscribeOrTokens() {
   const { data: session } = useSession();

@@ -26,7 +26,7 @@ hooks/        — useCmsFormState, useCmsAutosave, useListViewState, useBulkActi
 lib/          — slug, markdown, audit, webhooks
 policy/       — Role, Policy, Capability, isSuperAdmin
 store/        — preferences-store (Zustand)
-styles/       — tokens.css (OKLCH design tokens), admin.css, admin-table.css, content.css
+styles/       — tokens.css (OKLCH design tokens), admin.css, admin-table.css, frontend.css
 types/        — PostType, ContentStatus, FileType, ContentSnapshot
 ```
 

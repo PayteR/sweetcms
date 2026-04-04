@@ -849,9 +849,9 @@ export function RichTextEditor({
         {/* Resize handle */}
         <div
           onPointerDown={handleResizePointerDown}
-          className="shrink-0 flex items-center justify-center h-2 cursor-row-resize bg-(--surface-secondary) hover:bg-(--color-brand-500)/20 transition-colors border-t border-(--border-primary) select-none"
+          className="shrink-0 flex items-center justify-center h-2 cursor-row-resize bg-(--surface-inset) hover:bg-(--color-brand-500)/20 transition-colors border-t border-(--border-primary) select-none"
         >
-          <div className="w-8 h-0.5 rounded-full bg-(--text-muted)/40" />
+          <div className="w-8 h-0.5 rounded-full bg-(--text-muted)/60" />
         </div>
       </div>
 

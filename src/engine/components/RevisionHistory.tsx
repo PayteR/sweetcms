@@ -10,6 +10,7 @@ import type { FieldDiff } from '@/engine/lib/revision-diff';
 import { trpc } from '@/lib/trpc/client';
 import { toast } from '@/engine/store/toast-store';
 import { Dialog } from '@/engine/components/Dialog';
+import { ConfirmDialog } from '@/engine/components/ConfirmDialog';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -41,6 +42,7 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
 
   const restoreMutation = trpc.revisions.restore.useMutation();
   const [restoring, setRestoring] = useState(false);
+  const [confirmRestore, setConfirmRestore] = useState(false);
 
   const selectedRevision = revisions.data?.[selectedIndex];
   const snapshot = selectedRevision?.snapshot as Record<string, unknown> | undefined;
@@ -63,7 +65,6 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
 
   async function handleRestore() {
     if (!selectedRevision) return;
-    if (!confirm(__('Restore this revision? Current state will be saved as a new revision.'))) return;
     try {
       setRestoring(true);
       await restoreMutation.mutateAsync({ id: selectedRevision.id });
@@ -73,6 +74,7 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
       toast.error(err instanceof Error ? err.message : __('Failed to restore revision'));
     } finally {
       setRestoring(false);
+      setConfirmRestore(false);
     }
   }
 
@@ -196,7 +198,7 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
                 <div className="border-t border-(--border-primary) p-4 shrink-0">
                   <button
                     type="button"
-                    onClick={handleRestore}
+                    onClick={() => setConfirmRestore(true)}
                     disabled={restoring}
                     className="flex items-center gap-2 rounded-lg border border-amber-600 px-4 py-2 text-sm text-amber-500 transition-colors hover:bg-amber-600 hover:text-white disabled:opacity-50"
                   >
@@ -209,6 +211,16 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
           </div>
         )}
       </Dialog>
+
+      <ConfirmDialog
+        open={confirmRestore}
+        title={__('Restore revision?')}
+        message={__('Current state will be saved as a new revision before restoring.')}
+        confirmLabel={__('Restore')}
+        variant="default"
+        onConfirm={handleRestore}
+        onCancel={() => setConfirmRestore(false)}
+      />
     </>
   );
 

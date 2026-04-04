@@ -13,7 +13,7 @@ import { localePath } from '@/engine/lib/locale';
  * Desktop: expands inline next to other navbar items.
  *
  * Press / to open from anywhere (skips inputs/textareas).
- * All styles from content.css (.app-search-*).
+ * All styles from frontend.css (.app-search-*).
  */
 export function ExpandableSearch() {
   const [expanded, setExpanded] = useState(false);

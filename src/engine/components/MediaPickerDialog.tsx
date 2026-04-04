@@ -17,6 +17,7 @@ import { FileType } from "@/engine/types/cms";
 import { toast } from "@/engine/store/toast-store";
 import { cn } from "@/lib/utils";
 import { Dialog } from "@/engine/components/Dialog";
+import { ConfirmDialog } from "@/engine/components/ConfirmDialog";
 
 interface Props {
   open: boolean;
@@ -34,6 +35,7 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
   const [search, setSearch] = useState("");
   const [searchDebounced, setSearchDebounced] = useState("");
   const [dragOver, setDragOver] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
 
   // Debounce search
@@ -173,6 +175,7 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
   }
 
   return (
+    <>
     <Dialog
       open={open}
       onClose={handleClose}
@@ -417,11 +420,7 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
               {/* Delete */}
               <button
                 type="button"
-                onClick={() => {
-                  if (confirm(__("Delete this media file?"))) {
-                    deleteMedia.mutate({ id: selectedItem.id });
-                  }
-                }}
+                onClick={() => setConfirmDeleteId(selectedItem.id)}
                 className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-600 transition-colors"
               >
                 <Trash2 className="h-3.5 w-3.5" />
@@ -457,5 +456,19 @@ export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
         </div>
       </div>
     </Dialog>
+
+    <ConfirmDialog
+      open={!!confirmDeleteId}
+      title={__("Delete media file?")}
+      message={__("This file will be permanently deleted.")}
+      confirmLabel={__("Delete")}
+      variant="danger"
+      onConfirm={() => {
+        if (confirmDeleteId) deleteMedia.mutate({ id: confirmDeleteId });
+        setConfirmDeleteId(null);
+      }}
+      onCancel={() => setConfirmDeleteId(null)}
+    />
+    </>
   );
 }
