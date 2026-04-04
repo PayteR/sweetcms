@@ -176,16 +176,6 @@ export function RichTextEditor({
   const sourceTextareaRef = useRef<HTMLTextAreaElement>(null);
   const editorIdRef = useRef(`editor-${Math.random().toString(36).slice(2, 9)}`);
 
-  // Height — read from localStorage once, then managed via DOM (no re-renders on drag)
-  const initialHeight = useRef<string | null>(null);
-  if (initialHeight.current === null) {
-    let saved: string | null = null;
-    if (storageKey) {
-      try { saved = localStorage.getItem(HEIGHT_STORAGE_PREFIX + storageKey); } catch { /* SSR */ }
-    }
-    initialHeight.current = saved ?? height ?? '400px';
-  }
-
   // Clear pending debounce on unmount (editor may already be destroyed)
   useEffect(() => {
     return () => {
@@ -206,11 +196,14 @@ export function RichTextEditor({
     return () => document.removeEventListener(eventName, handleInsertImage);
   }, []);
 
-  // Height persistence — save to localStorage on resize (no state, no re-renders)
+  // Height persistence — restore from localStorage on mount, save on resize
   useEffect(() => {
-    if (!storageKey) return;
     const wrapper = wrapperRef.current;
-    if (!wrapper) return;
+    if (!wrapper || !storageKey) return;
+    // Restore saved height
+    const saved = localStorage.getItem(HEIGHT_STORAGE_PREFIX + storageKey);
+    if (saved) wrapper.style.height = saved;
+    // Observe future resizes and persist
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const h = Math.round(entry.contentRect.height);
@@ -477,7 +470,7 @@ export function RichTextEditor({
       {/* Editor */}
       <div
         ref={wrapperRef}
-        style={{ height: initialHeight.current!, resize: 'vertical', overflow: 'hidden' }}
+        style={{ height: height ?? '400px', resize: 'vertical', overflow: 'hidden' }}
         className={cn(
           'relative flex flex-col overflow-hidden rounded-md border border-(--border-primary) focus-within:border-(--color-accent-500) focus-within:ring-1 focus-within:ring-(--color-accent-500)',
           wrapperClassName,
@@ -837,7 +830,7 @@ export function RichTextEditor({
 
       {/* Live Preview Panel */}
       {showPreview && (
-        <div className="rounded-md border border-(--border-primary) overflow-auto" style={{ height: initialHeight.current! }}>
+        <div className="rounded-md border border-(--border-primary) overflow-auto" style={{ height: height ?? '400px' }}>
           <div className="border-b border-(--border-primary) px-3 py-2 text-xs font-medium text-(--text-muted) uppercase tracking-wider">
             {__('Preview')}
           </div>

@@ -19,18 +19,12 @@ const SidebarContext = createContext<{
   close: () => void;
 }>({ open: false, toggle: () => {}, close: () => {} });
 
-/**
- * Provider — wrap the layout in this to share sidebar state
- * between the toggle button (in navbar) and the drawer (in layout body).
- */
 export function AppSidebarProvider({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
-  // Close on navigation
   useEffect(() => { setOpen(false); }, [pathname]);
 
-  // Close on Escape
   useEffect(() => {
     if (!open) return;
     const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
@@ -48,9 +42,7 @@ export function AppSidebarProvider({ children }: { children: React.ReactNode }) 
   );
 }
 
-/**
- * Hamburger toggle button — place inside the navbar.
- */
+/** Hamburger toggle button — place inside the navbar. */
 export function AppSidebarToggle({ alwaysOpen = false }: { alwaysOpen?: boolean }) {
   const { open, toggle } = useContext(SidebarContext);
 
@@ -58,10 +50,7 @@ export function AppSidebarToggle({ alwaysOpen = false }: { alwaysOpen?: boolean 
     <button
       type="button"
       onClick={toggle}
-      className={cn(
-        'rounded-lg p-2 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-primary) transition-colors',
-        alwaysOpen && 'xl:hidden',
-      )}
+      className={cn('app-icon-btn', alwaysOpen && 'xl:hidden')}
       aria-label={open ? 'Close menu' : 'Open menu'}
     >
       {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -69,11 +58,7 @@ export function AppSidebarToggle({ alwaysOpen = false }: { alwaysOpen?: boolean 
   );
 }
 
-/**
- * Sidebar drawer + backdrop — place as a sibling of header and main in the layout.
- *
- * To convert to permanent sidebar: set alwaysOpen={true} and add xl:ml-64 to <main>.
- */
+/** Sidebar drawer + backdrop — place as a sibling of header and main. */
 export function AppSidebarDrawer({
   items,
   alwaysOpen = false,
@@ -87,38 +72,25 @@ export function AppSidebarDrawer({
 
   return (
     <>
-      {/* Backdrop */}
       {open && (
         <div
-          className={cn(
-            'fixed inset-0 z-40 bg-black/30 backdrop-blur-sm',
-            alwaysOpen && 'xl:hidden',
-          )}
+          className={cn('app-sidebar-backdrop', alwaysOpen && 'xl:hidden')}
           onClick={close}
         />
       )}
 
-      {/* Sidebar */}
       <aside
-        className={cn(
-          'fixed left-0 top-14 bottom-0 z-40 w-64 border-r border-(--border-primary) bg-(--surface-primary) overflow-y-auto transition-transform duration-200 ease-in-out',
-          isVisible ? 'translate-x-0' : '-translate-x-full',
-          alwaysOpen && 'xl:translate-x-0 xl:transition-none',
-        )}
+        className={cn('app-sidebar', alwaysOpen && 'xl:translate-x-0 xl:transition-none')}
+        data-visible={isVisible}
       >
-        <nav className="flex flex-col gap-1 p-3">
+        <nav className="app-sidebar-nav">
           {items.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={cn(
-                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
-                  isActive
-                    ? 'bg-(--surface-secondary) text-(--text-primary)'
-                    : 'text-(--text-secondary) hover:bg-(--surface-secondary) hover:text-(--text-primary)',
-                )}
+                className={cn('app-sidebar-link', isActive && 'app-sidebar-link-active')}
               >
                 {item.icon}
                 {item.label}

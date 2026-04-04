@@ -23,16 +23,18 @@ import { AuthDialogs } from '@/components/public/AuthDialogs';
 /**
  * App-like layout for the showcase route group.
  *
- * YouTube-style: top navbar with hamburger → slide-out sidebar + content area.
- * Sidebar is a layout-level sibling of header and main (not nested inside header).
+ * Structure mirrors the dashboard's page-* pattern:
+ *   .app-container > .app-header > .app-toolbar
+ *                  > .app-sidebar
+ *                  > .app-main
  *
- * To convert to a permanent-sidebar dashboard layout:
+ * To convert to permanent-sidebar dashboard:
  *   1. Set alwaysOpen on AppSidebarToggle and AppSidebarDrawer
- *   2. Add xl:ml-64 to the <main> element
+ *   2. Add margin-left matching .app-sidebar width to .app-main
  *
  * To reuse for your whole app:
  *   1. Rename (showcase) to (app) and move your routes here
- *   2. Customize the sidebarItems and navLinks below
+ *   2. Customize sidebarItems and nav links below
  *   3. Add auth guards as needed
  */
 export default async function ShowcaseLayout({
@@ -51,47 +53,30 @@ export default async function ShowcaseLayout({
 
   return (
     <AppSidebarProvider>
-      <div className="app-layout flex min-h-dvh flex-col">
-        {/* ═══ Top Navbar ═══ */}
-        <header className="app-navbar sticky top-0 z-50 border-b border-(--border-primary) bg-(--surface-primary)/95 backdrop-blur-md">
-          <div className="flex h-14 items-center gap-3 px-4 sm:px-6">
-            {/* Left: Hamburger + Logo */}
+      <div className="app-container">
+        <header className="app-header">
+          <div className="app-toolbar">
             <AppSidebarToggle />
 
-            <Link
-              href={localePath('/', locale)}
-              className="text-lg font-bold text-(--text-primary) hover:text-(--color-brand-500) transition-colors"
-            >
+            <Link href={localePath('/', locale)} className="app-logo">
               {siteConfig.name}
             </Link>
 
-            {/* Center: Nav links (desktop) */}
-            <nav className="ml-4 hidden items-center gap-1 lg:flex">
-              <Link
-                href={localePath(contentRoutes.showcase, locale)}
-                className="rounded-lg px-3 py-1.5 text-sm font-medium text-(--text-secondary) hover:bg-(--surface-secondary) hover:text-(--text-primary) transition-colors"
-              >
+            <nav className="app-nav hidden lg:flex">
+              <Link href={localePath(contentRoutes.showcase, locale)} className="app-nav-link">
                 Feed
               </Link>
-              <Link
-                href={localePath(contentRoutes.blog, locale)}
-                className="rounded-lg px-3 py-1.5 text-sm font-medium text-(--text-secondary) hover:bg-(--surface-secondary) hover:text-(--text-primary) transition-colors"
-              >
+              <Link href={localePath(contentRoutes.blog, locale)} className="app-nav-link">
                 Blog
               </Link>
-              <Link
-                href={localePath(contentRoutes.portfolio, locale)}
-                className="rounded-lg px-3 py-1.5 text-sm font-medium text-(--text-secondary) hover:bg-(--surface-secondary) hover:text-(--text-primary) transition-colors"
-              >
+              <Link href={localePath(contentRoutes.portfolio, locale)} className="app-nav-link">
                 Portfolio
               </Link>
             </nav>
 
-            {/* Spacer */}
-            <div className="flex-1" />
+            <div className="app-spacer" />
 
-            {/* Right: Subscribe/Tokens + Search + Language + Theme + User */}
-            <div className="flex items-center gap-2">
+            <div className="app-actions">
               <SubscribeOrTokens />
               <ExpandableSearch />
               <LanguageSwitcher />
@@ -103,11 +88,9 @@ export default async function ShowcaseLayout({
 
         <AuthDialogs />
 
-        {/* ═══ Sidebar (layout-level, not inside header) ═══ */}
         <AppSidebarDrawer items={sidebarItems} />
 
-        {/* ═══ Content ═══ */}
-        <main className="flex-1">
+        <main className="app-main">
           {children}
         </main>
       </div>
