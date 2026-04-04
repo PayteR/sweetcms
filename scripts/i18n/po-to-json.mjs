@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const LOCALES_DIR = path.resolve(__dirname, '../locales');
+const LOCALES_DIR = path.resolve(__dirname, '../../locales');
 const ADMIN_DIR = path.resolve(LOCALES_DIR, 'admin');
 const PUBLIC_DIR = path.resolve(LOCALES_DIR, 'public');
 const BUILD_DIR = path.resolve(LOCALES_DIR, 'build');

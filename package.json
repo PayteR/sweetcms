@@ -16,9 +16,9 @@
     "init": "bun run src/scripts/init.ts",
     "promote": "bun run src/scripts/promote.ts",
     "change-password": "bun run src/scripts/change-password.ts",
-    "i18n": "bun scripts/generate-po-files.js && bun scripts/po-to-json.mjs",
-    "i18n:translate": "bun scripts/generate-po-files.js && bun scripts/translate-po.mjs && bun scripts/po-to-json.mjs",
-    "i18n:watch": "bun scripts/po-to-json.mjs watch",
+    "i18n": "bun scripts/i18n/generate-po-files.js && bun scripts/i18n/po-to-json.mjs",
+    "i18n:translate": "bun scripts/i18n/generate-po-files.js && bun scripts/i18n/translate-po.mjs && bun scripts/i18n/po-to-json.mjs",
+    "i18n:watch": "bun scripts/i18n/po-to-json.mjs watch",
     "test": "vitest",
     "engine:push": "git subtree push --prefix=src/engine git@github.com:PayteR/sweetcms-engine.git main",
     "engine:pull": "git subtree pull --prefix=src/engine git@github.com:PayteR/sweetcms-engine.git main --squash"
