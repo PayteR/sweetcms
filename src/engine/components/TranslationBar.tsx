@@ -27,7 +27,7 @@ interface TranslationBarProps {
 }
 
 export function TranslationBar({
-  currentLang, translations, adminSlug, translationAvailable, onDuplicate,
+  currentLang, translations, adminSlug: _adminSlug, translationAvailable, onDuplicate,
   locales, localeLabels, editUrl,
 }: TranslationBarProps) {
   const __ = useAdminTranslations();

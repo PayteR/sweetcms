@@ -16,7 +16,7 @@ function thenable(data: unknown, chainMethods: Record<string, unknown> = {}) {
   };
 }
 
-function createSelectChain(data: unknown) {
+function _createSelectChain(data: unknown) {
   const limitMock = vi.fn().mockResolvedValue(data);
   const offsetMock = vi.fn().mockReturnValue(thenable(data, { limit: limitMock }));
   const orderByMock = vi.fn().mockReturnValue(thenable(data, { limit: limitMock, offset: offsetMock }));

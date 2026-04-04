@@ -68,7 +68,7 @@ export default function SubmissionsPage() {
       URL.revokeObjectURL(url);
 
       toast.success(__('Export downloaded'));
-    } catch (err) {
+    } catch {
       toast.error(__('Export failed'));
     }
   }

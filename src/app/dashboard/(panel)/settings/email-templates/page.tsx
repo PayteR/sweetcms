@@ -70,16 +70,9 @@ export default function EmailTemplatesPage() {
     onError: (err) => toast.error(err.message),
   });
 
-  // Load template data when editing changes — sync in render via ref tracking
-  const prevEditingRef = useRef<TemplateName | null>(null);
-  const prevTemplateDataRef = useRef<typeof templateOptions.data>(undefined);
-  if (
-    editing &&
-    templateOptions.data &&
-    (prevEditingRef.current !== editing || prevTemplateDataRef.current !== templateOptions.data)
-  ) {
-    prevEditingRef.current = editing;
-    prevTemplateDataRef.current = templateOptions.data;
+  // Load template data when editing changes
+  useEffect(() => {
+    if (!editing || !templateOptions.data) return;
 
     const key = `email.template.${editing}`;
     const existing = templateOptions.data as Record<string, unknown>;
@@ -87,9 +80,10 @@ export default function EmailTemplatesPage() {
       | { subject?: string; html?: string }
       | undefined;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- populate form from server data
     setSubject(override?.subject ?? '');
     setHtml(override?.html ?? '');
-  }
+  }, [editing, templateOptions.data]);
 
   // Update preview iframe when html changes
   useEffect(() => {

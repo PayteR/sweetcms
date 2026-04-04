@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, useRef, useState } from 'react';
+import { useState } from 'react';
 import { GripVertical } from 'lucide-react';
 import {
   DndContext,
@@ -112,7 +112,7 @@ export function DashboardWidgetGrid() {
   );
   const setPreference = usePreferencesStore((s) => s.set);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const dragWidthRef = useRef<number>(0);
+  const [dragWidth, setDragWidth] = useState<number>(0);
 
   // Use defaults until preferences have hydrated from DB to avoid SSR mismatch
   const effectiveOrder = hydrated ? widgetOrder : DEFAULT_WIDGET_ORDER;
@@ -137,7 +137,7 @@ export function DashboardWidgetGrid() {
 
   function handleDragStart(event: DragStartEvent) {
     const rect = event.active.rect.current;
-    dragWidthRef.current = rect.initial?.width ?? 0;
+    setDragWidth(rect.initial?.width ?? 0);
     setActiveId(event.active.id as string);
   }
 
@@ -190,7 +190,7 @@ export function DashboardWidgetGrid() {
         {activeId ? (
           <div
             className="card opacity-80 shadow-lg rounded-lg overflow-hidden"
-            style={{ width: dragWidthRef.current || undefined }}
+            style={{ width: dragWidth || undefined }}
           >
             <div className="widget-header">
               <div className="flex items-center gap-2">

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { ChevronDown, Loader2, Send, X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -200,6 +201,7 @@ export function CommentPanel({ contentType, contentId, onClose }: Props) {
   // Exit: slide down, then clear activeId
   useEffect(() => {
     if (isOpen && contentId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- animation state machine: enter/exit transitions
       setActiveId(contentId);
       requestAnimationFrame(() => {
         requestAnimationFrame(() => setVisible(true));
@@ -360,9 +362,9 @@ export function CommentPanel({ contentType, contentId, onClose }: Props) {
             </div>
           ) : (
             <p className="text-center text-sm text-white/50">
-              <a href="/login" className="font-medium text-blue-400 hover:text-blue-300">
+              <Link href="/login" className="font-medium text-blue-400 hover:text-blue-300">
                 Sign in
-              </a>
+              </Link>
               {' '}to comment
             </p>
           )}

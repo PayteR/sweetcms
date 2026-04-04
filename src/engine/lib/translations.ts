@@ -11,7 +11,6 @@
  * transform at lookup time to match.
  */
 
-// eslint-disable-next-line no-restricted-imports
 import { useTranslations as useBaseTranslations } from 'next-intl';
 import { createTranslationFunction, type TranslationFn } from './translation-utils';
 

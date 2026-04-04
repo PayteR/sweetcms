@@ -1,16 +1,15 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export function useBulkSelection(resetKey: string) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const prevResetKey = useRef(resetKey);
 
-  // Clear selection when filters/page/tab change — sync in render
-  if (prevResetKey.current !== resetKey) {
-    prevResetKey.current = resetKey;
+  // Clear selection when filters/page/tab change
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSelectedIds(new Set());
-  }
+  }, [resetKey]);
 
   const toggle = useCallback((id: string) => {
     setSelectedIds((prev) => {

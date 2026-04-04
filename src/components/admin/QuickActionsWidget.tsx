@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import {
-  FileText, Layers, FolderOpen, Briefcase, Image, ExternalLink,
+  FileText, Layers, FolderOpen, Briefcase, Image as ImageIcon, ExternalLink,
 } from 'lucide-react';
 
 import { adminPanel } from '@/config/routes';
@@ -38,7 +38,7 @@ export default function QuickActionsWidget({ dragHandle }: { dragHandle?: ReactN
           {__('New Project')}
         </Link>
         <Link href={adminPanel.media} className="btn btn-secondary justify-center">
-          <Image className="h-4 w-4" />
+          <ImageIcon className="h-4 w-4" />
           {__('Media Library')}
         </Link>
         <a href="/" target="_blank" rel="noopener noreferrer" className="btn btn-secondary justify-center">

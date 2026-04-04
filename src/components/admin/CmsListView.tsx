@@ -276,7 +276,7 @@ export function CmsListView({ contentType }: Props) {
 
   // ── Duplicate mutations ─────────────────────────────
   const duplicatePost = trpc.cms.duplicate.useMutation({
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success(__('Duplicated'));
       utils.cms.list.invalidate();
       utils.cms.counts.invalidate();
@@ -330,7 +330,7 @@ export function CmsListView({ contentType }: Props) {
       a.download = `${contentType.adminSlug}-export.${format}`;
       a.click();
       URL.revokeObjectURL(url);
-    } catch (err) {
+    } catch {
       toast.error(__('Export failed'));
     }
   }

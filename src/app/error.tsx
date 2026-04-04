@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import Link from 'next/link';
 
 interface Props {
   error: Error & { digest?: string };
@@ -79,12 +80,12 @@ export default function GlobalError({ error, reset }: Props) {
           >
             Try Again
           </button>
-          <a
+          <Link
             href="/"
             className="rounded-md border border-(--border-primary) bg-(--surface-primary) px-4 py-2 text-sm font-medium text-(--text-secondary) hover:bg-(--surface-secondary)"
           >
             Go Home
-          </a>
+          </Link>
         </div>
       </div>
     </div>

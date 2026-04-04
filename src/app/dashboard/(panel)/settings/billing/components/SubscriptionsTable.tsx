@@ -1,10 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
 import { useAdminTranslations } from '@/lib/translations';
-import { cn } from '@/lib/utils';
 
 interface SubscriptionsTableProps {
   from?: string;
@@ -49,13 +48,11 @@ export function SubscriptionsTable({ from, to, planFilter, statusFilter }: Subsc
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Reset page to 1 when filters change by deriving a filter key
-  const filterKey = `${debouncedSearch}|${planFilter}|${statusFilter}|${pageSize}|${from}|${to}`;
-  const prevFilterKey = useRef(filterKey);
-  if (prevFilterKey.current !== filterKey) {
-    prevFilterKey.current = filterKey;
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1);
-  }
+  }, [debouncedSearch, planFilter, statusFilter, pageSize, from, to]);
 
   const { data, isLoading } = trpc.billing.listSubscriptions.useQuery({
     page,

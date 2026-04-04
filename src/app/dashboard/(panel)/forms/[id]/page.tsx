@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowDown,
@@ -86,13 +86,11 @@ export default function FormBuilderPage() {
     { enabled: !isNew }
   );
 
-  // Track which data revision we've loaded into state to avoid re-syncing
-  const loadedDataRef = useRef<typeof formQuery.data>(null);
-
-  // Populate form data when fetched (only on first load or when data identity changes)
-  if (formQuery.data && formQuery.data !== loadedDataRef.current) {
-    loadedDataRef.current = formQuery.data;
+  // Populate form data when fetched
+  useEffect(() => {
+    if (!formQuery.data) return;
     const form = formQuery.data;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- populate form from server data
     setName(form.name);
     setSlug(form.slug);
     setRecipientEmail(form.recipientEmail ?? '');
@@ -103,7 +101,7 @@ export default function FormBuilderPage() {
     if (Array.isArray(formFields) && formFields.length > 0) {
       setFields(formFields);
     }
-  }
+  }, [formQuery.data]);
 
   const createForm = trpc.forms.create.useMutation({
     onSuccess: (data) => {

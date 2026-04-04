@@ -135,7 +135,7 @@ vi.mock('@/lib/env', () => ({
 
 import { asMock } from '@/test-utils';
 import { usersRouter } from '../users';
-import { fetchOrNotFound, parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
+import { fetchOrNotFound } from '@/engine/crud/admin-crud';
 import { anonymizeUser } from '@/engine/lib/gdpr';
 import { logAudit } from '@/engine/lib/audit';
 import { isSuperAdmin } from '@/engine/policy';
@@ -174,7 +174,7 @@ describe('usersRouter', () => {
   // =========================================================================
   describe('list', () => {
     it('returns paginated user list with defaults', async () => {
-      const ctx = createMockCtx({ session: { user: { id: ADMIN_USER_ID, email: 'admin@test.com', role: 'admin' } } });
+      createMockCtx({ session: { user: { id: ADMIN_USER_ID, email: 'admin@test.com', role: 'admin' } } });
 
       // list uses two concurrent selects (items + count); use a custom dual-select db
       const itemsLimitMock = vi.fn().mockResolvedValue([MOCK_USER]);

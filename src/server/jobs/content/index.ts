@@ -8,7 +8,7 @@ import { ContentStatus } from '@/engine/types/cms';
 import { logAudit } from '@/engine/lib/audit';
 import { dispatchWebhook } from '@/engine/lib/webhooks';
 
-const contentQueue = createQueue('content-publish');
+const _contentQueue = createQueue('content-publish');
 
 export async function processScheduledContent(): Promise<void> {
   const now = new Date();

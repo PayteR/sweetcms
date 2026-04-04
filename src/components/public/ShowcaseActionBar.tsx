@@ -25,7 +25,7 @@ export function ShowcaseActionBar({
   itemSlug,
   contentType,
   likes,
-  dislikes,
+  dislikes: _dislikes,
   commentCount,
   userReaction,
   onCommentClick,

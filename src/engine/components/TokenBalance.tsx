@@ -44,6 +44,7 @@ export function TokenBalance({ href }: TokenBalanceProps) {
 
   useEffect(() => {
     if (prevBalance.current !== null && balance !== prevBalance.current) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- trigger animation on balance change
       setAnimating(true);
       const timer = setTimeout(() => setAnimating(false), 600);
       return () => clearTimeout(timer);

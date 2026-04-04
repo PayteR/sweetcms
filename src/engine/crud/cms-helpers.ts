@@ -1,4 +1,3 @@
-import { TRPCError } from '@trpc/server';
 import { type SQL, and, eq, isNull, sql } from 'drizzle-orm';
 import type { PgColumn, PgTable } from 'drizzle-orm/pg-core';
 

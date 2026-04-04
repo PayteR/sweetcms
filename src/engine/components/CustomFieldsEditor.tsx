@@ -60,6 +60,7 @@ export const CustomFieldsEditor = forwardRef<
   // Initialize values from server when data arrives or contentId changes
   useEffect(() => {
     if (existingValues.data && (!loaded || prevContentIdRef.current !== contentId)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync server data to local state
       setValues(existingValues.data);
       setLoaded(true);
       prevContentIdRef.current = contentId;
@@ -69,6 +70,7 @@ export const CustomFieldsEditor = forwardRef<
   // Reset loaded state when contentId changes (e.g. navigating to new form)
   useEffect(() => {
     if (!contentId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset state when content changes
       setValues({});
       setLoaded(false);
     }
@@ -83,10 +85,10 @@ export const CustomFieldsEditor = forwardRef<
 
   // Stable ref to current values to avoid useCallback dependency on `values`
   const valuesRef = useRef(values);
-  valuesRef.current = values;
+  useEffect(() => { valuesRef.current = values; });
 
   const saveValuesRef = useRef(saveValues.mutateAsync);
-  saveValuesRef.current = saveValues.mutateAsync;
+  useEffect(() => { saveValuesRef.current = saveValues.mutateAsync; });
 
   const save = useCallback(
     async (targetContentId: string) => {

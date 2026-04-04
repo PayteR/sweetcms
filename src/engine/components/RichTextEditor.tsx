@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
@@ -174,7 +174,8 @@ export function RichTextEditor({
   const imageInputRef = useRef<HTMLInputElement>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const sourceTextareaRef = useRef<HTMLTextAreaElement>(null);
-  const editorIdRef = useRef(`editor-${Math.random().toString(36).slice(2, 9)}`);
+  const reactId = useId();
+  const editorIdRef = useRef(`editor-${reactId.replace(/:/g, '')}`);
   const [editorHeight, setEditorHeight] = useState(height ?? '400px');
   const heightInitialized = useRef(false);
 
@@ -235,6 +236,7 @@ export function RichTextEditor({
 
   // Build slash command render function (stable ref)
   const slashCommandRenderRef = useRef<ReturnType<typeof createSlashCommandRender> | null>(null);
+  // eslint-disable-next-line react-hooks/refs -- lazy init pattern: ref is only set once
   if (!slashCommandRenderRef.current) {
     slashCommandRenderRef.current = createSlashCommandRender();
   }
@@ -261,6 +263,7 @@ export function RichTextEditor({
     },
   })) ?? [];
 
+  /* eslint-disable react-hooks/refs -- useEditor config reads stable refs for initial setup */
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -312,7 +315,6 @@ export function RichTextEditor({
       if (showPreviewRef.current) {
         // Preview open: convert immediately for live preview, reuse for debounced form update
         const md = htmlToMarkdown(scSerializeRef.current(e.getHTML()));
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- onUpdate is an editor callback, not a React effect
         setPreviewMarkdown(md);
         lastEmittedContent.current = md;
         // Debounce only the parent onChange (to avoid excessive form re-renders)
@@ -370,13 +372,13 @@ export function RichTextEditor({
       },
     },
   });
+  /* eslint-enable react-hooks/refs */
 
   // Sync content from parent when it changes externally (e.g. autosave restore)
   useEffect(() => {
     if (!editor || editor.isDestroyed) return;
     if (content === lastEmittedContent.current) return;
     lastEmittedContent.current = content;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- legitimate external sync: parent content → source textarea
     if (mode === 'source') setSourceValue(content);
     setPreviewMarkdown(content);
     editor.commands.setContent(scPrepareRef.current(markdownToHtml(content)), {

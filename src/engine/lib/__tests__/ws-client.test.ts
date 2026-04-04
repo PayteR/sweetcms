@@ -4,10 +4,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 const mockSend = vi.fn();
 const mockClose = vi.fn();
 
-let onOpenHandler: (() => void) | null = null;
-let onMessageHandler: ((event: { data: string }) => void) | null = null;
-let onCloseHandler: (() => void) | null = null;
-let onErrorHandler: (() => void) | null = null;
+let _onOpenHandler: (() => void) | null = null;
+let _onMessageHandler: ((event: { data: string }) => void) | null = null;
+let _onCloseHandler: (() => void) | null = null;
+let _onErrorHandler: (() => void) | null = null;
 
 class MockWebSocket {
   static OPEN = 1;
@@ -20,16 +20,16 @@ class MockWebSocket {
   close = mockClose;
 
   set onopen(fn: (() => void) | null) {
-    onOpenHandler = fn;
+    _onOpenHandler = fn;
   }
   set onmessage(fn: ((event: { data: string }) => void) | null) {
-    onMessageHandler = fn;
+    _onMessageHandler = fn;
   }
   set onclose(fn: (() => void) | null) {
-    onCloseHandler = fn;
+    _onCloseHandler = fn;
   }
   set onerror(fn: (() => void) | null) {
-    onErrorHandler = fn;
+    _onErrorHandler = fn;
   }
 
   constructor(public url: string) {
@@ -51,10 +51,10 @@ describe('ws-client', () => {
     vi.useFakeTimers();
     mockSend.mockClear();
     mockClose.mockClear();
-    onOpenHandler = null;
-    onMessageHandler = null;
-    onCloseHandler = null;
-    onErrorHandler = null;
+    _onOpenHandler = null;
+    _onMessageHandler = null;
+    _onCloseHandler = null;
+    _onErrorHandler = null;
   });
 
   afterEach(() => {
@@ -87,7 +87,6 @@ describe('ws-client', () => {
 
   describe('message parsing', () => {
     it('parses JSON messages with channel and payload', () => {
-      const received: unknown[] = [];
       const msg = JSON.stringify({
         channel: 'notifications',
         payload: { id: 'n1', title: 'Test' },
@@ -140,7 +139,6 @@ describe('ws-client', () => {
 
   describe('reconnection logic', () => {
     it('calculates exponential backoff delays', () => {
-      const maxRetries = 10;
       const delays: number[] = [];
 
       for (let retryCount = 0; retryCount < 5; retryCount++) {

@@ -12,7 +12,6 @@ import {
   createTRPCRouter,
   publicProcedure,
   sectionProcedure,
-  staffProcedure,
 } from '../trpc';
 
 const mediaProcedure = sectionProcedure('media');

@@ -23,6 +23,7 @@ export function MobileMenu({ items }: Props) {
 
   // Close on route change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- close menu on route change
     close();
   }, [pathname, close]);
 

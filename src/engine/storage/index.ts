@@ -50,6 +50,7 @@ export function getStorage(): StorageProvider {
     const backend = process.env.STORAGE_BACKEND ?? 'filesystem';
     if (backend === 's3') {
       // Dynamic import to avoid loading S3 deps when using filesystem
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { S3Storage } = require('./s3') as typeof import('./s3');
       storage = new S3Storage();
     } else {

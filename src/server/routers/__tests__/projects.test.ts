@@ -34,7 +34,7 @@ import { logAudit } from '@/engine/lib/audit';
 const TEST_UUID = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
 
 /** Builds a mock Drizzle chain. Call `.resolve(data)` to set what the terminal method returns. */
-function chain(terminal = 'limit') {
+function _chain(terminal = 'limit') {
   const result = { data: [] as unknown[] };
   const terminalFn = vi.fn(() => Promise.resolve(result.data));
 
@@ -91,7 +91,7 @@ function mockDb({
       const data = selectResults[selectIdx++] ?? [];
       return {
         from: vi.fn(() => ({
-          where: vi.fn((c: unknown) => {
+          where: vi.fn((_c: unknown) => {
             // Support both Promise.all parallel queries (count) and chained queries
             return {
               limit: vi.fn(() => Promise.resolve(data)),

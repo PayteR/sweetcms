@@ -41,10 +41,6 @@ function daysAgo(n: number): Date {
   return new Date(Date.now() - n * 24 * 60 * 60 * 1000);
 }
 
-function pick<T>(arr: T[]): T {
-  return arr[Math.floor(Math.random() * arr.length)]!;
-}
-
 // ─── Seed function ──────────────────────────────────────────────────────────
 
 export async function seedExtras(

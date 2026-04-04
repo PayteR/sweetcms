@@ -34,6 +34,7 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
   const [debouncedQuery, setDebouncedQuery] = useState('');
   useEffect(() => {
     if (inputValue.length < 1) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- debounce search input
       setDebouncedQuery('');
       return;
     }
@@ -64,6 +65,7 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
       const ordered = selectedTagIds
         .map((id) => tagMap.get(id))
         .filter((t): t is TagOption => !!t);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync resolved tag data to local state
       setSelectedTags(ordered);
     }
   }, [resolvedTags.data, selectedTagIds]);
@@ -89,6 +91,7 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
 
   // Reset highlighted index when suggestions change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset highlight when suggestions change
     setHighlightedIndex(-1);
   }, [suggestions.length]);
 

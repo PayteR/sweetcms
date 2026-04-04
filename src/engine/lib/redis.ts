@@ -6,8 +6,9 @@ let publisherConnection: IORedis | null = null;
 
 function createConnection(): IORedis | null {
   if (!process.env.REDIS_URL) return null;
-  const IORedisModule = require('ioredis');
-  return new IORedisModule(process.env.REDIS_URL, {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const Mod = require('ioredis');
+  return new Mod(process.env.REDIS_URL, {
     password: process.env.REDIS_PASSWORD,
     maxRetriesPerRequest: null,
   });

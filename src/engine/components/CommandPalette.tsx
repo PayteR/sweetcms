@@ -90,10 +90,11 @@ export function CommandPalette({ open, onClose, navItems: navItemsProp, contentT
     }
 
     return items;
-  }, [filteredNav, contentSearch.data, __]);
+  }, [filteredNav, contentSearch.data, __, contentTypeIcons]);
 
   // Reset active index when results change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setActiveIndex(0);
   }, [results.length]);
 
@@ -112,9 +113,15 @@ export function CommandPalette({ open, onClose, navItems: navItemsProp, contentT
   // Reset state on open
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset state when palette opens
       setQuery('');
       setActiveIndex(0);
-      // Focus input after dialog opens
+    }
+  }, [open]);
+
+  // Focus input after dialog opens
+  useEffect(() => {
+    if (open) {
       requestAnimationFrame(() => inputRef.current?.focus());
     }
   }, [open]);

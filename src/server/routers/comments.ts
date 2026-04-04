@@ -58,7 +58,7 @@ export const commentsRouter = createTRPCRouter({
 
       // Get reply counts for these comments
       const commentIds = items.map((i) => i.id);
-      let replyCounts: Record<string, number> = {};
+      const replyCounts: Record<string, number> = {};
       if (commentIds.length > 0) {
         const replyRows = await ctx.db
           .select({

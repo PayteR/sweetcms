@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 type WsState = 'connecting' | 'connected' | 'disconnected';
 
@@ -133,7 +133,9 @@ export function useChannel<T = unknown>(
 ): { messages: T[] } {
   const [messages, setMessages] = useState<T[]>([]);
   const callbackRef = useRef(onMessage);
-  callbackRef.current = onMessage;
+  useEffect(() => {
+    callbackRef.current = onMessage;
+  });
 
   useEffect(() => {
     if (!channel) return;

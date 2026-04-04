@@ -85,7 +85,7 @@ import { eq, and } from 'drizzle-orm';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const m = (db as any)._mocks as Record<string, ReturnType<typeof vi.fn>>;
 
-const MOCK_SUBSCRIPTION = {
+const _MOCK_SUBSCRIPTION = {
   id: 'sub-uuid-1',
   organizationId: 'org-1',
   providerId: 'stripe',

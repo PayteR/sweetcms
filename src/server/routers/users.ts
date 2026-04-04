@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { and, count, desc, eq, ilike, or, sql } from 'drizzle-orm';
+import { and, count, desc, eq, ilike, or } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { user, session, cmsUserPreferences } from '@/server/db/schema';
@@ -7,7 +7,7 @@ import { ROLES, Role, isSuperAdmin } from '@/engine/policy';
 import { parsePagination, paginatedResult, fetchOrNotFound } from '@/engine/crud/admin-crud';
 import { anonymizeUser } from '@/engine/lib/gdpr';
 import { logAudit } from '@/engine/lib/audit';
-import { createTRPCRouter, protectedProcedure, sectionProcedure, superadminProcedure } from '../trpc';
+import { createTRPCRouter, protectedProcedure, sectionProcedure } from '../trpc';
 
 const usersProcedure = sectionProcedure('users');
 

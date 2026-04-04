@@ -5,7 +5,7 @@ import crypto from 'crypto';
 
 import { env } from '@/lib/env';
 import { createLogger } from '@/engine/lib/logger';
-import { cmsShowcase, cmsTermRelationships } from '@/server/db/schema';
+import { cmsShowcase } from '@/server/db/schema';
 import { createFieldTranslator } from '@/server/translation/translate-fields';
 import { ContentStatus } from '@/engine/types/cms';
 import {

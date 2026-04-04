@@ -75,7 +75,7 @@ function mockSelectChain(rows: unknown[] = []) {
 }
 
 /** Set up a chain: db.update(table).set(data).where(cond).returning(cols) OR db.update(table).set(data).where(cond) */
-function mockUpdateChain(returningRows?: unknown[]) {
+function _mockUpdateChain(returningRows?: unknown[]) {
   const returning = vi.fn().mockResolvedValue(returningRows ?? []);
   const where = vi.fn().mockReturnValue(
     returningRows !== undefined

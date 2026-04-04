@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { trpc } from '@/lib/trpc/client';
 import { useAdminTranslations } from '@/lib/translations';
 import { cn } from '@/lib/utils';
@@ -44,13 +44,11 @@ export function ChurnedSubscriptionsTable({ from, to }: ChurnedSubscriptionsTabl
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Reset page to 1 when filters change by deriving a filter key
-  const filterKey = `${activeTab}|${debouncedSearch}|${pageSize}|${from}|${to}`;
-  const prevFilterKey = useRef(filterKey);
-  if (prevFilterKey.current !== filterKey) {
-    prevFilterKey.current = filterKey;
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1);
-  }
+  }, [activeTab, debouncedSearch, pageSize, from, to]);
 
   const { data, isLoading } = trpc.billing.listChurned.useQuery({
     page,
@@ -61,15 +59,17 @@ export function ChurnedSubscriptionsTable({ from, to }: ChurnedSubscriptionsTabl
     search: debouncedSearch || undefined,
   });
 
-  const typeCounts = data?.typeCounts ?? { canceled: 0, past_due: 0, unpaid: 0 };
-  const allCount = typeCounts.canceled + typeCounts.past_due + typeCounts.unpaid;
+  const canceledCount = data?.typeCounts?.canceled ?? 0;
+  const pastDueCount = data?.typeCounts?.past_due ?? 0;
+  const unpaidCount = data?.typeCounts?.unpaid ?? 0;
+  const allCount = canceledCount + pastDueCount + unpaidCount;
 
   const tabCounts: Record<TabKey, number> = useMemo(() => ({
     all: allCount,
-    canceled: typeCounts.canceled,
-    past_due: typeCounts.past_due,
-    unpaid: typeCounts.unpaid,
-  }), [allCount, typeCounts]);
+    canceled: canceledCount,
+    past_due: pastDueCount,
+    unpaid: unpaidCount,
+  }), [allCount, canceledCount, pastDueCount, unpaidCount]);
 
   const results = data?.results ?? [];
   const total = data?.total ?? 0;

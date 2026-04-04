@@ -53,6 +53,7 @@ export const SlashCommandMenu = forwardRef<SlashCommandMenuHandle, SlashCommandM
 
     // Reset selection when items change
     useLayoutEffect(() => {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset index when items list changes
       setSelectedIndex(0);
     }, [items]);
 

@@ -322,12 +322,14 @@ export function paginatedResult<T>(
  */
 export async function fetchOrNotFound<T>(
   db: DbClient,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   table: PgTableWithColumns<any>,
   id: string,
   entityName: string,
   extraConditions?: SQL[],
 ): Promise<T> {
-  const idCol = (table as any).id as PgColumn;
+  const idCol = (table as Record<string, PgColumn>).id;
+
   const conditions: SQL[] = [eq(idCol, id)];
   if (extraConditions) conditions.push(...extraConditions);
   const [record] = await db
@@ -351,6 +353,7 @@ export async function fetchOrNotFound<T>(
  */
 export async function generateCopySlug(
   db: DbClient,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   table: PgTableWithColumns<any>,
   slugCol: PgColumn,
   deletedAtCol: PgColumn,
@@ -387,6 +390,7 @@ export async function generateCopySlug(
  */
 export async function updateContentStatus(
   db: DbClient,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   table: PgTableWithColumns<any>,
   idCol: PgColumn,
   statusCol: PgColumn,
@@ -424,6 +428,7 @@ export async function updateContentStatus(
  */
 export async function getTranslationSiblings(
   db: DbClient,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   table: PgTableWithColumns<any>,
   idCol: PgColumn,
   translationGroupCol: PgColumn,
@@ -500,6 +505,7 @@ export function serializeExport(
  */
 export async function prepareTranslationCopy(
   db: DbClient,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   table: PgTableWithColumns<any>,
   cols: {
     id: PgColumn;

@@ -23,13 +23,6 @@ import { toast } from '@/store/toast-store';
 import { cn } from '@/lib/utils';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
-const FILE_TYPE_LABELS: Record<number, string> = {
-  [FileType.IMAGE]: 'Images',
-  [FileType.VIDEO]: 'Videos',
-  [FileType.DOCUMENT]: 'Documents',
-  [FileType.OTHER]: 'Other',
-};
-
 const FILE_TYPE_ICONS: Record<number, React.ElementType> = {
   [FileType.IMAGE]: ImageIcon,
   [FileType.VIDEO]: Film,
