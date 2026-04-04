@@ -49,7 +49,7 @@ export default function AdminSupportPage() {
   });
 
   return (
-    <div className="support-page">
+    <div className="shell-inner support-page">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">

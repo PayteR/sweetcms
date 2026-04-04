@@ -43,11 +43,9 @@ export function SeoPreviewCard({ title, description, slug, urlPrefix, featuredIm
   ];
 
   return (
-    <div className="card p-6">
-      <h3 className="h2">{__('SEO Preview')}</h3>
-
+    <>
       {/* Tabs */}
-      <div className="mt-4 flex gap-1 border-b border-(--border-primary)">
+      <div className="flex gap-1 border-b border-(--border-primary)">
         {tabs.map((t) => (
           <button
             key={t.key}
@@ -125,6 +123,6 @@ export function SeoPreviewCard({ title, description, slug, urlPrefix, featuredIm
           {__('Description')}: {description.length}/160
         </span>
       </div>
-    </div>
+    </>
   );
 }

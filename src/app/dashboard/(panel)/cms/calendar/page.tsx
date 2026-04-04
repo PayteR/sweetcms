@@ -8,14 +8,16 @@ import { adminPanel } from '@/config/routes';
 
 export default function CalendarPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="calendar-loading flex items-center justify-center py-20">
-          <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
-        </div>
-      }
-    >
-      <ContentCalendar editUrlBuilder={(section, id) => adminPanel.cmsItem(section, id)} />
-    </Suspense>
+    <div className="shell-inner">
+      <Suspense
+        fallback={
+          <div className="calendar-loading flex items-center justify-center py-20">
+            <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
+          </div>
+        }
+      >
+        <ContentCalendar editUrlBuilder={(section, id) => adminPanel.cmsItem(section, id)} />
+      </Suspense>
+    </div>
   );
 }

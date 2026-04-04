@@ -34,7 +34,7 @@ export default function NotificationsPage() {
   });
 
   return (
-    <div className="p-6 max-w-3xl">
+    <div className="shell-inner">
       <div className="flex items-center justify-between mb-6">
         <h1 className="h2">{__('Notifications')}</h1>
         <button

@@ -174,7 +174,7 @@ export default function OrganizationsPage() {
   // ─── List View ────────────────────────────────────────────────────────────
   if (viewMode === 'list') {
     return (
-      <div className="organizations-page">
+      <div className="shell-inner organizations-page">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-(--text-primary)">{__('Organizations')}</h1>
           <button

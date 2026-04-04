@@ -153,7 +153,7 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="users-page">
+    <div className="shell-inner users-page">
       <h1 className="text-2xl font-bold text-(--text-primary)">{__('Users')}</h1>
 
       {/* Role tabs */}

@@ -66,7 +66,7 @@ export default function FormsPage() {
   }
 
   return (
-    <div className="forms-page">
+    <div className="shell-inner forms-page">
       {/* Header */}
       <div className="forms-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">

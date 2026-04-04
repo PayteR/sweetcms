@@ -21,7 +21,7 @@ export default function AffiliatesAdminPage() {
   });
 
   return (
-    <div>
+    <div className="shell-inner">
       <div className="flex items-center justify-between mb-6">
         <h1 className="h2">{__('Affiliates')}</h1>
         <select

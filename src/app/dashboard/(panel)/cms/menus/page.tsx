@@ -45,7 +45,7 @@ export default function MenusPage() {
   }
 
   return (
-    <div className="menus-page">
+    <div className="shell-inner menus-page">
       <div className="menus-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">{__('Menus')}</h1>
         <button

@@ -26,9 +26,10 @@ export default function CmsFormShell({ toolbar, children }: CmsFormShellProps) {
   }, []);
 
   return (
-    <div className="form-shell -mx-6 -mt-6">
-      <div className="h-8" />
+    <div className="form-shell">
       <div ref={sentinelRef} className="form-shell-sentinel h-0" />
+
+      {/* Toolbar — full width background, centered content */}
       <div
         className={cn(
           'form-shell-toolbar sticky top-12 xl:top-0 z-30 transition-[background-color,border-color] duration-200',
@@ -37,12 +38,13 @@ export default function CmsFormShell({ toolbar, children }: CmsFormShellProps) {
             : 'border-b border-transparent'
         )}
       >
-        <div className="form-shell-toolbar-inner mx-auto max-w-300 px-8 h-14 flex items-center justify-between">
+        <div className="form-shell-toolbar-inner shell-inner-body h-14 flex items-center justify-between">
           {toolbar}
         </div>
       </div>
 
-      <div className="form-shell-body mx-auto max-w-300 px-8 pb-8 pt-6 space-y-6">
+      {/* Body — centered, padded */}
+      <div className="form-shell-body shell-inner-body space-y-6">
         {children}
       </div>
     </div>

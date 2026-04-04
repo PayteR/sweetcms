@@ -30,6 +30,7 @@ import {
   DEFAULT_HIDDEN_PANELS,
 } from '@/config/post-form-panels';
 import { adminPanel } from '@/config/routes';
+import { cn } from '@/lib/utils';
 import { useSession } from '@/lib/auth-client';
 import { trpc } from '@/lib/trpc/client';
 import { useBlankTranslations } from '@/lib/translations';
@@ -63,8 +64,99 @@ import { TranslationBar } from '@/engine/components/TranslationBar';
 import { SortableFormPanel, SortableFormWrapper, FormPanel } from './SortableFormPanel';
 import { PostFormConfig } from './PostFormConfig';
 
+/** Searchable parent page picker */
+function ParentPagePicker({
+  pages,
+  currentPageId,
+  value,
+  onChange,
+  __,
+}: {
+  pages: { id: string; title: string; depth: number }[];
+  currentPageId?: string;
+  value: string | null;
+  onChange: (id: string | null) => void;
+  __: (s: string) => string;
+}) {
+  const [search, setSearch] = useState('');
+  const [open, setOpen] = useState(false);
+
+  const filtered = pages
+    .filter((p) => p.id !== currentPageId)
+    .filter((p) => !search || p.title.toLowerCase().includes(search.toLowerCase()));
+
+  const selectedTitle = pages.find((p) => p.id === value)?.title;
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="input w-full text-left flex items-center justify-between"
+      >
+        <span className={value ? 'text-(--text-primary)' : 'text-(--text-muted)'}>
+          {selectedTitle ?? __('None (top level)')}
+        </span>
+        <span className="text-(--text-muted) text-xs">&#9662;</span>
+      </button>
+
+      {open && (
+        <div className="absolute z-20 mt-1 w-full rounded-lg border border-(--border-primary) bg-(--surface-primary) shadow-lg">
+          <div className="p-2">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder={__('Search pages...')}
+              className="input w-full text-sm"
+              autoFocus
+            />
+          </div>
+          <div className="max-h-60 overflow-y-auto px-1 pb-1">
+            <button
+              type="button"
+              onClick={() => { onChange(null); setOpen(false); setSearch(''); }}
+              className={cn(
+                'w-full rounded-md px-3 py-2 text-left text-sm transition-colors',
+                !value
+                  ? 'bg-(--surface-secondary) text-(--text-primary) font-medium'
+                  : 'text-(--text-secondary) hover:bg-(--surface-secondary)',
+              )}
+            >
+              {__('None (top level)')}
+            </button>
+            {filtered.map((p) => (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => { onChange(p.id); setOpen(false); setSearch(''); }}
+                className={cn(
+                  'w-full rounded-md px-3 py-2 text-left text-sm transition-colors',
+                  value === p.id
+                    ? 'bg-(--surface-secondary) text-(--text-primary) font-medium'
+                    : 'text-(--text-secondary) hover:bg-(--surface-secondary)',
+                )}
+              >
+                {'— '.repeat(p.depth)}{p.title}
+              </button>
+            ))}
+            {filtered.length === 0 && (
+              <p className="px-3 py-2 text-xs text-(--text-muted)">{__('No pages found')}</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Close on click outside */}
+      {open && (
+        <div className="fixed inset-0 z-10" onClick={() => { setOpen(false); setSearch(''); }} />
+      )}
+    </div>
+  );
+}
+
 /** Panels that render their own .card wrapper — use SortableFormWrapper (no double-card) */
-const SELF_WRAPPING_PANELS = new Set(['seo-preview', 'custom-fields']);
+const SELF_WRAPPING_PANELS = new Set(['custom-fields']);
 
 /** Droppable container for main column panels */
 function MainDroppable({ children }: { children: React.ReactNode }) {
@@ -609,20 +701,13 @@ export function PostForm({ contentType, postId }: Props) {
     ),
     'parent-page': () =>
       isPageType ? (
-        <select
-          value={formData.parentId ?? ''}
-          onChange={(e) => handleChange('parentId', e.target.value || null)}
-          className="select w-full"
-        >
-          <option value="">{__('None (top level)')}</option>
-          {(pageTree.data ?? [])
-            .filter((p) => p.id !== postId)
-            .map((p) => (
-              <option key={p.id} value={p.id}>
-                {'— '.repeat(p.depth)}{p.title}
-              </option>
-            ))}
-        </select>
+        <ParentPagePicker
+          pages={pageTree.data ?? []}
+          currentPageId={postId}
+          value={formData.parentId}
+          onChange={(id) => handleChange('parentId', id)}
+          __={__}
+        />
       ) : null,
     categories: () => (
       <div className="max-h-48 space-y-1.5 overflow-y-auto">

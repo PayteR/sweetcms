@@ -118,7 +118,7 @@ export default function SubmissionsPage() {
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="submissions-page">
+    <div className="shell-inner submissions-page">
       {/* Header */}
       <div className="submissions-header flex items-center justify-between">
         <div className="submissions-header-left flex items-center gap-3">

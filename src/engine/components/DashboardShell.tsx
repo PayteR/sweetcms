@@ -62,7 +62,7 @@ export function DashboardShell({ navigation, children, extraSectionActions }: Da
         hasLevel2 ? (isL2Collapsed ? "xl:ml-24" : "xl:ml-67") : "xl:ml-[48px]",
       )}
     >
-      <div className="dashboard-shell-content" data-section={sectionTokens}>
+      <div className="shell-content" data-section={sectionTokens}>
         {children}
       </div>
     </main>

@@ -102,7 +102,7 @@ export default function AdminTicketDetailPage() {
   }
 
   return (
-    <div className="support-detail-page">
+    <div className="shell-inner support-detail-page">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <Link

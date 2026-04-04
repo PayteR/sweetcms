@@ -32,10 +32,40 @@
 }
 
 @layer components {
-  /* ===================== Content Area ===================== */
-  .dashboard-shell-content {
+  /* ===================== Shell Layout ===================== */
+
+  /* Outer container — full width, no constraints. Carries data-section for per-page overrides. */
+  .shell-content {
+    /* intentionally empty — full width of <main> */
+  }
+
+  /* Centered inner — max-width + padding. Used inside shell-content for page content. */
+  .shell-inner {
     max-width: var(--content-max-width);
     margin-inline: auto;
+    padding-inline: 1.5rem;
+    padding-block: 1.5rem;
+  }
+
+  /* No top-padding variant (e.g. below sticky header) */
+  .shell-inner-body {
+    max-width: var(--content-max-width);
+    margin-inline: auto;
+    padding-inline: 1.5rem;
+    padding-bottom: 1.5rem;
+  }
+
+  /* Sticky footer — full-width background, centered content. Sticks to viewport bottom. */
+  .shell-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 30;
+    border-top: 1px solid var(--border-primary);
+    background-color: var(--surface-secondary);
+  }
+
+  .shell-footer .shell-inner {
+    padding-block: 0.75rem;
   }
 
   /*
@@ -46,27 +76,25 @@
    *   /dashboard                       → "home"
    *   /dashboard/cms/pages             → "cms pages"
    *   /dashboard/cms/pages/new         → "cms pages new"
-   *   /dashboard/cms/pages/edit/:id    → "cms pages edit"
    *   /dashboard/cms/blog              → "cms blog"
    *   /dashboard/media                 → "media"
    *   /dashboard/users                 → "users"
    *   /dashboard/settings/billing      → "settings billing"
    *
    * Selector examples:
-   *   [data-section~="cms"]                            — all CMS sections
-   *   [data-section~="pages"]                          — pages list + edit + new
-   *   [data-section~="edit"]                           — all edit views
-   *   [data-section~="cms"][data-section~="edit"]      — CMS edit views only
-   *
-   * Uncomment or add overrides as needed:
-   *   .dashboard-shell-content[data-section~="cms"]    { --content-max-width: 90rem; }
-   *   .dashboard-shell-content[data-section~="media"]  { --content-max-width: 100%; }
+   *   .shell-content[data-section~="cms"]    { --content-max-width: 90rem; }
+   *   .shell-content[data-section~="media"]  { --content-max-width: 100%; }
    */
 
-  /* When a form shell is present, remove the shell's max-width constraint so the
-     sticky toolbar can span edge to edge. The form body's own max-w handles centering. */
-  .dashboard-shell-content:has(> .form-shell) {
-    --content-max-width: 100%;
+  /* ===================== Global button cursor ===================== */
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [role="button"][aria-disabled="true"] {
+    cursor: not-allowed;
   }
 
   /* ===================== Cards ===================== */

@@ -3356,6 +3356,12 @@ msgstr "Please check the form for errors"
 msgid "Parent Page"
 msgstr "Parent Page"
 
+msgid "Search pages..."
+msgstr "Search pages..."
+
+msgid "No pages found"
+msgstr "No pages found"
+
 msgid "Structured Data"
 msgstr "Structured Data"
 

@@ -45,7 +45,7 @@ export default function MenuEditPage({ params }: Props) {
   }
 
   return (
-    <div className="menu-edit-page">
+    <div className="shell-inner menu-edit-page">
       <div className="menu-edit-header flex items-center justify-between">
         <div className="menu-edit-header-left flex items-center gap-3">
           <Link

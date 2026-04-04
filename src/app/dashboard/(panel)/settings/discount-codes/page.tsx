@@ -120,7 +120,7 @@ export default function DiscountCodesPage() {
   const isPending = createCode.isPending || updateCode.isPending;
 
   return (
-    <div>
+    <div className="shell-inner">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link

@@ -293,7 +293,7 @@ export default function ImportPage() {
   // ── Render ─────────────────────────────────────────────────────────
 
   return (
-    <div className="import-page">
+    <div className="shell-inner import-page">
       <h1 className="text-2xl font-bold text-(--text-primary)">
         {__('Import Content')}
       </h1>

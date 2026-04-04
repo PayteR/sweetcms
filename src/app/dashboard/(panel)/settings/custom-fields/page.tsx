@@ -155,7 +155,7 @@ export default function CustomFieldsPage() {
   const isPending = createField.isPending || updateField.isPending;
 
   return (
-    <div className="custom-fields-page">
+    <div className="shell-inner custom-fields-page">
       <div className="custom-fields-page-header flex items-center justify-between">
         <div className="custom-fields-page-header-left flex items-center gap-3">
           <Link
