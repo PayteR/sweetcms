@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sweetcms\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-03T23:24:52.439Z\n"
-"PO-Revision-Date: 2026-04-03T23:24:52.439Z\n"
+"POT-Creation-Date: 2026-04-04T01:20:50.357Z\n"
+"PO-Revision-Date: 2026-04-04T01:20:50.357Z\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: de\n"
 "Language: de\n"
@@ -86,7 +86,7 @@ msgstr "Entity"
 #: src/app/dashboard/(panel)/users/page.tsx:365
 #: src/app/dashboard/(panel)/users/[id]/page.tsx:369
 #: src/app/dashboard/(panel)/users/[id]/page.tsx:439
-#: src/components/admin/CmsListView.tsx:928
+#: src/components/admin/CmsListView.tsx:936
 #: src/engine/components/GA4Widget.tsx:296
 msgid "Page"
 msgstr "Page"
@@ -102,7 +102,7 @@ msgstr "Page"
 #: src/app/dashboard/(panel)/users/page.tsx:365
 #: src/app/dashboard/(panel)/users/[id]/page.tsx:369
 #: src/app/dashboard/(panel)/users/[id]/page.tsx:439
-#: src/components/admin/CmsListView.tsx:928
+#: src/components/admin/CmsListView.tsx:936
 msgid "of"
 msgstr "of"
 
@@ -148,9 +148,8 @@ msgstr "Create"
 #: src/app/dashboard/(panel)/settings/webhooks/page.tsx:180
 #: src/app/dashboard/(panel)/users/page.tsx:416
 #: src/engine/components/InternalLinkDialog.tsx:120
-#: src/engine/components/MediaPickerDialog.tsx:419
+#: src/engine/components/MediaPickerDialog.tsx:448
 #: src/engine/components/PostAttachments.tsx:252
-#: src/engine/components/RevisionHistory.tsx:242
 #: src/engine/components/SeoOverridesDialog.tsx:197
 #: src/engine/components/shortcodes/ShortcodeEditDialog.tsx:91
 msgid "Cancel"
@@ -185,7 +184,7 @@ msgstr "Name"
 #: src/app/dashboard/(panel)/settings/custom-fields/page.tsx:322
 #: src/app/dashboard/(panel)/settings/import/page.tsx:588
 #: src/components/admin/CategoryForm.tsx:337
-#: src/components/admin/CmsListView.tsx:749
+#: src/components/admin/CmsListView.tsx:757
 #: src/components/admin/PortfolioForm.tsx:361
 #: src/components/admin/ShowcaseForm.tsx:332
 #: src/components/admin/TermForm.tsx:248
@@ -198,7 +197,7 @@ msgstr "Slug"
 #: src/app/dashboard/(panel)/settings/custom-fields/page.tsx:361
 #: src/app/dashboard/(panel)/settings/discount-codes/page.tsx:309
 #: src/app/dashboard/(panel)/settings/webhooks/page.tsx:227
-#: src/components/admin/CmsListView.tsx:901
+#: src/components/admin/CmsListView.tsx:909
 msgid "Edit"
 msgstr "Edit"
 
@@ -219,8 +218,8 @@ msgstr "Edit"
 #: src/app/dashboard/(panel)/settings/discount-codes/page.tsx:333
 #: src/app/dashboard/(panel)/settings/webhooks/page.tsx:234
 #: src/app/dashboard/(panel)/settings/webhooks/page.tsx:251
-#: src/components/admin/CmsListView.tsx:963
-#: src/engine/components/MediaPickerDialog.tsx:399
+#: src/components/admin/CmsListView.tsx:973
+#: src/engine/components/MediaPickerDialog.tsx:428
 msgid "Delete"
 msgstr "Delete"
 
@@ -328,7 +327,7 @@ msgstr "Prefix"
 #: src/app/dashboard/(panel)/settings/job-queue/page.tsx:170
 #: src/app/dashboard/(panel)/settings/support/page.tsx:123
 #: src/app/dashboard/(panel)/settings/support/[id]/page.tsx:191
-#: src/components/admin/CmsListView.tsx:768
+#: src/components/admin/CmsListView.tsx:776
 msgid "Created"
 msgstr "Created"
 
@@ -341,7 +340,7 @@ msgstr "Delete redirect"
 #: src/app/dashboard/(panel)/forms/[id]/submissions/page.tsx:232
 #: src/app/dashboard/(panel)/media/page.tsx:313
 #: src/app/dashboard/(panel)/users/page.tsx:366
-#: src/components/admin/CmsListView.tsx:929
+#: src/components/admin/CmsListView.tsx:937
 msgid "total"
 msgstr "total"
 
@@ -450,7 +449,7 @@ msgstr "Edit Form"
 #: src/app/dashboard/(panel)/settings/page.tsx:206
 #: src/components/admin/CategoryForm.tsx:299
 #: src/components/admin/PortfolioForm.tsx:323
-#: src/components/admin/PostForm.tsx:694
+#: src/components/admin/PostForm.tsx:891
 #: src/components/admin/ShowcaseForm.tsx:294
 #: src/components/admin/TermForm.tsx:212
 #: src/engine/components/PostAttachments.tsx:264
@@ -614,7 +613,7 @@ msgid "File deleted"
 msgstr "File deleted"
 
 #: src/app/dashboard/(panel)/media/page.tsx:114
-#: src/engine/components/MediaPickerDialog.tsx:118
+#: src/engine/components/MediaPickerDialog.tsx:122
 msgid "Failed to upload {name}"
 msgstr "Failed to upload {name}"
 
@@ -624,7 +623,7 @@ msgstr "{count} file(s) uploaded"
 
 #: src/app/dashboard/(panel)/media/page.tsx:167
 #: src/components/admin/QuickActionsWidget.tsx:42
-#: src/engine/components/MediaPickerDialog.tsx:176
+#: src/engine/components/MediaPickerDialog.tsx:186
 msgid "Media Library"
 msgstr "Media Library"
 
@@ -633,7 +632,7 @@ msgid "Uploading..."
 msgstr "Uploading..."
 
 #: src/app/dashboard/(panel)/media/page.tsx:187
-#: src/engine/components/MediaPickerDialog.tsx:211
+#: src/engine/components/MediaPickerDialog.tsx:221
 #: src/engine/components/PostAttachments.tsx:153
 msgid "Upload"
 msgstr "Upload"
@@ -910,13 +909,13 @@ msgstr "Project name"
 #: src/components/admin/CategoryForm.tsx:383
 #: src/components/admin/PortfolioForm.tsx:473
 #: src/components/admin/ShowcaseForm.tsx:480
-#: src/engine/components/MediaPickerDialog.tsx:374
-#: src/engine/components/SeoPreviewCard.tsx:125
+#: src/engine/components/MediaPickerDialog.tsx:400
+#: src/engine/components/SeoPreviewCard.tsx:123
 msgid "Description"
 msgstr "Description"
 
 #: src/app/dashboard/(panel)/projects/page.tsx:137
-#: src/engine/components/MediaPickerDialog.tsx:383
+#: src/engine/components/MediaPickerDialog.tsx:412
 msgid "Optional description"
 msgstr "Optional description"
 
@@ -945,10 +944,10 @@ msgstr "No projects yet. Create one to get started."
 #: src/app/dashboard/(panel)/settings/webhooks/page.tsx:201
 #: src/app/dashboard/(panel)/users/page.tsx:225
 #: src/components/admin/CategoryForm.tsx:454
-#: src/components/admin/CmsListView.tsx:729
+#: src/components/admin/CmsListView.tsx:737
 #: src/components/admin/PortfolioForm.tsx:583
-#: src/components/admin/PostForm.tsx:780
-#: src/components/admin/PostForm.tsx:784
+#: src/components/admin/PostForm.tsx:983
+#: src/components/admin/PostForm.tsx:987
 #: src/components/admin/ShowcaseForm.tsx:536
 #: src/components/admin/TermForm.tsx:268
 msgid "Status"
@@ -959,10 +958,9 @@ msgid "Archive"
 msgstr "Archive"
 
 #: src/app/dashboard/(panel)/projects/page.tsx:224
-#: src/components/admin/CmsListView.tsx:875
+#: src/components/admin/CmsListView.tsx:883
 #: src/engine/components/AutosaveRecoveryBanner.tsx:44
 #: src/engine/components/BulkActionBar.tsx:62
-#: src/engine/components/RevisionHistory.tsx:248
 msgid "Restore"
 msgstr "Restore"
 
@@ -971,7 +969,7 @@ msgstr "Restore"
 #: src/app/dashboard/(panel)/settings/billing/components/ChurnedSubscriptionsTable.tsx:172
 #: src/app/dashboard/(panel)/settings/billing/components/SubscriptionsTable.tsx:154
 #: src/app/dashboard/(panel)/settings/support/page.tsx:173
-#: src/engine/components/MediaPickerDialog.tsx:298
+#: src/engine/components/MediaPickerDialog.tsx:311
 msgid "Previous"
 msgstr "Previous"
 
@@ -981,7 +979,7 @@ msgstr "Previous"
 #: src/app/dashboard/(panel)/settings/billing/components/SubscriptionsTable.tsx:161
 #: src/app/dashboard/(panel)/settings/import/page.tsx:450
 #: src/app/dashboard/(panel)/settings/support/page.tsx:183
-#: src/engine/components/MediaPickerDialog.tsx:308
+#: src/engine/components/MediaPickerDialog.tsx:323
 msgid "Next"
 msgstr "Next"
 
@@ -1184,7 +1182,7 @@ msgstr "Amount"
 #: src/app/dashboard/(panel)/settings/billing/components/RecentTransactionsTable.tsx:57
 #: src/app/dashboard/(panel)/settings/import/page.tsx:590
 #: src/app/dashboard/(panel)/users/[id]/page.tsx:345
-#: src/components/admin/CmsListView.tsx:740
+#: src/components/admin/CmsListView.tsx:748
 msgid "Date"
 msgstr "Date"
 
@@ -1267,36 +1265,36 @@ msgstr "Unpaid (lost)"
 msgid "Total Ever Subscribed"
 msgstr "Total Ever Subscribed"
 
-#: src/app/dashboard/(panel)/settings/billing/page.tsx:147
+#: src/app/dashboard/(panel)/settings/billing/page.tsx:149
 msgid "Subscriptions"
 msgstr "Subscriptions"
 
-#: src/app/dashboard/(panel)/settings/billing/page.tsx:149
+#: src/app/dashboard/(panel)/settings/billing/page.tsx:151
 msgid "Monitor revenue, track churn, and manage subscriptions."
 msgstr "Monitor revenue, track churn, and manage subscriptions."
 
-#: src/app/dashboard/(panel)/settings/billing/page.tsx:175
+#: src/app/dashboard/(panel)/settings/billing/page.tsx:177
 msgid "Custom range"
 msgstr "Custom range"
 
-#: src/app/dashboard/(panel)/settings/billing/page.tsx:181
+#: src/app/dashboard/(panel)/settings/billing/page.tsx:183
 #: src/app/dashboard/(panel)/settings/support/[id]/page.tsx:196
 msgid "From"
 msgstr "From"
 
-#: src/app/dashboard/(panel)/settings/billing/page.tsx:188
+#: src/app/dashboard/(panel)/settings/billing/page.tsx:190
 msgid "To"
 msgstr "To"
 
-#: src/app/dashboard/(panel)/settings/billing/page.tsx:225
+#: src/app/dashboard/(panel)/settings/billing/page.tsx:227
 msgid "Last"
 msgstr "Last"
 
-#: src/app/dashboard/(panel)/settings/billing/page.tsx:225
+#: src/app/dashboard/(panel)/settings/billing/page.tsx:227
 msgid "days"
 msgstr "days"
 
-#: src/app/dashboard/(panel)/settings/billing/page.tsx:229
+#: src/app/dashboard/(panel)/settings/billing/page.tsx:231
 msgid "All time"
 msgstr "All time"
 
@@ -1458,7 +1456,7 @@ msgstr "Available Variables"
 
 #: src/app/dashboard/(panel)/settings/email-templates/page.tsx:214
 #: src/app/dashboard/(panel)/settings/import/page.tsx:524
-#: src/components/admin/PostForm.tsx:670
+#: src/components/admin/PostForm.tsx:867
 #: src/engine/components/RichTextEditor.tsx:834
 msgid "Preview"
 msgstr "Preview"
@@ -1596,19 +1594,19 @@ msgstr "Select all"
 
 #: src/app/dashboard/(panel)/settings/import/page.tsx:587
 #: src/components/admin/CategoryForm.tsx:352
-#: src/components/admin/CmsListView.tsx:723
+#: src/components/admin/CmsListView.tsx:731
 #: src/components/admin/PortfolioForm.tsx:376
 #: src/components/admin/ShowcaseForm.tsx:319
-#: src/engine/components/MediaPickerDialog.tsx:344
-#: src/engine/components/SeoPreviewCard.tsx:122
+#: src/engine/components/MediaPickerDialog.tsx:364
+#: src/engine/components/SeoPreviewCard.tsx:120
 msgid "Title"
 msgstr "Title"
 
 #: src/app/dashboard/(panel)/settings/import/page.tsx:631
 #: src/components/admin/CategoryForm.tsx:464
-#: src/components/admin/CmsListView.tsx:757
+#: src/components/admin/CmsListView.tsx:765
 #: src/components/admin/PortfolioForm.tsx:593
-#: src/components/admin/PostForm.tsx:792
+#: src/components/admin/PostForm.tsx:995
 #: src/components/admin/ShowcaseForm.tsx:546
 #: src/components/admin/TaxonomyOverview.tsx:22
 #: src/components/admin/TermForm.tsx:278
@@ -1619,7 +1617,7 @@ msgstr "Published"
 #: src/app/dashboard/(panel)/settings/import/page.tsx:632
 #: src/components/admin/CategoryForm.tsx:462
 #: src/components/admin/PortfolioForm.tsx:591
-#: src/components/admin/PostForm.tsx:791
+#: src/components/admin/PostForm.tsx:994
 #: src/components/admin/ShowcaseForm.tsx:544
 #: src/components/admin/TermForm.tsx:276
 #: src/engine/components/BulkActionBar.tsx:79
@@ -1740,8 +1738,8 @@ msgid "Test Connection"
 msgstr "Test Connection"
 
 #: src/app/dashboard/(panel)/settings/page.tsx:302
-#: src/components/admin/CmsListView.tsx:612
 #: src/components/admin/CmsListView.tsx:615
+#: src/components/admin/CmsListView.tsx:618
 msgid "SEO Overrides"
 msgstr "SEO Overrides"
 
@@ -2013,7 +2011,7 @@ msgid "Profile"
 msgstr "Profile"
 
 #: src/app/dashboard/(panel)/users/[id]/page.tsx:247
-#: src/components/admin/CmsListView.tsx:588
+#: src/components/admin/CmsListView.tsx:591
 #: src/engine/components/BulkActionBar.tsx:91
 msgid "Export"
 msgstr "Export"
@@ -2105,7 +2103,7 @@ msgid "Category description..."
 msgstr "Category description..."
 
 #: src/components/admin/CategoryForm.tsx:399
-#: src/components/admin/CmsListView.tsx:822
+#: src/components/admin/CmsListView.tsx:830
 #: src/components/admin/PortfolioForm.tsx:489
 #: src/components/admin/ShowcaseForm.tsx:496
 msgid "SEO"
@@ -2124,7 +2122,7 @@ msgstr "Order"
 
 #: src/components/admin/CategoryForm.tsx:501
 #: src/components/admin/PortfolioForm.tsx:619
-#: src/components/admin/PostForm.tsx:476
+#: src/components/admin/PostForm.tsx:680
 #: src/components/admin/ShowcaseForm.tsx:572
 #: src/components/admin/TermForm.tsx:295
 #: src/engine/components/TranslationBar.tsx:74
@@ -2133,7 +2131,7 @@ msgstr "Language"
 
 #: src/components/admin/CategoryForm.tsx:527
 #: src/components/admin/PortfolioForm.tsx:645
-#: src/components/admin/PostForm.tsx:799
+#: src/components/admin/PostForm.tsx:1002
 #: src/components/admin/ShowcaseForm.tsx:598
 msgid "Publish Date"
 msgstr "Publish Date"
@@ -2173,93 +2171,93 @@ msgstr "Duplicated"
 msgid "Exported {count} items"
 msgstr "Exported {count} items"
 
-#: src/components/admin/CmsListView.tsx:556
+#: src/components/admin/CmsListView.tsx:559
 msgid "Toggle columns"
 msgstr "Toggle columns"
 
-#: src/components/admin/CmsListView.tsx:559
+#: src/components/admin/CmsListView.tsx:562
 #: src/engine/components/DashboardConfig.tsx:121
 msgid "Columns"
 msgstr "Columns"
 
-#: src/components/admin/CmsListView.tsx:623
-#: src/components/admin/PostForm.tsx:655
+#: src/components/admin/CmsListView.tsx:626
+#: src/components/admin/PostForm.tsx:852
 msgid "New {label}"
 msgstr "New {label}"
 
-#: src/components/admin/CmsListView.tsx:660
+#: src/components/admin/CmsListView.tsx:668
 msgid "Search {label}..."
 msgstr "Search {label}..."
 
-#: src/components/admin/CmsListView.tsx:678
+#: src/components/admin/CmsListView.tsx:686
 msgid "All langs"
 msgstr "All langs"
 
-#: src/components/admin/CmsListView.tsx:732
+#: src/components/admin/CmsListView.tsx:740
 msgid "Lang"
 msgstr "Lang"
 
-#: src/components/admin/CmsListView.tsx:746
+#: src/components/admin/CmsListView.tsx:754
 msgid "Author"
 msgstr "Author"
 
-#: src/components/admin/CmsListView.tsx:784
+#: src/components/admin/CmsListView.tsx:792
 msgid "No results found."
 msgstr "No results found."
 
-#: src/components/admin/CmsListView.tsx:785
+#: src/components/admin/CmsListView.tsx:793
 msgid "No items yet. Create your first one."
 msgstr "No items yet. Create your first one."
 
-#: src/components/admin/CmsListView.tsx:813
-#: src/engine/components/RevisionHistory.tsx:143
+#: src/components/admin/CmsListView.tsx:821
+#: src/engine/components/RevisionHistory.tsx:127
 msgid "(untitled)"
 msgstr "(untitled)"
 
-#: src/components/admin/CmsListView.tsx:818
+#: src/components/admin/CmsListView.tsx:826
 msgid "(homepage)"
 msgstr "(homepage)"
 
-#: src/components/admin/CmsListView.tsx:882
+#: src/components/admin/CmsListView.tsx:890
 msgid "Delete permanently"
 msgstr "Delete permanently"
 
-#: src/components/admin/CmsListView.tsx:893
+#: src/components/admin/CmsListView.tsx:901
 msgid "Duplicate"
 msgstr "Duplicate"
 
-#: src/components/admin/CmsListView.tsx:908
-#: src/components/admin/CmsListView.tsx:963
-#: src/components/admin/CmsListView.tsx:974
+#: src/components/admin/CmsListView.tsx:916
+#: src/components/admin/CmsListView.tsx:973
+#: src/components/admin/CmsListView.tsx:984
 msgid "Trash"
 msgstr "Trash"
 
-#: src/components/admin/CmsListView.tsx:955
+#: src/components/admin/CmsListView.tsx:965
 msgid "Delete permanently?"
 msgstr "Delete permanently?"
 
-#: src/components/admin/CmsListView.tsx:956
-#: src/components/admin/CmsListView.tsx:972
+#: src/components/admin/CmsListView.tsx:966
+#: src/components/admin/CmsListView.tsx:982
 msgid "Move to trash?"
 msgstr "Move to trash?"
 
-#: src/components/admin/CmsListView.tsx:960
+#: src/components/admin/CmsListView.tsx:970
 msgid "\"{title}\" will be permanently deleted. This cannot be undone."
 msgstr "\"{title}\" will be permanently deleted. This cannot be undone."
 
-#: src/components/admin/CmsListView.tsx:961
+#: src/components/admin/CmsListView.tsx:971
 msgid "\"{title}\" will be moved to trash."
 msgstr "\"{title}\" will be moved to trash."
 
-#: src/components/admin/CmsListView.tsx:973
+#: src/components/admin/CmsListView.tsx:983
 msgid "{count} items will be moved to trash."
 msgstr "{count} items will be moved to trash."
 
-#: src/components/admin/CmsListView.tsx:990
+#: src/components/admin/CmsListView.tsx:1000
 msgid "Created {count} SEO override(s)"
 msgstr "Created {count} SEO override(s)"
 
-#: src/components/admin/CmsListView.tsx:994
+#: src/components/admin/CmsListView.tsx:1004
 msgid "All SEO overrides already exist"
 msgstr "All SEO overrides already exist"
 
@@ -2325,107 +2323,119 @@ msgid "Alt text"
 msgstr "Alt text"
 
 #: src/components/admin/PortfolioForm.tsx:564
-#: src/components/admin/PostForm.tsx:572
+#: src/components/admin/PostForm.tsx:769
 msgid "Select Image"
 msgstr "Select Image"
 
-#: src/components/admin/PostForm.tsx:204
-msgid "{label} created"
-msgstr "{label} created"
-
-#: src/components/admin/PostForm.tsx:218
-msgid "{label} updated"
-msgstr "{label} updated"
-
-#: src/components/admin/PostForm.tsx:506
+#: src/components/admin/PostForm.tsx:98
+#: src/components/admin/PostForm.tsx:126
 msgid "None (top level)"
 msgstr "None (top level)"
 
-#: src/components/admin/PostForm.tsx:521
+#: src/components/admin/PostForm.tsx:110
+msgid "Search pages..."
+msgstr "Search pages..."
+
+#: src/components/admin/PostForm.tsx:144
+msgid "No pages found"
+msgstr "No pages found"
+
+#: src/components/admin/PostForm.tsx:319
+msgid "{label} created"
+msgstr "{label} created"
+
+#: src/components/admin/PostForm.tsx:333
+msgid "{label} updated"
+msgstr "{label} updated"
+
+#: src/components/admin/PostForm.tsx:718
 msgid "No categories yet."
 msgstr "No categories yet."
 
-#: src/components/admin/PostForm.tsx:582
+#: src/components/admin/PostForm.tsx:779
 msgid "Change"
 msgstr "Change"
 
-#: src/components/admin/PostForm.tsx:589
-#: src/engine/components/MediaPickerDialog.tsx:359
+#: src/components/admin/PostForm.tsx:786
+#: src/engine/components/MediaPickerDialog.tsx:382
 msgid "Alt Text"
 msgstr "Alt Text"
 
-#: src/components/admin/PostForm.tsx:596
-#: src/engine/components/MediaPickerDialog.tsx:368
+#: src/components/admin/PostForm.tsx:793
+#: src/engine/components/MediaPickerDialog.tsx:394
 msgid "Describe the image"
 msgstr "Describe the image"
 
-#: src/components/admin/PostForm.tsx:656
+#: src/components/admin/PostForm.tsx:853
 #: src/engine/components/shortcodes/ShortcodeEditDialog.tsx:34
 msgid "Edit {label}"
 msgstr "Edit {label}"
 
-#: src/components/admin/PostForm.tsx:680
+#: src/components/admin/PostForm.tsx:877
 msgid "Publish"
 msgstr "Publish"
 
-#: src/components/admin/PostForm.tsx:724
+#: src/components/admin/PostForm.tsx:927
 msgid "{label} title"
 msgstr "{label} title"
 
-#: src/components/admin/PostForm.tsx:748
+#: src/components/admin/PostForm.tsx:951
 msgid "Add Media"
 msgstr "Add Media"
 
-#: src/components/admin/PostForm.tsx:755
+#: src/components/admin/PostForm.tsx:958
 msgid "Start writing your content..."
 msgstr "Start writing your content..."
 
-#: src/components/admin/PostForm.tsx:793
+#: src/components/admin/PostForm.tsx:996
 #: src/engine/components/ContentStatusWidget.tsx:27
 msgid "Scheduled"
 msgstr "Scheduled"
 
-#: src/components/admin/PostForm.tsx:817
-#: src/engine/components/RevisionHistory.tsx:269
+#: src/components/admin/PostForm.tsx:1020
+#: src/engine/components/RevisionHistory.tsx:229
 msgid "Revisions"
 msgstr "Revisions"
 
-#: src/components/admin/PostFormConfig.tsx:96
+#: src/components/admin/PostFormConfig.tsx:107
 msgid "Show panel"
 msgstr "Show panel"
 
-#: src/components/admin/PostFormConfig.tsx:96
+#: src/components/admin/PostFormConfig.tsx:107
 msgid "Hide panel"
 msgstr "Hide panel"
 
-#: src/components/admin/PostFormConfig.tsx:212
+#: src/components/admin/PostFormConfig.tsx:168
+msgid "No panels"
+msgstr "No panels"
+
+#: src/components/admin/PostFormConfig.tsx:245
 msgid "Drag to reorder panels. Toggle visibility with the eye icon."
 msgstr "Drag to reorder panels. Toggle visibility with the eye icon."
 
-#: src/components/admin/PostFormConfig.tsx:217
+#: src/components/admin/PostFormConfig.tsx:250
 msgid "Content Panels"
 msgstr "Content Panels"
 
-#: src/components/admin/PostFormConfig.tsx:226
-msgid "Sidebar Panels"
-msgstr "Sidebar Panels"
-
-#: src/components/admin/PostFormConfig.tsx:250
-msgid "Configure panels"
-msgstr "Configure panels"
-
-#: src/components/admin/PostFormConfig.tsx:255
-msgid "Editor Layout"
-msgstr "Editor Layout"
-
+#: src/components/admin/PostFormConfig.tsx:256
 msgid "Move to sidebar"
 msgstr "Move to sidebar"
 
+#: src/components/admin/PostFormConfig.tsx:260
+msgid "Sidebar Panels"
+msgstr "Sidebar Panels"
+
+#: src/components/admin/PostFormConfig.tsx:266
 msgid "Move to content"
 msgstr "Move to content"
 
-msgid "No panels"
-msgstr "No panels"
+#: src/components/admin/PostFormConfig.tsx:285
+msgid "Configure panels"
+msgstr "Configure panels"
+
+#: src/components/admin/PostFormConfig.tsx:290
+msgid "Editor Layout"
+msgstr "Editor Layout"
 
 #: src/components/admin/QuickActionsWidget.tsx:20
 msgid "Quick Actions"
@@ -2655,8 +2665,8 @@ msgstr "Configure dashboard"
 msgid "Dashboard Layout"
 msgstr "Dashboard Layout"
 
-#: src/engine/components/Dialog.tsx:145
-#: src/engine/components/SlideOver.tsx:101
+#: src/engine/components/Dialog.tsx:152
+#: src/engine/components/SlideOver.tsx:102
 msgid "Close"
 msgstr "Close"
 
@@ -2986,43 +2996,43 @@ msgstr "Searching..."
 msgid "Type at least 2 characters to search"
 msgstr "Type at least 2 characters to search"
 
-#: src/engine/components/MediaPickerDialog.tsx:83
+#: src/engine/components/MediaPickerDialog.tsx:84
 msgid "Only image files are supported"
 msgstr "Only image files are supported"
 
-#: src/engine/components/MediaPickerDialog.tsx:186
+#: src/engine/components/MediaPickerDialog.tsx:196
 msgid "Search media..."
 msgstr "Search media..."
 
-#: src/engine/components/MediaPickerDialog.tsx:241
+#: src/engine/components/MediaPickerDialog.tsx:252
 msgid "Drop files to upload"
 msgstr "Drop files to upload"
 
-#: src/engine/components/MediaPickerDialog.tsx:256
+#: src/engine/components/MediaPickerDialog.tsx:267
 msgid "No images match your search."
 msgstr "No images match your search."
 
-#: src/engine/components/MediaPickerDialog.tsx:257
+#: src/engine/components/MediaPickerDialog.tsx:268
 msgid "No images yet. Upload or drag files here."
 msgstr "No images yet. Upload or drag files here."
 
-#: src/engine/components/MediaPickerDialog.tsx:353
+#: src/engine/components/MediaPickerDialog.tsx:376
 msgid "Image title"
 msgstr "Image title"
 
-#: src/engine/components/MediaPickerDialog.tsx:392
+#: src/engine/components/MediaPickerDialog.tsx:421
 msgid "Delete this media file?"
 msgstr "Delete this media file?"
 
-#: src/engine/components/MediaPickerDialog.tsx:405
+#: src/engine/components/MediaPickerDialog.tsx:434
 msgid "Select an image to view details"
 msgstr "Select an image to view details"
 
-#: src/engine/components/MediaPickerDialog.tsx:415
+#: src/engine/components/MediaPickerDialog.tsx:444
 msgid "No image selected"
 msgstr "No image selected"
 
-#: src/engine/components/MediaPickerDialog.tsx:426
+#: src/engine/components/MediaPickerDialog.tsx:455
 msgid "Select"
 msgstr "Select"
 
@@ -3131,41 +3141,41 @@ msgstr "published"
 msgid "System"
 msgstr "System"
 
-#: src/engine/components/RevisionHistory.tsx:43
+#: src/engine/components/RevisionHistory.tsx:66
+msgid "Restore this revision? Current state will be saved as a new revision."
+msgstr "Restore this revision? Current state will be saved as a new revision."
+
+#: src/engine/components/RevisionHistory.tsx:70
 msgid "Revision restored"
 msgstr "Revision restored"
 
-#: src/engine/components/RevisionHistory.tsx:101
+#: src/engine/components/RevisionHistory.tsx:73
+msgid "Failed to restore revision"
+msgstr "Failed to restore revision"
+
+#: src/engine/components/RevisionHistory.tsx:91
 msgid "Revision History"
 msgstr "Revision History"
 
-#: src/engine/components/RevisionHistory.tsx:124
+#: src/engine/components/RevisionHistory.tsx:108
 msgid "Oldest"
 msgstr "Oldest"
 
-#: src/engine/components/RevisionHistory.tsx:125
+#: src/engine/components/RevisionHistory.tsx:109
 msgid "Newest"
 msgstr "Newest"
 
-#: src/engine/components/RevisionHistory.tsx:133
+#: src/engine/components/RevisionHistory.tsx:117
 msgid "No revisions yet"
 msgstr "No revisions yet"
 
-#: src/engine/components/RevisionHistory.tsx:172
+#: src/engine/components/RevisionHistory.tsx:156
 msgid "No changes in this revision"
 msgstr "No changes in this revision"
 
-#: src/engine/components/RevisionHistory.tsx:221
+#: src/engine/components/RevisionHistory.tsx:204
 msgid "Restore this version"
 msgstr "Restore this version"
-
-#: src/engine/components/RevisionHistory.tsx:232
-msgid "Restore revision?"
-msgstr "Restore revision?"
-
-#: src/engine/components/RevisionHistory.tsx:234
-msgid "This will overwrite the current content with the selected revision. Continue?"
-msgstr "This will overwrite the current content with the selected revision. Continue?"
 
 #: src/engine/components/RichTextEditor.tsx:225
 msgid "Insert {name} block"
@@ -3301,10 +3311,6 @@ msgstr "Facebook"
 msgid "Twitter / X"
 msgstr "Twitter / X"
 
-#: src/engine/components/SeoPreviewCard.tsx:47
-msgid "SEO Preview"
-msgstr "SEO Preview"
-
 #: src/engine/components/TagInput.tsx:186
 msgid "Type to add tags..."
 msgstr "Type to add tags..."
@@ -3346,24 +3352,32 @@ msgid "Please check the form for errors"
 msgstr "Please check the form for errors"
 
 #. REMOVED FROM CODE - PRESERVED FOR REFERENCE
+#~ msgid "Restore revision?"
+#~ msgstr "Restore revision?"
+
+#. REMOVED FROM CODE - PRESERVED FOR REFERENCE
+#~ msgid "This will overwrite the current content with the selected revision. Continue?"
+#~ msgstr "This will overwrite the current content with the selected revision. Continue?"
+
+#. REMOVED FROM CODE - PRESERVED FOR REFERENCE
+#~ msgid "SEO Preview"
+#~ msgstr "SEO Preview"
+
+#. REMOVED FROM CODE - PRESERVED FOR REFERENCE
+#~ msgid "Parent Page"
+#~ msgstr "Parent Page"
+
+#. REMOVED FROM CODE - PRESERVED FOR REFERENCE
+#~ msgid "Structured Data"
+#~ msgstr "Structured Data"
+
+#. REMOVED FROM CODE - PRESERVED FOR REFERENCE
 #~ msgid "No images yet. Upload one above."
 #~ msgstr "No images yet. Upload one above."
 
 #. REMOVED FROM CODE - PRESERVED FOR REFERENCE
 #~ msgid "Structured Data (JSON-LD)"
 #~ msgstr "Structured Data (JSON-LD)"
-
-msgid "Parent Page"
-msgstr "Parent Page"
-
-msgid "Search pages..."
-msgstr "Search pages..."
-
-msgid "No pages found"
-msgstr "No pages found"
-
-msgid "Structured Data"
-msgstr "Structured Data"
 
 #. REMOVED FROM CODE - PRESERVED FOR REFERENCE
 #~ msgid "Start writing..."

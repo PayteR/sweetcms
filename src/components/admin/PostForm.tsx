@@ -1042,13 +1042,13 @@ export function PostForm({ contentType, postId }: Props) {
       </form>
 
       {/* Revisions Dialog */}
-      {showRevisions && !isNew && postId && (
+      {!isNew && postId && (
         <RevisionHistory
           contentType="post"
           contentId={postId}
           currentData={formData}
           onRestored={() => existingPost.refetch()}
-          dialogOnly
+          open={showRevisions}
           onClose={() => setShowRevisions(false)}
         />
       )}

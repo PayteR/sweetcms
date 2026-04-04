@@ -18,16 +18,16 @@ export default async function CmsSectionPage({ params }: Props) {
   }
 
   return (
-    <div className="shell-inner">
-      <Suspense
-        fallback={
+    <Suspense
+      fallback={
+        <div className="shell-inner">
           <div className="section-loading flex items-center justify-center py-20">
             <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
           </div>
-        }
-      >
-        <CmsListView contentType={contentType} />
-      </Suspense>
-    </div>
+        </div>
+      }
+    >
+      <CmsListView contentType={contentType} />
+    </Suspense>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 
-import { History, RotateCcw, X } from 'lucide-react';
+import { History, RotateCcw } from 'lucide-react';
 
 import { useBlankTranslations } from '@/engine/lib/translations';
 import { computeFieldDiffs } from '@/engine/lib/revision-diff';
@@ -17,17 +17,18 @@ interface Props {
   contentId: string;
   currentData: Record<string, unknown>;
   onRestored?: () => void;
-  /** When true, auto-opens the dialog on mount and hides the trigger card. */
-  dialogOnly?: boolean;
-  /** Called when the dialog is closed (relevant when dialogOnly is true). */
+  /** Controlled open state — when provided, the component acts as a controlled dialog (no trigger card). */
+  open?: boolean;
+  /** Called when the dialog requests close. */
   onClose?: () => void;
 }
 
-export function RevisionHistory({ contentType, contentId, currentData, onRestored, dialogOnly, onClose }: Props) {
+export function RevisionHistory({ contentType, contentId, currentData, onRestored, open: controlledOpen, onClose }: Props) {
   const __ = useBlankTranslations();
-  const [isOpen, setIsOpen] = useState(dialogOnly ?? false);
+  const isControlled = controlledOpen !== undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = isControlled ? controlledOpen : internalOpen;
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [restoreTarget, setRestoreTarget] = useState<string | null>(null);
 
   const { data: revisionCount } = trpc.revisions.count.useQuery(
     { contentType, contentId },
@@ -38,13 +39,8 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
     { enabled: isOpen }
   );
 
-  const restore = trpc.revisions.restore.useMutation({
-    onSuccess: () => {
-      toast.success(__('Revision restored'));
-      onRestored?.();
-    },
-    onError: (err) => toast.error(err.message),
-  });
+  const restoreMutation = trpc.revisions.restore.useMutation();
+  const [restoring, setRestoring] = useState(false);
 
   const selectedRevision = revisions.data?.[selectedIndex];
   const snapshot = selectedRevision?.snapshot as Record<string, unknown> | undefined;
@@ -55,20 +51,29 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
   }, [snapshot, currentData]);
 
   const openDialog = useCallback(() => {
-    setIsOpen(true);
+    if (!isControlled) setInternalOpen(true);
     setSelectedIndex(0);
-  }, []);
+  }, [isControlled]);
 
   const closeDialog = useCallback(() => {
-    setIsOpen(false);
+    if (!isControlled) setInternalOpen(false);
     setSelectedIndex(0);
     onClose?.();
-  }, [onClose]);
+  }, [isControlled, onClose]);
 
-  function handleRestore() {
-    if (!restoreTarget) return;
-    restore.mutate({ id: restoreTarget });
-    setRestoreTarget(null);
+  async function handleRestore() {
+    if (!selectedRevision) return;
+    if (!confirm(__('Restore this revision? Current state will be saved as a new revision.'))) return;
+    try {
+      setRestoring(true);
+      await restoreMutation.mutateAsync({ id: selectedRevision.id });
+      toast.success(__('Revision restored'));
+      onRestored?.();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : __('Failed to restore revision'));
+    } finally {
+      setRestoring(false);
+    }
   }
 
   // ── Revision dialog using engine Dialog component ──
@@ -77,7 +82,9 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
       <Dialog
         open={isOpen}
         onClose={closeDialog}
-        className="max-w-5xl! h-[85vh]"
+        size="5xl"
+        zoomFromClick
+        className="h-[85vh]"
       >
         {/* Header */}
         <Dialog.Header onClose={closeDialog}>
@@ -95,7 +102,7 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
               onChange={(e) =>
                 setSelectedIndex(revisions.data!.length - 1 - Number(e.target.value))
               }
-              className="w-full"
+              className="w-full accent-(--color-brand-500)"
             />
             <div className="flex justify-between text-xs text-(--text-muted)">
               <span>{__('Oldest')}</span>
@@ -164,7 +171,7 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
                                   'whitespace-pre-wrap',
                                   line.type === 'added' && 'bg-green-500/10 text-green-600 dark:text-green-400',
                                   line.type === 'removed' && 'bg-red-500/10 text-red-600 dark:text-red-400',
-                                  line.type === 'context' && 'text-(--text-muted)',
+                                  line.type === 'unchanged' && 'text-(--text-muted)',
                                 )}
                               >
                                 {line.type === 'added' ? '+ ' : line.type === 'removed' ? '- ' : '  '}
@@ -189,9 +196,9 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
                 <div className="border-t border-(--border-primary) p-4 shrink-0">
                   <button
                     type="button"
-                    onClick={() => setRestoreTarget(selectedRevision.id)}
-                    disabled={restore.isPending}
-                    className="btn btn-primary flex items-center gap-2"
+                    onClick={handleRestore}
+                    disabled={restoring}
+                    className="flex items-center gap-2 rounded-lg border border-amber-600 px-4 py-2 text-sm text-amber-500 transition-colors hover:bg-amber-600 hover:text-white disabled:opacity-50"
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
                     {__('Restore this version')}
@@ -202,29 +209,11 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
           </div>
         )}
       </Dialog>
-
-      {/* Restore confirmation */}
-      <Dialog open={!!restoreTarget} onClose={() => setRestoreTarget(null)} size="sm">
-        <Dialog.Body>
-          <h3 className="text-lg font-semibold text-(--text-primary)">{__('Restore revision?')}</h3>
-          <p className="mt-2 text-sm text-(--text-secondary)">
-            {__('This will overwrite the current content with the selected revision. Continue?')}
-          </p>
-        </Dialog.Body>
-        <Dialog.Footer>
-          <button onClick={() => setRestoreTarget(null)} className="btn btn-secondary">
-            {__('Cancel')}
-          </button>
-          <button onClick={handleRestore} className="btn btn-primary">
-            {__('Restore')}
-          </button>
-        </Dialog.Footer>
-      </Dialog>
     </>
   );
 
-  // In dialogOnly mode, skip the card trigger
-  if (dialogOnly) {
+  // Controlled mode — render dialog only (no trigger card)
+  if (isControlled) {
     return dialogElement;
   }
 

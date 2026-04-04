@@ -68,6 +68,38 @@
     padding-block: 0.75rem;
   }
 
+  .list-header .shell-inner-body {
+    padding-block: 0.75rem;
+  }
+
+  /* Sticky toolbar — fades in background on scroll via scroll-driven animation.
+     No JS needed. Falls back to always-visible background in older browsers. */
+  .form {
+    padding-top: 1rem;
+  }
+
+  /* Sticky header/toolbar — scroll-driven background fade.
+     Shared by form toolbar and list header. */
+  .form-toolbar,
+  .list-header {
+    background-color: var(--surface-secondary);
+    border-bottom: 1px solid var(--border-primary);
+    animation: sticky-fade linear both;
+    animation-timeline: scroll();
+    animation-range: 0px 80px;
+  }
+
+  @keyframes sticky-fade {
+    from {
+      background-color: transparent;
+      border-bottom-color: transparent;
+    }
+    to {
+      background-color: var(--surface-secondary);
+      border-bottom-color: var(--border-primary);
+    }
+  }
+
   /*
    * Per-section width overrides — data-section holds space-separated tokens
    * auto-derived from the URL. Use [attr~="token"] to match any token.

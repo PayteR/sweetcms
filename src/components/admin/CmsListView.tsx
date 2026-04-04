@@ -543,7 +543,10 @@ export function CmsListView({ contentType }: Props) {
 
   return (
     <div className="list-view">
-      <div className="list-view-header flex flex-wrap items-center justify-between gap-3">
+      {/* Sticky header — full width background, centered content */}
+      <div className="list-header sticky top-12 xl:top-0 z-20">
+        <div className="shell-inner-body">
+          <div className="list-view-header flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-bold text-(--text-primary)">
           {__(contentType.labelPlural)}
         </h1>
@@ -623,7 +626,12 @@ export function CmsListView({ contentType }: Props) {
             {__('New {label}', { label: contentType.label })}
           </Link>
         </div>
+          </div>
+        </div>
       </div>
+
+      {/* Body — centered content */}
+      <div className="shell-inner-body">
 
       {/* Taxonomy overview for tags */}
       {isTagType && <div className="mt-4"><TaxonomyOverview /></div>}
@@ -946,6 +954,8 @@ export function CmsListView({ contentType }: Props) {
           </div>
         </div>
       )}
+
+      </div>
 
       {/* Delete confirmation */}
       <ConfirmDialog
