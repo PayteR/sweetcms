@@ -206,22 +206,28 @@ export function RichTextEditor({
     if (saved) setEditorHeight(saved);
   }, [storageKey]);
 
-  // Save height to localStorage on resize
+  // Save height to localStorage on resize — poll via mouseup since ResizeObserver
+  // doesn't reliably fire for CSS `resize: vertical` in all browsers
   useEffect(() => {
     const wrapper = wrapperRef.current;
     if (!wrapper || !storageKey) return;
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const h = Math.round(entry.contentRect.height);
-        if (h > 0) {
-          const val = `${h}px`;
-          localStorage.setItem(HEIGHT_STORAGE_PREFIX + storageKey, val);
-          setEditorHeight(val);
-        }
+    let lastH = wrapper.offsetHeight;
+    function checkHeight() {
+      const h = wrapper!.offsetHeight;
+      if (h > 0 && h !== lastH) {
+        lastH = h;
+        const val = `${h}px`;
+        localStorage.setItem(HEIGHT_STORAGE_PREFIX + storageKey!, val);
+        setEditorHeight(val);
       }
-    });
-    observer.observe(wrapper);
-    return () => observer.disconnect();
+    }
+    wrapper.addEventListener('mouseup', checkHeight);
+    // Also catch when pointer leaves wrapper during drag
+    document.addEventListener('mouseup', checkHeight);
+    return () => {
+      wrapper.removeEventListener('mouseup', checkHeight);
+      document.removeEventListener('mouseup', checkHeight);
+    };
   }, [storageKey]);
 
   // Build slash command render function (stable ref)

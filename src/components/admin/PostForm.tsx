@@ -917,17 +917,20 @@ export function PostForm({ contentType, postId }: Props) {
           {/* Main content — 2/3 */}
           <div className="post-form-main space-y-6 lg:col-span-2">
             {/* Title + Slug */}
-            <div className="rounded-lg bg-(--surface-secondary) px-5 py-4">
+            <div>
               <input
                 type="text"
                 required
                 value={formData.title}
                 onChange={(e) => handleChange('title', e.target.value)}
-                className="w-full border-none bg-transparent text-2xl font-bold text-(--text-primary) placeholder:text-(--text-muted) outline-none"
+                className="input w-full rounded-b-none text-xl font-bold"
+                style={{ backgroundColor: 'var(--surface-secondary)' }}
                 placeholder={__('{label} title', { label: contentType.label })}
               />
-              <div className="mt-1 flex items-center gap-1.5 text-sm text-(--text-muted)">
-                <span className="shrink-0">/</span>
+              <div
+                className="flex items-center gap-1 rounded-b-[var(--radius-md)] border border-t-0 border-(--border-primary) bg-(--surface-inset) px-3 py-1.5 text-sm text-(--text-muted) focus-within:border-(--color-accent-500)"
+              >
+                <span className="shrink-0 text-xs">/</span>
                 <input
                   type="text"
                   value={formData.slug}
@@ -935,7 +938,7 @@ export function PostForm({ contentType, postId }: Props) {
                     handleChange('slug', e.target.value);
                     setSlugManual(true);
                   }}
-                  className="w-full border-none bg-transparent font-mono text-sm text-(--text-muted) placeholder:text-(--text-muted) outline-none hover:text-(--text-secondary) focus:text-(--text-secondary)"
+                  className="w-full border-none bg-transparent font-mono text-sm text-(--text-muted) placeholder:text-(--text-muted) outline-none focus:text-(--text-secondary)"
                   placeholder="url-slug"
                 />
               </div>
