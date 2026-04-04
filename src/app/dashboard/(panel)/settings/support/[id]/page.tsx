@@ -1,15 +1,27 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Loader2, Send } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
+import { useChannel } from '@/engine/lib/ws-client';
 import { useAdminTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
 import { adminPanel } from '@/config/routes';
 import { cn } from '@/lib/utils';
+
+interface TicketWsEvent {
+  type: 'ticket_message' | 'ticket_status';
+  id?: string;
+  ticketId: string;
+  userId?: string;
+  isStaff?: boolean;
+  body?: string;
+  createdAt?: string;
+  status?: string;
+}
 
 const STATUSES = ['open', 'awaiting_user', 'awaiting_admin', 'resolved', 'closed'] as const;
 
@@ -28,6 +40,10 @@ const PRIORITY_LABELS: Record<string, string> = {
   urgent: 'Urgent',
 };
 
+function isNearBottom(el: HTMLElement, threshold = 150): boolean {
+  return el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+}
+
 export default function AdminTicketDetailPage() {
   const __ = useAdminTranslations();
   const params = useParams();
@@ -35,14 +51,62 @@ export default function AdminTicketDetailPage() {
   const utils = trpc.useUtils();
 
   const [replyBody, setReplyBody] = useState('');
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const shouldScrollRef = useRef(true);
 
   const { data: ticket, isLoading } = trpc.support.adminGet.useQuery({ id });
+
+  // Track scroll position to decide auto-scroll
+  const handleScroll = useCallback(() => {
+    if (messagesContainerRef.current) {
+      shouldScrollRef.current = isNearBottom(messagesContainerRef.current);
+    }
+  }, []);
+
+  // Real-time: subscribe to ticket channel
+  useChannel<TicketWsEvent>(`support:${id}`, (event) => {
+    if (event.type === 'ticket_message' && event.id && event.body != null) {
+      // Append message directly to cache
+      utils.support.adminGet.setData({ id }, (old) => {
+        if (!old) return old;
+        const alreadyExists = old.messages.some((m) => m.id === event.id);
+        if (alreadyExists) return old;
+        return {
+          ...old,
+          status: event.isStaff ? 'awaiting_user' : 'awaiting_admin',
+          messages: [
+            ...old.messages,
+            {
+              id: event.id!,
+              ticketId: event.ticketId,
+              userId: event.userId ?? '',
+              isStaff: event.isStaff ?? false,
+              body: event.body!,
+              attachments: null,
+              createdAt: new Date(event.createdAt ?? Date.now()),
+            },
+          ],
+        };
+      });
+    } else if (event.type === 'ticket_status') {
+      // Status change — invalidate to get full refresh
+      utils.support.adminGet.invalidate({ id });
+    }
+  });
+
+  // Auto-scroll only when near bottom
+  useEffect(() => {
+    if (shouldScrollRef.current && messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
+  }, [ticket?.messages.length]);
 
   const staffReply = trpc.support.adminReply.useMutation({
     onSuccess: () => {
       setReplyBody('');
+      shouldScrollRef.current = true;
       toast.success(__('Reply sent'));
-      utils.support.adminGet.invalidate({ id });
+      // WS broadcast will append message to cache — no invalidation needed
     },
     onError: (err) => toast.error(err.message),
   });
@@ -50,7 +114,7 @@ export default function AdminTicketDetailPage() {
   const changeStatus = trpc.support.changeStatus.useMutation({
     onSuccess: () => {
       toast.success(__('Status updated'));
-      utils.support.adminGet.invalidate({ id });
+      // WS broadcast will trigger invalidation
     },
     onError: (err) => toast.error(err.message),
   });
@@ -118,7 +182,11 @@ export default function AdminTicketDetailPage() {
         {/* Main content — messages + reply */}
         <div className="flex-1 min-w-0">
           {/* Messages */}
-          <div className="space-y-3 mb-6">
+          <div
+            ref={messagesContainerRef}
+            onScroll={handleScroll}
+            className="space-y-3 mb-6 max-h-[60vh] overflow-y-auto"
+          >
             {ticket.messages.map((msg) => (
               <div
                 key={msg.id}

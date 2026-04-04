@@ -1,6 +1,46 @@
 import { boolean, index, jsonb, pgTable, text, timestamp, varchar } from 'drizzle-orm/pg-core';
 import { organization } from './organization';
 
+// ─── saas_chat_sessions ─────────────────────────────────────────────────────
+// Lightweight pre-ticket chat sessions. Most resolve via AI and never become tickets.
+
+export const saasChatSessions = pgTable('saas_chat_sessions', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  visitorId: text('visitor_id').notNull(),
+  userId: text('user_id'),
+  email: varchar('email', { length: 255 }),
+  status: varchar('status', { length: 30 }).notNull().default('ai_active'),
+  ticketId: text('ticket_id'),
+  subject: varchar('subject', { length: 255 }),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  closedAt: timestamp('closed_at'),
+}, (table) => [
+  index('idx_chat_sessions_visitor').on(table.visitorId),
+  index('idx_chat_sessions_user').on(table.userId, table.status),
+  index('idx_chat_sessions_status').on(table.status),
+]);
+
+// ─── saas_chat_messages ─────────────────────────────────────────────────────
+// Messages within a chat session (user, AI, or human agent).
+
+export const saasChatMessages = pgTable('saas_chat_messages', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  sessionId: text('session_id')
+    .notNull()
+    .references(() => saasChatSessions.id, { onDelete: 'cascade' }),
+  role: varchar('role', { length: 20 }).notNull(),
+  body: text('body').notNull(),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+}, (table) => [
+  index('idx_chat_messages_session').on(table.sessionId, table.createdAt),
+]);
+
 // ─── saas_tickets ────────────────────────────────────────────────────────────
 // Support tickets scoped to organizations.
 
@@ -16,6 +56,8 @@ export const saasTickets = pgTable('saas_tickets', {
   status: varchar('status', { length: 30 }).notNull().default('open'),
   priority: varchar('priority', { length: 20 }).notNull().default('normal'),
   assignedTo: text('assigned_to'),
+  source: varchar('source', { length: 20 }).notNull().default('form'),
+  chatSessionId: text('chat_session_id'),
   closedAt: timestamp('closed_at'),
   resolvedAt: timestamp('resolved_at'),
   createdAt: timestamp('created_at').notNull().defaultNow(),

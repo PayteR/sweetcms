@@ -1,12 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Loader2, Send } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
+import { useChannel } from '@/engine/lib/ws-client';
 import { accountRoutes } from '@/config/routes';
 import { cn } from '@/lib/utils';
+
+interface TicketWsEvent {
+  type: 'ticket_message' | 'ticket_status';
+  id?: string;
+  ticketId: string;
+  userId?: string;
+  isStaff?: boolean;
+  body?: string;
+  createdAt?: string;
+  status?: string;
+}
 
 const STATUS_LABELS: Record<string, string> = {
   open: 'Open',
@@ -24,18 +36,69 @@ const STATUS_COLORS: Record<string, string> = {
   closed: 'bg-gray-100 text-gray-600 dark:bg-gray-500/20 dark:text-gray-400',
 };
 
+function isNearBottom(el: HTMLElement, threshold = 150): boolean {
+  return el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+}
+
 export default function TicketDetailPage() {
   const params = useParams();
   const id = params.id as string;
   const utils = trpc.useUtils();
   const [replyBody, setReplyBody] = useState('');
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const shouldScrollRef = useRef(true);
 
   const { data: ticket, isLoading } = trpc.support.get.useQuery({ id });
+
+  // Track scroll position to decide auto-scroll
+  const handleScroll = useCallback(() => {
+    if (messagesContainerRef.current) {
+      shouldScrollRef.current = isNearBottom(messagesContainerRef.current);
+    }
+  }, []);
+
+  // Real-time: subscribe to ticket channel
+  useChannel<TicketWsEvent>(`support:${id}`, (event) => {
+    if (event.type === 'ticket_message' && event.id && event.body != null) {
+      // Append message directly to cache
+      utils.support.get.setData({ id }, (old) => {
+        if (!old) return old;
+        const alreadyExists = old.messages.some((m) => m.id === event.id);
+        if (alreadyExists) return old;
+        return {
+          ...old,
+          status: event.isStaff ? 'awaiting_user' : 'awaiting_admin',
+          messages: [
+            ...old.messages,
+            {
+              id: event.id!,
+              userId: event.userId ?? '',
+              isStaff: event.isStaff ?? false,
+              body: event.body!,
+              attachments: null,
+              createdAt: new Date(event.createdAt ?? Date.now()),
+            },
+          ],
+        };
+      });
+    } else if (event.type === 'ticket_status') {
+      // Status change — invalidate to get full refresh
+      utils.support.get.invalidate({ id });
+    }
+  });
+
+  // Auto-scroll only when near bottom
+  useEffect(() => {
+    if (shouldScrollRef.current && messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
+  }, [ticket?.messages.length]);
 
   const reply = trpc.support.reply.useMutation({
     onSuccess: () => {
       setReplyBody('');
-      utils.support.get.invalidate({ id });
+      shouldScrollRef.current = true;
+      // WS broadcast will append message to cache — no invalidation needed
     },
   });
 
@@ -104,7 +167,11 @@ export default function TicketDetailPage() {
       </div>
 
       {/* Messages */}
-      <div className="space-y-4 mb-6">
+      <div
+        ref={messagesContainerRef}
+        onScroll={handleScroll}
+        className="space-y-4 mb-6 max-h-[60vh] overflow-y-auto"
+      >
         {ticket.messages.map((msg) => (
           <div
             key={msg.id}

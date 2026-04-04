@@ -10,6 +10,14 @@ import { sendNotification, sendOrgNotification } from '@/server/lib/notification
 import { NotificationType, NotificationCategory } from '@/engine/types/notifications';
 import { resolveOrgId } from '@/server/lib/resolve-org';
 
+/** Fire-and-forget WS broadcast (dynamic import to avoid static ws dependency) */
+function broadcastTicketEvent(ticketId: string, type: string, payload: Record<string, unknown>): void {
+  // Include `type` in payload so useChannel callback can discriminate event types
+  import('@/server/lib/ws')
+    .then(({ broadcastToChannel }) => broadcastToChannel(`support:${ticketId}`, type, { ...payload, type }))
+    .catch(() => {/* WS not available */});
+}
+
 const supportAdminProcedure = sectionProcedure('settings');
 
 export const supportRouter = createTRPCRouter({
@@ -173,7 +181,11 @@ export const supportRouter = createTRPCRouter({
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Cannot reply to a closed ticket' });
       }
 
+      const messageId = crypto.randomUUID();
+      const now = new Date();
+
       await ctx.db.insert(saasTicketMessages).values({
+        id: messageId,
         ticketId: input.ticketId,
         userId: ctx.session.user.id,
         isStaff: false,
@@ -183,8 +195,18 @@ export const supportRouter = createTRPCRouter({
       // Auto-transition: user reply -> awaiting_admin
       await ctx.db
         .update(saasTickets)
-        .set({ status: 'awaiting_admin', updatedAt: new Date() })
+        .set({ status: 'awaiting_admin', updatedAt: now })
         .where(eq(saasTickets.id, input.ticketId));
+
+      // Broadcast new message via WebSocket
+      broadcastTicketEvent(input.ticketId, 'ticket_message', {
+        id: messageId,
+        ticketId: input.ticketId,
+        userId: ctx.session.user.id,
+        isStaff: false,
+        body: input.body,
+        createdAt: now.toISOString(),
+      });
 
       // Notify assigned admin if any
       if (ticket.assignedTo) {
@@ -257,6 +279,7 @@ export const supportRouter = createTRPCRouter({
             status: saasTickets.status,
             priority: saasTickets.priority,
             assignedTo: saasTickets.assignedTo,
+            source: saasTickets.source,
             createdAt: saasTickets.createdAt,
             updatedAt: saasTickets.updatedAt,
           })
@@ -319,7 +342,11 @@ export const supportRouter = createTRPCRouter({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Ticket not found' });
       }
 
+      const messageId = crypto.randomUUID();
+      const now = new Date();
+
       await ctx.db.insert(saasTicketMessages).values({
+        id: messageId,
         ticketId: input.ticketId,
         userId: ctx.session.user.id,
         isStaff: true,
@@ -329,8 +356,18 @@ export const supportRouter = createTRPCRouter({
       // Auto-transition: staff reply -> awaiting_user
       await ctx.db
         .update(saasTickets)
-        .set({ status: 'awaiting_user', updatedAt: new Date() })
+        .set({ status: 'awaiting_user', updatedAt: now })
         .where(eq(saasTickets.id, input.ticketId));
+
+      // Broadcast new message via WebSocket
+      broadcastTicketEvent(input.ticketId, 'ticket_message', {
+        id: messageId,
+        ticketId: input.ticketId,
+        userId: ctx.session.user.id,
+        isStaff: true,
+        body: input.body,
+        createdAt: now.toISOString(),
+      });
 
       // Notify ticket creator
       sendNotification({
@@ -388,6 +425,12 @@ export const supportRouter = createTRPCRouter({
         .update(saasTickets)
         .set(updates)
         .where(eq(saasTickets.id, input.ticketId));
+
+      // Broadcast status change via WebSocket
+      broadcastTicketEvent(input.ticketId, 'ticket_status', {
+        ticketId: input.ticketId,
+        status: input.status,
+      });
 
       // Notify ticket creator of status change
       const [ticket] = await ctx.db

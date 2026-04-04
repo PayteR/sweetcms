@@ -19,6 +19,14 @@ async function main() {
     every: 60_000,
   });
 
+  // Chat session cleanup every hour
+  const chatQueue = createQueue('chat-cleanup');
+  if (chatQueue) {
+    await chatQueue.upsertJobScheduler('chat-cleanup', {
+      every: 60 * 60 * 1000, // 1 hour
+    });
+  }
+
   console.log('Job schedules registered');
   process.exit(0);
 }

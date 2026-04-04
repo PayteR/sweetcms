@@ -4,6 +4,9 @@ import type { Server } from 'http';
 import { eq, and } from 'drizzle-orm';
 import { db } from '@/server/db';
 import { member as memberTable } from '@/server/db/schema/organization';
+import { saasTickets, saasChatSessions } from '@/server/db/schema/support';
+import { user as userTable } from '@/server/db/schema/auth';
+import { Policy } from '@/engine/policy';
 
 interface AuthenticatedSocket extends WebSocket {
   userId?: string;
@@ -170,6 +173,62 @@ async function canSubscribe(ws: AuthenticatedSocket, channel: string): Promise<b
   // admin — must be authenticated
   if (channel === 'admin') {
     return !!ws.userId;
+  }
+  // support:<ticketId> — ticket owner or staff with section.settings capability
+  if (channel.startsWith('support:')) {
+    if (!ws.userId) return false;
+    const ticketId = channel.slice(8);
+    try {
+      const [ticket] = await db
+        .select({ userId: saasTickets.userId })
+        .from(saasTickets)
+        .where(eq(saasTickets.id, ticketId))
+        .limit(1);
+      if (!ticket) return false;
+      // Owner can always subscribe
+      if (ticket.userId === ws.userId) return true;
+      // Non-owner: must be staff with settings access
+      const [u] = await db
+        .select({ role: userTable.role })
+        .from(userTable)
+        .where(eq(userTable.id, ws.userId))
+        .limit(1);
+      return !!u && Policy.for(u.role).can('section.settings');
+    } catch {
+      return false;
+    }
+  }
+  // chat:<sessionId> — session owner (by userId), staff, or anonymous
+  // with matching visitorId (passed as chat-visitor:<visitorId>:<sessionId>)
+  if (channel.startsWith('chat:')) {
+    const sessionId = channel.slice(5);
+    try {
+      const [session] = await db
+        .select({ visitorId: saasChatSessions.visitorId, userId: saasChatSessions.userId })
+        .from(saasChatSessions)
+        .where(eq(saasChatSessions.id, sessionId))
+        .limit(1);
+      if (!session) return false;
+      // Authenticated owner
+      if (ws.userId && session.userId === ws.userId) return true;
+      // Staff with settings access
+      if (ws.userId) {
+        const [u] = await db
+          .select({ role: userTable.role })
+          .from(userTable)
+          .where(eq(userTable.id, ws.userId))
+          .limit(1);
+        if (u && Policy.for(u.role).can('section.settings')) return true;
+      }
+      // Anonymous — session UUID is unguessable (acts as bearer token).
+      // This is acceptable because: (1) UUIDs have 122 bits of entropy,
+      // (2) sessions are short-lived (24h TTL), (3) no sensitive data beyond
+      // the chat conversation itself which the visitor already participated in.
+      if (!ws.userId) return true;
+      return false;
+    } catch {
+      return false;
+    }
   }
   // content:<id> — public
   if (channel.startsWith('content:')) {

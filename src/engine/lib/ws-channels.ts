@@ -21,4 +21,9 @@ export const WS_CHANNELS: WsChannel[] = [
     pattern: 'admin',
     requiresAuth: true,
   },
+  {
+    name: 'Support ticket',
+    pattern: 'support:*',
+    requiresAuth: true,
+  },
 ];

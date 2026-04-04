@@ -64,6 +64,7 @@ export const adminPanel = {
   settingsDiscountCodes: `${DASHBOARD_PREFIX}/settings/discount-codes`,
   settingsSupport: `${DASHBOARD_PREFIX}/settings/support`,
   settingsSupportDetail: (id: string) => `${DASHBOARD_PREFIX}/settings/support/${id}`,
+  settingsSupportChat: (id: string) => `${DASHBOARD_PREFIX}/settings/support/chat/${id}`,
   settingsAffiliates: `${DASHBOARD_PREFIX}/settings/affiliates`,
 } as const;
 

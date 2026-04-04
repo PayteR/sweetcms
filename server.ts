@@ -70,10 +70,12 @@ async function main() {
       './src/server/jobs/content/index'
     );
     const { startWebhookWorker } = await import('./src/engine/lib/webhooks');
+    const { startChatCleanupWorker } = await import('./src/server/jobs/chat/index');
     startEmailWorker();
     startContentWorker();
     startWebhookWorker();
-    console.log('BullMQ workers ready (email + content + webhook workers started)');
+    startChatCleanupWorker();
+    console.log('BullMQ workers ready (email + content + webhook + chat-cleanup workers started)');
 
     // Schedule dunning checks (daily)
     const { getRedis } = await import('./src/engine/lib/redis');

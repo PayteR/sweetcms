@@ -1,0 +1,544 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+// ---------------------------------------------------------------------------
+// Mock ALL external dependencies BEFORE imports
+// ---------------------------------------------------------------------------
+
+vi.mock('@/lib/auth', () => ({
+  auth: {
+    api: {
+      getSession: vi.fn().mockResolvedValue(null),
+    },
+  },
+}));
+
+vi.mock('@/engine/lib/redis', () => ({
+  getRedis: vi.fn().mockReturnValue(null),
+}));
+
+vi.mock('@/engine/lib/rate-limit', () => ({
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 10, retryAfterMs: 0 }),
+}));
+
+vi.mock('@/engine/lib/trpc-rate-limit', () => ({
+  applyRateLimit: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('@/engine/lib/audit', () => ({
+  logAudit: vi.fn(),
+}));
+
+vi.mock('@/engine/lib/logger', () => ({
+  createLogger: vi.fn().mockReturnValue({
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
+    debug: vi.fn(),
+  }),
+}));
+
+vi.mock('@/server/lib/notifications', () => ({
+  sendNotification: vi.fn(),
+  sendOrgNotification: vi.fn(),
+}));
+
+vi.mock('@/engine/types/notifications', () => ({
+  NotificationType: { INFO: 'info', SUCCESS: 'success', WARNING: 'warning', ERROR: 'error' },
+  NotificationCategory: { BILLING: 'billing', ORGANIZATION: 'organization', CONTENT: 'content', SYSTEM: 'system', SECURITY: 'security' },
+}));
+
+vi.mock('@/engine/policy', () => ({
+  Policy: {
+    for: vi.fn().mockReturnValue({
+      canAccessAdmin: vi.fn().mockReturnValue(true),
+      can: vi.fn().mockReturnValue(true),
+    }),
+  },
+  Role: {
+    USER: 'user',
+    EDITOR: 'editor',
+    ADMIN: 'admin',
+    SUPERADMIN: 'superadmin',
+  },
+}));
+
+vi.mock('@/engine/crud/admin-crud', () => ({
+  parsePagination: vi.fn().mockImplementation((input: { page?: number; pageSize?: number }) => {
+    const page = input?.page ?? 1;
+    const pageSize = input?.pageSize ?? 20;
+    return { page, pageSize, offset: (page - 1) * pageSize };
+  }),
+  paginatedResult: vi.fn().mockImplementation(
+    (items: unknown[], total: number, page: number, pageSize: number) => ({
+      results: items,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    })
+  ),
+}));
+
+vi.mock('@/server/db/schema/support', () => ({
+  saasChatSessions: {
+    id: 'saas_chat_sessions.id',
+    visitorId: 'saas_chat_sessions.visitor_id',
+    userId: 'saas_chat_sessions.user_id',
+    status: 'saas_chat_sessions.status',
+    ticketId: 'saas_chat_sessions.ticket_id',
+    subject: 'saas_chat_sessions.subject',
+    metadata: 'saas_chat_sessions.metadata',
+    createdAt: 'saas_chat_sessions.created_at',
+    closedAt: 'saas_chat_sessions.closed_at',
+  },
+  saasChatMessages: {
+    id: 'saas_chat_messages.id',
+    sessionId: 'saas_chat_messages.session_id',
+    role: 'saas_chat_messages.role',
+    body: 'saas_chat_messages.body',
+    metadata: 'saas_chat_messages.metadata',
+    createdAt: 'saas_chat_messages.created_at',
+  },
+  saasTickets: {
+    id: 'saas_tickets.id',
+    organizationId: 'saas_tickets.organization_id',
+    userId: 'saas_tickets.user_id',
+    subject: 'saas_tickets.subject',
+    status: 'saas_tickets.status',
+    priority: 'saas_tickets.priority',
+    assignedTo: 'saas_tickets.assigned_to',
+    source: 'saas_tickets.source',
+    chatSessionId: 'saas_tickets.chat_session_id',
+    closedAt: 'saas_tickets.closed_at',
+    resolvedAt: 'saas_tickets.resolved_at',
+    createdAt: 'saas_tickets.created_at',
+    updatedAt: 'saas_tickets.updated_at',
+  },
+  saasTicketMessages: {
+    id: 'saas_ticket_messages.id',
+    ticketId: 'saas_ticket_messages.ticket_id',
+    userId: 'saas_ticket_messages.user_id',
+    isStaff: 'saas_ticket_messages.is_staff',
+    body: 'saas_ticket_messages.body',
+    attachments: 'saas_ticket_messages.attachments',
+    createdAt: 'saas_ticket_messages.created_at',
+  },
+}));
+
+vi.mock('@/server/db/schema/auth', () => ({
+  user: {
+    id: 'user.id',
+    name: 'user.name',
+    email: 'user.email',
+  },
+}));
+
+// env is dynamically imported in callAI — no static mock needed
+
+vi.mock('@/config/chat', () => ({
+  chatConfig: {
+    systemPrompt: 'test',
+    escalationMessage: 'Escalating...',
+    maxMessagesBeforeEscalation: 20,
+    model: undefined,
+  },
+}));
+
+vi.mock('@/server/lib/resolve-org', () => ({
+  resolveOrgId: vi.fn().mockResolvedValue('org-1'),
+}));
+
+vi.mock('@/server/lib/ws', () => ({
+  broadcastToChannel: vi.fn(),
+}));
+
+// ---------------------------------------------------------------------------
+// Imports (after mocks)
+// ---------------------------------------------------------------------------
+
+import { chatRouter } from '../chat';
+import { sendNotification } from '@/server/lib/notifications';
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function thenable(data: unknown, chainMethods: Record<string, unknown> = {}) {
+  return {
+    then: (resolve: (v: unknown) => void, reject?: (e: unknown) => void) =>
+      Promise.resolve(data).then(resolve, reject),
+    ...chainMethods,
+  };
+}
+
+function createSelectChain(data: unknown) {
+  const limitMock = vi.fn().mockResolvedValue(data);
+  const offsetMock = vi.fn().mockReturnValue(thenable(data, { limit: limitMock }));
+  const orderByMock = vi.fn().mockReturnValue(thenable(data, { limit: limitMock, offset: offsetMock }));
+  const groupByMock = vi.fn().mockReturnValue(thenable(data, { orderBy: orderByMock }));
+  const whereMock = vi.fn().mockReturnValue(
+    thenable(data, {
+      limit: limitMock,
+      orderBy: orderByMock,
+      offset: offsetMock,
+      groupBy: groupByMock,
+    })
+  );
+  const fromMock = vi.fn().mockReturnValue(
+    thenable(data, {
+      where: whereMock,
+      orderBy: orderByMock,
+      limit: limitMock,
+      groupBy: groupByMock,
+    })
+  );
+  return { from: fromMock, _limit: limitMock };
+}
+
+function createMockDb() {
+  const returningMock = vi.fn().mockResolvedValue([{ id: 'new-id' }]);
+  const insertValuesMock = vi.fn().mockReturnValue({ returning: returningMock });
+  const insertMock = vi.fn().mockReturnValue({ values: insertValuesMock });
+
+  const selectMock = vi.fn().mockImplementation(() => createSelectChain([]));
+
+  const updateWhereMock = vi.fn().mockResolvedValue(undefined);
+  const updateSetMock = vi.fn().mockReturnValue({ where: updateWhereMock });
+  const updateMock = vi.fn().mockReturnValue({ set: updateSetMock });
+
+  const deleteWhereMock = vi.fn().mockResolvedValue(undefined);
+  const deleteMock = vi.fn().mockReturnValue({ where: deleteWhereMock });
+
+  const executeMock = vi.fn().mockResolvedValue({ rows: [] });
+
+  return {
+    insert: insertMock,
+    select: selectMock,
+    update: updateMock,
+    delete: deleteMock,
+    execute: executeMock,
+    _chains: {
+      insert: { values: insertValuesMock, returning: returningMock },
+      update: { set: updateSetMock, where: updateWhereMock },
+      delete: { where: deleteWhereMock },
+    },
+  };
+}
+
+function setupSelectSequence(db: ReturnType<typeof createMockDb>, sequence: unknown[]) {
+  let callIdx = 0;
+  db.select.mockImplementation(() => {
+    const data = sequence[callIdx] ?? [];
+    callIdx++;
+    return createSelectChain(data);
+  });
+}
+
+function createPublicCtx(overrides: Record<string, unknown> = {}) {
+  return {
+    session: null,
+    db: createMockDb(),
+    headers: new Headers(),
+    activeOrganizationId: null,
+    ...overrides,
+  };
+}
+
+function createAdminCtx(overrides: Record<string, unknown> = {}) {
+  return {
+    session: { user: { id: 'admin-1', email: 'admin@test.com', role: 'admin' } },
+    db: createMockDb(),
+    headers: new Headers(),
+    activeOrganizationId: 'org-1',
+    ...overrides,
+  };
+}
+
+const SESSION_UUID = 'a0a0a0a0-b1b1-4c2c-8d3d-e4e4e4e4e4e4';
+const VISITOR_ID = 'visitor-abc-123';
+
+const MOCK_SESSION = {
+  id: SESSION_UUID,
+  visitorId: VISITOR_ID,
+  userId: null,
+  status: 'ai_active',
+  ticketId: null,
+  subject: null,
+  metadata: null,
+  createdAt: new Date('2026-01-15'),
+  closedAt: null,
+};
+
+// ---------------------------------------------------------------------------
+// Tests
+// ---------------------------------------------------------------------------
+
+describe('chatRouter', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // =========================================================================
+  // startSession
+  // =========================================================================
+  describe('startSession', () => {
+    it('creates new session when none exists', async () => {
+      const ctx = createPublicCtx();
+      // First select: no existing session found
+      setupSelectSequence(ctx.db, [[]]);
+
+      const caller = chatRouter.createCaller(ctx as never);
+      const result = await caller.startSession({ visitorId: VISITOR_ID });
+
+      expect(result).toHaveProperty('id');
+      expect(result.status).toBe('ai_active');
+      expect(result.messages).toEqual([]);
+      expect(result.resumed).toBe(false);
+      // Should insert new session
+      expect(ctx.db.insert).toHaveBeenCalled();
+    });
+
+    it('resumes existing non-closed session', async () => {
+      const ctx = createPublicCtx();
+      const existingSession = {
+        id: SESSION_UUID,
+        status: 'ai_active',
+        ticketId: null,
+      };
+      const existingMessages = [
+        { id: 'msg-1', role: 'user', body: 'Hello', createdAt: new Date() },
+        { id: 'msg-2', role: 'ai', body: 'Hi there!', createdAt: new Date() },
+      ];
+
+      // First select: existing session found; Second select: messages
+      setupSelectSequence(ctx.db, [[existingSession], existingMessages]);
+
+      const caller = chatRouter.createCaller(ctx as never);
+      const result = await caller.startSession({ visitorId: VISITOR_ID });
+
+      expect(result.id).toBe(SESSION_UUID);
+      expect(result.status).toBe('ai_active');
+      expect(result.resumed).toBe(true);
+      expect(result.messages).toEqual(existingMessages);
+      // Should NOT insert (resuming, not creating)
+      expect(ctx.db.insert).not.toHaveBeenCalled();
+    });
+  });
+
+  // =========================================================================
+  // sendMessage
+  // =========================================================================
+  describe('sendMessage', () => {
+    it('stores user message and returns ID', async () => {
+      const ctx = createPublicCtx();
+      // First select: session found
+      setupSelectSequence(ctx.db, [[MOCK_SESSION]]);
+      ctx.db.insert.mockReturnValue({
+        values: vi.fn().mockResolvedValue(undefined),
+      });
+
+      const caller = chatRouter.createCaller(ctx as never);
+      const result = await caller.sendMessage({
+        sessionId: SESSION_UUID,
+        visitorId: VISITOR_ID,
+        body: 'I need help',
+      });
+
+      expect(result).toHaveProperty('userMessageId');
+      expect(typeof result.userMessageId).toBe('string');
+      expect(ctx.db.insert).toHaveBeenCalled();
+    });
+
+    it('rejects if session not found', async () => {
+      const ctx = createPublicCtx();
+      // Default: returns [] (no session)
+
+      const caller = chatRouter.createCaller(ctx as never);
+
+      await expect(
+        caller.sendMessage({
+          sessionId: SESSION_UUID,
+          visitorId: VISITOR_ID,
+          body: 'Hello',
+        })
+      ).rejects.toThrow('Chat session not found');
+    });
+
+    it('rejects if session is closed', async () => {
+      const ctx = createPublicCtx();
+      setupSelectSequence(ctx.db, [[{ ...MOCK_SESSION, status: 'closed' }]]);
+
+      const caller = chatRouter.createCaller(ctx as never);
+
+      await expect(
+        caller.sendMessage({
+          sessionId: SESSION_UUID,
+          visitorId: VISITOR_ID,
+          body: 'Follow up',
+        })
+      ).rejects.toThrow('Chat session is closed');
+    });
+  });
+
+  // =========================================================================
+  // close
+  // =========================================================================
+  describe('close', () => {
+    it('closes session', async () => {
+      const ctx = createPublicCtx();
+      setupSelectSequence(ctx.db, [[{ id: SESSION_UUID }]]);
+
+      const caller = chatRouter.createCaller(ctx as never);
+      const result = await caller.close({
+        sessionId: SESSION_UUID,
+        visitorId: VISITOR_ID,
+      });
+
+      expect(result).toEqual({ success: true });
+      expect(ctx.db.update).toHaveBeenCalled();
+      expect(ctx.db._chains.update.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'closed',
+          closedAt: expect.any(Date),
+        })
+      );
+    });
+
+    it('rejects if wrong visitor', async () => {
+      const ctx = createPublicCtx();
+      // Default: returns [] (no session matching visitor)
+
+      const caller = chatRouter.createCaller(ctx as never);
+
+      await expect(
+        caller.close({
+          sessionId: SESSION_UUID,
+          visitorId: 'wrong-visitor',
+        })
+      ).rejects.toThrow('Session not found');
+    });
+  });
+
+  // =========================================================================
+  // adminList
+  // =========================================================================
+  describe('adminList', () => {
+    it('returns paginated sessions', async () => {
+      const ctx = createAdminCtx();
+      const sessions = [
+        {
+          id: 's-1',
+          visitorId: 'v-1',
+          userId: null,
+          status: 'ai_active',
+          subject: null,
+          ticketId: null,
+          createdAt: new Date(),
+        },
+      ];
+
+      // Promise.all: items + count, then user lookup (empty), then last messages (execute)
+      setupSelectSequence(ctx.db, [sessions, [{ count: 1 }]]);
+
+      const caller = chatRouter.createCaller(ctx as never);
+      const result = await caller.adminList({ page: 1, pageSize: 20 });
+
+      expect(result).toEqual({
+        results: expect.arrayContaining([
+          expect.objectContaining({ id: 's-1', status: 'ai_active' }),
+        ]),
+        total: 1,
+        page: 1,
+        pageSize: 20,
+        totalPages: 1,
+      });
+    });
+  });
+
+  // =========================================================================
+  // adminReply
+  // =========================================================================
+  describe('adminReply', () => {
+    it('stores agent message and transitions to agent_active', async () => {
+      const ctx = createAdminCtx();
+      setupSelectSequence(ctx.db, [[MOCK_SESSION]]);
+      ctx.db.insert.mockReturnValue({
+        values: vi.fn().mockResolvedValue(undefined),
+      });
+
+      const caller = chatRouter.createCaller(ctx as never);
+      const result = await caller.adminReply({
+        sessionId: SESSION_UUID,
+        body: 'Let me help you with that.',
+      });
+
+      expect(result).toHaveProperty('id');
+      expect(typeof result.id).toBe('string');
+
+      // Insert agent message
+      expect(ctx.db.insert).toHaveBeenCalled();
+
+      // Transition to agent_active since session was ai_active
+      expect(ctx.db.update).toHaveBeenCalled();
+      expect(ctx.db._chains.update.set).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'agent_active' })
+      );
+
+      // Notify user if they have userId (MOCK_SESSION has userId: null, so no notification)
+    });
+
+    it('notifies user if session has userId', async () => {
+      const ctx = createAdminCtx();
+      const sessionWithUser = { ...MOCK_SESSION, userId: 'user-1' };
+      setupSelectSequence(ctx.db, [[sessionWithUser]]);
+      ctx.db.insert.mockReturnValue({
+        values: vi.fn().mockResolvedValue(undefined),
+      });
+
+      const caller = chatRouter.createCaller(ctx as never);
+      await caller.adminReply({
+        sessionId: SESSION_UUID,
+        body: 'We are looking into this.',
+      });
+
+      expect(sendNotification).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'user-1',
+          title: 'New message from support',
+        })
+      );
+    });
+
+    it('throws NOT_FOUND when session does not exist', async () => {
+      const ctx = createAdminCtx();
+      // Default: returns []
+
+      const caller = chatRouter.createCaller(ctx as never);
+
+      await expect(
+        caller.adminReply({ sessionId: SESSION_UUID, body: 'Reply' })
+      ).rejects.toThrow('Session not found');
+    });
+  });
+
+  // =========================================================================
+  // adminClose
+  // =========================================================================
+  describe('adminClose', () => {
+    it('closes session', async () => {
+      const ctx = createAdminCtx();
+
+      const caller = chatRouter.createCaller(ctx as never);
+      const result = await caller.adminClose({ sessionId: SESSION_UUID });
+
+      expect(result).toEqual({ success: true });
+      expect(ctx.db.update).toHaveBeenCalled();
+      expect(ctx.db._chains.update.set).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 'closed',
+          closedAt: expect.any(Date),
+        })
+      );
+    });
+  });
+});

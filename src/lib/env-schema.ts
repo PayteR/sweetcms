@@ -11,6 +11,7 @@ export const clientEnvSchema = z.object({
   NEXT_PUBLIC_DISCORD_CLIENT_ID: z.string().optional(),
   NEXT_PUBLIC_CDN_URL: z.url().optional().or(z.literal('')),
   NEXT_PUBLIC_ORGANIZATIONS_VISIBLE: z.coerce.boolean().default(true),
+  NEXT_PUBLIC_SUPPORT_CHAT_ENABLED: z.coerce.boolean().default(true),
 });
 
 export type ClientEnv = z.infer<typeof clientEnvSchema>;
