@@ -66,7 +66,7 @@ export default async function ShowcaseLayout({
             </Link>
 
             {/* Center: Nav links (desktop) */}
-            <nav className="ml-4 hidden items-center gap-1 md:flex">
+            <nav className="ml-4 hidden items-center gap-1 lg:flex">
               <Link
                 href={localePath(contentRoutes.showcase, locale)}
                 className="rounded-lg px-3 py-1.5 text-sm font-medium text-(--text-secondary) hover:bg-(--surface-secondary) hover:text-(--text-primary) transition-colors"
