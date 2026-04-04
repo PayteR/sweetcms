@@ -97,30 +97,33 @@ export default function RedirectsPage() {
   }
 
   return (
-    <main className="dash-main"><div className="dash-inner redirects-page">
-      {/* Header */}
-      <div className="redirects-header flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-(--text-primary)">
-          {__('Redirects')}
-        </h1>
-        <button
-          onClick={() => setShowCreateForm(!showCreateForm)}
-          className="btn btn-primary"
-        >
-          {showCreateForm ? (
-            <>
-              <X className="h-4 w-4" />
-              {__('Cancel')}
-            </>
-          ) : (
-            <>
-              <Plus className="h-4 w-4" />
-              {__('New Redirect')}
-            </>
-          )}
-        </button>
-      </div>
-
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <h1 className="text-2xl font-bold text-(--text-primary)">
+            {__('Redirects')}
+          </h1>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowCreateForm(!showCreateForm)}
+              className="btn btn-primary"
+            >
+              {showCreateForm ? (
+                <>
+                  <X className="h-4 w-4" />
+                  {__('Cancel')}
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4" />
+                  {__('New Redirect')}
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </header>
+      <main className="dash-main"><div className="dash-inner redirects-page">
       {/* Create Form */}
       {showCreateForm && (
         <form
@@ -360,5 +363,6 @@ export default function RedirectsPage() {
         onCancel={() => setDeleteTarget(null)}
       />
     </div></main>
+    </>
   );
 }

@@ -65,18 +65,21 @@ export default function FormsPage() {
   }
 
   return (
-    <main className="dash-main"><div className="dash-inner forms-page">
-      {/* Header */}
-      <div className="forms-header flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-(--text-primary)">
-          {__('Forms')}
-        </h1>
-        <Link href={adminPanel.formNew} className="btn btn-primary">
-          <Plus className="h-4 w-4" />
-          {__('New Form')}
-        </Link>
-      </div>
-
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <h1 className="text-2xl font-bold text-(--text-primary)">
+            {__('Forms')}
+          </h1>
+          <div className="flex items-center gap-2">
+            <Link href={adminPanel.formNew} className="btn btn-primary">
+              <Plus className="h-4 w-4" />
+              {__('New Form')}
+            </Link>
+          </div>
+        </div>
+      </header>
+      <main className="dash-main"><div className="dash-inner forms-page">
       {/* Search */}
       <form onSubmit={handleSearch} className="mt-4 flex gap-2">
         <div className="forms-search relative flex-1">
@@ -250,5 +253,6 @@ export default function FormsPage() {
         onCancel={() => setDeleteTarget(null)}
       />
     </div></main>
+    </>
   );
 }

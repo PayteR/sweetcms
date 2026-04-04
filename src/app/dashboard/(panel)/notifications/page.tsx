@@ -34,18 +34,22 @@ export default function NotificationsPage() {
   });
 
   return (
-    <main className="dash-main"><div className="dash-inner">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="h2">{__('Notifications')}</h1>
-        <button
-          type="button"
-          onClick={() => markAllRead.mutate()}
-          className="btn btn-secondary btn-sm"
-        >
-          {__('Mark all read')}
-        </button>
-      </div>
-
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <h1 className="h2">{__('Notifications')}</h1>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => markAllRead.mutate()}
+              className="btn btn-secondary btn-sm"
+            >
+              {__('Mark all read')}
+            </button>
+          </div>
+        </div>
+      </header>
+      <main className="dash-main"><div className="dash-inner">
       {isLoading && (
         <div className="text-(--text-secondary)">{__('Loading...')}</div>
       )}
@@ -100,5 +104,6 @@ export default function NotificationsPage() {
         ))}
       </div>
     </div></main>
+    </>
   );
 }

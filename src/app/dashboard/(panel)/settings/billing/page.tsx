@@ -69,11 +69,18 @@ function nowISO(): string {
 
 export default function BillingDashboardPage() {
   return (
-    <main className="dash-main"><div className="dash-inner">
-      <Suspense fallback={<div className="text-(--text-muted)">Loading...</div>}>
-        <BillingDashboardContent />
-      </Suspense>
-    </div></main>
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <h1 className="text-2xl font-bold text-(--text-primary)">Subscriptions</h1>
+        </div>
+      </header>
+      <main className="dash-main"><div className="dash-inner">
+        <Suspense fallback={<div className="text-(--text-muted)">Loading...</div>}>
+          <BillingDashboardContent />
+        </Suspense>
+      </div></main>
+    </>
   );
 }
 
@@ -144,13 +151,10 @@ function BillingDashboardContent() {
 
   return (
     <div className="mx-auto max-w-320">
-      {/* Page header */}
-      <div className="mb-6">
-        <h1 className="h2">{__('Subscriptions')}</h1>
-        <p className="mt-1 text-sm text-(--text-secondary)">
-          {__('Monitor revenue, track churn, and manage subscriptions.')}
-        </p>
-      </div>
+      {/* Subtitle */}
+      <p className="mb-6 text-sm text-(--text-secondary)">
+        {__('Monitor revenue, track churn, and manage subscriptions.')}
+      </p>
 
       {/* Sentinel for sticky detection */}
       <div ref={sentinelRef} className="h-0" />

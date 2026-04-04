@@ -155,31 +155,35 @@ export default function CustomFieldsPage() {
   const isPending = createField.isPending || updateField.isPending;
 
   return (
-    <main className="dash-main"><div className="dash-inner custom-fields-page">
-      <div className="custom-fields-page-header flex items-center justify-between">
-        <div className="custom-fields-page-header-left flex items-center gap-3">
-          <Link
-            href={adminPanel.settings}
-            className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary)"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <h1 className="text-2xl font-bold text-(--text-primary)">
-            {__('Custom Fields')}
-          </h1>
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <div className="custom-fields-page-header-left flex items-center gap-3">
+            <Link
+              href={adminPanel.settings}
+              className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary)"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <h1 className="text-2xl font-bold text-(--text-primary)">
+              {__('Custom Fields')}
+            </h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                resetForm();
+                setShowForm(true);
+              }}
+              className="btn btn-primary"
+            >
+              <Plus className="h-4 w-4" />
+              {__('New Field')}
+            </button>
+          </div>
         </div>
-        <button
-          onClick={() => {
-            resetForm();
-            setShowForm(true);
-          }}
-          className="btn btn-primary"
-        >
-          <Plus className="h-4 w-4" />
-          {__('New Field')}
-        </button>
-      </div>
-
+      </header>
+      <main className="dash-main"><div className="dash-inner custom-fields-page">
       {showForm && (
         <form
           onSubmit={handleSubmit}
@@ -394,5 +398,6 @@ export default function CustomFieldsPage() {
         onCancel={() => setDeleteTarget(null)}
       />
     </div></main>
+    </>
   );
 }

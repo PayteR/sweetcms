@@ -108,45 +108,47 @@ function TemplateEditor({
   }
 
   return (
-    <main className="dash-main"><div className="dash-inner email-editor-page">
-      <div className="email-templates-header flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onClose}
-            className="btn btn-secondary"
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </button>
-          <h1 className="text-2xl font-bold text-(--text-primary)">
-            {__('Edit: {label}', { label: template.label })}
-          </h1>
-        </div>
-        <div className="flex gap-2">
-          {hasOverride && (
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => setResetTarget(templateName)}
+              onClick={onClose}
               className="btn btn-secondary"
             >
-              <RotateCcw className="h-4 w-4" />
-              {__('Reset to Default')}
+              <ArrowLeft className="h-4 w-4" />
             </button>
-          )}
-          <button
-            onClick={handleSave}
-            disabled={setOption.isPending}
-            className="btn btn-primary disabled:opacity-50"
-          >
-            {setOption.isPending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4" />
+            <h1 className="text-2xl font-bold text-(--text-primary)">
+              {__('Edit: {label}', { label: template.label })}
+            </h1>
+          </div>
+          <div className="flex items-center gap-2">
+            {hasOverride && (
+              <button
+                onClick={() => setResetTarget(templateName)}
+                className="btn btn-secondary"
+              >
+                <RotateCcw className="h-4 w-4" />
+                {__('Reset to Default')}
+              </button>
             )}
-            {__('Save')}
-          </button>
+            <button
+              onClick={handleSave}
+              disabled={setOption.isPending}
+              className="btn btn-primary disabled:opacity-50"
+            >
+              {setOption.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              {__('Save')}
+            </button>
+          </div>
         </div>
-      </div>
-
-      <div className="mt-6 space-y-4">
+      </header>
+      <main className="dash-main"><div className="dash-inner email-editor-page">
+      <div className="space-y-4">
         <div className="card p-4">
           <label className="block text-sm font-medium text-(--text-secondary)">
             {__('Subject')}
@@ -214,6 +216,7 @@ function TemplateEditor({
         onCancel={() => setResetTarget(null)}
       />
     </div></main>
+    </>
   );
 }
 
@@ -265,15 +268,20 @@ export default function EmailTemplatesPage() {
   }
 
   return (
-    <main className="dash-main"><div className="dash-inner email-templates-page">
-      <h1 className="text-2xl font-bold text-(--text-primary)">
-        {__('Email Templates')}
-      </h1>
-      <p className="mt-1 text-sm text-(--text-muted)">
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <h1 className="text-2xl font-bold text-(--text-primary)">
+            {__('Email Templates')}
+          </h1>
+        </div>
+      </header>
+      <main className="dash-main"><div className="dash-inner email-templates-page">
+      <p className="text-sm text-(--text-muted)">
         {__('Customize email templates. Overrides are stored in the database; unmodified templates use the default file.')}
       </p>
 
-      <div className="email-templates-cards mt-6 grid gap-4 sm:grid-cols-2">
+      <div className="email-templates-cards mt-4 grid gap-4 sm:grid-cols-2">
         {TEMPLATES.map((t) => {
           const hasOverride = getOverrideStatus(t.name);
           return (
@@ -305,5 +313,6 @@ export default function EmailTemplatesPage() {
         })}
       </div>
     </div></main>
+    </>
   );
 }

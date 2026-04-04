@@ -174,18 +174,22 @@ export default function OrganizationsPage() {
   // ─── List View ────────────────────────────────────────────────────────────
   if (viewMode === 'list') {
     return (
-      <main className="dash-main"><div className="dash-inner organizations-page">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-(--text-primary)">{__('Organizations')}</h1>
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="btn btn-primary"
-          >
-            <Plus className="h-4 w-4" />
-            {__('Create')}
-          </button>
-        </div>
-
+      <>
+        <header className="dash-header">
+          <div className="dash-toolbar">
+            <h1 className="text-2xl font-bold text-(--text-primary)">{__('Organizations')}</h1>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowCreateForm(true)}
+                className="btn btn-primary"
+              >
+                <Plus className="h-4 w-4" />
+                {__('Create')}
+              </button>
+            </div>
+          </div>
+        </header>
+        <main className="dash-main"><div className="dash-inner organizations-page">
         {/* Create form dialog */}
         {showCreateForm && (
           <div className="card mt-4 p-6">
@@ -295,6 +299,7 @@ export default function OrganizationsPage() {
           )}
         </div>
       </div></main>
+      </>
     );
   }
 
@@ -304,21 +309,24 @@ export default function OrganizationsPage() {
   const invitations = invitationsQuery.data;
 
   return (
-    <div className="organizations-page">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => { setViewMode('list'); setSelectedOrgId(null); }}
-          className="text-sm text-(--text-muted) hover:text-(--text-primary)"
-        >
-          {__('Organizations')}
-        </button>
-        <span className="text-(--text-muted)">/</span>
-        <h1 className="text-2xl font-bold text-(--text-primary)">
-          {orgDetail?.name ?? <Loader2 className="h-5 w-5 animate-spin inline" />}
-        </h1>
-      </div>
-
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => { setViewMode('list'); setSelectedOrgId(null); }}
+              className="text-sm text-(--text-muted) hover:text-(--text-primary)"
+            >
+              {__('Organizations')}
+            </button>
+            <span className="text-(--text-muted)">/</span>
+            <h1 className="text-2xl font-bold text-(--text-primary)">
+              {orgDetail?.name ?? <Loader2 className="h-5 w-5 animate-spin inline" />}
+            </h1>
+          </div>
+        </div>
+      </header>
+      <main className="dash-main"><div className="dash-inner organizations-page">
       {orgDetailQuery.isLoading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
@@ -523,6 +531,7 @@ export default function OrganizationsPage() {
         }}
         onCancel={() => setLeaveTarget(null)}
       />
-    </div>
+    </div></main>
+    </>
   );
 }

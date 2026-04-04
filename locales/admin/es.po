@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sweetcms\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-04T21:15:43.254Z\n"
-"PO-Revision-Date: 2026-04-04T21:15:43.254Z\n"
+"POT-Creation-Date: 2026-04-04T21:24:42.394Z\n"
+"PO-Revision-Date: 2026-04-04T21:24:42.394Z\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: es\n"
 "Language: es\n"
@@ -17,7 +17,7 @@ msgid "Activity Log"
 msgstr "Activity Log"
 
 #: src/app/dashboard/(panel)/cms/activity/page.tsx:56
-#: src/engine/components/MediaPickerDialog.tsx:214
+#: src/engine/components/MediaPickerDialog.tsx:239
 msgid "All types"
 msgstr "All types"
 
@@ -150,7 +150,7 @@ msgstr "Create"
 #: src/app/dashboard/(panel)/settings/webhooks/page.tsx:180
 #: src/app/dashboard/(panel)/users/page.tsx:420
 #: src/engine/components/InternalLinkDialog.tsx:117
-#: src/engine/components/MediaPickerDialog.tsx:468
+#: src/engine/components/MediaPickerDialog.tsx:510
 #: src/engine/components/PostAttachments.tsx:252
 #: src/engine/components/SeoOverridesDialog.tsx:197
 #: src/engine/components/shortcodes/ShortcodeEditDialog.tsx:92
@@ -221,8 +221,8 @@ msgstr "Edit"
 #: src/app/dashboard/(panel)/settings/webhooks/page.tsx:234
 #: src/app/dashboard/(panel)/settings/webhooks/page.tsx:251
 #: src/components/admin/CmsListView.tsx:973
-#: src/engine/components/MediaPickerDialog.tsx:448
-#: src/engine/components/MediaPickerDialog.tsx:485
+#: src/engine/components/MediaPickerDialog.tsx:490
+#: src/engine/components/MediaPickerDialog.tsx:527
 msgid "Delete"
 msgstr "Delete"
 
@@ -616,7 +616,7 @@ msgid "File deleted"
 msgstr "File deleted"
 
 #: src/app/dashboard/(panel)/media/page.tsx:108
-#: src/engine/components/MediaPickerDialog.tsx:126
+#: src/engine/components/MediaPickerDialog.tsx:150
 msgid "Failed to upload {name}"
 msgstr "Failed to upload {name}"
 
@@ -626,7 +626,7 @@ msgstr "{count} file(s) uploaded"
 
 #: src/app/dashboard/(panel)/media/page.tsx:161
 #: src/components/admin/QuickActionsWidget.tsx:42
-#: src/engine/components/MediaPickerDialog.tsx:191
+#: src/engine/components/MediaPickerDialog.tsx:215
 msgid "Media Library"
 msgstr "Media Library"
 
@@ -635,7 +635,7 @@ msgid "Uploading..."
 msgstr "Uploading..."
 
 #: src/app/dashboard/(panel)/media/page.tsx:181
-#: src/engine/components/MediaPickerDialog.tsx:241
+#: src/engine/components/MediaPickerDialog.tsx:283
 #: src/engine/components/PostAttachments.tsx:153
 msgid "Upload"
 msgstr "Upload"
@@ -912,13 +912,13 @@ msgstr "Project name"
 #: src/components/admin/CategoryForm.tsx:384
 #: src/components/admin/PortfolioForm.tsx:475
 #: src/components/admin/ShowcaseForm.tsx:482
-#: src/engine/components/MediaPickerDialog.tsx:424
+#: src/engine/components/MediaPickerDialog.tsx:466
 #: src/engine/components/SeoPreviewCard.tsx:124
 msgid "Description"
 msgstr "Description"
 
 #: src/app/dashboard/(panel)/projects/page.tsx:137
-#: src/engine/components/MediaPickerDialog.tsx:436
+#: src/engine/components/MediaPickerDialog.tsx:478
 msgid "Optional description"
 msgstr "Optional description"
 
@@ -975,7 +975,7 @@ msgstr "Restore"
 #: src/app/dashboard/(panel)/settings/billing/components/SubscriptionsTable.tsx:158
 #: src/app/dashboard/(panel)/settings/support/page.tsx:174
 #: src/app/dashboard/(panel)/settings/support/page.tsx:310
-#: src/engine/components/MediaPickerDialog.tsx:332
+#: src/engine/components/MediaPickerDialog.tsx:374
 msgid "Previous"
 msgstr "Previous"
 
@@ -986,7 +986,7 @@ msgstr "Previous"
 #: src/app/dashboard/(panel)/settings/import/page.tsx:450
 #: src/app/dashboard/(panel)/settings/support/page.tsx:184
 #: src/app/dashboard/(panel)/settings/support/page.tsx:320
-#: src/engine/components/MediaPickerDialog.tsx:344
+#: src/engine/components/MediaPickerDialog.tsx:386
 msgid "Next"
 msgstr "Next"
 
@@ -1605,7 +1605,7 @@ msgstr "Select all"
 #: src/components/admin/CmsListView.tsx:730
 #: src/components/admin/PortfolioForm.tsx:378
 #: src/components/admin/ShowcaseForm.tsx:321
-#: src/engine/components/MediaPickerDialog.tsx:388
+#: src/engine/components/MediaPickerDialog.tsx:430
 #: src/engine/components/SeoPreviewCard.tsx:121
 msgid "Title"
 msgstr "Title"
@@ -2448,12 +2448,12 @@ msgid "Change"
 msgstr "Change"
 
 #: src/components/admin/PostForm.tsx:791
-#: src/engine/components/MediaPickerDialog.tsx:406
+#: src/engine/components/MediaPickerDialog.tsx:448
 msgid "Alt Text"
 msgstr "Alt Text"
 
 #: src/components/admin/PostForm.tsx:798
-#: src/engine/components/MediaPickerDialog.tsx:418
+#: src/engine/components/MediaPickerDialog.tsx:460
 msgid "Describe the image"
 msgstr "Describe the image"
 
@@ -2739,11 +2739,6 @@ msgstr "Configure dashboard"
 #: src/engine/components/DashboardConfig.tsx:262
 msgid "Dashboard Layout"
 msgstr "Dashboard Layout"
-
-#: src/engine/components/Dialog.tsx:152
-#: src/engine/components/SlideOver.tsx:102
-msgid "Close"
-msgstr "Close"
 
 #: src/engine/components/editor/AiAssistMenu.tsx:31
 msgid "Rewrite"
@@ -3071,63 +3066,67 @@ msgstr "Searching..."
 msgid "Type at least 2 characters to search"
 msgstr "Type at least 2 characters to search"
 
-#: src/engine/components/MediaPickerDialog.tsx:88
+#: src/engine/components/MediaPickerDialog.tsx:112
 msgid "Only image files are supported"
 msgstr "Only image files are supported"
 
-#: src/engine/components/MediaPickerDialog.tsx:201
+#: src/engine/components/MediaPickerDialog.tsx:225
 msgid "Search media..."
 msgstr "Search media..."
 
-#: src/engine/components/MediaPickerDialog.tsx:215
+#: src/engine/components/MediaPickerDialog.tsx:240
 msgid "Images"
 msgstr "Images"
 
-#: src/engine/components/MediaPickerDialog.tsx:216
+#: src/engine/components/MediaPickerDialog.tsx:241
 msgid "Videos"
 msgstr "Videos"
 
-#: src/engine/components/MediaPickerDialog.tsx:217
+#: src/engine/components/MediaPickerDialog.tsx:242
 msgid "Documents"
 msgstr "Documents"
 
-#: src/engine/components/MediaPickerDialog.tsx:218
+#: src/engine/components/MediaPickerDialog.tsx:243
 msgid "Other"
 msgstr "Other"
 
-#: src/engine/components/MediaPickerDialog.tsx:272
+#: src/engine/components/MediaPickerDialog.tsx:256
+msgid "All users"
+msgstr "All users"
+
+#: src/engine/components/MediaPickerDialog.tsx:314
 msgid "Drop files to upload"
 msgstr "Drop files to upload"
 
-#: src/engine/components/MediaPickerDialog.tsx:287
+#: src/engine/components/MediaPickerDialog.tsx:329
 msgid "No images match your search."
 msgstr "No images match your search."
 
-#: src/engine/components/MediaPickerDialog.tsx:288
+#: src/engine/components/MediaPickerDialog.tsx:330
 msgid "No images yet. Upload or drag files here."
 msgstr "No images yet. Upload or drag files here."
 
-#: src/engine/components/MediaPickerDialog.tsx:400
+#: src/engine/components/MediaPickerDialog.tsx:442
 msgid "Image title"
 msgstr "Image title"
 
-#: src/engine/components/MediaPickerDialog.tsx:454
+#: src/engine/components/MediaPickerDialog.tsx:496
 msgid "Select an image to view details"
 msgstr "Select an image to view details"
 
-#: src/engine/components/MediaPickerDialog.tsx:464
+#: src/engine/components/MediaPickerDialog.tsx:506
 msgid "No image selected"
 msgstr "No image selected"
 
-#: src/engine/components/MediaPickerDialog.tsx:475
+#: src/engine/components/MediaPickerDialog.tsx:517
 msgid "Select"
 msgstr "Select"
 
-#: src/engine/components/MediaPickerDialog.tsx:483
+#: src/engine/components/MediaPickerDialog.tsx:525
 msgid "Delete media file?"
 msgstr "Delete media file?"
 
-#: src/engine/components/MediaPickerDialog.tsx:484
+#: src/engine/components/MediaPickerDialog.tsx:526
 msgid "This file will be permanently deleted."
 msgstr "This file will be permanently deleted."
 
@@ -3405,6 +3404,10 @@ msgstr "Facebook"
 #: src/engine/components/SeoPreviewCard.tsx:43
 msgid "Twitter / X"
 msgstr "Twitter / X"
+
+#: src/engine/components/SlideOver.tsx:102
+msgid "Close"
+msgstr "Close"
 
 #: src/engine/components/SupportChatWidget.tsx:273
 msgid "Hi! How can I help you today?"

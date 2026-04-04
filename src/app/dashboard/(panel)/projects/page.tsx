@@ -98,18 +98,22 @@ export default function ProjectsPage() {
   const data = projectsQuery.data;
 
   return (
-    <main className="dash-main"><div className="dash-inner">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-(--text-primary)">{__('Projects')}</h1>
-        <button
-          onClick={() => { resetForm(); setShowCreateForm(true); }}
-          className="btn btn-primary"
-        >
-          <Plus className="h-4 w-4" />
-          {__('New Project')}
-        </button>
-      </div>
-
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <h1 className="text-2xl font-bold text-(--text-primary)">{__('Projects')}</h1>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { resetForm(); setShowCreateForm(true); }}
+              className="btn btn-primary"
+            >
+              <Plus className="h-4 w-4" />
+              {__('New Project')}
+            </button>
+          </div>
+        </div>
+      </header>
+      <main className="dash-main"><div className="dash-inner">
       {/* Create/Edit form */}
       {showCreateForm && (
         <div className="card mt-4 p-6">
@@ -286,5 +290,6 @@ export default function ProjectsPage() {
         onCancel={() => setDeleteTarget(null)}
       />
     </div></main>
+    </>
   );
 }

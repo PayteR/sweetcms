@@ -1,5 +1,7 @@
 'use client';
 
+import '@/engine/styles/support-chat-widget.css';
+
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { MessageCircle, X, Send, ArrowUpRight, Loader2, Mail } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';

@@ -101,23 +101,27 @@ export default function WebhooksPage() {
   const isPending = createWebhook.isPending || updateWebhook.isPending;
 
   return (
-    <main className="dash-main"><div className="dash-inner webhooks-page">
-      <div className="webhooks-header flex items-center justify-between">
-        <div className="webhooks-header-left flex items-center gap-3">
-          <Link
-            href={adminPanel.settings}
-            className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary)"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <h1 className="text-2xl font-bold text-(--text-primary)">{__('Webhooks')}</h1>
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <div className="webhooks-header-left flex items-center gap-3">
+            <Link
+              href={adminPanel.settings}
+              className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary)"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <h1 className="text-2xl font-bold text-(--text-primary)">{__('Webhooks')}</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <button onClick={() => { resetForm(); setShowForm(true); }} className="btn btn-primary">
+              <Plus className="h-4 w-4" />
+              {__('New Webhook')}
+            </button>
+          </div>
         </div>
-        <button onClick={() => { resetForm(); setShowForm(true); }} className="btn btn-primary">
-          <Plus className="h-4 w-4" />
-          {__('New Webhook')}
-        </button>
-      </div>
-
+      </header>
+      <main className="dash-main"><div className="dash-inner webhooks-page">
       {showForm && (
         <form onSubmit={handleSubmit} className="webhook-form mt-4 card p-6 space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -257,5 +261,6 @@ export default function WebhooksPage() {
         onCancel={() => setDeleteTarget(null)}
       />
     </div></main>
+    </>
   );
 }

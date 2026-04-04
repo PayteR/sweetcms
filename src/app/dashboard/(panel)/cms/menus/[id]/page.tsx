@@ -45,21 +45,23 @@ export default function MenuEditPage({ params }: Props) {
   }
 
   return (
-    <main className="dash-main"><div className="dash-inner menu-edit-page">
-      <div className="menu-edit-header flex items-center justify-between">
-        <div className="menu-edit-header-left flex items-center gap-3">
-          <Link
-            href={adminPanel.menus}
-            className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <h1 className="text-2xl font-bold text-(--text-primary)">
-            {__('Edit Menu')}
-          </h1>
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <div className="menu-edit-header-left flex items-center gap-3">
+            <Link
+              href={adminPanel.menus}
+              className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-secondary)"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <h1 className="text-2xl font-bold text-(--text-primary)">
+              {__('Edit Menu')}
+            </h1>
+          </div>
         </div>
-      </div>
-
+      </header>
+      <main className="dash-main"><div className="dash-inner menu-edit-page">
       {/* Menu name */}
       <div className="menu-edit-name-card mt-4 card p-4">
         <div className="menu-edit-name-row flex items-center gap-3">
@@ -87,5 +89,6 @@ export default function MenuEditPage({ params }: Props) {
         <MenuBuilder menuId={id} />
       </div>
     </div></main>
+    </>
   );
 }

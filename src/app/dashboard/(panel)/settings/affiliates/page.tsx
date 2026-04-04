@@ -21,9 +21,14 @@ export default function AffiliatesAdminPage() {
   });
 
   return (
-    <main className="dash-main"><div className="dash-inner">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="h2">{__('Affiliates')}</h1>
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <h1 className="h2">{__('Affiliates')}</h1>
+        </div>
+      </header>
+      <main className="dash-main"><div className="dash-inner">
+      <div className="flex items-center justify-between mb-4">
         <select
           className="filter-select"
           value={statusFilter}
@@ -115,5 +120,6 @@ export default function AffiliatesAdminPage() {
         </>
       )}
     </div></main>
+    </>
   );
 }

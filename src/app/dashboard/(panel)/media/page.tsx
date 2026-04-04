@@ -156,33 +156,35 @@ export default function MediaPage() {
   ];
 
   return (
-    <main className="dash-main"><div className="dash-inner media-page">
-      <div className="media-header flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-(--text-primary)">{__('Media Library')}</h1>
-        <div className="media-upload">
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            onChange={handleUpload}
-            className="hidden"
-            accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx"
-          />
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="btn btn-primary disabled:opacity-50"
-          >
-            {uploading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Upload className="h-4 w-4" />
-            )}
-            {uploading ? __('Uploading...') : __('Upload')}
-          </button>
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <h1 className="text-2xl font-bold text-(--text-primary)">{__('Media Library')}</h1>
+          <div className="flex items-center gap-2">
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={handleUpload}
+              className="hidden"
+              accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="btn btn-primary disabled:opacity-50"
+            >
+              {uploading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Upload className="h-4 w-4" />
+              )}
+              {uploading ? __('Uploading...') : __('Upload')}
+            </button>
+          </div>
         </div>
-      </div>
-
+      </header>
+      <main className="dash-main"><div className="dash-inner media-page">
       {/* Type filter tabs */}
       <div className="mt-4 flex gap-1 border-b border-(--border-primary)">
         {filterTabs.map((t) => (
@@ -337,5 +339,6 @@ export default function MediaPage() {
         onCancel={() => setDeleteTarget(null)}
       />
     </div></main>
+    </>
   );
 }

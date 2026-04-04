@@ -193,25 +193,29 @@ export default function SettingsPage() {
   }
 
   return (
-    <main className="dash-main"><div className="dash-inner settings-page">
-      <div className="settings-header flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-(--text-primary)">{__('Settings')}</h1>
-        <button
-          type="submit"
-          form="settings-form"
-          disabled={setMany.isPending || !hasChanges}
-          className="btn btn-primary disabled:opacity-50"
-        >
-          {setMany.isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Save className="h-4 w-4" />
-          )}
-          {__('Save')}
-        </button>
-      </div>
-
-      <form id="settings-form" onSubmit={handleSave} className="settings-form mt-6 space-y-6">
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <h1 className="text-2xl font-bold text-(--text-primary)">{__('Settings')}</h1>
+          <div className="flex items-center gap-2">
+            <button
+              type="submit"
+              form="settings-form"
+              disabled={setMany.isPending || !hasChanges}
+              className="btn btn-primary disabled:opacity-50"
+            >
+              {setMany.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              {__('Save')}
+            </button>
+          </div>
+        </div>
+      </header>
+      <main className="dash-main"><div className="dash-inner settings-page">
+      <form id="settings-form" onSubmit={handleSave} className="settings-form space-y-6">
         {groupOrder.map((groupKey) => {
           const groupItems = grouped[groupKey];
           if (!groupItems?.length) return null;
@@ -329,5 +333,6 @@ export default function SettingsPage() {
         localeLabels={LOCALE_LABELS}
       />
     </div></main>
+    </>
   );
 }

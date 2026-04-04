@@ -21,7 +21,13 @@ function resolveSection(contentType: string, postType?: number | null): string {
 
 export default function CalendarPage() {
   return (
-    <main className="dash-main"><div className="dash-inner">
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <h1 className="text-2xl font-bold text-(--text-primary)">Calendar</h1>
+        </div>
+      </header>
+      <main className="dash-main"><div className="dash-inner">
       <Suspense
         fallback={
           <div className="calendar-loading flex items-center justify-center py-20">
@@ -35,5 +41,6 @@ export default function CalendarPage() {
         />
       </Suspense>
     </div></main>
+    </>
   );
 }

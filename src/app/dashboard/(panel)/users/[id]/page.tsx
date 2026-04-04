@@ -174,45 +174,48 @@ export default function UserDetailPage() {
   const RoleIcon = ROLE_ICONS[u.role] ?? Shield;
 
   return (
-    <main className="dash-main"><div className="dash-inner">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => router.push(adminPanel.users)}
-          className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-primary)"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </button>
-        <div className="flex items-center gap-3">
-          {u.image ? (
-            <Image src={u.image} alt="" width={40} height={40} className="rounded-full object-cover" unoptimized />
-          ) : (
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-(--border-primary) text-sm font-medium text-(--text-secondary)">
-              {(u.name ?? '?').charAt(0).toUpperCase()}
-            </div>
-          )}
-          <div>
-            <h1 className="text-2xl font-bold text-(--text-primary)">{u.name}</h1>
-            <div className="flex items-center gap-2 mt-0.5">
-              <span
-                className={cn(
-                  'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
-                  ROLE_COLORS[u.role] ?? 'bg-(--surface-secondary) text-(--text-secondary)'
-                )}
-              >
-                <RoleIcon className="h-3 w-3" />
-                {u.role}
-              </span>
-              {u.banned && (
-                <span className="inline-block rounded-full bg-red-100 dark:bg-red-500/20 px-2 py-0.5 text-xs font-medium text-red-700 dark:text-red-400">
-                  {__('Banned')}
-                </span>
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push(adminPanel.users)}
+              className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-primary)"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div className="flex items-center gap-3">
+              {u.image ? (
+                <Image src={u.image} alt="" width={40} height={40} className="rounded-full object-cover" unoptimized />
+              ) : (
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-(--border-primary) text-sm font-medium text-(--text-secondary)">
+                  {(u.name ?? '?').charAt(0).toUpperCase()}
+                </div>
               )}
+              <div>
+                <h1 className="text-2xl font-bold text-(--text-primary)">{u.name}</h1>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span
+                    className={cn(
+                      'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium',
+                      ROLE_COLORS[u.role] ?? 'bg-(--surface-secondary) text-(--text-secondary)'
+                    )}
+                  >
+                    <RoleIcon className="h-3 w-3" />
+                    {u.role}
+                  </span>
+                  {u.banned && (
+                    <span className="inline-block rounded-full bg-red-100 dark:bg-red-500/20 px-2 py-0.5 text-xs font-medium text-red-700 dark:text-red-400">
+                      {__('Banned')}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-
+      </header>
+      <main className="dash-main"><div className="dash-inner">
       {/* Profile Card */}
       <form onSubmit={handleSaveProfile} className="card mt-6 p-6">
         <div className="flex items-center justify-between">
@@ -491,5 +494,6 @@ export default function UserDetailPage() {
         onCancel={() => setAnonymizeDialogOpen(false)}
       />
     </div></main>
+    </>
   );
 }

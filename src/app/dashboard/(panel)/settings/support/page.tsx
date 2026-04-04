@@ -334,20 +334,21 @@ export default function AdminSupportPage() {
   const [activeTab, setActiveTab] = useState<Tab>('tickets');
 
   return (
-    <main className="dash-main"><div className="dash-inner support-page">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link
-            href={adminPanel.settings}
-            className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary)"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <h1 className="text-2xl font-bold text-(--text-primary)">{__('Support')}</h1>
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <div className="flex items-center gap-3">
+            <Link
+              href={adminPanel.settings}
+              className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary)"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <h1 className="text-2xl font-bold text-(--text-primary)">{__('Support')}</h1>
+          </div>
         </div>
-      </div>
-
+      </header>
+      <main className="dash-main"><div className="dash-inner support-page">
       {/* Tab bar */}
       <div className="status-tabs mt-4">
         <button
@@ -374,5 +375,6 @@ export default function AdminSupportPage() {
         )}
       </div>
     </div></main>
+    </>
   );
 }

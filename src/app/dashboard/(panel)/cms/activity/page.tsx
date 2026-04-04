@@ -43,9 +43,13 @@ export default function ActivityPage() {
   }
 
   return (
-    <main className="dash-main"><div className="dash-inner activity-page">
-      <h1 className="text-2xl font-bold text-(--text-primary)">{__('Activity Log')}</h1>
-
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <h1 className="text-2xl font-bold text-(--text-primary)">{__('Activity Log')}</h1>
+        </div>
+      </header>
+      <main className="dash-main"><div className="dash-inner activity-page">
       {/* Filters */}
       <div className="mt-4 flex flex-wrap gap-2">
         <select
@@ -171,5 +175,6 @@ export default function ActivityPage() {
         </div>
       )}
     </div></main>
+    </>
   );
 }

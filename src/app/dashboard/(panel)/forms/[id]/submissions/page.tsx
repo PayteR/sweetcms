@@ -118,41 +118,42 @@ export default function SubmissionsPage() {
   // ---------------------------------------------------------------------------
 
   return (
-    <main className="dash-main"><div className="dash-inner submissions-page">
-      {/* Header */}
-      <div className="submissions-header flex items-center justify-between">
-        <div className="submissions-header-left flex items-center gap-3">
-          <button
-            onClick={() => router.push(adminPanel.formDetail(params.id))}
-            className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-primary)"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-(--text-primary)">
-              {__('Submissions')}
-            </h1>
-            <p className="text-sm text-(--text-muted)">{form.name}</p>
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <div className="submissions-header-left flex items-center gap-3">
+            <button
+              onClick={() => router.push(adminPanel.formDetail(params.id))}
+              className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-primary)"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div>
+              <h1 className="text-2xl font-bold text-(--text-primary)">
+                {__('Submissions')}
+              </h1>
+              <p className="text-sm text-(--text-muted)">{form.name}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => handleExport('csv')}
+              className="btn btn-secondary"
+            >
+              <Download className="h-4 w-4" />
+              {__('CSV')}
+            </button>
+            <button
+              onClick={() => handleExport('json')}
+              className="btn btn-secondary"
+            >
+              <Download className="h-4 w-4" />
+              {__('JSON')}
+            </button>
           </div>
         </div>
-        <div className="submissions-export flex items-center gap-2">
-          <button
-            onClick={() => handleExport('csv')}
-            className="btn btn-secondary"
-          >
-            <Download className="h-4 w-4" />
-            {__('CSV')}
-          </button>
-          <button
-            onClick={() => handleExport('json')}
-            className="btn btn-secondary"
-          >
-            <Download className="h-4 w-4" />
-            {__('JSON')}
-          </button>
-        </div>
-      </div>
-
+      </header>
+      <main className="dash-main"><div className="dash-inner submissions-page">
       {/* Table */}
       <div className="card mt-4 overflow-hidden">
         {submissionsQuery.isLoading ? (
@@ -267,5 +268,6 @@ export default function SubmissionsPage() {
         onCancel={() => setDeleteTarget(null)}
       />
     </div></main>
+    </>
   );
 }

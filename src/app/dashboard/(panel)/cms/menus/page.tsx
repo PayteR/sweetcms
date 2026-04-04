@@ -45,18 +45,22 @@ export default function MenusPage() {
   }
 
   return (
-    <main className="dash-main"><div className="dash-inner menus-page">
-      <div className="menus-header flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-(--text-primary)">{__('Menus')}</h1>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="btn btn-primary"
-        >
-          <Plus className="h-4 w-4" />
-          {__('New Menu')}
-        </button>
-      </div>
-
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <h1 className="text-2xl font-bold text-(--text-primary)">{__('Menus')}</h1>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowCreate(true)}
+              className="btn btn-primary"
+            >
+              <Plus className="h-4 w-4" />
+              {__('New Menu')}
+            </button>
+          </div>
+        </div>
+      </header>
+      <main className="dash-main"><div className="dash-inner menus-page">
       {showCreate && (
         <form onSubmit={handleCreate} className="menus-create-form mt-4 card flex items-center gap-3 p-4">
           <input
@@ -146,5 +150,6 @@ export default function MenusPage() {
         onCancel={() => setDeleteTarget(null)}
       />
     </div></main>
+    </>
   );
 }

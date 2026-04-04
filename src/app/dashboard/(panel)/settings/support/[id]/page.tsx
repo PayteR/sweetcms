@@ -166,18 +166,21 @@ export default function AdminTicketDetailPage() {
   }
 
   return (
-    <main className="dash-main"><div className="dash-inner support-detail-page">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-4">
-        <Link
-          href={adminPanel.settingsSupport}
-          className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary)"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <h1 className="text-2xl font-bold text-(--text-primary) truncate">{ticket.subject}</h1>
-      </div>
-
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <div className="flex items-center gap-3">
+            <Link
+              href={adminPanel.settingsSupport}
+              className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary)"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+            <h1 className="text-2xl font-bold text-(--text-primary) truncate">{ticket.subject}</h1>
+          </div>
+        </div>
+      </header>
+      <main className="dash-main"><div className="dash-inner support-detail-page">
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Main content — messages + reply */}
         <div className="flex-1 min-w-0">
@@ -310,5 +313,6 @@ export default function AdminTicketDetailPage() {
         </div>
       </div>
     </div></main>
+    </>
   );
 }

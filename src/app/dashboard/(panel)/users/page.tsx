@@ -154,9 +154,13 @@ export default function UsersPage() {
   }
 
   return (
-    <main className="dash-main"><div className="dash-inner users-page">
-      <h1 className="text-2xl font-bold text-(--text-primary)">{__('Users')}</h1>
-
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <h1 className="text-2xl font-bold text-(--text-primary)">{__('Users')}</h1>
+        </div>
+      </header>
+      <main className="dash-main"><div className="dash-inner users-page">
       {/* Role tabs */}
       <div className="mt-4 flex gap-1 border-b border-(--border-primary)">
         {roleTabs.map((t) => (
@@ -461,5 +465,6 @@ export default function UsersPage() {
         onCancel={() => setAnonymizeTarget(null)}
       />
     </div></main>
+    </>
   );
 }

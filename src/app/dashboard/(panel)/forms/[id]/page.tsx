@@ -183,34 +183,37 @@ function FormBuilderInner({ isNew, initialData }: { isNew: boolean; initialData:
   // ---------------------------------------------------------------------------
 
   return (
-    <main className="dash-main"><div className="dash-inner form-builder-page">
-      {/* Header */}
-      <div className="form-builder-header flex items-center justify-between">
-        <div className="form-builder-header-left flex items-center gap-3">
-          <button
-            onClick={() => router.push(adminPanel.forms)}
-            className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-primary)"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <h1 className="text-2xl font-bold text-(--text-primary)">
-            {isNew ? __('New Form') : __('Edit Form')}
-          </h1>
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <div className="form-builder-header-left flex items-center gap-3">
+            <button
+              onClick={() => router.push(adminPanel.forms)}
+              className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--text-primary)"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <h1 className="text-2xl font-bold text-(--text-primary)">
+              {isNew ? __('New Form') : __('Edit Form')}
+            </h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleSave}
+              disabled={isPending}
+              className="btn btn-primary disabled:opacity-50"
+            >
+              {isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4" />
+              )}
+              {__('Save')}
+            </button>
+          </div>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={isPending}
-          className="btn btn-primary disabled:opacity-50"
-        >
-          {isPending ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Save className="h-4 w-4" />
-          )}
-          {__('Save')}
-        </button>
-      </div>
-
+      </header>
+      <main className="dash-main"><div className="dash-inner form-builder-page">
       {/* Form settings */}
       <div className="form-builder-settings card mt-4 p-6">
         <h2 className="h2">{__('Form Settings')}</h2>
@@ -474,6 +477,7 @@ function FormBuilderInner({ isNew, initialData }: { isNew: boolean; initialData:
         </div>
       )}
     </div></main>
+    </>
   );
 }
 

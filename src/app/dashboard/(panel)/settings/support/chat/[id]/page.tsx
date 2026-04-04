@@ -135,51 +135,52 @@ export default function AdminChatDetailPage() {
   const isClosed = status === 'closed';
 
   return (
-    <main className="dash-main"><div className="dash-inner">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link
-            href={adminPanel.settingsSupport}
-            className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary)"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-          <h1 className="text-xl font-bold text-(--text-primary)">
-            {__('Live Chat')}
-          </h1>
-          <span className={cn(
-            'badge',
-            status === 'ai_active' && 'badge-published',
-            status === 'agent_active' && 'badge-scheduled',
-            status === 'escalated' && 'badge-scheduled',
-            status === 'closed' && 'badge-draft',
-          )}>
-            {__(STATUS_LABELS[status] ?? status)}
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          {session.ticketId && (
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <div className="flex items-center gap-3">
             <Link
-              href={adminPanel.settingsSupportDetail(session.ticketId)}
-              className="btn btn-secondary btn-sm"
+              href={adminPanel.settingsSupport}
+              className="rounded-md p-1.5 text-(--text-muted) hover:bg-(--surface-secondary)"
             >
-              {__('View Ticket')}
+              <ArrowLeft className="h-5 w-5" />
             </Link>
-          )}
-          {!isClosed && (
-            <button
-              onClick={() => closeMut.mutate({ sessionId: id })}
-              disabled={closeMut.isPending}
-              className="btn btn-danger btn-sm"
-            >
-              <X className="mr-1 h-4 w-4 inline" />
-              {__('Close Chat')}
-            </button>
-          )}
+            <h1 className="text-xl font-bold text-(--text-primary)">
+              {__('Live Chat')}
+            </h1>
+            <span className={cn(
+              'badge',
+              status === 'ai_active' && 'badge-published',
+              status === 'agent_active' && 'badge-scheduled',
+              status === 'escalated' && 'badge-scheduled',
+              status === 'closed' && 'badge-draft',
+            )}>
+              {__(STATUS_LABELS[status] ?? status)}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            {session.ticketId && (
+              <Link
+                href={adminPanel.settingsSupportDetail(session.ticketId)}
+                className="btn btn-secondary btn-sm"
+              >
+                {__('View Ticket')}
+              </Link>
+            )}
+            {!isClosed && (
+              <button
+                onClick={() => closeMut.mutate({ sessionId: id })}
+                disabled={closeMut.isPending}
+                className="btn btn-danger btn-sm"
+              >
+                <X className="mr-1 h-4 w-4 inline" />
+                {__('Close Chat')}
+              </button>
+            )}
+          </div>
         </div>
-      </div>
-
+      </header>
+      <main className="dash-main"><div className="dash-inner">
       {/* Info bar */}
       <div className="mt-4 flex flex-wrap gap-4 text-sm text-(--text-muted)">
         <span>
@@ -267,5 +268,6 @@ export default function AdminChatDetailPage() {
         )}
       </div>
     </div></main>
+    </>
   );
 }

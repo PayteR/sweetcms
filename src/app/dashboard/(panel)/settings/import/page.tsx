@@ -293,11 +293,15 @@ export default function ImportPage() {
   // ── Render ─────────────────────────────────────────────────────────
 
   return (
-    <main className="dash-main"><div className="dash-inner import-page">
-      <h1 className="text-2xl font-bold text-(--text-primary)">
-        {__('Import Content')}
-      </h1>
-
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <h1 className="text-2xl font-bold text-(--text-primary)">
+            {__('Import Content')}
+          </h1>
+        </div>
+      </header>
+      <main className="dash-main"><div className="dash-inner import-page">
       {/* Step indicator */}
       <div className="import-steps mt-4 flex items-center gap-2">
         {steps.map((s, i) => (
@@ -737,5 +741,6 @@ export default function ImportPage() {
         </div>
       )}
     </div></main>
+    </>
   );
 }

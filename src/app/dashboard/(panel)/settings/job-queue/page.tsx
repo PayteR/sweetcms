@@ -66,21 +66,25 @@ export default function JobQueuePage() {
   }
 
   return (
-    <main className="dash-main"><div className="dash-inner job-queue-page">
-      <div className="job-queue-header flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-(--text-primary)">{__('Job Queue')}</h1>
-        <button
-          onClick={() => {
-            utils.jobQueue.stats.invalidate();
-            if (selectedQueue) utils.jobQueue.list.invalidate();
-          }}
-          className="btn btn-secondary"
-        >
-          <RefreshCw className="h-4 w-4" />
-          {__('Refresh')}
-        </button>
-      </div>
-
+    <>
+      <header className="dash-header">
+        <div className="dash-toolbar">
+          <h1 className="text-2xl font-bold text-(--text-primary)">{__('Job Queue')}</h1>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                utils.jobQueue.stats.invalidate();
+                if (selectedQueue) utils.jobQueue.list.invalidate();
+              }}
+              className="btn btn-secondary"
+            >
+              <RefreshCw className="h-4 w-4" />
+              {__('Refresh')}
+            </button>
+          </div>
+        </div>
+      </header>
+      <main className="dash-main"><div className="dash-inner job-queue-page">
       {stats.isLoading ? (
         <div className="flex items-center justify-center py-20">
           <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
@@ -232,5 +236,6 @@ export default function JobQueuePage() {
         </>
       )}
     </div></main>
+    </>
   );
 }
