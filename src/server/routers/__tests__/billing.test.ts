@@ -200,6 +200,10 @@ vi.mock('@/lib/env', () => ({
   },
 }));
 
+vi.mock('@/server/lib/resolve-org', () => ({
+  resolveOrgId: vi.fn().mockResolvedValue('org-1'),
+}));
+
 // ---------------------------------------------------------------------------
 // Imports (after mocks)
 // ---------------------------------------------------------------------------
@@ -210,6 +214,7 @@ import { isBillingEnabled, getProvider, getEnabledProviders } from '@/server/lib
 import { getSubscription } from '@/engine/lib/payment/subscription-service';
 import { PLANS } from '@/config/plans';
 import { createMockCtx } from './test-helpers';
+import { resolveOrgId } from '@/server/lib/resolve-org';
 
 // ---------------------------------------------------------------------------
 // Shared fixtures
@@ -254,6 +259,10 @@ const MOCK_PROVIDER = {
 describe('billingRouter', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    asMock(resolveOrgId).mockImplementation(async (activeOrgId: string | null) => {
+      if (activeOrgId) return activeOrgId;
+      throw new Error('No active organization selected');
+    });
     asMock(isBillingEnabled).mockReturnValue(false);
     asMock(getProvider).mockResolvedValue(null);
     asMock(getSubscription).mockResolvedValue(null);

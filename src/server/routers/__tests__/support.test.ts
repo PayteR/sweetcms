@@ -108,13 +108,19 @@ vi.mock('@/lib/env', () => ({
   },
 }));
 
+vi.mock('@/server/lib/resolve-org', () => ({
+  resolveOrgId: vi.fn().mockResolvedValue('org-1'),
+}));
+
 // ---------------------------------------------------------------------------
 // Imports (after mocks)
 // ---------------------------------------------------------------------------
 
+import { asMock } from '@/test-utils';
 import { supportRouter } from '../support';
 import { logAudit } from '@/engine/lib/audit';
 import { sendNotification, sendOrgNotification } from '@/server/lib/notifications';
+import { resolveOrgId } from '@/server/lib/resolve-org';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -237,6 +243,10 @@ const MOCK_TICKET = {
 describe('supportRouter', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    asMock(resolveOrgId).mockImplementation(async (activeOrgId: string | null) => {
+      if (activeOrgId) return activeOrgId;
+      throw new Error('No active organization selected');
+    });
   });
 
   // =========================================================================

@@ -131,8 +131,10 @@ describe('Stripe webhook route', () => {
       type: 'subscription.activated',
       providerData: { _eventId: 'evt_dup' },
     });
-    // Idempotency check returns existing record
-    selectResults = [[{ id: 'existing-event' }]];
+    // Simulate unique constraint violation on insert (already processed)
+    mockInsert.mockImplementationOnce(() => ({
+      values: () => Promise.reject(new Error('unique constraint violation')),
+    }));
 
     const res = await POST(makeRequest('{}'));
     const body = await res.json();

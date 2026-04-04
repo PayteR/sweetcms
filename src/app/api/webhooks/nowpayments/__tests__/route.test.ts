@@ -214,8 +214,8 @@ describe('NOWPayments webhook route', () => {
   });
 
   it('returns duplicate:true for already-processed events (idempotency)', async () => {
-    // Simulate that the event was already processed
-    limitMock.mockResolvedValue([{ id: 'existing-event' }]);
+    // Simulate unique constraint violation on insert (already processed)
+    valuesMock.mockRejectedValueOnce(new Error('unique constraint violation'));
 
     mockHandleWebhook.mockResolvedValue({
       type: 'subscription.activated',

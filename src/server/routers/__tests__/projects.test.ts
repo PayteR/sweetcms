@@ -27,9 +27,14 @@ vi.mock('@/lib/env', () => ({
   },
 }));
 
+vi.mock('@/server/lib/resolve-org', () => ({
+  resolveOrgId: vi.fn().mockResolvedValue('org-1'),
+}));
+
 import { asMock } from '@/test-utils';
 import { projectsRouter } from '../projects';
 import { logAudit } from '@/engine/lib/audit';
+import { resolveOrgId } from '@/server/lib/resolve-org';
 
 const TEST_UUID = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
 
@@ -139,7 +144,13 @@ function caller(c: ReturnType<typeof ctx>) {
 // ─── Tests ────────────────────────────────────────────────────────────────
 
 describe('projectsRouter', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    asMock(resolveOrgId).mockImplementation(async (activeOrgId: string | null) => {
+      if (activeOrgId) return activeOrgId;
+      throw new Error('No active organization selected');
+    });
+  });
 
   // ── requireOrg guard ────────────────────────────────────────────────────
 
