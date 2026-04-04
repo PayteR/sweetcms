@@ -48,7 +48,7 @@
    */
 
   .page-container {
-    padding-top: 1rem;
+    /* no constraints — full width of <main> */
   }
 
   /* Centered content block — max-width + padding. Used inside main, header, or footer. */
@@ -56,16 +56,18 @@
     max-width: var(--content-max-width);
     margin-inline: auto;
     padding-inline: 1.5rem;
-    padding-block: 1.5rem;
+    padding-top: 1rem;
+    padding-bottom: 1.5rem;
   }
 
   /* Sticky header — full-width, scroll-driven background fade. */
   .page-header {
+    margin-top: 1rem;
     position: sticky;
     top: 3rem;
     z-index: 30;
-    background-color: var(--surface-secondary);
-    border-bottom: 1px solid var(--border-primary);
+    background-color: transparent;
+    border-bottom: 1px solid transparent;
     animation: page-header-fade linear both;
     animation-timeline: scroll();
     animation-range: 0px 80px;

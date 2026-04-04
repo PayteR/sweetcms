@@ -3382,3 +3382,6 @@ msgstr "Please check the form for errors"
 #. REMOVED FROM CODE - PRESERVED FOR REFERENCE
 #~ msgid "Start writing..."
 #~ msgstr "Start writing..."
+
+msgid "All"
+msgstr "All"

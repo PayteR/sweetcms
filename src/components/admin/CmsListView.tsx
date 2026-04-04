@@ -633,10 +633,10 @@ export function CmsListView({ contentType }: Props) {
       <div className="page-inner">
 
       {/* Taxonomy overview for tags */}
-      {isTagType && <div className="mt-4"><TaxonomyOverview /></div>}
+      {isTagType && <div className="mb-4"><TaxonomyOverview /></div>}
 
       {/* Status tabs */}
-      <div className="mt-4 flex gap-1 border-b border-(--border-primary)">
+      <div className="flex gap-1 border-b border-(--border-primary)">
         {tabs.map((t) => (
           <button
             key={t.key}

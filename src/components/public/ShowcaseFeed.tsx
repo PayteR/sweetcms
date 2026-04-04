@@ -193,7 +193,7 @@ export function ShowcaseFeed({ items }: Props) {
 
   if (items.length === 0) {
     return (
-      <div className="flex h-[80vh] items-center justify-center">
+      <div className="flex h-[calc(100dvh-3.5rem)] items-center justify-center">
         <p className="text-(--text-muted)">No showcase items yet.</p>
       </div>
     );
@@ -203,7 +203,7 @@ export function ShowcaseFeed({ items }: Props) {
     <div className="relative">
       <div
         ref={containerRef}
-        className="showcase-feed h-dvh snap-y snap-mandatory overflow-y-scroll"
+        className="showcase-feed h-[calc(100dvh-3.5rem)] snap-y snap-mandatory overflow-y-scroll"
       >
         {items.map((item, index) => {
           const counts = reactionCounts?.[item.id] ?? { likes: 0, dislikes: 0 };
@@ -214,7 +214,7 @@ export function ShowcaseFeed({ items }: Props) {
             <div
               key={item.id}
               data-index={index}
-              className="relative h-dvh w-full snap-start snap-always"
+              className="relative h-[calc(100dvh-3.5rem)] w-full snap-start snap-always"
             >
               {item.cardType === 'video' ? (
                 <VideoCard item={item} isActive={index === currentIndex} />
@@ -245,7 +245,7 @@ export function ShowcaseFeed({ items }: Props) {
 
       {/* Navigation dots — left side */}
       {items.length > 1 && (
-        <div className="fixed left-4 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-1.5 sm:left-6">
+        <div className="absolute left-4 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-1.5 sm:left-6">
           <button
             onClick={() => scrollToIndex(Math.max(currentIndex - 1, 0))}
             disabled={currentIndex === 0}
