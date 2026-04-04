@@ -44,11 +44,13 @@ export function ChurnedSubscriptionsTable({ from, to }: ChurnedSubscriptionsTabl
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Reset page to 1 when filters change
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setPage(1);
-  }, [activeTab, debouncedSearch, pageSize, from, to]);
+  // Reset page to 1 when filters change (adjust state during render — React docs pattern)
+  const filterKey = `${activeTab}|${debouncedSearch}|${pageSize}|${from}|${to}`;
+  const [prevFilterKey, setPrevFilterKey] = useState(filterKey);
+  if (prevFilterKey !== filterKey) {
+    setPrevFilterKey(filterKey);
+    if (page !== 1) setPage(1);
+  }
 
   const { data, isLoading } = trpc.billing.listChurned.useQuery({
     page,

@@ -84,6 +84,7 @@ vi.mock('@/server/db/schema/support', () => ({
     id: 'saas_chat_sessions.id',
     visitorId: 'saas_chat_sessions.visitor_id',
     userId: 'saas_chat_sessions.user_id',
+    email: 'saas_chat_sessions.email',
     status: 'saas_chat_sessions.status',
     ticketId: 'saas_chat_sessions.ticket_id',
     subject: 'saas_chat_sessions.subject',
@@ -261,6 +262,7 @@ const MOCK_SESSION = {
   id: SESSION_UUID,
   visitorId: VISITOR_ID,
   userId: null,
+  email: null,
   status: 'ai_active',
   ticketId: null,
   subject: null,
@@ -414,6 +416,120 @@ describe('chatRouter', () => {
         caller.close({
           sessionId: SESSION_UUID,
           visitorId: 'wrong-visitor',
+        })
+      ).rejects.toThrow('Session not found');
+    });
+  });
+
+  // =========================================================================
+  // escalate
+  // =========================================================================
+  describe('escalate', () => {
+    it('creates ticket for authenticated user', async () => {
+      const ctx = createAdminCtx(); // has session.user
+      // 1st select: session found, 2nd select: chat messages for transcript
+      setupSelectSequence(ctx.db, [
+        [MOCK_SESSION],
+        [{ role: 'user', body: 'Help me', createdAt: new Date() }],
+      ]);
+      ctx.db.insert.mockReturnValue({
+        values: vi.fn().mockResolvedValue(undefined),
+      });
+
+      const caller = chatRouter.createCaller(ctx as never);
+      const result = await caller.escalate({
+        sessionId: SESSION_UUID,
+        visitorId: VISITOR_ID,
+      });
+
+      expect(result.ticketId).toBeDefined();
+      expect(result.emailCaptured).toBe(false);
+      // Should insert ticket + ticket message
+      expect(ctx.db.insert).toHaveBeenCalled();
+      // Should update session to escalated
+      expect(ctx.db.update).toHaveBeenCalled();
+    });
+
+    it('returns existing ticketId if already escalated', async () => {
+      const ctx = createPublicCtx();
+      const escalatedSession = { ...MOCK_SESSION, ticketId: 'existing-ticket-id' };
+      setupSelectSequence(ctx.db, [[escalatedSession]]);
+
+      const caller = chatRouter.createCaller(ctx as never);
+      const result = await caller.escalate({
+        sessionId: SESSION_UUID,
+        visitorId: VISITOR_ID,
+      });
+
+      expect(result.ticketId).toBe('existing-ticket-id');
+      expect(ctx.db.insert).not.toHaveBeenCalled();
+    });
+
+    it('throws BAD_REQUEST for anonymous user without email', async () => {
+      const ctx = createPublicCtx(); // no session.user
+      setupSelectSequence(ctx.db, [[MOCK_SESSION]]);
+
+      const caller = chatRouter.createCaller(ctx as never);
+      await expect(
+        caller.escalate({ sessionId: SESSION_UUID, visitorId: VISITOR_ID })
+      ).rejects.toThrow('Email is required for anonymous escalation');
+    });
+
+    it('captures email for anonymous user', async () => {
+      const ctx = createPublicCtx();
+      setupSelectSequence(ctx.db, [[MOCK_SESSION]]);
+
+      const caller = chatRouter.createCaller(ctx as never);
+      const result = await caller.escalate({
+        sessionId: SESSION_UUID,
+        visitorId: VISITOR_ID,
+        email: 'visitor@example.com',
+      });
+
+      expect(result.ticketId).toBeNull();
+      expect(result.emailCaptured).toBe(true);
+      expect(ctx.db.update).toHaveBeenCalled();
+    });
+
+    it('rejects if wrong visitorId', async () => {
+      const ctx = createPublicCtx();
+      // Default: returns [] (no session matching visitor)
+
+      const caller = chatRouter.createCaller(ctx as never);
+      await expect(
+        caller.escalate({ sessionId: SESSION_UUID, visitorId: 'wrong-visitor' })
+      ).rejects.toThrow('Session not found');
+    });
+  });
+
+  // =========================================================================
+  // setEmail
+  // =========================================================================
+  describe('setEmail', () => {
+    it('stores email on session', async () => {
+      const ctx = createPublicCtx();
+      setupSelectSequence(ctx.db, [[{ id: SESSION_UUID }]]);
+
+      const caller = chatRouter.createCaller(ctx as never);
+      const result = await caller.setEmail({
+        sessionId: SESSION_UUID,
+        visitorId: VISITOR_ID,
+        email: 'user@example.com',
+      });
+
+      expect(result).toEqual({ success: true });
+      expect(ctx.db.update).toHaveBeenCalled();
+    });
+
+    it('rejects if wrong visitorId', async () => {
+      const ctx = createPublicCtx();
+
+      const caller = chatRouter.createCaller(ctx as never);
+      await expect(
+        caller.setEmail({
+          sessionId: SESSION_UUID,
+          visitorId: 'wrong-visitor',
+          email: 'user@example.com',
         })
       ).rejects.toThrow('Session not found');
     });

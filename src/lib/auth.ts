@@ -3,12 +3,13 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { admin, customSession, organization } from 'better-auth/plugins';
 import { role } from 'better-auth/plugins/access';
 
-import { eq, count } from 'drizzle-orm';
+import { eq, and, count, isNull } from 'drizzle-orm';
 import { Role } from '@/engine/policy';
 import { createLogger } from '@/engine/lib/logger';
 import { slugify } from '@/engine/lib/slug';
 import { db } from '@/server/db';
 import { organization as organizationTable, member } from '@/server/db/schema/organization';
+import { saasSupportChatSessions } from '@/server/db/schema/support';
 import { enqueueTemplateEmail } from '@/server/jobs/email';
 
 const log = createLogger('auth');
@@ -87,6 +88,19 @@ function createAuth() {
               log.info('Personal org created', { userId: user.id, orgId });
             } catch (err: unknown) {
               log.error('Failed to create personal org', { userId: user.id, error: String(err) });
+            }
+
+            // Link orphaned chat sessions that used this email before registration
+            try {
+              await db
+                .update(saasSupportChatSessions)
+                .set({ userId: user.id })
+                .where(and(
+                  eq(saasSupportChatSessions.email, user.email),
+                  isNull(saasSupportChatSessions.userId),
+                ));
+            } catch (err: unknown) {
+              log.warn('Failed to link chat sessions', { email: user.email, error: String(err) });
             }
 
             // Welcome email

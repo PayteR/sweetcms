@@ -1,10 +1,10 @@
 import { boolean, index, jsonb, pgTable, text, timestamp, varchar } from 'drizzle-orm/pg-core';
 import { organization } from './organization';
 
-// ─── saas_chat_sessions ─────────────────────────────────────────────────────
+// ─── saas_support_chat_sessions ──────────────────────────────────────────────
 // Lightweight pre-ticket chat sessions. Most resolve via AI and never become tickets.
 
-export const saasChatSessions = pgTable('saas_chat_sessions', {
+export const saasSupportChatSessions = pgTable('saas_support_chat_sessions', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
@@ -18,27 +18,27 @@ export const saasChatSessions = pgTable('saas_chat_sessions', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
   closedAt: timestamp('closed_at'),
 }, (table) => [
-  index('idx_chat_sessions_visitor').on(table.visitorId),
-  index('idx_chat_sessions_user').on(table.userId, table.status),
-  index('idx_chat_sessions_status').on(table.status),
+  index('idx_support_chat_sessions_visitor').on(table.visitorId),
+  index('idx_support_chat_sessions_user').on(table.userId, table.status),
+  index('idx_support_chat_sessions_status').on(table.status),
 ]);
 
-// ─── saas_chat_messages ─────────────────────────────────────────────────────
+// ─── saas_support_chat_messages ──────────────────────────────────────────────
 // Messages within a chat session (user, AI, or human agent).
 
-export const saasChatMessages = pgTable('saas_chat_messages', {
+export const saasSupportChatMessages = pgTable('saas_support_chat_messages', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
   sessionId: text('session_id')
     .notNull()
-    .references(() => saasChatSessions.id, { onDelete: 'cascade' }),
+    .references(() => saasSupportChatSessions.id, { onDelete: 'cascade' }),
   role: varchar('role', { length: 20 }).notNull(),
   body: text('body').notNull(),
   metadata: jsonb('metadata'),
   createdAt: timestamp('created_at').notNull().defaultNow(),
 }, (table) => [
-  index('idx_chat_messages_session').on(table.sessionId, table.createdAt),
+  index('idx_support_chat_messages_session').on(table.sessionId, table.createdAt),
 ]);
 
 // ─── saas_tickets ────────────────────────────────────────────────────────────

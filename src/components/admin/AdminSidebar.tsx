@@ -92,11 +92,12 @@ export function AdminSidebar() {
     return () => document.removeEventListener('mousedown', handleMouseDown);
   }, [userPopoverOpen]);
 
-  // Close popover when mobile overlay state changes
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setUserPopoverOpen(false);
-  }, [isOpen]);
+  // Close popover when mobile overlay state changes (adjust state during render — React docs pattern)
+  const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
+  if (prevIsOpen !== isOpen) {
+    setPrevIsOpen(isOpen);
+    if (userPopoverOpen) setUserPopoverOpen(false);
+  }
 
   // Active section
   const activeSectionId = getActiveSectionId(pathname);

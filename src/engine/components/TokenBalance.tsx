@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Coins } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
@@ -23,7 +23,7 @@ export function TokenBalance({ href }: TokenBalanceProps) {
   const __ = useAdminTranslations();
   const [liveBalance, setLiveBalance] = useState<number | null>(null);
   const [animating, setAnimating] = useState(false);
-  const prevBalance = useRef<number | null>(null);
+  const [prevBalance, setPrevBalance] = useState<number | null>(null);
 
   // Server resolves the org via resolveOrgId — no orgId prop needed
   const { data } = trpc.billing.getTokenBalance.useQuery();
@@ -42,15 +42,20 @@ export function TokenBalance({ href }: TokenBalanceProps) {
 
   const balance = liveBalance ?? data?.balance ?? 0;
 
+  // Trigger animation when balance changes (adjust state during render — React docs pattern)
+  if (prevBalance !== null && balance !== prevBalance && !animating) {
+    setAnimating(true);
+  }
+  if (prevBalance !== balance) {
+    setPrevBalance(balance);
+  }
+
+  // Clear animation after duration
   useEffect(() => {
-    if (prevBalance.current !== null && balance !== prevBalance.current) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- trigger animation on balance change
-      setAnimating(true);
-      const timer = setTimeout(() => setAnimating(false), 600);
-      return () => clearTimeout(timer);
-    }
-    prevBalance.current = balance;
-  }, [balance]);
+    if (!animating) return;
+    const timer = setTimeout(() => setAnimating(false), 600);
+    return () => clearTimeout(timer);
+  }, [animating]);
 
   // Don't render until we have data (avoids flash of 0)
   if (!data) return null;

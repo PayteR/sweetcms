@@ -190,28 +190,47 @@ export function CommentPanel({ contentType, contentId, onClose }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const utils = trpc.useUtils();
 
-  // Track the "active" contentId so we can keep showing content during exit animation
+  // Animation state machine: enter/exit transitions
+  // We track "phase" to manage the slide-up/slide-down lifecycle
+  const [phase, setPhase] = useState<'closed' | 'entering' | 'open' | 'exiting'>('closed');
   const [activeId, setActiveId] = useState<string | null>(null);
-  const [visible, setVisible] = useState(false);
 
   const isOpen = contentId !== null;
   const displayId = activeId ?? contentId;
+  const visible = phase === 'open';
 
-  // Enter: set activeId and trigger slide-up
-  // Exit: slide down, then clear activeId
-  useEffect(() => {
-    if (isOpen && contentId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- animation state machine: enter/exit transitions
+  // Enter/exit: adjust state when contentId prop changes (React docs pattern)
+  const [prevContentId, setPrevContentId] = useState(contentId);
+  if (prevContentId !== contentId) {
+    setPrevContentId(contentId);
+    if (isOpen && contentId && phase === 'closed') {
       setActiveId(contentId);
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => setVisible(true));
+      setPhase('entering');
+    } else if (!isOpen && (phase === 'open' || phase === 'entering')) {
+      setPhase('exiting');
+    }
+  }
+
+  // Trigger slide-up animation frame after entering (genuine DOM side-effect)
+  useEffect(() => {
+    if (phase === 'entering') {
+      const frameId = requestAnimationFrame(() => {
+        requestAnimationFrame(() => setPhase('open'));
       });
-    } else if (!isOpen && visible) {
-      setVisible(false);
-      const timer = setTimeout(() => setActiveId(null), 300);
+      return () => cancelAnimationFrame(frameId);
+    }
+  }, [phase]);
+
+  // Exit: clear activeId after slide-down transition completes
+  useEffect(() => {
+    if (phase === 'exiting') {
+      const timer = setTimeout(() => {
+        setActiveId(null);
+        setPhase('closed');
+      }, 300);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, contentId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [phase]);
 
   const comments = trpc.comments.list.useQuery(
     { contentType, contentId: displayId!, pageSize: 50 },

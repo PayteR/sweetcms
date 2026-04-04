@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { and, count, desc, eq, asc, ne, inArray } from 'drizzle-orm';
 import { createTRPCRouter, publicProcedure, sectionProcedure } from '../trpc';
-import { saasChatSessions, saasChatMessages, saasTickets, saasTicketMessages } from '@/server/db/schema/support';
+import { saasSupportChatSessions, saasSupportChatMessages, saasTickets, saasTicketMessages } from '@/server/db/schema/support';
 import { user } from '@/server/db/schema/auth';
 import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
 import { sendNotification, sendOrgNotification } from '@/server/lib/notifications';
@@ -94,14 +94,14 @@ async function processAiResponse(db: typeof import('@/server/db').db, sessionId:
   // Check message count for forced escalation
   const [msgCount] = await db
     .select({ count: count() })
-    .from(saasChatMessages)
-    .where(eq(saasChatMessages.sessionId, sessionId));
+    .from(saasSupportChatMessages)
+    .where(eq(saasSupportChatMessages.sessionId, sessionId));
 
   if ((msgCount?.count ?? 0) >= chatConfig.maxMessagesBeforeEscalation) {
     await db
-      .update(saasChatSessions)
+      .update(saasSupportChatSessions)
       .set({ status: 'escalated' })
-      .where(eq(saasChatSessions.id, sessionId));
+      .where(eq(saasSupportChatSessions.id, sessionId));
 
     broadcastChatEvent(sessionId, 'chat_status', { sessionId, status: 'escalated' });
     return;
@@ -109,10 +109,10 @@ async function processAiResponse(db: typeof import('@/server/db').db, sessionId:
 
   // Get conversation history
   const history = await db
-    .select({ role: saasChatMessages.role, body: saasChatMessages.body })
-    .from(saasChatMessages)
-    .where(eq(saasChatMessages.sessionId, sessionId))
-    .orderBy(asc(saasChatMessages.createdAt))
+    .select({ role: saasSupportChatMessages.role, body: saasSupportChatMessages.body })
+    .from(saasSupportChatMessages)
+    .where(eq(saasSupportChatMessages.sessionId, sessionId))
+    .orderBy(asc(saasSupportChatMessages.createdAt))
     .limit(50);
 
   const aiText = await callAI(history);
@@ -126,7 +126,7 @@ async function processAiResponse(db: typeof import('@/server/db').db, sessionId:
   // Store AI message
   const aiMsgId = crypto.randomUUID();
   const aiNow = new Date();
-  await db.insert(saasChatMessages).values({
+  await db.insert(saasSupportChatMessages).values({
     id: aiMsgId,
     sessionId,
     role: 'ai',
@@ -145,9 +145,9 @@ async function processAiResponse(db: typeof import('@/server/db').db, sessionId:
 
   if (shouldEscalate) {
     await db
-      .update(saasChatSessions)
+      .update(saasSupportChatSessions)
       .set({ status: 'escalated' })
-      .where(eq(saasChatSessions.id, sessionId));
+      .where(eq(saasSupportChatSessions.id, sessionId));
 
     broadcastChatEvent(sessionId, 'chat_status', { sessionId, status: 'escalated' });
   }
@@ -168,30 +168,42 @@ export const chatRouter = createTRPCRouter({
       // Check for existing non-closed session for this visitor
       const [existing] = await ctx.db
         .select({
-          id: saasChatSessions.id,
-          status: saasChatSessions.status,
-          ticketId: saasChatSessions.ticketId,
+          id: saasSupportChatSessions.id,
+          userId: saasSupportChatSessions.userId,
+          status: saasSupportChatSessions.status,
+          ticketId: saasSupportChatSessions.ticketId,
         })
-        .from(saasChatSessions)
+        .from(saasSupportChatSessions)
         .where(and(
-          eq(saasChatSessions.visitorId, input.visitorId),
-          ne(saasChatSessions.status, 'closed'),
+          eq(saasSupportChatSessions.visitorId, input.visitorId),
+          ne(saasSupportChatSessions.status, 'closed'),
         ))
-        .orderBy(desc(saasChatSessions.createdAt))
+        .orderBy(desc(saasSupportChatSessions.createdAt))
         .limit(1);
 
       if (existing) {
+        // Link session to user if they've since registered (same browser, same visitorId)
+        const currentUserId = ctx.session?.user
+          ? (ctx.session.user as unknown as { id: string }).id
+          : undefined;
+        if (currentUserId && !existing.userId) {
+          await ctx.db
+            .update(saasSupportChatSessions)
+            .set({ userId: currentUserId })
+            .where(eq(saasSupportChatSessions.id, existing.id));
+        }
+
         // Resume: return existing session + messages
         const messages = await ctx.db
           .select({
-            id: saasChatMessages.id,
-            role: saasChatMessages.role,
-            body: saasChatMessages.body,
-            createdAt: saasChatMessages.createdAt,
+            id: saasSupportChatMessages.id,
+            role: saasSupportChatMessages.role,
+            body: saasSupportChatMessages.body,
+            createdAt: saasSupportChatMessages.createdAt,
           })
-          .from(saasChatMessages)
-          .where(eq(saasChatMessages.sessionId, existing.id))
-          .orderBy(asc(saasChatMessages.createdAt))
+          .from(saasSupportChatMessages)
+          .where(eq(saasSupportChatMessages.sessionId, existing.id))
+          .orderBy(asc(saasSupportChatMessages.createdAt))
           .limit(100);
 
         return {
@@ -209,7 +221,7 @@ export const chatRouter = createTRPCRouter({
         : undefined;
 
       const sessionId = crypto.randomUUID();
-      await ctx.db.insert(saasChatSessions).values({
+      await ctx.db.insert(saasSupportChatSessions).values({
         id: sessionId,
         visitorId: input.visitorId,
         userId: userId ?? null,
@@ -234,10 +246,10 @@ export const chatRouter = createTRPCRouter({
       // Verify session ownership
       const [session] = await ctx.db
         .select()
-        .from(saasChatSessions)
+        .from(saasSupportChatSessions)
         .where(and(
-          eq(saasChatSessions.id, input.sessionId),
-          eq(saasChatSessions.visitorId, input.visitorId),
+          eq(saasSupportChatSessions.id, input.sessionId),
+          eq(saasSupportChatSessions.visitorId, input.visitorId),
         ))
         .limit(1);
 
@@ -252,7 +264,7 @@ export const chatRouter = createTRPCRouter({
       // Store user message
       const userMsgId = crypto.randomUUID();
       const now = new Date();
-      await ctx.db.insert(saasChatMessages).values({
+      await ctx.db.insert(saasSupportChatMessages).values({
         id: userMsgId,
         sessionId: input.sessionId,
         role: 'user',
@@ -291,10 +303,10 @@ export const chatRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const [session] = await ctx.db
         .select()
-        .from(saasChatSessions)
+        .from(saasSupportChatSessions)
         .where(and(
-          eq(saasChatSessions.id, input.sessionId),
-          eq(saasChatSessions.visitorId, input.visitorId),
+          eq(saasSupportChatSessions.id, input.sessionId),
+          eq(saasSupportChatSessions.visitorId, input.visitorId),
         ))
         .limit(1);
 
@@ -304,14 +316,14 @@ export const chatRouter = createTRPCRouter({
 
       const messages = await ctx.db
         .select({
-          id: saasChatMessages.id,
-          role: saasChatMessages.role,
-          body: saasChatMessages.body,
-          createdAt: saasChatMessages.createdAt,
+          id: saasSupportChatMessages.id,
+          role: saasSupportChatMessages.role,
+          body: saasSupportChatMessages.body,
+          createdAt: saasSupportChatMessages.createdAt,
         })
-        .from(saasChatMessages)
-        .where(eq(saasChatMessages.sessionId, input.sessionId))
-        .orderBy(asc(saasChatMessages.createdAt))
+        .from(saasSupportChatMessages)
+        .where(eq(saasSupportChatMessages.sessionId, input.sessionId))
+        .orderBy(asc(saasSupportChatMessages.createdAt))
         .limit(200);
 
       return { ...session, messages };
@@ -333,10 +345,10 @@ export const chatRouter = createTRPCRouter({
       // Verify session ownership via visitorId (works for both auth and anon)
       const [session] = await ctx.db
         .select()
-        .from(saasChatSessions)
+        .from(saasSupportChatSessions)
         .where(and(
-          eq(saasChatSessions.id, input.sessionId),
-          eq(saasChatSessions.visitorId, input.visitorId),
+          eq(saasSupportChatSessions.id, input.sessionId),
+          eq(saasSupportChatSessions.visitorId, input.visitorId),
         ))
         .limit(1);
 
@@ -359,10 +371,10 @@ export const chatRouter = createTRPCRouter({
         );
 
         const chatMessages = await ctx.db
-          .select({ role: saasChatMessages.role, body: saasChatMessages.body, createdAt: saasChatMessages.createdAt })
-          .from(saasChatMessages)
-          .where(eq(saasChatMessages.sessionId, input.sessionId))
-          .orderBy(asc(saasChatMessages.createdAt))
+          .select({ role: saasSupportChatMessages.role, body: saasSupportChatMessages.body, createdAt: saasSupportChatMessages.createdAt })
+          .from(saasSupportChatMessages)
+          .where(eq(saasSupportChatMessages.sessionId, input.sessionId))
+          .orderBy(asc(saasSupportChatMessages.createdAt))
           .limit(200);
 
         const transcript = chatMessages
@@ -390,9 +402,9 @@ export const chatRouter = createTRPCRouter({
         });
 
         await ctx.db
-          .update(saasChatSessions)
+          .update(saasSupportChatSessions)
           .set({ status: 'escalated', ticketId, subject })
-          .where(eq(saasChatSessions.id, input.sessionId));
+          .where(eq(saasSupportChatSessions.id, input.sessionId));
 
         sendOrgNotification(orgId, {
           title: 'Chat escalated to ticket',
@@ -417,9 +429,9 @@ export const chatRouter = createTRPCRouter({
       }
 
       await ctx.db
-        .update(saasChatSessions)
+        .update(saasSupportChatSessions)
         .set({ status: 'escalated', email: input.email, subject })
-        .where(eq(saasChatSessions.id, input.sessionId));
+        .where(eq(saasSupportChatSessions.id, input.sessionId));
 
       broadcastChatEvent(input.sessionId, 'chat_status', {
         sessionId: input.sessionId,
@@ -438,11 +450,11 @@ export const chatRouter = createTRPCRouter({
     }))
     .mutation(async ({ ctx, input }) => {
       const [session] = await ctx.db
-        .select({ id: saasChatSessions.id })
-        .from(saasChatSessions)
+        .select({ id: saasSupportChatSessions.id })
+        .from(saasSupportChatSessions)
         .where(and(
-          eq(saasChatSessions.id, input.sessionId),
-          eq(saasChatSessions.visitorId, input.visitorId),
+          eq(saasSupportChatSessions.id, input.sessionId),
+          eq(saasSupportChatSessions.visitorId, input.visitorId),
         ))
         .limit(1);
 
@@ -451,9 +463,9 @@ export const chatRouter = createTRPCRouter({
       }
 
       await ctx.db
-        .update(saasChatSessions)
+        .update(saasSupportChatSessions)
         .set({ email: input.email })
-        .where(eq(saasChatSessions.id, input.sessionId));
+        .where(eq(saasSupportChatSessions.id, input.sessionId));
 
       return { success: true };
     }),
@@ -466,11 +478,11 @@ export const chatRouter = createTRPCRouter({
     }))
     .mutation(async ({ ctx, input }) => {
       const [session] = await ctx.db
-        .select({ id: saasChatSessions.id })
-        .from(saasChatSessions)
+        .select({ id: saasSupportChatSessions.id })
+        .from(saasSupportChatSessions)
         .where(and(
-          eq(saasChatSessions.id, input.sessionId),
-          eq(saasChatSessions.visitorId, input.visitorId),
+          eq(saasSupportChatSessions.id, input.sessionId),
+          eq(saasSupportChatSessions.visitorId, input.visitorId),
         ))
         .limit(1);
 
@@ -479,9 +491,9 @@ export const chatRouter = createTRPCRouter({
       }
 
       await ctx.db
-        .update(saasChatSessions)
+        .update(saasSupportChatSessions)
         .set({ status: 'closed', closedAt: new Date() })
-        .where(eq(saasChatSessions.id, input.sessionId));
+        .where(eq(saasSupportChatSessions.id, input.sessionId));
 
       broadcastChatEvent(input.sessionId, 'chat_status', {
         sessionId: input.sessionId,
@@ -505,10 +517,10 @@ export const chatRouter = createTRPCRouter({
 
       const conditions = [];
       if (input.status) {
-        conditions.push(eq(saasChatSessions.status, input.status));
+        conditions.push(eq(saasSupportChatSessions.status, input.status));
       } else {
         // Default: show non-closed sessions
-        conditions.push(ne(saasChatSessions.status, 'closed'));
+        conditions.push(ne(saasSupportChatSessions.status, 'closed'));
       }
 
       const where = and(...conditions);
@@ -516,21 +528,21 @@ export const chatRouter = createTRPCRouter({
       const [items, [countRow]] = await Promise.all([
         ctx.db
           .select({
-            id: saasChatSessions.id,
-            visitorId: saasChatSessions.visitorId,
-            userId: saasChatSessions.userId,
-            email: saasChatSessions.email,
-            status: saasChatSessions.status,
-            subject: saasChatSessions.subject,
-            ticketId: saasChatSessions.ticketId,
-            createdAt: saasChatSessions.createdAt,
+            id: saasSupportChatSessions.id,
+            visitorId: saasSupportChatSessions.visitorId,
+            userId: saasSupportChatSessions.userId,
+            email: saasSupportChatSessions.email,
+            status: saasSupportChatSessions.status,
+            subject: saasSupportChatSessions.subject,
+            ticketId: saasSupportChatSessions.ticketId,
+            createdAt: saasSupportChatSessions.createdAt,
           })
-          .from(saasChatSessions)
+          .from(saasSupportChatSessions)
           .where(where)
-          .orderBy(desc(saasChatSessions.createdAt))
+          .orderBy(desc(saasSupportChatSessions.createdAt))
           .offset(offset)
           .limit(pageSize),
-        ctx.db.select({ count: count() }).from(saasChatSessions).where(where),
+        ctx.db.select({ count: count() }).from(saasSupportChatSessions).where(where),
       ]);
 
       // Enrich with user info — only fetch relevant users
@@ -547,16 +559,16 @@ export const chatRouter = createTRPCRouter({
 
       // Batch fetch last message for each session (single query instead of N+1)
       const sessionIds = items.map((i) => i.id);
-      let lastMessageMap: Record<string, { body: string; role: string; createdAt: Date }> = {};
+      const lastMessageMap: Record<string, { body: string; role: string; createdAt: Date }> = {};
       if (sessionIds.length > 0) {
         // Fetch latest message per session — one query per page (bounded by pageSize)
         const lastMsgRows = await Promise.all(
           sessionIds.map((sid) =>
             ctx.db
-              .select({ sessionId: saasChatMessages.sessionId, body: saasChatMessages.body, role: saasChatMessages.role, createdAt: saasChatMessages.createdAt })
-              .from(saasChatMessages)
-              .where(eq(saasChatMessages.sessionId, sid))
-              .orderBy(desc(saasChatMessages.createdAt))
+              .select({ sessionId: saasSupportChatMessages.sessionId, body: saasSupportChatMessages.body, role: saasSupportChatMessages.role, createdAt: saasSupportChatMessages.createdAt })
+              .from(saasSupportChatMessages)
+              .where(eq(saasSupportChatMessages.sessionId, sid))
+              .orderBy(desc(saasSupportChatMessages.createdAt))
               .limit(1)
               .then((rows) => rows[0] ?? null)
           )
@@ -593,8 +605,8 @@ export const chatRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const [session] = await ctx.db
         .select()
-        .from(saasChatSessions)
-        .where(eq(saasChatSessions.id, input.id))
+        .from(saasSupportChatSessions)
+        .where(eq(saasSupportChatSessions.id, input.id))
         .limit(1);
 
       if (!session) {
@@ -603,15 +615,15 @@ export const chatRouter = createTRPCRouter({
 
       const messages = await ctx.db
         .select({
-          id: saasChatMessages.id,
-          role: saasChatMessages.role,
-          body: saasChatMessages.body,
-          metadata: saasChatMessages.metadata,
-          createdAt: saasChatMessages.createdAt,
+          id: saasSupportChatMessages.id,
+          role: saasSupportChatMessages.role,
+          body: saasSupportChatMessages.body,
+          metadata: saasSupportChatMessages.metadata,
+          createdAt: saasSupportChatMessages.createdAt,
         })
-        .from(saasChatMessages)
-        .where(eq(saasChatMessages.sessionId, input.id))
-        .orderBy(asc(saasChatMessages.createdAt))
+        .from(saasSupportChatMessages)
+        .where(eq(saasSupportChatMessages.sessionId, input.id))
+        .orderBy(asc(saasSupportChatMessages.createdAt))
         .limit(200);
 
       // Get user info if available
@@ -637,8 +649,8 @@ export const chatRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const [session] = await ctx.db
         .select()
-        .from(saasChatSessions)
-        .where(eq(saasChatSessions.id, input.sessionId))
+        .from(saasSupportChatSessions)
+        .where(eq(saasSupportChatSessions.id, input.sessionId))
         .limit(1);
 
       if (!session) {
@@ -652,7 +664,7 @@ export const chatRouter = createTRPCRouter({
       const messageId = crypto.randomUUID();
       const now = new Date();
 
-      await ctx.db.insert(saasChatMessages).values({
+      await ctx.db.insert(saasSupportChatMessages).values({
         id: messageId,
         sessionId: input.sessionId,
         role: 'agent',
@@ -662,9 +674,9 @@ export const chatRouter = createTRPCRouter({
       // Transition to agent_active if AI was handling
       if (session.status === 'ai_active' || session.status === 'escalated') {
         await ctx.db
-          .update(saasChatSessions)
+          .update(saasSupportChatSessions)
           .set({ status: 'agent_active' })
-          .where(eq(saasChatSessions.id, input.sessionId));
+          .where(eq(saasSupportChatSessions.id, input.sessionId));
       }
 
       // Broadcast message to chat channel
@@ -696,9 +708,9 @@ export const chatRouter = createTRPCRouter({
     .input(z.object({ sessionId: z.string().uuid() }))
     .mutation(async ({ ctx, input }) => {
       await ctx.db
-        .update(saasChatSessions)
+        .update(saasSupportChatSessions)
         .set({ status: 'closed', closedAt: new Date() })
-        .where(eq(saasChatSessions.id, input.sessionId));
+        .where(eq(saasSupportChatSessions.id, input.sessionId));
 
       broadcastChatEvent(input.sessionId, 'chat_status', {
         sessionId: input.sessionId,
@@ -712,11 +724,11 @@ export const chatRouter = createTRPCRouter({
   getStats: chatAdminProcedure.query(async ({ ctx }) => {
     const rows = await ctx.db
       .select({
-        status: saasChatSessions.status,
+        status: saasSupportChatSessions.status,
         count: count(),
       })
-      .from(saasChatSessions)
-      .groupBy(saasChatSessions.status);
+      .from(saasSupportChatSessions)
+      .groupBy(saasSupportChatSessions.status);
 
     const stats: Record<string, number> = { total: 0 };
     for (const row of rows) {

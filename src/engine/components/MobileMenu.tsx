@@ -21,11 +21,12 @@ export function MobileMenu({ items }: Props) {
 
   const close = useCallback(() => setOpen(false), []);
 
-  // Close on route change
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- close menu on route change
-    close();
-  }, [pathname, close]);
+  // Close on route change (adjust state during render — React docs pattern)
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    if (open) setOpen(false);
+  }
 
   // Lock body scroll when open
   useEffect(() => {

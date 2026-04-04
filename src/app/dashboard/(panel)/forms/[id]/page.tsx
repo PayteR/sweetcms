@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowDown,
@@ -60,48 +60,39 @@ function createEmptyField(): FormField {
 }
 
 // ---------------------------------------------------------------------------
-// Component
+// Inner form component — receives loaded data as props, remounts via key
 // ---------------------------------------------------------------------------
 
-export default function FormBuilderPage() {
+interface FormData {
+  name: string;
+  slug: string;
+  recipientEmail: string | null;
+  successMessage: string | null;
+  honeypotField: string | null;
+  active: boolean;
+  fields: unknown;
+  id: string;
+}
+
+function FormBuilderInner({ isNew, initialData }: { isNew: boolean; initialData: FormData | null }) {
   const __ = useAdminTranslations();
   const router = useRouter();
   const params = useParams<{ id: string }>();
-  const isNew = params.id === 'new';
 
-  // Form metadata
-  const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
-  const [recipientEmail, setRecipientEmail] = useState('');
-  const [successMessage, setSuccessMessage] = useState('Thank you!');
-  const [honeypotField, setHoneypotField] = useState('');
-  const [active, setActive] = useState(true);
+  // Form metadata — initialized from props (no useEffect needed)
+  const [name, setName] = useState(initialData?.name ?? '');
+  const [slug, setSlug] = useState(initialData?.slug ?? '');
+  const [recipientEmail, setRecipientEmail] = useState(initialData?.recipientEmail ?? '');
+  const [successMessage, setSuccessMessage] = useState(initialData?.successMessage ?? 'Thank you!');
+  const [honeypotField, setHoneypotField] = useState(initialData?.honeypotField ?? '');
+  const [active, setActive] = useState(initialData?.active ?? true);
 
-  // Fields
-  const [fields, setFields] = useState<FormField[]>([createEmptyField()]);
-
-  // Loading state for existing form
-  const formQuery = trpc.forms.get.useQuery(
-    { id: params.id },
-    { enabled: !isNew }
-  );
-
-  // Populate form data when fetched
-  useEffect(() => {
-    if (!formQuery.data) return;
-    const form = formQuery.data;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- populate form from server data
-    setName(form.name);
-    setSlug(form.slug);
-    setRecipientEmail(form.recipientEmail ?? '');
-    setSuccessMessage(form.successMessage ?? 'Thank you!');
-    setHoneypotField(form.honeypotField ?? '');
-    setActive(form.active);
-    const formFields = form.fields as FormField[];
-    if (Array.isArray(formFields) && formFields.length > 0) {
-      setFields(formFields);
-    }
-  }, [formQuery.data]);
+  // Fields — initialized from props
+  const [fields, setFields] = useState<FormField[]>(() => {
+    const formFields = initialData?.fields as FormField[] | undefined;
+    if (Array.isArray(formFields) && formFields.length > 0) return formFields;
+    return [createEmptyField()];
+  });
 
   const createForm = trpc.forms.create.useMutation({
     onSuccess: (data) => {
@@ -185,26 +176,6 @@ export default function FormBuilderPage() {
     } else {
       updateForm.mutate({ id: params.id, ...payload });
     }
-  }
-
-  // ---------------------------------------------------------------------------
-  // Loading state
-  // ---------------------------------------------------------------------------
-
-  if (!isNew && formQuery.isLoading) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
-      </div>
-    );
-  }
-
-  if (!isNew && formQuery.isError) {
-    return (
-      <div className="py-24 text-center text-sm text-(--text-muted)">
-        {__('Form not found.')}
-      </div>
-    );
   }
 
   // ---------------------------------------------------------------------------
@@ -503,5 +474,44 @@ export default function FormBuilderPage() {
         </div>
       )}
     </div></main>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Page component — handles loading + keys the inner form on data identity
+// ---------------------------------------------------------------------------
+
+export default function FormBuilderPage() {
+  const __ = useAdminTranslations();
+  const params = useParams<{ id: string }>();
+  const isNew = params.id === 'new';
+
+  const formQuery = trpc.forms.get.useQuery(
+    { id: params.id },
+    { enabled: !isNew }
+  );
+
+  if (!isNew && formQuery.isLoading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="h-6 w-6 animate-spin text-(--text-muted)" />
+      </div>
+    );
+  }
+
+  if (!isNew && formQuery.isError) {
+    return (
+      <div className="py-24 text-center text-sm text-(--text-muted)">
+        {__('Form not found.')}
+      </div>
+    );
+  }
+
+  return (
+    <FormBuilderInner
+      key={formQuery.data?.id ?? 'new'}
+      isNew={isNew}
+      initialData={(formQuery.data as FormData | undefined) ?? null}
+    />
   );
 }

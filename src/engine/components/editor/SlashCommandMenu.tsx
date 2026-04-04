@@ -5,7 +5,7 @@ import {
   useCallback,
   useEffect,
   useImperativeHandle,
-  useLayoutEffect,
+
   useRef,
   useState,
 } from 'react';
@@ -49,13 +49,14 @@ export interface SlashCommandMenuHandle {
 export const SlashCommandMenu = forwardRef<SlashCommandMenuHandle, SlashCommandMenuProps>(
   function SlashCommandMenu({ items, command }, ref) {
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const [prevItems, setPrevItems] = useState(items);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Reset selection when items change
-    useLayoutEffect(() => {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset index when items list changes
+    // Reset selection when items change (adjust state during render)
+    if (prevItems !== items) {
+      setPrevItems(items);
       setSelectedIndex(0);
-    }, [items]);
+    }
 
     // Scroll selected item into view
     useEffect(() => {

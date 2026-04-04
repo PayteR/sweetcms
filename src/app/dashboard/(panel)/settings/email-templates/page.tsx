@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowLeft, Loader2, RotateCcw, Save } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
@@ -38,20 +38,32 @@ const TEMPLATES: { name: TemplateName; label: string; variables: string[] }[] = 
   },
 ];
 
-export default function EmailTemplatesPage() {
+// ---------------------------------------------------------------------------
+// Editor sub-component — keyed on `editing` so it remounts with fresh state
+// ---------------------------------------------------------------------------
+
+function TemplateEditor({
+  templateName,
+  initialSubject,
+  initialHtml,
+  hasOverride,
+  onClose,
+}: {
+  templateName: TemplateName;
+  initialSubject: string;
+  initialHtml: string;
+  hasOverride: boolean;
+  onClose: () => void;
+}) {
   const __ = useAdminTranslations();
   const utils = trpc.useUtils();
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  const [editing, setEditing] = useState<TemplateName | null>(null);
-  const [subject, setSubject] = useState('');
-  const [html, setHtml] = useState('');
+  const [subject, setSubject] = useState(initialSubject);
+  const [html, setHtml] = useState(initialHtml);
   const [resetTarget, setResetTarget] = useState<TemplateName | null>(null);
 
-  const templateOptions = trpc.options.getByPrefix.useQuery(
-    { prefix: 'email.template.' },
-    { enabled: true }
-  );
+  const template = TEMPLATES.find((t) => t.name === templateName)!;
 
   const setOption = trpc.options.set.useMutation({
     onSuccess: () => {
@@ -65,25 +77,10 @@ export default function EmailTemplatesPage() {
     onSuccess: () => {
       toast.success(__('Template reset to default'));
       utils.options.getByPrefix.invalidate();
-      setEditing(null);
+      onClose();
     },
     onError: (err) => toast.error(err.message),
   });
-
-  // Load template data when editing changes
-  useEffect(() => {
-    if (!editing || !templateOptions.data) return;
-
-    const key = `email.template.${editing}`;
-    const existing = templateOptions.data as Record<string, unknown>;
-    const override = existing[key] as
-      | { subject?: string; html?: string }
-      | undefined;
-
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- populate form from server data
-    setSubject(override?.subject ?? '');
-    setHtml(override?.html ?? '');
-  }, [editing, templateOptions.data]);
 
   // Update preview iframe when html changes
   useEffect(() => {
@@ -97,16 +94,9 @@ export default function EmailTemplatesPage() {
     }
   }, [html]);
 
-  function getOverrideStatus(name: TemplateName): boolean {
-    if (!templateOptions.data) return false;
-    const data = templateOptions.data as Record<string, unknown>;
-    return !!data[`email.template.${name}`];
-  }
-
   function handleSave() {
-    if (!editing) return;
     setOption.mutate({
-      key: `email.template.${editing}`,
+      key: `email.template.${templateName}`,
       value: { subject, html },
     });
   }
@@ -115,6 +105,139 @@ export default function EmailTemplatesPage() {
     if (!resetTarget) return;
     deleteOption.mutate({ key: `email.template.${resetTarget}` });
     setResetTarget(null);
+  }
+
+  return (
+    <main className="dash-main"><div className="dash-inner email-editor-page">
+      <div className="email-templates-header flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={onClose}
+            className="btn btn-secondary"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </button>
+          <h1 className="text-2xl font-bold text-(--text-primary)">
+            {__('Edit: {label}', { label: template.label })}
+          </h1>
+        </div>
+        <div className="flex gap-2">
+          {hasOverride && (
+            <button
+              onClick={() => setResetTarget(templateName)}
+              className="btn btn-secondary"
+            >
+              <RotateCcw className="h-4 w-4" />
+              {__('Reset to Default')}
+            </button>
+          )}
+          <button
+            onClick={handleSave}
+            disabled={setOption.isPending}
+            className="btn btn-primary disabled:opacity-50"
+          >
+            {setOption.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            {__('Save')}
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-6 space-y-4">
+        <div className="card p-4">
+          <label className="block text-sm font-medium text-(--text-secondary)">
+            {__('Subject')}
+          </label>
+          <input
+            type="text"
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            className="input mt-1"
+            placeholder={__('Email subject line')}
+          />
+        </div>
+
+        <div className="card p-4">
+          <label className="block text-sm font-medium text-(--text-secondary)">
+            {__('HTML Body')}
+          </label>
+          <textarea
+            value={html}
+            onChange={(e) => setHtml(e.target.value)}
+            rows={16}
+            className="textarea mt-1 font-mono text-xs"
+            placeholder="<html>...</html>"
+          />
+        </div>
+
+        <div className="card p-4">
+          <p className="text-sm font-medium text-(--text-secondary)">
+            {__('Available Variables')}
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            {template.variables.map((v) => (
+              <code
+                key={v}
+                className="rounded bg-(--surface-secondary) px-2 py-0.5 text-xs text-(--text-secondary)"
+              >
+                {`{{${v}}}`}
+              </code>
+            ))}
+          </div>
+        </div>
+
+        {html && (
+          <div className="card p-4">
+            <p className="text-sm font-medium text-(--text-secondary)">
+              {__('Preview')}
+            </p>
+            <iframe
+              ref={iframeRef}
+              title="Email preview"
+              className="mt-2 h-80 w-full rounded border border-(--border-primary) bg-white"
+              sandbox=""
+            />
+          </div>
+        )}
+      </div>
+
+      <ConfirmDialog
+        open={!!resetTarget}
+        title={__('Reset to default?')}
+        message={__('This will remove your customizations and revert to the file-based template.')}
+        confirmLabel={__('Reset')}
+        variant="danger"
+        onConfirm={handleReset}
+        onCancel={() => setResetTarget(null)}
+      />
+    </div></main>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Main page component
+// ---------------------------------------------------------------------------
+
+export default function EmailTemplatesPage() {
+  const __ = useAdminTranslations();
+
+  const [editing, setEditing] = useState<TemplateName | null>(null);
+
+  const templateOptions = trpc.options.getByPrefix.useQuery(
+    { prefix: 'email.template.' },
+    { enabled: true }
+  );
+
+  const overrideData = useMemo(() => {
+    if (!templateOptions.data) return {} as Record<string, unknown>;
+    return templateOptions.data as Record<string, unknown>;
+  }, [templateOptions.data]);
+
+  function getOverrideStatus(name: TemplateName): boolean {
+    return !!overrideData[`email.template.${name}`];
   }
 
   if (templateOptions.isLoading) {
@@ -126,114 +249,18 @@ export default function EmailTemplatesPage() {
   }
 
   if (editing) {
-    const template = TEMPLATES.find((t) => t.name === editing)!;
+    const override = overrideData[`email.template.${editing}`] as
+      | { subject?: string; html?: string }
+      | undefined;
     return (
-      <main className="dash-main"><div className="dash-inner email-editor-page">
-        <div className="email-templates-header flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setEditing(null)}
-              className="btn btn-secondary"
-            >
-              <ArrowLeft className="h-4 w-4" />
-            </button>
-            <h1 className="text-2xl font-bold text-(--text-primary)">
-              {__('Edit: {label}', { label: template.label })}
-            </h1>
-          </div>
-          <div className="flex gap-2">
-            {getOverrideStatus(editing) && (
-              <button
-                onClick={() => setResetTarget(editing)}
-                className="btn btn-secondary"
-              >
-                <RotateCcw className="h-4 w-4" />
-                {__('Reset to Default')}
-              </button>
-            )}
-            <button
-              onClick={handleSave}
-              disabled={setOption.isPending}
-              className="btn btn-primary disabled:opacity-50"
-            >
-              {setOption.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Save className="h-4 w-4" />
-              )}
-              {__('Save')}
-            </button>
-          </div>
-        </div>
-
-        <div className="mt-6 space-y-4">
-          <div className="card p-4">
-            <label className="block text-sm font-medium text-(--text-secondary)">
-              {__('Subject')}
-            </label>
-            <input
-              type="text"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              className="input mt-1"
-              placeholder={__('Email subject line')}
-            />
-          </div>
-
-          <div className="card p-4">
-            <label className="block text-sm font-medium text-(--text-secondary)">
-              {__('HTML Body')}
-            </label>
-            <textarea
-              value={html}
-              onChange={(e) => setHtml(e.target.value)}
-              rows={16}
-              className="textarea mt-1 font-mono text-xs"
-              placeholder="<html>...</html>"
-            />
-          </div>
-
-          <div className="card p-4">
-            <p className="text-sm font-medium text-(--text-secondary)">
-              {__('Available Variables')}
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {template.variables.map((v) => (
-                <code
-                  key={v}
-                  className="rounded bg-(--surface-secondary) px-2 py-0.5 text-xs text-(--text-secondary)"
-                >
-                  {`{{${v}}}`}
-                </code>
-              ))}
-            </div>
-          </div>
-
-          {html && (
-            <div className="card p-4">
-              <p className="text-sm font-medium text-(--text-secondary)">
-                {__('Preview')}
-              </p>
-              <iframe
-                ref={iframeRef}
-                title="Email preview"
-                className="mt-2 h-80 w-full rounded border border-(--border-primary) bg-white"
-                sandbox=""
-              />
-            </div>
-          )}
-        </div>
-
-        <ConfirmDialog
-          open={!!resetTarget}
-          title={__('Reset to default?')}
-          message={__('This will remove your customizations and revert to the file-based template.')}
-          confirmLabel={__('Reset')}
-          variant="danger"
-          onConfirm={handleReset}
-          onCancel={() => setResetTarget(null)}
-        />
-      </div></main>
+      <TemplateEditor
+        key={editing}
+        templateName={editing}
+        initialSubject={override?.subject ?? ''}
+        initialHtml={override?.html ?? ''}
+        hasOverride={getOverrideStatus(editing)}
+        onClose={() => setEditing(null)}
+      />
     );
   }
 

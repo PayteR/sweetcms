@@ -92,37 +92,32 @@ export function CommandPalette({ open, onClose, navItems: navItemsProp, contentT
     return items;
   }, [filteredNav, contentSearch.data, __, contentTypeIcons]);
 
-  // Reset active index when results change
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setActiveIndex(0);
-  }, [results.length]);
+  // Reset active index when results change (adjust state during render — React docs pattern)
+  const [prevResultsLen, setPrevResultsLen] = useState(results.length);
+  if (prevResultsLen !== results.length) {
+    setPrevResultsLen(results.length);
+    if (activeIndex !== 0) setActiveIndex(0);
+  }
 
-  // Open/close dialog
+  // Reset state when palette opens (adjust state during render — React docs pattern)
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
+    if (open) {
+      if (query !== '') setQuery('');
+      if (activeIndex !== 0) setActiveIndex(0);
+    }
+  }
+
+  // Open/close dialog + focus input
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
     if (open && !dialog.open) {
       dialog.showModal();
-      inputRef.current?.focus();
+      requestAnimationFrame(() => inputRef.current?.focus());
     } else if (!open && dialog.open) {
       dialog.close();
-    }
-  }, [open]);
-
-  // Reset state on open
-  useEffect(() => {
-    if (open) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset state when palette opens
-      setQuery('');
-      setActiveIndex(0);
-    }
-  }, [open]);
-
-  // Focus input after dialog opens
-  useEffect(() => {
-    if (open) {
-      requestAnimationFrame(() => inputRef.current?.focus());
     }
   }, [open]);
 

@@ -46,6 +46,7 @@ export default function AdminChatDetailPage() {
   const utils = trpc.useUtils();
   const [replyBody, setReplyBody] = useState('');
   const [status, setStatus] = useState<string>('ai_active');
+  const [prevSessionStatus, setPrevSessionStatus] = useState<string | undefined>(undefined);
   const messagesRef = useRef<HTMLDivElement>(null);
   const shouldScrollRef = useRef(true);
 
@@ -65,10 +66,11 @@ export default function AdminChatDetailPage() {
     },
   });
 
-  // Track status
-  useEffect(() => {
-    if (session?.status) setStatus(session.status);
-  }, [session?.status]);
+  // Track status — adjust state during render (React docs pattern)
+  if (session?.status && session.status !== prevSessionStatus) {
+    setPrevSessionStatus(session.status);
+    setStatus(session.status);
+  }
 
   // Real-time updates
   useChannel<ChatWsEvent>(`chat:${id}`, useCallback((event: ChatWsEvent) => {
@@ -188,6 +190,11 @@ export default function AdminChatDetailPage() {
               ? session.email
               : `${session.visitorId.slice(0, 12)}…`}
         </span>
+        {session.email && session.creator && session.email !== session.creator.email && (
+          <span>
+            <strong>{__('Chat email')}:</strong> {session.email}
+          </span>
+        )}
         <span>
           <strong>{__('Started')}:</strong>{' '}
           {new Date(session.createdAt).toLocaleString()}

@@ -42,8 +42,8 @@ export const CustomFieldsEditor = forwardRef<
   const __ = useAdminTranslations();
 
   const [values, setValues] = useState<Record<string, unknown>>({});
-  const [loaded, setLoaded] = useState(false);
-  const prevContentIdRef = useRef(contentId);
+  const [prevContentId, setPrevContentId] = useState(contentId);
+  const [prevServerData, setPrevServerData] = useState<Record<string, unknown> | undefined>(undefined);
 
   const definitions = trpc.customFields.listForContentType.useQuery(
     { contentType },
@@ -57,24 +57,20 @@ export const CustomFieldsEditor = forwardRef<
 
   const saveValues = trpc.customFields.saveValues.useMutation();
 
-  // Initialize values from server when data arrives or contentId changes
-  useEffect(() => {
-    if (existingValues.data && (!loaded || prevContentIdRef.current !== contentId)) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync server data to local state
-      setValues(existingValues.data);
-      setLoaded(true);
-      prevContentIdRef.current = contentId;
-    }
-  }, [existingValues.data, loaded, contentId]);
-
-  // Reset loaded state when contentId changes (e.g. navigating to new form)
-  useEffect(() => {
+  // Reset state when contentId changes (adjust state during render)
+  if (prevContentId !== contentId) {
+    setPrevContentId(contentId);
     if (!contentId) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset state when content changes
       setValues({});
-      setLoaded(false);
     }
-  }, [contentId]);
+    setPrevServerData(undefined);
+  }
+
+  // Sync server data to local state when it arrives (adjust state during render)
+  if (existingValues.data && existingValues.data !== prevServerData) {
+    setPrevServerData(existingValues.data);
+    setValues(existingValues.data);
+  }
 
   const handleFieldChange = useCallback(
     (slug: string, value: unknown) => {

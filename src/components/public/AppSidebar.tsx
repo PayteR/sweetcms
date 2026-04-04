@@ -23,10 +23,12 @@ export function AppSidebarProvider({ children }: { children: React.ReactNode }) 
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- close sidebar on route change
-    setOpen(false);
-  }, [pathname]);
+  // Close sidebar on route change (adjust state during render — React docs pattern)
+  const [prevPathname, setPrevPathname] = useState(pathname);
+  if (prevPathname !== pathname) {
+    setPrevPathname(pathname);
+    if (open) setOpen(false);
+  }
 
   useEffect(() => {
     if (!open) return;

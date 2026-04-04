@@ -32,15 +32,21 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
 
   // Debounce search input
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     if (inputValue.length < 1) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- debounce search input
-      setDebouncedQuery('');
+      // Synchronous reset handled via adjust-state-during-render below
       return;
     }
-    const timer = setTimeout(() => setDebouncedQuery(inputValue), 250);
-    return () => clearTimeout(timer);
+    debounceTimerRef.current = setTimeout(() => setDebouncedQuery(inputValue), 250);
+    return () => { if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current); };
   }, [inputValue]);
+
+  // Immediately clear debounced query when input is too short (adjust state during render)
+  if (inputValue.length < 1 && debouncedQuery !== '') {
+    setDebouncedQuery('');
+  }
 
   // Search for autocomplete (now returns count)
   const searchQuery = trpc.tags.search.useQuery(
@@ -57,18 +63,19 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
     { enabled: selectedTagIds.length > 0 }
   );
 
-  // Sync selected tags when resolved data loads or selectedTagIds change
-  useEffect(() => {
-    if (resolvedTags.data) {
-      // Preserve order of selectedTagIds
-      const tagMap = new Map(resolvedTags.data.map((t) => [t.id, t]));
-      const ordered = selectedTagIds
-        .map((id) => tagMap.get(id))
-        .filter((t): t is TagOption => !!t);
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync resolved tag data to local state
-      setSelectedTags(ordered);
-    }
-  }, [resolvedTags.data, selectedTagIds]);
+  // Sync selected tags when resolved data loads or selectedTagIds change (adjust state during render)
+  const [prevResolvedData, setPrevResolvedData] = useState(resolvedTags.data);
+  const [prevSelectedTagIds, setPrevSelectedTagIds] = useState(selectedTagIds);
+  if (resolvedTags.data && (resolvedTags.data !== prevResolvedData || selectedTagIds !== prevSelectedTagIds)) {
+    setPrevResolvedData(resolvedTags.data);
+    setPrevSelectedTagIds(selectedTagIds);
+    // Preserve order of selectedTagIds
+    const tagMap = new Map(resolvedTags.data.map((t) => [t.id, t]));
+    const ordered = selectedTagIds
+      .map((id) => tagMap.get(id))
+      .filter((t): t is TagOption => !!t);
+    setSelectedTags(ordered);
+  }
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -89,11 +96,12 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
     (t) => !selectedTagIds.includes(t.id)
   );
 
-  // Reset highlighted index when suggestions change
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- reset highlight when suggestions change
+  // Reset highlighted index when suggestions change (adjust state during render)
+  const [prevSuggestionsLength, setPrevSuggestionsLength] = useState(suggestions.length);
+  if (suggestions.length !== prevSuggestionsLength) {
+    setPrevSuggestionsLength(suggestions.length);
     setHighlightedIndex(-1);
-  }, [suggestions.length]);
+  }
 
   // Scroll highlighted item into view
   useEffect(() => {
