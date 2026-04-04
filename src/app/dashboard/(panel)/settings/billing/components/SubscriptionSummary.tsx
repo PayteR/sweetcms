@@ -1,6 +1,6 @@
 'use client';
 
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { cn } from '@/lib/utils';
 
 interface SubscriptionSummaryProps {
@@ -31,7 +31,7 @@ function Skeleton({ className }: { className?: string }) {
 }
 
 export function SubscriptionSummary({ data, isLoading }: SubscriptionSummaryProps) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
 
   return (
     <div className="flex flex-col gap-6">

@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { PostType } from '@/engine/types/cms';
 import { toast } from '@/store/toast-store';
 import { cn } from '@/lib/utils';
@@ -64,7 +64,7 @@ const CMS_FIELDS = [
 ] as const;
 
 export default function ImportPage() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Step state

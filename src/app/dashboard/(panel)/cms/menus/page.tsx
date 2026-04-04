@@ -5,14 +5,14 @@ import Link from 'next/link';
 import { Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
 import { adminPanel } from '@/config/routes';
 import { slugify } from '@/engine/lib/slug';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 export default function MenusPage() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const utils = trpc.useUtils();
   const [showCreate, setShowCreate] = useState(false);
   const [newName, setNewName] = useState('');

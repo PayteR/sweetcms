@@ -12,12 +12,12 @@ import {
 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 export default function ProjectsPage() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const utils = trpc.useUtils();
 
   const [showCreateForm, setShowCreateForm] = useState(false);

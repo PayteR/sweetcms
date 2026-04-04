@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Coins } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { trpc } from '@/lib/trpc/client';
 import { useChannel } from '@/engine/lib/ws-client';
 
@@ -20,7 +20,7 @@ interface TokenWsPayload {
 }
 
 export function TokenBalance({ href }: TokenBalanceProps) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const [liveBalance, setLiveBalance] = useState<number | null>(null);
   const [animating, setAnimating] = useState(false);
   const prevBalance = useRef<number | null>(null);

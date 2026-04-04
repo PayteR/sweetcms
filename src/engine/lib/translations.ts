@@ -17,16 +17,31 @@ import { createTranslationFunction, type TranslationFn } from './translation-uti
 
 export type { TranslationFn } from './translation-utils';
 
-/** Client-side translation hook — wraps next-intl's useTranslations */
-export const useBlankTranslations = (
+/** Client-side translation hook — wraps next-intl's useTranslations with safe fallback */
+export const useAdminTranslations = (
   namespace: string = 'General'
 ): TranslationFn => {
   const t = useBaseTranslations(namespace);
-  return createTranslationFunction(t);
+  const wrapped = createTranslationFunction(t);
+  return (key, values, formats) => {
+    try {
+      return wrapped(key, values, formats);
+    } catch {
+      // Missing key — return the raw key (reverse @@@ transform if present)
+      return key.replace(/@@@/g, '.');
+    }
+  };
 };
 
-/** Alias for useBlankTranslations */
-export const useTranslations = useBlankTranslations;
+/**
+ * No-op translation hook — returns the key as-is without lookup.
+ * Useful for system messages, debug UI, or components that should
+ * not go through the translation pipeline.
+ */
+export const useBlankTranslations = (): TranslationFn => blankTranslator;
+
+/** Alias */
+export const useTranslations = useAdminTranslations;
 
 const blankTranslator: TranslationFn = (key) => key;
 

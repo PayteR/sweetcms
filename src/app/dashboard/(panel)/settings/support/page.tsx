@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { adminPanel } from '@/config/routes';
 import { cn } from '@/lib/utils';
 
@@ -35,7 +35,7 @@ const PRIORITY_COLORS: Record<string, string> = {
 };
 
 export default function AdminSupportPage() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
   const [priorityFilter, setPriorityFilter] = useState<string | undefined>(undefined);
   const [page, setPage] = useState(1);

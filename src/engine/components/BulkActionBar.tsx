@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Download, Loader2, Trash2, Undo2 } from 'lucide-react';
 
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 import { ContentStatus } from '@/engine/types/cms';
 
 interface BulkActionBarProps {
@@ -27,7 +27,7 @@ export default function BulkActionBar({
   isPending,
   onBulkExport,
 }: BulkActionBarProps) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const [exportOpen, setExportOpen] = useState(false);
 
   if (selectedCount === 0) return null;

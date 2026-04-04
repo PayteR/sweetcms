@@ -5,11 +5,13 @@ import Link from 'next/link';
 import { Clock } from 'lucide-react';
 
 import type { DashboardWidgetDef } from '@/engine/config/dashboard-widgets';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { adminPanel } from '@/config/routes';
 import GA4Widget from '@/engine/components/GA4Widget';
 import RecentActivity from '@/engine/components/RecentActivity';
 import ContentStatusWidget from '@/engine/components/ContentStatusWidget';
+import type { ContentStatusEntry } from '@/engine/components/ContentStatusWidget';
+import { PostType } from '@/engine/types/cms';
 import QuickActionsWidget from '@/components/admin/QuickActionsWidget';
 
 export type { DashboardWidgetDef } from '@/engine/config/dashboard-widgets';
@@ -19,7 +21,7 @@ export type WidgetComponent = ComponentType<{ dragHandle?: ReactNode }>;
 
 // ── RecentActivity wrapper ─────────────────────────────────
 function RecentActivityWidget({ dragHandle }: { dragHandle?: ReactNode }) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
 
   return (
     <div className="card flex flex-col overflow-hidden">
@@ -41,6 +43,16 @@ function RecentActivityWidget({ dragHandle }: { dragHandle?: ReactNode }) {
       <RecentActivity />
     </div>
   );
+}
+
+// ── ContentStatus wrapper (injects project-specific post types) ──
+const CONTENT_STATUS_ENTRIES: ContentStatusEntry[] = [
+  { type: PostType.PAGE, publishedLabel: 'Published pages', draftLabel: 'Draft pages' },
+  { type: PostType.BLOG, publishedLabel: 'Published posts', draftLabel: 'Draft posts' },
+];
+
+function ContentStatusWidgetWrapper({ dragHandle }: { dragHandle?: ReactNode }) {
+  return <ContentStatusWidget dragHandle={dragHandle} entries={CONTENT_STATUS_ENTRIES} />;
 }
 
 // ── GA4 wrapper (injects settingsHref) ─────────────────────
@@ -65,7 +77,7 @@ export const DEFAULT_HIDDEN_WIDGETS: string[] = [];
  * To add a new dashboard widget: add a DashboardWidgetDef above and map its id here.
  */
 export const DASHBOARD_WIDGET_COMPONENTS: Record<string, WidgetComponent> = {
-  'content-status': ContentStatusWidget,
+  'content-status': ContentStatusWidgetWrapper,
   'quick-actions': QuickActionsWidget,
   'ga4': GA4WidgetWrapper,
   'recent-activity': RecentActivityWidget,

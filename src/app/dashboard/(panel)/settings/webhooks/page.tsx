@@ -5,7 +5,7 @@ import { ArrowLeft, Plus, Pencil, Trash2, Loader2, Zap } from 'lucide-react';
 import Link from 'next/link';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
 import { adminPanel } from '@/config/routes';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -21,7 +21,7 @@ const ALL_EVENTS = [
 ];
 
 export default function WebhooksPage() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const utils = trpc.useUtils();
 
   const [showForm, setShowForm] = useState(false);

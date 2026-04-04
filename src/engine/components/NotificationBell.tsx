@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 import { cn } from '@/lib/utils';
 import { formatRelativeTime } from '@/engine/lib/datetime';
 
@@ -12,7 +12,7 @@ interface NotificationBellProps {
 }
 
 export function NotificationBell({ notificationsHref }: NotificationBellProps) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 

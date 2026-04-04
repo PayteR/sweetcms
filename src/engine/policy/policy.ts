@@ -15,7 +15,7 @@ export const Role = {
 export type UserRole = (typeof Role)[keyof typeof Role];
 export const ROLES = Object.values(Role) as [UserRole, ...UserRole[]];
 
-export type AdminSection = 'dashboard' | 'content' | 'media' | 'users' | 'settings' | 'billing' | 'organizations';
+export type AdminSection = 'dashboard' | 'content' | 'media' | 'structure' | 'users' | 'settings' | 'billing' | 'organizations';
 
 export type Capability =
   | `section.${AdminSection}`
@@ -25,6 +25,7 @@ const ALL_SECTIONS: AdminSection[] = [
   'dashboard',
   'content',
   'media',
+  'structure',
   'users',
   'settings',
   'billing',
@@ -40,11 +41,13 @@ const ROLE_CAPABILITIES: Record<
     'section.dashboard': true,
     'section.content': true,
     'section.media': true,
+    'section.structure': true,
   },
   [Role.ADMIN]: {
     'section.dashboard': true,
     'section.content': true,
     'section.media': true,
+    'section.structure': true,
     'section.users': true,
     'section.settings': true,
     'section.billing': true,

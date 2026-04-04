@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { trpc } from '@/lib/trpc/client';
 import { adminPanel } from '@/config/routes';
 
@@ -9,7 +9,7 @@ const fmtCurrency = (cents: number) =>
   new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(cents / 100);
 
 export function AffiliateOverview() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const { data, isLoading } = trpc.billing.getAffiliateStats.useQuery();
 
   if (isLoading) {

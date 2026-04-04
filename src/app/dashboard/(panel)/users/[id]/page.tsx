@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { ROLES, Role } from '@/engine/policy';
 import { adminPanel, apiRoutes } from '@/config/routes';
 import { toast } from '@/store/toast-store';
@@ -40,7 +40,7 @@ const ROLE_ICONS: Record<string, React.ElementType> = {
 };
 
 export default function UserDetailPage() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const userId = params.id;

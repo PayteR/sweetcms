@@ -5,6 +5,19 @@ import { Loader2 } from 'lucide-react';
 
 import { ContentCalendar } from '@/engine/components/ContentCalendar';
 import { adminPanel } from '@/config/routes';
+import { getContentType, getContentTypeByPostType } from '@/config/cms';
+
+function resolveSection(contentType: string, postType?: number | null): string {
+  // Try by content type id first (e.g. 'category' → 'categories', 'portfolio' → 'portfolio')
+  const ct = getContentType(contentType);
+  if (ct) return ct.adminSlug;
+  // Fall back to postType lookup (e.g. PostType.PAGE → 'pages')
+  if (postType != null) {
+    const ptCt = getContentTypeByPostType(postType);
+    if (ptCt) return ptCt.adminSlug;
+  }
+  return contentType;
+}
 
 export default function CalendarPage() {
   return (
@@ -16,7 +29,10 @@ export default function CalendarPage() {
           </div>
         }
       >
-        <ContentCalendar editUrlBuilder={(section, id) => adminPanel.cmsItem(section, id)} />
+        <ContentCalendar
+          editUrlBuilder={(section, id) => adminPanel.cmsItem(section, id)}
+          resolveSection={resolveSection}
+        />
       </Suspense>
     </div></main>
   );

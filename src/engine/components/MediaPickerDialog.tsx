@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 import { trpc } from "@/lib/trpc/client";
-import { useBlankTranslations } from "@/engine/lib/translations";
+import { useAdminTranslations } from "@/engine/lib/translations";
 import { FileType } from "@/engine/types/cms";
 import { toast } from "@/engine/store/toast-store";
 import { cn } from "@/lib/utils";
@@ -26,7 +26,7 @@ interface Props {
 }
 
 export function MediaPickerDialog({ open, onClose, onSelect }: Props) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const utils = trpc.useUtils();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);

@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/engine/lib/translations';
-import { ContentStatus, PostType } from '@/engine/types/cms';
+import { useAdminTranslations } from '@/engine/lib/translations';
+import { ContentStatus } from '@/engine/types/cms';
 import { cn } from '@/lib/utils';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -21,18 +21,21 @@ const STATUS_CHIP: Record<number, string> = {
   [ContentStatus.DRAFT]: 'bg-(--surface-secondary) text-(--text-secondary)',
 };
 
-/** Map PostType to its admin URL slug */
-const POST_TYPE_ADMIN_SLUG: Record<number, string> = {
-  [PostType.PAGE]: 'pages',
-  [PostType.BLOG]: 'blog',
-};
+/**
+ * Maps a calendar event to its admin section slug.
+ * Accepts contentType string and optional postType number.
+ * Returns the admin slug (e.g. 'blog', 'pages', 'categories').
+ */
+type SectionResolver = (contentType: string, postType?: number | null) => string;
 
 interface ContentCalendarProps {
   editUrlBuilder?: (section: string, id: string) => string;
+  /** Resolve admin section slug from contentType + postType. Falls back to contentType. */
+  resolveSection?: SectionResolver;
 }
 
-export function ContentCalendar({ editUrlBuilder }: ContentCalendarProps) {
-  const __ = useBlankTranslations();
+export function ContentCalendar({ editUrlBuilder, resolveSection }: ContentCalendarProps) {
+  const __ = useAdminTranslations();
   const now = new Date();
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
@@ -70,9 +73,10 @@ export function ContentCalendar({ editUrlBuilder }: ContentCalendarProps) {
   // Resolve admin edit URL
   function getEditUrl(ev: NonNullable<typeof events.data>[number]): string | null {
     if (!editUrlBuilder) return null;
-    if (ev.contentType === 'category') return editUrlBuilder('categories', ev.id);
-    const adminSlug = (ev.type != null && POST_TYPE_ADMIN_SLUG[ev.type]) || 'blog';
-    return editUrlBuilder(adminSlug, ev.id);
+    const section = resolveSection
+      ? resolveSection(ev.contentType, ev.type)
+      : ev.contentType;
+    return editUrlBuilder(section, ev.id);
   }
 
   const isToday = (day: number) =>

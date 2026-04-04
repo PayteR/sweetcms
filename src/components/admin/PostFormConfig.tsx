@@ -19,7 +19,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Eye, EyeOff, Settings2, ArrowRight } from 'lucide-react';
 
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { cn } from '@/lib/utils';
 import { SlideOver } from '@/engine/components/SlideOver';
 import { usePreferencesStore } from '@/engine/store/preferences-store';
@@ -61,7 +61,7 @@ function SortablePanelRow({
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
 
   return (
     <div
@@ -273,7 +273,7 @@ function PostFormConfigPanel({ __ }: { __: (s: string) => string }) {
 
 // ── Config button + SlideOver ────────────────────────────────
 export function PostFormConfig() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const [open, setOpen] = useState(false);
 
   return (

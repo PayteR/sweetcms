@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft, Loader2, Send } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
 import { adminPanel } from '@/config/routes';
 import { cn } from '@/lib/utils';
@@ -29,7 +29,7 @@ const PRIORITY_LABELS: Record<string, string> = {
 };
 
 export default function AdminTicketDetailPage() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const params = useParams();
   const id = params.id as string;
   const utils = trpc.useUtils();

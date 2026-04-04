@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 import { useOverlay } from '@/engine/hooks/useOverlay';
 
 /* ── Size presets ── */
@@ -139,7 +139,7 @@ export interface DialogHeaderProps {
 }
 
 function Header({ children, onClose, className }: DialogHeaderProps) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const classes = useContext(DialogClassContext);
   return (
     <div className={cn('overlay-dialog-header', classes.header, className)}>

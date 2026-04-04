@@ -7,7 +7,7 @@ import { ArrowLeft, Save, Loader2, X } from 'lucide-react';
 import { getContentType } from '@/config/cms';
 import { adminPanel } from '@/config/routes';
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { useSession } from '@/lib/auth-client';
 import { ContentStatus } from '@/engine/types/cms';
 import { toast } from '@/store/toast-store';
@@ -27,6 +27,7 @@ import CmsFormShell from '@/engine/components/CmsFormShell';
 import { CustomFieldsEditor, type CustomFieldsEditorHandle } from '@/engine/components/CustomFieldsEditor';
 import { FallbackRadio } from '@/engine/components/FallbackRadio';
 import InternalLinkDialog from '@/engine/components/InternalLinkDialog';
+import { INTERNAL_LINK_TYPE_CONFIG } from '@/components/admin/internal-link-config';
 import { MediaPickerDialog } from '@/engine/components/MediaPickerDialog';
 import { RevisionHistory } from '@/engine/components/RevisionHistory';
 import { RichTextEditor } from '@/engine/components/RichTextEditor';
@@ -64,7 +65,7 @@ interface Props {
 }
 
 export function PortfolioForm({ portfolioId }: Props) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const router = useRouter();
   const utils = trpc.useUtils();
   const { data: session } = useSession();
@@ -661,6 +662,7 @@ export function PortfolioForm({ portfolioId }: Props) {
         isOpen={linkPickerOpen}
         onClose={closeLinkPicker}
         onSelect={handleLinkSelect}
+        typeConfig={INTERNAL_LINK_TYPE_CONFIG}
       />
 
       <MediaPickerDialog

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
 import { adminPanel } from '@/config/routes';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { cn } from '@/lib/utils';
 
 const TYPE_LABELS: Record<string, string> = {
@@ -30,7 +30,7 @@ function formatValue(type: string, value: number | null, trialDays: number | nul
 }
 
 export function DiscountCodesTable() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const { data: codes, isLoading } = trpc.billing.listDiscountCodes.useQuery();
 
   if (isLoading) {
@@ -91,7 +91,7 @@ export function DiscountCodesTable() {
 }
 
 function UsageBar({ currentUses, maxUses }: { currentUses: number; maxUses: number | null }) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
 
   if (maxUses == null) {
     return (

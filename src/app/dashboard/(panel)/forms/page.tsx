@@ -16,14 +16,14 @@ import {
 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
 import { adminPanel } from '@/config/routes';
 import { cn } from '@/lib/utils';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 export default function FormsPage() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const utils = trpc.useUtils();
 
   const [searchInput, setSearchInput] = useState('');

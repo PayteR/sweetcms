@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react';
 
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 import { toast } from '@/engine/store/toast-store';
 
 type AccentColor = 'info' | 'warning';
@@ -16,7 +16,7 @@ export function useCmsFormState<T extends Record<string, unknown>>(
   initialData: T,
   accentColor: AccentColor = 'info'
 ) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const [formData, setFormData] = useState(initialData);
   const [saving, setSaving] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});

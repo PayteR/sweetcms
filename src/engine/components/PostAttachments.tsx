@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 import { FileType } from '@/engine/types/cms';
 import { toast } from '@/engine/store/toast-store';
 
@@ -50,7 +50,7 @@ function formatFileSize(bytes: number): string {
 }
 
 export function PostAttachments({ postId, uploadEndpoint = '/api/upload' }: Props) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const utils = trpc.useUtils();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);

@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { FileText, Hash, FolderOpen, Briefcase, Search } from 'lucide-react';
+import { FileText, Search } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 import { trpc } from '@/lib/trpc/client';
 import { useKeyboardShortcuts } from '@/engine/hooks/useKeyboardShortcuts';
 
@@ -21,6 +21,8 @@ interface CommandPaletteProps {
   onClose: () => void;
   /** Navigation items for the command palette search. If omitted, only content search is available. */
   navItems?: CommandPaletteNavItem[];
+  /** Icons for content type results. Keys are content type IDs (e.g. 'page', 'blog'). Falls back to FileText. */
+  contentTypeIcons?: Record<string, React.ElementType>;
 }
 
 interface ResultItem {
@@ -31,16 +33,8 @@ interface ResultItem {
   group: string;
 }
 
-const contentTypeIcons: Record<string, React.ElementType> = {
-  page: FileText,
-  blog: FileText,
-  category: FolderOpen,
-  tag: Hash,
-  portfolio: Briefcase,
-};
-
-export function CommandPalette({ open, onClose, navItems: navItemsProp }: CommandPaletteProps) {
-  const __ = useBlankTranslations();
+export function CommandPalette({ open, onClose, navItems: navItemsProp, contentTypeIcons }: CommandPaletteProps) {
+  const __ = useAdminTranslations();
   const router = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -89,7 +83,7 @@ export function CommandPalette({ open, onClose, navItems: navItemsProp }: Comman
           id: `content:${result.type}:${result.id}`,
           label: result.title,
           href: result.url,
-          icon: contentTypeIcons[result.type] ?? FileText,
+          icon: contentTypeIcons?.[result.type] ?? FileText,
           group: __('Content'),
         });
       }

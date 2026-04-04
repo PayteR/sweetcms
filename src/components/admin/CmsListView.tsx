@@ -21,7 +21,7 @@ import {
 import type { ContentTypeDeclaration } from '@/config/cms';
 import { adminPanel } from '@/config/routes';
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { ContentStatus } from '@/engine/types/cms';
 import { LOCALES, LOCALE_LABELS } from '@/lib/constants';
 import { cn } from '@/lib/utils';
@@ -69,7 +69,7 @@ interface Props {
 }
 
 export function CmsListView({ contentType }: Props) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const router = useRouter();
   const utils = trpc.useUtils();
   const { toggle: toggleColumn, isVisible: isColVisible } = useColumnVisibility(contentType.id);

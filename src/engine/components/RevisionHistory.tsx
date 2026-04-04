@@ -4,7 +4,7 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { History, RotateCcw } from 'lucide-react';
 
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 import { computeFieldDiffs } from '@/engine/lib/revision-diff';
 import type { FieldDiff } from '@/engine/lib/revision-diff';
 import { trpc } from '@/lib/trpc/client';
@@ -25,7 +25,7 @@ interface Props {
 }
 
 export function RevisionHistory({ contentType, contentId, currentData, onRestored, open: controlledOpen, onClose }: Props) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const isControlled = controlledOpen !== undefined;
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = isControlled ? controlledOpen : internalOpen;

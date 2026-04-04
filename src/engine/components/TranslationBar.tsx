@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { Copy, Languages, Loader2, Plus } from 'lucide-react';
 
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 import { toast } from '@/engine/store/toast-store';
 import { cn } from '@/lib/utils';
 
@@ -30,7 +30,7 @@ export function TranslationBar({
   currentLang, translations, adminSlug, translationAvailable, onDuplicate,
   locales, localeLabels, editUrl,
 }: TranslationBarProps) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const [duplicating, setDuplicating] = useState<string | null>(null);
   const [dropdownLang, setDropdownLang] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);

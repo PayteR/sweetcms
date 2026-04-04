@@ -5,7 +5,7 @@ import { ArrowLeft, Plus, Pencil, Trash2, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
 import { adminPanel } from '@/config/routes';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -42,7 +42,7 @@ const EMPTY_FORM: FormState = {
 };
 
 export default function CustomFieldsPage() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const utils = trpc.useUtils();
 
   const [showForm, setShowForm] = useState(false);

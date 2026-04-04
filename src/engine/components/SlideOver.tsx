@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 import { useOverlay } from '@/engine/hooks/useOverlay';
 
 const widthClasses = {
@@ -64,7 +64,7 @@ export function SlideOver({
   initialFocusRef,
   children,
 }: SlideOverProps) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const { panelRef, animateOpen } = useOverlay({ open, onClose, closeOnEscape, autoFocus, initialFocusRef });
 
   const resolved = classNames

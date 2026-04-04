@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Loader2, RotateCcw, Save } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
 import { cn } from '@/lib/utils';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -39,7 +39,7 @@ const TEMPLATES: { name: TemplateName; label: string; variables: string[] }[] = 
 ];
 
 export default function EmailTemplatesPage() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const utils = trpc.useUtils();
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
@@ -70,9 +70,16 @@ export default function EmailTemplatesPage() {
     onError: (err) => toast.error(err.message),
   });
 
-  // Load template data when editing
-  useEffect(() => {
-    if (!editing || !templateOptions.data) return;
+  // Load template data when editing changes — sync in render via ref tracking
+  const prevEditingRef = useRef<TemplateName | null>(null);
+  const prevTemplateDataRef = useRef<typeof templateOptions.data>(undefined);
+  if (
+    editing &&
+    templateOptions.data &&
+    (prevEditingRef.current !== editing || prevTemplateDataRef.current !== templateOptions.data)
+  ) {
+    prevEditingRef.current = editing;
+    prevTemplateDataRef.current = templateOptions.data;
 
     const key = `email.template.${editing}`;
     const existing = templateOptions.data as Record<string, unknown>;
@@ -82,7 +89,7 @@ export default function EmailTemplatesPage() {
 
     setSubject(override?.subject ?? '');
     setHtml(override?.html ?? '');
-  }, [editing, templateOptions.data]);
+  }
 
   // Update preview iframe when html changes
   useEffect(() => {

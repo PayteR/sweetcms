@@ -5,7 +5,7 @@ import { siteConfig } from '@/config/site';
 import { serverTRPC } from '@/lib/trpc/server';
 import { PostType } from '@/engine/types/cms';
 import { PostCard } from '@/engine/components/PostCard';
-import { BlogSidebar } from '@/engine/components/BlogSidebar';
+import { BlogSidebar } from '@/components/public/BlogSidebar';
 import { db } from '@/server/db';
 import { getCodedRouteSEO } from '@/engine/crud/page-seo';
 import { getLocale } from '@/lib/locale-server';

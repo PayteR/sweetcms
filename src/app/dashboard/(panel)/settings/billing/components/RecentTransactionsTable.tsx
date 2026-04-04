@@ -1,6 +1,6 @@
 'use client';
 
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { cn } from '@/lib/utils';
 
 const PLAN_LABELS: Record<string, string> = {
@@ -31,7 +31,7 @@ interface RecentTransactionsTableProps {
 }
 
 export function RecentTransactionsTable({ transactions, isLoading }: RecentTransactionsTableProps) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
 
   const formatAmount = (cents: number, currency: string) =>
     new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(cents / 100);

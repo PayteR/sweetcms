@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 import { cn } from '@/lib/utils';
 
 interface Props {
@@ -29,7 +29,7 @@ function ImagePlaceholder({ __: t }: { __: (s: string) => string }) {
 }
 
 export function SeoPreviewCard({ title, description, slug, urlPrefix, featuredImage }: Props) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const [activeTab, setActiveTab] = useState<Tab>('google');
 
   const displayTitle = (title || 'Page Title').slice(0, 70);

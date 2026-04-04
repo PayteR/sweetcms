@@ -74,14 +74,14 @@ describe('Policy', () => {
   });
 
   describe('getSections()', () => {
-    it('editor gets 3 sections', () => {
+    it('editor gets 4 sections', () => {
       const sections = Policy.for(Role.EDITOR).getSections();
-      expect(sections).toEqual(['dashboard', 'content', 'media']);
+      expect(sections).toEqual(['dashboard', 'content', 'media', 'structure']);
     });
 
-    it('superadmin gets all 7 sections', () => {
+    it('superadmin gets all 8 sections', () => {
       const sections = Policy.for(Role.SUPERADMIN).getSections();
-      expect(sections).toHaveLength(7);
+      expect(sections).toHaveLength(8);
     });
   });
 });

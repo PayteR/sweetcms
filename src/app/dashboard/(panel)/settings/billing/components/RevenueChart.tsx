@@ -2,7 +2,7 @@
 
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { cn } from '@/lib/utils';
 
 interface RevenueChartProps {
@@ -21,7 +21,7 @@ interface TooltipPayloadEntry {
 }
 
 function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: TooltipPayloadEntry[]; label?: string }) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   if (!active || !payload?.length) return null;
   return (
     <div className="card" style={{ padding: '8px 12px', fontSize: '0.85rem' }}>
@@ -47,7 +47,7 @@ function formatDollar(value: number) {
 }
 
 export function RevenueChart({ from, to }: RevenueChartProps) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const { data, isLoading } = trpc.billing.revenueOverTime.useQuery({ from, to });
 
   if (isLoading) {

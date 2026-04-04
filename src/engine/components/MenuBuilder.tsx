@@ -20,7 +20,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Plus, Trash2, Loader2, ChevronRight } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 import { toast } from '@/engine/store/toast-store';
 
 interface MenuItem {
@@ -147,7 +147,7 @@ function SortableItem({
 
 // ── Main builder ────────────────────────────────────────
 export function MenuBuilder({ menuId }: Props) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const [items, setItems] = useState<MenuItem[]>([]);
   const [loaded, setLoaded] = useState(false);
 

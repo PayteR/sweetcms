@@ -7,10 +7,10 @@ import {
 } from 'lucide-react';
 
 import { adminPanel } from '@/config/routes';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 
 export default function QuickActionsWidget({ dragHandle }: { dragHandle?: ReactNode }) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
 
   return (
     <div className="card flex flex-col overflow-hidden">

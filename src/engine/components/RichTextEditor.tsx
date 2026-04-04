@@ -40,7 +40,7 @@ import {
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 import { htmlToMarkdown, markdownToHtml } from '@/engine/lib/markdown';
 import { toast } from '@/engine/store/toast-store';
 import type { EditorHandle } from '@/engine/hooks/useLinkPicker';
@@ -150,7 +150,7 @@ export function RichTextEditor({
     scPrepareRef.current = shortcodes?.prepareForEditor ?? identity;
     scSerializeRef.current = shortcodes?.serializeForStorage ?? identity;
   });
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const [shortcodeMenuOpen, setShortcodeMenuOpen] = useState(false);
   const [aiAssistOpen, setAiAssistOpen] = useState(false);
   const [showPreview, setShowPreview] = useState(false);

@@ -2,7 +2,7 @@
 
 import { memo, useEffect, useState } from 'react';
 
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 
 interface AutosaveIndicatorProps {
   lastAutosaveAt: number | null;
@@ -22,7 +22,7 @@ function AutosaveIndicator({
   lastAutosaveAt,
   isDirty,
 }: AutosaveIndicatorProps) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const [, setTick] = useState(0);
 
   // Re-render every 30s to update relative time

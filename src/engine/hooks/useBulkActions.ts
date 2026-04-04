@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react';
 
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 import { toast } from '@/engine/store/toast-store';
 
 interface BulkActionsMutations {
@@ -34,7 +34,7 @@ export function useBulkActions({
   refetch,
   invalidateCounts,
 }: UseBulkActionsConfig) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const [isPending, setIsPending] = useState(false);
   const [confirmAction, setConfirmAction] = useState<'trash' | null>(null);
 

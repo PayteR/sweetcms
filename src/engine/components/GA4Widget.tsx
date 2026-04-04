@@ -5,7 +5,7 @@ import { BarChart3, Eye, Users, ExternalLink, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 import { cn } from '@/lib/utils';
 
 /* ── Simple SVG line chart (no external chart library) ───────────────────── */
@@ -163,7 +163,7 @@ export default function GA4Widget({
   dragHandle?: ReactNode;
   settingsHref?: string;
 }) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const [period, setPeriod] = useState<'7' | '30' | '90'>('30');
 
   const { data, isLoading, error } = trpc.analytics.overview.useQuery(

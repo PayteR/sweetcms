@@ -73,7 +73,7 @@ export function useCmsAutosave<T extends Record<string, unknown>>({
   loading = false,
 }: CmsAutosaveConfig<T>) {
   const storageKey = getStorageKey(contentTypeId, contentId);
-  const baselineRef = useRef<T>(initialData);
+  const [baseline, setBaseline] = useState<T>(initialData);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasAttemptedRecovery = useRef(false);
   const [lastAutosaveAt, setLastAutosaveAt] = useState<number | null>(null);
@@ -81,12 +81,12 @@ export function useCmsAutosave<T extends Record<string, unknown>>({
     null
   );
 
-  const isDirty = isFormDirty(formData, baselineRef.current);
+  const isDirty = isFormDirty(formData, baseline);
   const normalizedDbUpdatedAt = normalizeDbUpdatedAt(dbUpdatedAt);
 
   // Sync baseline when initialData changes (e.g. query data loads, post-save refetch)
   useEffect(() => {
-    baselineRef.current = initialData;
+    setBaseline(initialData);
   }, [initialData]);
 
   // Recovery — waits for existing content to load before attempting
@@ -168,7 +168,7 @@ export function useCmsAutosave<T extends Record<string, unknown>>({
       localStorage.removeItem(storageKey);
       setLastAutosaveAt(null);
       // Reset baseline to current form data to prevent post-save sync from re-triggering dirty
-      baselineRef.current = currentFormData;
+      setBaseline(currentFormData);
     },
     [storageKey]
   );

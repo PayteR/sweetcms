@@ -3,7 +3,7 @@
 import { useId } from 'react';
 
 import type { ContentTypeDeclaration } from '@/engine/config/content-types';
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 
 interface FallbackRadioProps {
   value: boolean | null;
@@ -12,7 +12,7 @@ interface FallbackRadioProps {
 }
 
 export function FallbackRadio({ value, onChange, ct }: FallbackRadioProps) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const radioName = useId();
 
   return (

@@ -6,7 +6,7 @@ import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 
 import { adminPanel } from '@/config/routes';
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { useSession } from '@/lib/auth-client';
 import { ContentStatus } from '@/engine/types/cms';
 import { toast } from '@/store/toast-store';
@@ -32,7 +32,7 @@ interface Props {
 }
 
 export function TermForm({ tagId }: Props) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const router = useRouter();
   const utils = trpc.useUtils();
   const { data: session } = useSession();

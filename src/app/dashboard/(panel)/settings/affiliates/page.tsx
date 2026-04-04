@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 
 export default function AffiliatesAdminPage() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>('');
 

@@ -9,8 +9,8 @@ export default getRequestConfig(async () => {
     ? (raw as Locale)
     : DEFAULT_LOCALE;
 
-  // Graceful import: if JSON hasn't been generated yet (fresh clone before
-  // running `bun generate-po && bun transform:po`), fall back to empty messages.
+  // Load public translations only — admin translations are loaded separately
+  // in the dashboard layout to avoid exposing admin strings to public pages.
   let messages = {};
   try {
     messages = (await import(`../locales/build/${locale}.json`)).default;

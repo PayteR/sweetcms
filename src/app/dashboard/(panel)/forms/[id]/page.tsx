@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   ArrowDown,
@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
 import { adminPanel } from '@/config/routes';
 import { cn } from '@/lib/utils';
@@ -64,7 +64,7 @@ function createEmptyField(): FormField {
 // ---------------------------------------------------------------------------
 
 export default function FormBuilderPage() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const isNew = params.id === 'new';
@@ -86,22 +86,24 @@ export default function FormBuilderPage() {
     { enabled: !isNew }
   );
 
-  // Populate form data when fetched
-  useEffect(() => {
-    if (formQuery.data) {
-      const form = formQuery.data;
-      setName(form.name);
-      setSlug(form.slug);
-      setRecipientEmail(form.recipientEmail ?? '');
-      setSuccessMessage(form.successMessage ?? 'Thank you!');
-      setHoneypotField(form.honeypotField ?? '');
-      setActive(form.active);
-      const formFields = form.fields as FormField[];
-      if (Array.isArray(formFields) && formFields.length > 0) {
-        setFields(formFields);
-      }
+  // Track which data revision we've loaded into state to avoid re-syncing
+  const loadedDataRef = useRef<typeof formQuery.data>(null);
+
+  // Populate form data when fetched (only on first load or when data identity changes)
+  if (formQuery.data && formQuery.data !== loadedDataRef.current) {
+    loadedDataRef.current = formQuery.data;
+    const form = formQuery.data;
+    setName(form.name);
+    setSlug(form.slug);
+    setRecipientEmail(form.recipientEmail ?? '');
+    setSuccessMessage(form.successMessage ?? 'Thank you!');
+    setHoneypotField(form.honeypotField ?? '');
+    setActive(form.active);
+    const formFields = form.fields as FormField[];
+    if (Array.isArray(formFields) && formFields.length > 0) {
+      setFields(formFields);
     }
-  }, [formQuery.data]);
+  }
 
   const createForm = trpc.forms.create.useMutation({
     onSuccess: (data) => {

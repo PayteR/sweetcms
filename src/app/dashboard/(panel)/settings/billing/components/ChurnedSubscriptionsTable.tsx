@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { cn } from '@/lib/utils';
 
 interface ChurnedSubscriptionsTableProps {
@@ -32,7 +32,7 @@ function statusBadgeClass(status: string): string {
 }
 
 export function ChurnedSubscriptionsTable({ from, to }: ChurnedSubscriptionsTableProps) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const [activeTab, setActiveTab] = useState<TabKey>('all');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -44,7 +44,13 @@ export function ChurnedSubscriptionsTable({ from, to }: ChurnedSubscriptionsTabl
     return () => clearTimeout(timer);
   }, [search]);
 
-  useEffect(() => { setPage(1); }, [activeTab, debouncedSearch, pageSize, from, to]);
+  // Reset page to 1 when filters change by deriving a filter key
+  const filterKey = `${activeTab}|${debouncedSearch}|${pageSize}|${from}|${to}`;
+  const prevFilterKey = useRef(filterKey);
+  if (prevFilterKey.current !== filterKey) {
+    prevFilterKey.current = filterKey;
+    setPage(1);
+  }
 
   const { data, isLoading } = trpc.billing.listChurned.useQuery({
     page,

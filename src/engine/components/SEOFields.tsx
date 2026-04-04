@@ -1,6 +1,6 @@
 'use client';
 
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 import { cn } from '@/lib/utils';
 
 interface SEOFieldsProps {
@@ -18,7 +18,7 @@ export function SEOFields({
   onSeoTitleChange, onMetaDescriptionChange, onNoindexChange,
   fieldErrors,
 }: SEOFieldsProps) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
 
   return (
     <>

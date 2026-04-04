@@ -4,7 +4,7 @@ import { memo } from 'react';
 
 import { X } from 'lucide-react';
 
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 
 interface AutosaveRecoveryBannerProps {
   savedAt: number;
@@ -27,7 +27,7 @@ function AutosaveRecoveryBanner({
   onRestore,
   onDismiss,
 }: AutosaveRecoveryBannerProps) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
 
   return (
     <div className="rounded-lg border border-(--color-brand-200) dark:border-[oklch(0.65_0.17_var(--brand-hue)_/_0.25)] bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.08)] px-4 py-3">

@@ -148,3 +148,7 @@ export function getProviderPriceId(
 export function getFreePlan(): ExtendedPlanDefinition {
   return PLANS[0]!;
 }
+
+// ─── Register plan resolver for engine's feature-gate ──────────────────────
+import { setPlanResolver } from '@/engine/lib/payment/feature-gate';
+setPlanResolver({ getPlan, getFreePlan });

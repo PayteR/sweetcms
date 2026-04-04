@@ -1,11 +1,11 @@
 'use client';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 import { formatRelativeTime } from '@/engine/lib/datetime';
 
 export default function RecentActivity() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const { data, isLoading } = trpc.audit.recent.useQuery({ limit: 10 });
 
   const actionLabel = (action: string) => {

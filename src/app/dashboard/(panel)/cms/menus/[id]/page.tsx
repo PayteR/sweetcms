@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Loader2, Save } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
 import { adminPanel } from '@/config/routes';
 import { MenuBuilder } from '@/engine/components/MenuBuilder';
@@ -16,7 +16,7 @@ interface Props {
 
 export default function MenuEditPage({ params }: Props) {
   const { id } = use(params);
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const utils = trpc.useUtils();
 
   const menuQuery = trpc.menus.get.useQuery({ id });

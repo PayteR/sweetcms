@@ -88,23 +88,26 @@ function deepMerge(target, source) {
 }
 
 /**
- * Build merged JSON for a given locale by reading admin + public PO files.
+ * Build JSON files for a given locale — separate public and admin.
+ * - {locale}.json        — public translations only (served to public pages)
+ * - {locale}.admin.json  — admin translations only (served to dashboard)
  */
 function buildLocaleJson(language) {
-  const merged = {};
+  const publicMessages = {};
+  const adminMessages = {};
 
-  const adminPo = path.join(ADMIN_DIR, `${language}.po`);
   const publicPo = path.join(PUBLIC_DIR, `${language}.po`);
-
-  if (fs.existsSync(adminPo)) {
-    deepMerge(merged, parsePo(adminPo));
-  }
+  const adminPo = path.join(ADMIN_DIR, `${language}.po`);
 
   if (fs.existsSync(publicPo)) {
-    deepMerge(merged, parsePo(publicPo));
+    deepMerge(publicMessages, parsePo(publicPo));
   }
 
-  return merged;
+  if (fs.existsSync(adminPo)) {
+    deepMerge(adminMessages, parsePo(adminPo));
+  }
+
+  return { publicMessages, adminMessages };
 }
 
 /**
@@ -117,12 +120,16 @@ function processPoFile(filePath) {
     const language = path.basename(filePath, '.po');
     if (!language) return;
 
-    const json = buildLocaleJson(language);
+    const { publicMessages, adminMessages } = buildLocaleJson(language);
 
-    const jsonFilePath = path.join(BUILD_DIR, `${language}.json`);
-    fs.writeFileSync(jsonFilePath, JSON.stringify(json, null, 2));
+    const publicPath = path.join(BUILD_DIR, `${language}.json`);
+    const adminPath = path.join(BUILD_DIR, `${language}.admin.json`);
 
-    console.log(`Generated JSON: ${jsonFilePath}`);
+    fs.writeFileSync(publicPath, JSON.stringify(publicMessages, null, 2));
+    fs.writeFileSync(adminPath, JSON.stringify(adminMessages, null, 2));
+
+    console.log(`Generated: ${publicPath}`);
+    console.log(`Generated: ${adminPath}`);
   } catch (error) {
     console.error(`Error processing ${filePath}:`, error);
   }
@@ -152,10 +159,15 @@ function transformPoFiles() {
   }
 
   for (const locale of locales) {
-    const json = buildLocaleJson(locale);
-    const jsonFilePath = path.join(BUILD_DIR, `${locale}.json`);
-    fs.writeFileSync(jsonFilePath, JSON.stringify(json, null, 2));
-    console.log(`Generated JSON: ${jsonFilePath}`);
+    const { publicMessages, adminMessages } = buildLocaleJson(locale);
+
+    const publicPath = path.join(BUILD_DIR, `${locale}.json`);
+    const adminPath = path.join(BUILD_DIR, `${locale}.admin.json`);
+
+    fs.writeFileSync(publicPath, JSON.stringify(publicMessages, null, 2));
+    fs.writeFileSync(adminPath, JSON.stringify(adminMessages, null, 2));
+
+    console.log(`Generated: ${publicPath}, ${adminPath}`);
   }
 
   console.log('Transformation complete!');

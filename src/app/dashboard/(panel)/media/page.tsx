@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { FileType } from '@/engine/types/cms';
 import { apiRoutes } from '@/config/routes';
 import { toast } from '@/store/toast-store';
@@ -40,7 +40,7 @@ const FILE_TYPE_ICONS: Record<number, React.ElementType> = {
 type FilterTab = 'all' | number;
 
 export default function MediaPage() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const utils = trpc.useUtils();
   const fileInputRef = useRef<HTMLInputElement>(null);
 

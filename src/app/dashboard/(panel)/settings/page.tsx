@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { Save, Loader2, CheckCircle2, XCircle, Globe, RotateCcw } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
 import { SeoOverridesDialog } from '@/engine/components/SeoOverridesDialog';
 import { LOCALES, LOCALE_LABELS } from '@/lib/constants';
@@ -22,7 +22,7 @@ interface OptionItem {
 }
 
 export default function SettingsPage() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const utils = trpc.useUtils();
 
   // ─── Data ───────────────────────────────────────────────────────────────────

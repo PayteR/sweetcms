@@ -19,7 +19,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Eye, EyeOff, Settings2 } from 'lucide-react';
 
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 import { cn } from '@/lib/utils';
 import { SlideOver } from '@/engine/components/SlideOver';
 import { usePreferencesStore } from '@/engine/store/preferences-store';
@@ -245,7 +245,7 @@ function DashboardConfigPanel({
 
 // ── Dashboard Config Button + SlideOver ─────────────────────
 export function DashboardConfig({ widgets, defaultOrder, defaultHidden }: DashboardConfigProps) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const [open, setOpen] = useState(false);
 
   return (

@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
 import { cn } from '@/lib/utils';
 
@@ -25,7 +25,7 @@ const STATUS_COLORS: Record<JobStatus, string> = {
 
 
 export default function JobQueuePage() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const utils = trpc.useUtils();
 
   const [selectedQueue, setSelectedQueue] = useState<string | null>(null);

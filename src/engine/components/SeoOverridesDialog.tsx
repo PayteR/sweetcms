@@ -3,7 +3,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Check, Loader2 } from 'lucide-react';
 
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 import { trpc } from '@/lib/trpc/client';
 import { Dialog } from '@/engine/components/Dialog';
 
@@ -30,7 +30,7 @@ export function SeoOverridesDialog({
   locales = [],
   localeLabels = {},
 }: Props) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const [checked, setChecked] = useState<Record<string, boolean>>({});
 
   const { data, isLoading } = trpc.cms.getSeoOverrideStatus.useQuery(

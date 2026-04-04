@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { PostType } from '@/engine/types/cms';
 import { adminPanel } from '@/config/routes';
 import StatCard from '@/engine/components/StatCard';
@@ -14,7 +14,7 @@ import { DASHBOARD_WIDGETS, DEFAULT_WIDGET_ORDER, DEFAULT_HIDDEN_WIDGETS } from 
 import { DashboardWidgetGrid } from '@/components/admin/DashboardWidgetGrid';
 
 export default function DashboardPage() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const pageCounts = trpc.cms.counts.useQuery({ type: PostType.PAGE });
   const blogCounts = trpc.cms.counts.useQuery({ type: PostType.BLOG });
   const catCounts = trpc.categories.counts.useQuery();

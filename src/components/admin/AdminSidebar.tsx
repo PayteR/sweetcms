@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { ChevronsLeft, ChevronsRight, ExternalLink, LogOut, Menu, Monitor, Moon, Search, Sun, User } from 'lucide-react';
+import { Briefcase, ChevronsLeft, ChevronsRight, ExternalLink, FolderOpen, Hash, LogOut, Menu, Monitor, Moon, Search, Sun, User, FileText } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { signOut, useSession } from '@/lib/auth-client';
 import { useSidebarStore } from '@/engine/store/sidebar-store';
 import { useThemeStore } from '@/engine/store/theme-store';
@@ -51,7 +51,7 @@ const themeLabels = { light: 'Light', dark: 'Dark', system: 'System' } as const;
 /* ── Main Component ── */
 
 export function AdminSidebar() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const pathname = usePathname();
   const router = useRouter();
   const { isOpen, closeSidebar, toggleSidebar, isL2Collapsed, toggleL2Collapsed } = useSidebarStore();
@@ -93,9 +93,11 @@ export function AdminSidebar() {
   }, [userPopoverOpen]);
 
   // Close popover when mobile overlay state changes (prevents stale refs)
-  useEffect(() => {
+  const prevIsOpen = useRef(isOpen);
+  if (prevIsOpen.current !== isOpen) {
+    prevIsOpen.current = isOpen;
     setUserPopoverOpen(false);
-  }, [isOpen]);
+  }
 
   // Active section
   const activeSectionId = getActiveSectionId(pathname);
@@ -365,7 +367,18 @@ export function AdminSidebar() {
       )}
 
       {/* ── Command Palette ── */}
-      <CommandPalette open={commandPaletteOpen} onClose={closePalette} navItems={paletteNavItems} />
+      <CommandPalette
+        open={commandPaletteOpen}
+        onClose={closePalette}
+        navItems={paletteNavItems}
+        contentTypeIcons={{
+          page: FileText,
+          blog: FileText,
+          category: FolderOpen,
+          tag: Hash,
+          portfolio: Briefcase,
+        }}
+      />
     </>
   );
 }

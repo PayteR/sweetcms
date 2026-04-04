@@ -149,7 +149,8 @@ function getStringLiteralValue(node) {
 
 // Translation function names we recognize
 const TRANSLATION_FUNCTIONS = new Set([
-  'useBlankTranslations',
+  'useAdminTranslations',
+  // useBlankTranslations removed — renamed to useAdminTranslations above
   'useTranslations',
   'getTranslations',
   'getServerTranslations',

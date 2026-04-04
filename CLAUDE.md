@@ -216,7 +216,7 @@ src/
 │   ├── lib/              — slug, markdown, audit, webhooks, logger, datetime, redis, rate-limit, trpc-rate-limit, api-auth, seo-routes, ga4, gdpr, queue, ws-client, ws-channels, stats-cache, translations, shortcodes-parser, shortcode-utils, locale, locale-server
 │   ├── store/            — preferences-store, sidebar-store, toast-store, theme-store
 │   ├── types/            — PostType, ContentStatus, FileType, ContentSnapshot, shortcodes, organization, billing, realtime, notifications
-│   └── styles/           — tokens.css (OKLCH design tokens), admin.css, admin-table.css, content.css
+│   └── styles/           — tokens.css (OKLCH design tokens), admin.css, admin-table.css, frontend.css
 ├── lib/                  — auth, auth-client, constants, env, locale (re-export), locale-server (re-export), password, translations (re-export), trpc, utils
 ├── scripts/              — init.ts, promote.ts, change-password.ts, migrate-html-to-markdown.ts, schedule-jobs.ts
 ├── server/
@@ -330,11 +330,12 @@ AdminSidebar: two-level layout — 48px rail (L1) + collapsible 220px panel (L2)
 | `.btn-danger` | Danger/delete button |
 | `.btn-success` | Success/confirm button |
 | `.btn-sm` | Small button variant |
-| `.rail` | Sidebar rail container |
-| `.rail-logo` | Rail logo area |
-| `.rail-nav` | Rail navigation container |
-| `.rail-btn` | Rail icon buttons (cursor: pointer) |
-| `.sidebar-link` | Sidebar L2 panel nav links |
+| `.dash-rail` | Sidebar rail container (L1 icon strip) |
+| `.dash-rail-logo` | Rail logo area |
+| `.dash-rail-nav` | Rail navigation container |
+| `.dash-rail-btn` | Rail icon buttons (cursor: pointer) |
+| `.dash-nav` | Sidebar navigation panel (L2 expandable) |
+| `.dash-sidebar-link` | Sidebar L2 panel nav links |
 | `.badge` | Status badges base |
 | `.badge-published` | Published status |
 | `.badge-draft` | Draft status |
@@ -384,7 +385,7 @@ Tailwind CSS v4 with `@tailwindcss/typography` for `prose` classes. CSS-first co
 - `src/engine/styles/tokens-admin.css` — `:root` overrides for admin. Initially empty (inherits all defaults from tokens.css). Loaded via `admin.css`.
 - `src/engine/styles/admin.css` — admin panel core classes (cards, buttons, sidebar, typography); imports tokens-admin.css
 - `src/engine/styles/admin-table.css` — table, badge, form, pagination, role badge classes + admin autofill
-- `src/engine/styles/content.css` — public component classes (header, footer, buttons, forms, content) + public autofill; loaded in `(public)/layout.tsx` and `(auth)/layout.tsx`, NOT globally
+- `src/engine/styles/frontend.css` — public + app component classes (header, footer, buttons, forms, app layout, sidebar, search) + dark mode; loaded in `(public)/layout.tsx`, `(showcase)/layout.tsx`, and `(auth)/layout.tsx`, NOT globally
 - `src/app/globals.css` — imports Tailwind, typography, tokens.css, overlay.css (NOT tokens-public.css)
 
 **Layer order:** `@layer theme, base, components, utilities;` — every CSS file must declare this.

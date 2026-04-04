@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import type { ShortcodeDef } from '@/engine/types/shortcodes';
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 import { Dialog } from '@/engine/components/Dialog';
 
 interface Props {
@@ -15,7 +15,7 @@ interface Props {
 }
 
 export function ShortcodeEditDialog({ def, attrs, content, open = true, onSave, onClose }: Props) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const [formAttrs, setFormAttrs] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
     for (const attr of def.attrs) {

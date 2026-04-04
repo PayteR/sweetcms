@@ -2,19 +2,14 @@
 
 import { memo, useRef, useState, useEffect } from 'react';
 
-import { FileText, FolderOpen, Search, Tag } from 'lucide-react';
+import { FileText, Search } from 'lucide-react';
 
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 import { trpc } from '@/lib/trpc/client';
 import { cn } from '@/lib/utils';
 import { Dialog } from '@/engine/components/Dialog';
 
-const TYPE_CONFIG: Record<string, { label: string; icon: typeof FileText; color: string }> = {
-  page: { label: 'Page', icon: FileText, color: 'bg-(--color-brand-600)' },
-  blog: { label: 'Blog', icon: FileText, color: 'bg-purple-600' },
-  category: { label: 'Category', icon: FolderOpen, color: 'bg-yellow-600' },
-  tag: { label: 'Tag', icon: Tag, color: 'bg-green-600' },
-};
+export type TypeConfig = Record<string, { label: string; icon: typeof FileText; color: string }>;
 
 const DEFAULT_TYPE_CONFIG = { label: 'Content', icon: FileText, color: 'bg-gray-600' };
 
@@ -22,16 +17,18 @@ interface InternalLinkDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (title: string, url: string) => void;
+  typeConfig?: TypeConfig;
 }
 
 interface DialogContentProps {
   onClose: () => void;
   onSelect: (title: string, url: string) => void;
   searchInputRef: React.RefObject<HTMLInputElement | null>;
+  typeConfig: TypeConfig;
 }
 
-function DialogContent({ onClose, onSelect, searchInputRef }: DialogContentProps) {
-  const __ = useBlankTranslations();
+function DialogContent({ onClose, onSelect, searchInputRef, typeConfig }: DialogContentProps) {
+  const __ = useAdminTranslations();
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
@@ -87,7 +84,7 @@ function DialogContent({ onClose, onSelect, searchInputRef }: DialogContentProps
           {results && results.length > 0 && (
             <div className="space-y-1">
               {results.map((result, idx) => {
-                const config = TYPE_CONFIG[result.type] ?? DEFAULT_TYPE_CONFIG;
+                const config = typeConfig[result.type] ?? DEFAULT_TYPE_CONFIG;
                 const Icon = config.icon;
                 return (
                   <button
@@ -124,7 +121,7 @@ function DialogContent({ onClose, onSelect, searchInputRef }: DialogContentProps
   );
 }
 
-function InternalLinkDialog({ isOpen, onClose, onSelect }: InternalLinkDialogProps) {
+function InternalLinkDialog({ isOpen, onClose, onSelect, typeConfig = {} }: InternalLinkDialogProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   return (
@@ -134,6 +131,7 @@ function InternalLinkDialog({ isOpen, onClose, onSelect }: InternalLinkDialogPro
           onClose={onClose}
           onSelect={onSelect}
           searchInputRef={searchInputRef}
+          typeConfig={typeConfig}
         />
       )}
     </Dialog>

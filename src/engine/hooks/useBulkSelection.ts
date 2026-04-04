@@ -1,18 +1,16 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 
 export function useBulkSelection(resetKey: string) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const prevResetKey = useRef(resetKey);
 
-  // Clear selection when filters/page/tab change
-  useEffect(() => {
-    if (prevResetKey.current !== resetKey) {
-      prevResetKey.current = resetKey;
-      setSelectedIds(new Set());
-    }
-  }, [resetKey]);
+  // Clear selection when filters/page/tab change — sync in render
+  if (prevResetKey.current !== resetKey) {
+    prevResetKey.current = resetKey;
+    setSelectedIds(new Set());
+  }
 
   const toggle = useCallback((id: string) => {
     setSelectedIds((prev) => {

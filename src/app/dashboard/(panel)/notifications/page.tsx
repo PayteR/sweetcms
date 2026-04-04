@@ -1,13 +1,13 @@
 'use client';
 
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { trpc } from '@/lib/trpc/client';
 import { cn } from '@/lib/utils';
 import { formatRelativeTime } from '@/engine/lib/datetime';
 import { Bell, Check, Trash2 } from 'lucide-react';
 
 export default function NotificationsPage() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const utils = trpc.useUtils();
 
   const { data, isLoading } = trpc.notifications.list.useQuery({ limit: 50 });

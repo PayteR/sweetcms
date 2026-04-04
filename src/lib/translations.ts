@@ -1,4 +1,5 @@
 export {
+  useAdminTranslations,
   useBlankTranslations,
   useTranslations,
   dataTranslations,

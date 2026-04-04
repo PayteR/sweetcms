@@ -4,7 +4,7 @@ import { memo } from 'react';
 
 import { X } from 'lucide-react';
 
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 
 interface BrokenLinksBannerProps {
   urls: string[];
@@ -12,7 +12,7 @@ interface BrokenLinksBannerProps {
 }
 
 function BrokenLinksBanner({ urls, onDismiss }: BrokenLinksBannerProps) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
 
   if (urls.length === 0) return null;
 

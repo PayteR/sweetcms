@@ -2,7 +2,7 @@
 
 import { Suspense, useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { trpc } from '@/lib/trpc/client';
 import { cn } from '@/lib/utils';
 import { SubscriptionSummary } from './components/SubscriptionSummary';
@@ -80,7 +80,7 @@ export default function BillingDashboardPage() {
 // ─── Dashboard content ──────────────────────────────────────────────────────
 
 function BillingDashboardContent() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const router = useRouter();
   const searchParams = useSearchParams();
 

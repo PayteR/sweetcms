@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 import { cn } from '@/lib/utils';
 
 interface SubscriptionsTableProps {
@@ -37,7 +37,7 @@ function statusBadgeClass(status: string): string {
 }
 
 export function SubscriptionsTable({ from, to, planFilter, statusFilter }: SubscriptionsTableProps) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const router = useRouter();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
@@ -49,8 +49,13 @@ export function SubscriptionsTable({ from, to, planFilter, statusFilter }: Subsc
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Reset page on any filter change
-  useEffect(() => { setPage(1); }, [debouncedSearch, planFilter, statusFilter, pageSize, from, to]);
+  // Reset page to 1 when filters change by deriving a filter key
+  const filterKey = `${debouncedSearch}|${planFilter}|${statusFilter}|${pageSize}|${from}|${to}`;
+  const prevFilterKey = useRef(filterKey);
+  if (prevFilterKey.current !== filterKey) {
+    prevFilterKey.current = filterKey;
+    setPage(1);
+  }
 
   const { data, isLoading } = trpc.billing.listSubscriptions.useQuery({
     page,

@@ -4,13 +4,13 @@ import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Loader2, Search, X } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 
 const ENTITY_TYPES = ['', 'post', 'category', 'tag', 'menu', 'media'] as const;
 const ACTIONS = ['', 'create', 'update', 'delete', 'restore', 'publish', 'unpublish', 'duplicate'] as const;
 
 export default function ActivityPage() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const [entityType, setEntityType] = useState('');
   const [action, setAction] = useState('');
   const [userSearch, setUserSearch] = useState('');

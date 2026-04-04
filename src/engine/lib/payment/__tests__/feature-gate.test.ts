@@ -39,16 +39,9 @@ const PRO_PLAN = {
 
 const MOCK_PLANS = [FREE_PLAN, PRO_PLAN];
 
-vi.mock('@/config/plans', () => ({
-  PLANS: MOCK_PLANS,
-  getPlan: vi.fn(),
-  getFreePlan: vi.fn(),
-}));
-
 import { asMock } from '@/test-utils';
 import { getSubscription } from '@/engine/lib/payment/subscription-service';
-import { getPlan, getFreePlan } from '@/config/plans';
-import { getPlanFeatures, checkFeature, requireFeature } from '../feature-gate';
+import { setPlanResolver, getPlanFeatures, checkFeature, requireFeature } from '../feature-gate';
 
 const FREE_FEATURES = FREE_PLAN.features;
 const PRO_FEATURES = PRO_PLAN.features;
@@ -56,8 +49,10 @@ const PRO_FEATURES = PRO_PLAN.features;
 describe('feature-gate', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    asMock(getPlan).mockImplementation((id: string) => MOCK_PLANS.find((p) => p.id === id));
-    asMock(getFreePlan).mockReturnValue(FREE_PLAN);
+    setPlanResolver({
+      getPlan: (id: string) => MOCK_PLANS.find((p) => p.id === id),
+      getFreePlan: () => FREE_PLAN,
+    });
   });
 
   describe('getPlanFeatures', () => {
@@ -80,7 +75,6 @@ describe('feature-gate', () => {
       const features = await getPlanFeatures('org-1');
 
       expect(features).toEqual(PRO_FEATURES);
-      expect(getPlan).toHaveBeenCalledWith('pro');
     });
 
     it('returns free plan features for canceled subscription', async () => {
@@ -101,13 +95,10 @@ describe('feature-gate', () => {
         planId: 'nonexistent',
         status: 'active',
       });
-      asMock(getPlan).mockReturnValue(undefined);
 
       const features = await getPlanFeatures('org-1');
 
       expect(features).toEqual(FREE_FEATURES);
-      expect(getPlan).toHaveBeenCalledWith('nonexistent');
-      expect(getFreePlan).toHaveBeenCalled();
     });
   });
 

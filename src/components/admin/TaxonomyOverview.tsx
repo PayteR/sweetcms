@@ -3,10 +3,10 @@
 import { BarChart3, Hash, Link2, AlertTriangle } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/lib/translations';
+import { useAdminTranslations } from '@/lib/translations';
 
 export function TaxonomyOverview() {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
   const { data, isLoading } = trpc.tags.stats.useQuery();
 
   if (isLoading || !data) return null;

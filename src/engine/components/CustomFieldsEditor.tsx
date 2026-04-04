@@ -11,7 +11,7 @@ import {
 import { Loader2 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useBlankTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/engine/lib/translations';
 
 export interface CustomFieldsEditorHandle {
   save: (contentId: string) => Promise<void>;
@@ -39,7 +39,7 @@ export const CustomFieldsEditor = forwardRef<
   CustomFieldsEditorHandle,
   CustomFieldsEditorProps
 >(function CustomFieldsEditor({ contentType, contentId, isAuthenticated = true, fieldRenderers }, ref) {
-  const __ = useBlankTranslations();
+  const __ = useAdminTranslations();
 
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [loaded, setLoaded] = useState(false);
