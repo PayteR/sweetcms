@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc/client';
+import { useBlankTranslations } from '@/lib/translations';
 
 export default function AffiliatesPage() {
+  const __ = useBlankTranslations();
   const [copied, setCopied] = useState(false);
   const utils = trpc.useUtils();
   const { data: affiliate, isLoading } = trpc.affiliates.getMyAffiliate.useQuery();
@@ -23,22 +25,21 @@ export default function AffiliatesPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  if (isLoading) return <div className="p-8">Loading...</div>;
+  if (isLoading) return <div className="p-8">{__('Loading...')}</div>;
 
   if (!affiliate) {
     return (
       <div>
-        <h1 className="text-2xl font-bold mb-4">Affiliate Program</h1>
+        <h1 className="text-2xl font-bold mb-4">{__('Affiliate Program')}</h1>
         <p className="mb-6 text-(--text-secondary)">
-          Earn commissions by referring new customers. Share your unique link and earn
-          a percentage of every purchase made by users you refer.
+          {__('Earn commissions by referring new customers. Share your unique link and earn a percentage of every purchase made by users you refer.')}
         </p>
         <button
           onClick={() => registerMutation.mutate()}
           disabled={registerMutation.isPending}
-          className="py-2 px-6 rounded-lg text-sm font-medium bg-(--color-brand-500) text-white hover:bg-(--color-brand-600) transition-colors disabled:opacity-50"
+          className="py-2 px-6 rounded-lg text-sm font-medium bg-brand-500 text-white hover:bg-brand-600 transition-colors disabled:opacity-50"
         >
-          {registerMutation.isPending ? 'Registering...' : 'Join Affiliate Program'}
+          {registerMutation.isPending ? __('Registering...') : __('Join Affiliate Program')}
         </button>
       </div>
     );
@@ -46,44 +47,44 @@ export default function AffiliatesPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Affiliate Dashboard</h1>
+      <h1 className="text-2xl font-bold mb-6">{__('Affiliate Dashboard')}</h1>
 
       <div className="rounded-lg border border-(--border-primary) p-6 mb-6">
-        <h2 className="text-sm font-medium text-(--text-secondary) mb-2">Your Referral Link</h2>
+        <h2 className="text-sm font-medium text-(--text-secondary) mb-2">{__('Your Referral Link')}</h2>
         <div className="flex items-center gap-2">
           <code className="flex-1 bg-(--surface-inset) px-3 py-2 rounded border border-(--border-secondary) text-sm overflow-x-auto">
             {appUrl}?ref={affiliate.code}
           </code>
           <button
             onClick={copyLink}
-            className="py-2 px-4 rounded-lg text-sm font-medium bg-(--color-brand-500) text-white hover:bg-(--color-brand-600) transition-colors"
+            className="py-2 px-4 rounded-lg text-sm font-medium bg-brand-500 text-white hover:bg-brand-600 transition-colors"
           >
-            {copied ? 'Copied!' : 'Copy'}
+            {copied ? __('Copied!') : __('Copy')}
           </button>
         </div>
         <p className="text-sm text-(--text-secondary) mt-2">
-          Code: <strong>{affiliate.code}</strong>
+          {__('Code:')} <strong>{affiliate.code}</strong>
         </p>
       </div>
 
       <div className="grid grid-cols-3 gap-4 mb-6">
         <div className="rounded-lg border border-(--border-primary) p-4 text-center">
           <div className="text-2xl font-bold">{affiliate.totalReferrals}</div>
-          <div className="text-sm text-(--text-secondary)">Referrals</div>
+          <div className="text-sm text-(--text-secondary)">{__('Referrals')}</div>
         </div>
         <div className="rounded-lg border border-(--border-primary) p-4 text-center">
           <div className="text-2xl font-bold">${(affiliate.totalEarningsCents / 100).toFixed(2)}</div>
-          <div className="text-sm text-(--text-secondary)">Earnings</div>
+          <div className="text-sm text-(--text-secondary)">{__('Earnings')}</div>
         </div>
         <div className="rounded-lg border border-(--border-primary) p-4 text-center">
           <div className="text-2xl font-bold">{affiliate.commissionPercent}%</div>
-          <div className="text-sm text-(--text-secondary)">Commission</div>
+          <div className="text-sm text-(--text-secondary)">{__('Commission')}</div>
         </div>
       </div>
 
       {stats?.referrals && stats.referrals.length > 0 && (
         <div>
-          <h2 className="text-lg font-semibold mb-3">Recent Referrals</h2>
+          <h2 className="text-lg font-semibold mb-3">{__('Recent Referrals')}</h2>
           <div className="space-y-2">
             {stats.referrals.map((ref) => (
               <div

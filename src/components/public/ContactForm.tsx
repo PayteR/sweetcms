@@ -5,6 +5,7 @@ import { Loader2 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
 import { cn } from '@/lib/utils';
+import { useTranslations } from '@/lib/translations';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -29,6 +30,7 @@ interface ContactFormProps {
 // ---------------------------------------------------------------------------
 
 export function ContactForm({ formSlug, className }: ContactFormProps) {
+  const __ = useTranslations();
   const formQuery = trpc.forms.getBySlug.useQuery({ slug: formSlug });
 
   const [values, setValues] = useState<Record<string, string>>({});
@@ -70,7 +72,7 @@ export function ContactForm({ formSlug, className }: ContactFormProps) {
 
       setSubmitted(true);
     } catch {
-      setError('Network error. Please try again.');
+      setError(__('Network error. Please try again.'));
     } finally {
       setSubmitting(false);
     }
@@ -135,7 +137,7 @@ export function ContactForm({ formSlug, className }: ContactFormProps) {
               className="select w-full"
             >
               <option value="">
-                {field.placeholder ?? 'Select...'}
+                {field.placeholder ?? __('Select...')}
               </option>
               {(field.options ?? '')
                 .split(',')
@@ -212,10 +214,10 @@ export function ContactForm({ formSlug, className }: ContactFormProps) {
         {submitting ? (
           <span className="flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin" />
-            Submitting...
+            {__('Submitting...')}
           </span>
         ) : (
-          'Submit'
+          __('Submit')
         )}
       </button>
     </form>

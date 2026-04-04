@@ -22,6 +22,7 @@ import { adminRoutes, contentRoutes, apiRoutes } from '@/config/routes';
 import { RefCookieCapture } from '@/components/public/RefCookieCapture';
 import { AuthDialogs } from '@/components/public/AuthDialogs';
 import { SupportChatWidgetWrapper } from '@/components/public/SupportChatWidgetWrapper';
+import { getServerTranslations, type TranslationFn } from '@/lib/translations-server';
 
 async function getPublishedCategories(locale: Locale) {
   try {
@@ -45,7 +46,8 @@ async function getPublishedCategories(locale: Locale) {
 /** Build serialized nav items for mobile menu — tries DB menu first, falls back to categories */
 async function getMobileNavItems(
   categories: { name: string; slug: string }[],
-  locale: Locale
+  locale: Locale,
+  __: TranslationFn
 ) {
   try {
     const [menu] = await db
@@ -75,14 +77,14 @@ async function getMobileNavItems(
 
   // Fallback: Blog + categories
   return [
-    { label: 'Blog', url: localePath(contentRoutes.blog, locale) },
+    { label: __('Blog'), url: localePath(contentRoutes.blog, locale) },
     ...categories.map((c) => ({
       label: c.name,
       url: localePath(`/category/${c.slug}`, locale),
     })),
-    { label: 'Portfolio', url: localePath(contentRoutes.portfolio, locale) },
-    { label: 'Showcase', url: localePath(contentRoutes.showcase, locale) },
-    { label: 'Search', url: localePath(contentRoutes.search, locale) },
+    { label: __('Portfolio'), url: localePath(contentRoutes.portfolio, locale) },
+    { label: __('Showcase'), url: localePath(contentRoutes.showcase, locale) },
+    { label: __('Search'), url: localePath(contentRoutes.search, locale) },
   ];
 }
 
@@ -92,8 +94,9 @@ export default async function PublicLayout({
   children: React.ReactNode;
 }) {
   const locale = await getLocale();
+  const __ = await getServerTranslations();
   const categories = await getPublishedCategories(locale);
-  const mobileItems = await getMobileNavItems(categories, locale);
+  const mobileItems = await getMobileNavItems(categories, locale, __);
 
   return (
     <>
@@ -103,7 +106,7 @@ export default async function PublicLayout({
       <link
         rel="alternate"
         type="application/rss+xml"
-        title={`${siteConfig.name} — Blog RSS`}
+        title={`${siteConfig.name} — ${__('Blog RSS')}`}
         href={`${apiRoutes.feedBlog}?lang=${locale}`}
       />
 
@@ -121,7 +124,7 @@ export default async function PublicLayout({
               fallback={
                 <>
                   <Link href={localePath(contentRoutes.blog, locale)} className="header-link">
-                    Blog
+                    {__('Blog')}
                   </Link>
                   {categories.map((cat) => (
                     <Link
@@ -133,7 +136,7 @@ export default async function PublicLayout({
                     </Link>
                   ))}
                   <Link href={localePath(contentRoutes.showcase, locale)} className="header-link">
-                    Showcase
+                    {__('Showcase')}
                   </Link>
                 </>
               }
@@ -142,7 +145,7 @@ export default async function PublicLayout({
 
           {/* Actions */}
           <div className="header-actions">
-            <Link href={localePath(contentRoutes.search, locale)} className="header-icon-btn" title="Search">
+            <Link href={localePath(contentRoutes.search, locale)} className="header-icon-btn" title={__('Search')}>
               <Search className="h-4 w-4" />
             </Link>
             <LanguageSwitcher />
@@ -174,7 +177,7 @@ export default async function PublicLayout({
             {/* Col 2: Categories */}
             {categories.length > 0 && (
               <div>
-                <h4 className="footer-col-title">Categories</h4>
+                <h4 className="footer-col-title">{__('Categories')}</h4>
                 {categories.map((cat) => (
                   <Link
                     key={cat.slug}
@@ -189,27 +192,27 @@ export default async function PublicLayout({
 
             {/* Col 3: Quick Links */}
             <div>
-              <h4 className="footer-col-title">Quick Links</h4>
-              <Link href={localePath(contentRoutes.blog, locale)} className="footer-link">Blog</Link>
-              <Link href={localePath(contentRoutes.portfolio, locale)} className="footer-link">Portfolio</Link>
-              <Link href={localePath(contentRoutes.showcase, locale)} className="footer-link">Showcase</Link>
-              <Link href={localePath(contentRoutes.search, locale)} className="footer-link">Search</Link>
+              <h4 className="footer-col-title">{__('Quick Links')}</h4>
+              <Link href={localePath(contentRoutes.blog, locale)} className="footer-link">{__('Blog')}</Link>
+              <Link href={localePath(contentRoutes.portfolio, locale)} className="footer-link">{__('Portfolio')}</Link>
+              <Link href={localePath(contentRoutes.showcase, locale)} className="footer-link">{__('Showcase')}</Link>
+              <Link href={localePath(contentRoutes.search, locale)} className="footer-link">{__('Search')}</Link>
             </div>
 
             {/* Col 4: More */}
             <div>
-              <h4 className="footer-col-title">More</h4>
+              <h4 className="footer-col-title">{__('More')}</h4>
               <Link href={apiRoutes.feedBlog} className="footer-link inline-flex items-center gap-1">
                 <Rss className="h-3.5 w-3.5" />
-                RSS Feed
+                {__('RSS Feed')}
               </Link>
-              <Link href={adminRoutes.home} className="footer-link">Admin</Link>
+              <Link href={adminRoutes.home} className="footer-link">{__('Admin')}</Link>
             </div>
           </div>
 
           <div className="footer-bottom">
             <span>&copy; {new Date().getFullYear()} {siteConfig.name}</span>
-            <span>Powered by SweetCMS</span>
+            <span>{__('Powered by SweetCMS')}</span>
           </div>
         </div>
       </footer>

@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { Search } from 'lucide-react';
 import { getLocale } from '@/lib/locale-server';
 import { localePath } from '@/lib/locale';
+import { getServerTranslations } from '@/lib/translations-server';
 
 interface Props {
   searchParams: Promise<{ q?: string }>;
@@ -16,6 +17,7 @@ export default async function ShowcaseSearchPage({ searchParams }: Props) {
   const params = await searchParams;
   const query = params.q ?? '';
   const locale = await getLocale();
+  const __ = await getServerTranslations();
 
   let results: Array<{
     id: string;
@@ -61,11 +63,11 @@ export default async function ShowcaseSearchPage({ searchParams }: Props) {
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
       <h1 className="text-2xl font-bold text-(--text-primary)">
-        {query ? `Results for "${query}"` : 'Search'}
+        {query ? __('Results for "{query}"', { query }) : __('Search')}
       </h1>
 
       {query && results.length === 0 && (
-        <p className="mt-6 text-(--text-muted)">No results found for &ldquo;{query}&rdquo;</p>
+        <p className="mt-6 text-(--text-muted)">{__('No results found for "{query}"', { query })}</p>
       )}
 
       {results.length > 0 && (
@@ -91,7 +93,7 @@ export default async function ShowcaseSearchPage({ searchParams }: Props) {
       {!query && (
         <div className="mt-12 flex flex-col items-center text-center text-(--text-muted)">
           <Search className="h-12 w-12 mb-4 opacity-30" />
-          <p>Use the search bar above or press <kbd className="rounded border border-(--border-primary) px-1.5 py-0.5 text-xs font-mono">/</kbd> to search.</p>
+          <p>{__('Use the search bar above or press')} <kbd className="rounded border border-(--border-primary) px-1.5 py-0.5 text-xs font-mono">/</kbd> {__('to search.')}</p>
         </div>
       )}
     </div>

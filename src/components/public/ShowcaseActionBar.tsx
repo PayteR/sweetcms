@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { trpc } from '@/lib/trpc/client';
 import { useSession } from '@/lib/auth-client';
 import { toast } from '@/store/toast-store';
+import { useTranslations } from '@/lib/translations';
 
 interface Props {
   itemId: string;
@@ -33,6 +34,7 @@ export function ShowcaseActionBar({
 }: Props) {
   const { data: session } = useSession();
   const utils = trpc.useUtils();
+  const __ = useTranslations();
 
   const toggleReaction = trpc.reactions.toggle.useMutation({
     onMutate: async ({ reactionType }) => {
@@ -88,7 +90,7 @@ export function ShowcaseActionBar({
 
   function handleReaction(type: 'like' | 'dislike') {
     if (!session) {
-      toast.error('Sign in to react');
+      toast.error(__('Sign in to react'));
       return;
     }
     toggleReaction.mutate({ contentType, contentId: itemId, reactionType: type });
@@ -100,7 +102,7 @@ export function ShowcaseActionBar({
       navigator.share({ url }).catch(() => {});
     } else {
       navigator.clipboard.writeText(url);
-      toast.success('Link copied');
+      toast.success(__('Link copied'));
     }
   }
 

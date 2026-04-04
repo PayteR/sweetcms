@@ -1,5 +1,6 @@
 import Link from 'next/link';
 
+import { getServerTranslations } from '@/lib/translations-server';
 import { db } from '@/server/db';
 import { cmsCategories, cmsPosts, cmsTermRelationships } from '@/server/db/schema';
 import { ContentStatus } from '@/engine/types/cms';
@@ -64,6 +65,7 @@ async function getPopularTags(lang: string) {
 
 export async function BlogSidebar({ lang = DEFAULT_LOCALE }: Props) {
   const locale = lang as Locale;
+  const __ = await getServerTranslations();
   const [categories, tags] = await Promise.all([
     getCategories(lang),
     getPopularTags(lang),
@@ -73,12 +75,12 @@ export async function BlogSidebar({ lang = DEFAULT_LOCALE }: Props) {
     <aside className="sidebar">
       {/* Search */}
       <div>
-        <h3 className="sidebar-title">Search</h3>
+        <h3 className="sidebar-title">{__('Search')}</h3>
         <form action={localePath('/search', locale)} method="GET">
           <input
             type="text"
             name="q"
-            placeholder="Search posts..."
+            placeholder={__('Search posts...')}
             className="input"
           />
         </form>
@@ -87,7 +89,7 @@ export async function BlogSidebar({ lang = DEFAULT_LOCALE }: Props) {
       {/* Categories */}
       {categories.length > 0 && (
         <div>
-          <h3 className="sidebar-title">Categories</h3>
+          <h3 className="sidebar-title">{__('Categories')}</h3>
           <div className="sidebar-list">
             {categories.map((cat) => (
               <Link
@@ -108,7 +110,7 @@ export async function BlogSidebar({ lang = DEFAULT_LOCALE }: Props) {
       {/* Popular Tags */}
       {tags.length > 0 && (
         <div>
-          <h3 className="sidebar-title">Tags</h3>
+          <h3 className="sidebar-title">{__('Tags')}</h3>
           <div className="flex flex-wrap gap-1.5">
             {tags.map((tag) => (
               <Link key={tag.id} href={localePath(`/tag/${tag.slug}`, locale)} className="tag">

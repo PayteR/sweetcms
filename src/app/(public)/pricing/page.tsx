@@ -3,21 +3,23 @@ import { PRICING_PLANS, PRICING_FAQ } from '@/config/pricing';
 import { PricingToggle } from '@/engine/components/PricingToggle';
 import { FaqAccordion } from '@/engine/components/FaqAccordion';
 import { publicAuthRoutes } from '@/config/routes';
+import { getServerTranslations } from '@/lib/translations-server';
 
 export const metadata: Metadata = {
   title: 'Pricing',
   description: 'Simple, transparent pricing for teams of all sizes.',
 };
 
-export default function PricingPage() {
+export default async function PricingPage() {
+  const __ = await getServerTranslations();
   const cryptoEnabled = !!process.env.NOWPAYMENTS_API_KEY;
 
   return (
     <main className="container mx-auto px-4 py-16 max-w-6xl">
       <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold mb-4">Simple, transparent pricing</h1>
+        <h1 className="text-4xl font-bold mb-4">{__('Simple, transparent pricing')}</h1>
         <p className="text-lg text-(--text-secondary) max-w-2xl mx-auto">
-          Choose the plan that fits your team. All plans include a 14-day free trial.
+          {__('Choose the plan that fits your team. All plans include a 14-day free trial.')}
         </p>
       </div>
 
@@ -25,7 +27,7 @@ export default function PricingPage() {
 
       <section className="mt-24">
         <h2 className="text-2xl font-bold text-center mb-8">
-          Frequently asked questions
+          {__('Frequently asked questions')}
         </h2>
         <FaqAccordion faqs={PRICING_FAQ} />
       </section>

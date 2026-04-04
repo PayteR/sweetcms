@@ -6,13 +6,16 @@ import { Plus, Loader2 } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
 import { accountRoutes } from '@/config/routes';
 import { cn } from '@/lib/utils';
+import { useBlankTranslations, dataTranslations } from '@/lib/translations';
+
+const _d = dataTranslations('General');
 
 const STATUS_LABELS: Record<string, string> = {
-  open: 'Open',
-  awaiting_user: 'Awaiting You',
-  awaiting_admin: 'Awaiting Staff',
-  resolved: 'Resolved',
-  closed: 'Closed',
+  open: _d('Open'),
+  awaiting_user: _d('Awaiting You'),
+  awaiting_admin: _d('Awaiting Staff'),
+  resolved: _d('Resolved'),
+  closed: _d('Closed'),
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -24,13 +27,14 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const PRIORITY_LABELS: Record<string, string> = {
-  low: 'Low',
-  normal: 'Normal',
-  high: 'High',
-  urgent: 'Urgent',
+  low: _d('Low'),
+  normal: _d('Normal'),
+  high: _d('High'),
+  urgent: _d('Urgent'),
 };
 
 export default function AccountSupportPage() {
+  const __ = useBlankTranslations();
   const [statusFilter, setStatusFilter] = useState<string | undefined>(undefined);
   const [page, setPage] = useState(1);
 
@@ -43,13 +47,13 @@ export default function AccountSupportPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Support Tickets</h1>
+        <h1 className="text-2xl font-bold">{__('Support Tickets')}</h1>
         <Link
           href={accountRoutes.supportNew}
-          className="inline-flex items-center gap-2 py-2 px-4 rounded-lg text-sm font-medium bg-(--color-brand-500) text-white hover:bg-(--color-brand-600) transition-colors"
+          className="inline-flex items-center gap-2 py-2 px-4 rounded-lg text-sm font-medium bg-brand-500 text-white hover:bg-brand-600 transition-colors"
         >
           <Plus size={16} />
-          New Ticket
+          {__('New Ticket')}
         </Link>
       </div>
 
@@ -62,11 +66,11 @@ export default function AccountSupportPage() {
             className={cn(
               'px-3 py-1.5 text-sm rounded-lg transition-colors',
               statusFilter === status
-                ? 'bg-(--color-brand-500) text-white'
+                ? 'bg-brand-500 text-white'
                 : 'border border-(--border-primary) text-(--text-secondary) hover:bg-(--surface-secondary)',
             )}
           >
-            {status ? STATUS_LABELS[status] : 'All'}
+            {status ? __(STATUS_LABELS[status]!) : __('All')}
           </button>
         ))}
       </div>
@@ -78,12 +82,12 @@ export default function AccountSupportPage() {
         </div>
       ) : !data?.results.length ? (
         <div className="rounded-lg border border-(--border-primary) p-8 text-center">
-          <p className="text-(--text-secondary)">No tickets found.</p>
+          <p className="text-(--text-secondary)">{__('No tickets found.')}</p>
           <Link
             href={accountRoutes.supportNew}
-            className="inline-block mt-3 text-sm text-(--color-brand-500) hover:text-(--color-brand-600)"
+            className="inline-block mt-3 text-sm text-brand-500 hover:text-brand-600"
           >
-            Create your first ticket
+            {__('Create your first ticket')}
           </Link>
         </div>
       ) : (
@@ -98,13 +102,13 @@ export default function AccountSupportPage() {
                 <div className="min-w-0">
                   <h3 className="font-medium truncate">{ticket.subject}</h3>
                   <div className="flex items-center gap-2 mt-1.5 text-xs text-(--text-muted)">
-                    <span>{PRIORITY_LABELS[ticket.priority] ?? ticket.priority}</span>
+                    <span>{__(PRIORITY_LABELS[ticket.priority] ?? ticket.priority)}</span>
                     <span>·</span>
                     <span>{new Date(ticket.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
                 <span className={cn('shrink-0 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium', STATUS_COLORS[ticket.status] ?? '')}>
-                  {STATUS_LABELS[ticket.status] ?? ticket.status}
+                  {__(STATUS_LABELS[ticket.status] ?? ticket.status)}
                 </span>
               </div>
             </Link>
@@ -118,7 +122,7 @@ export default function AccountSupportPage() {
                 disabled={page <= 1}
                 className="px-3 py-1.5 text-sm rounded-lg border border-(--border-primary) disabled:opacity-40"
               >
-                Previous
+                {__('Previous')}
               </button>
               <span className="text-sm text-(--text-secondary)">
                 Page {page} of {data.totalPages}
@@ -128,7 +132,7 @@ export default function AccountSupportPage() {
                 disabled={page >= data.totalPages}
                 className="px-3 py-1.5 text-sm rounded-lg border border-(--border-primary) disabled:opacity-40"
               >
-                Next
+                {__('Next')}
               </button>
             </div>
           )}

@@ -8,6 +8,9 @@ import { trpc } from '@/lib/trpc/client';
 import { useChannel } from '@/engine/lib/ws-client';
 import { accountRoutes } from '@/config/routes';
 import { cn } from '@/lib/utils';
+import { useBlankTranslations, dataTranslations } from '@/lib/translations';
+
+const _d = dataTranslations('General');
 
 interface TicketWsEvent {
   type: 'ticket_message' | 'ticket_status';
@@ -21,11 +24,11 @@ interface TicketWsEvent {
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  open: 'Open',
-  awaiting_user: 'Awaiting You',
-  awaiting_admin: 'Awaiting Staff',
-  resolved: 'Resolved',
-  closed: 'Closed',
+  open: _d('Open'),
+  awaiting_user: _d('Awaiting You'),
+  awaiting_admin: _d('Awaiting Staff'),
+  resolved: _d('Resolved'),
+  closed: _d('Closed'),
 };
 
 const STATUS_COLORS: Record<string, string> = {
@@ -41,6 +44,7 @@ function isNearBottom(el: HTMLElement, threshold = 150): boolean {
 }
 
 export default function TicketDetailPage() {
+  const __ = useBlankTranslations();
   const params = useParams();
   const id = params.id as string;
   const utils = trpc.useUtils();
@@ -119,9 +123,9 @@ export default function TicketDetailPage() {
   if (!ticket) {
     return (
       <div className="text-center py-12">
-        <p className="text-(--text-secondary)">Ticket not found.</p>
-        <Link href={accountRoutes.support} className="text-sm text-(--color-brand-500) mt-2 inline-block">
-          Back to tickets
+        <p className="text-(--text-secondary)">{__('Ticket not found.')}</p>
+        <Link href={accountRoutes.support} className="text-sm text-brand-500 mt-2 inline-block">
+          {__('Back to tickets')}
         </Link>
       </div>
     );
@@ -149,10 +153,10 @@ export default function TicketDetailPage() {
           <h1 className="text-2xl font-bold">{ticket.subject}</h1>
           <div className="flex items-center gap-3 mt-1 text-sm text-(--text-muted)">
             <span className={cn('inline-block rounded-full px-2.5 py-0.5 text-xs font-medium', STATUS_COLORS[ticket.status] ?? '')}>
-              {STATUS_LABELS[ticket.status] ?? ticket.status}
+              {__(STATUS_LABELS[ticket.status] ?? ticket.status)}
             </span>
-            <span>Priority: {ticket.priority}</span>
-            <span>Created: {new Date(ticket.createdAt).toLocaleDateString()}</span>
+            <span>{__('Priority:')} {ticket.priority}</span>
+            <span>{__('Created:')} {new Date(ticket.createdAt).toLocaleDateString()}</span>
           </div>
         </div>
         {!isClosed && ticket.status !== 'resolved' && (
@@ -161,7 +165,7 @@ export default function TicketDetailPage() {
             disabled={closeTicket.isPending}
             className="shrink-0 py-1.5 px-3 text-sm rounded-lg border border-(--border-primary) text-(--text-secondary) hover:bg-(--surface-secondary) transition-colors disabled:opacity-50"
           >
-            {closeTicket.isPending ? 'Closing...' : 'Close Ticket'}
+            {closeTicket.isPending ? __('Closing...') : __('Close Ticket')}
           </button>
         )}
       </div>
@@ -179,12 +183,12 @@ export default function TicketDetailPage() {
               'rounded-lg p-4',
               msg.isStaff
                 ? 'bg-(--surface-secondary) border border-(--border-primary)'
-                : 'bg-(--color-brand-500)/5 border border-(--color-brand-500)/20',
+                : 'bg-brand-500/5 border border-brand-500/20',
             )}
           >
             <div className="flex items-center gap-2 mb-2 text-xs text-(--text-muted)">
               <span className="font-medium">
-                {msg.isStaff ? 'Staff' : 'You'}
+                {msg.isStaff ? __('Staff') : __('You')}
               </span>
               <span>{new Date(msg.createdAt).toLocaleString()}</span>
             </div>
@@ -203,23 +207,23 @@ export default function TicketDetailPage() {
             value={replyBody}
             onChange={(e) => setReplyBody(e.target.value)}
             className="w-full px-3 py-2 rounded-lg border border-(--border-primary) bg-(--surface-primary) text-sm resize-y mb-3"
-            placeholder="Type your reply..."
+            placeholder={__('Type your reply...')}
           />
           {reply.error && (
-            <p className="text-sm text-(--color-danger-500) mb-2">{reply.error.message}</p>
+            <p className="text-sm text-danger-500 mb-2">{reply.error.message}</p>
           )}
           <button
             type="submit"
             disabled={reply.isPending || !replyBody.trim()}
-            className="inline-flex items-center gap-2 py-2 px-4 rounded-lg font-medium text-sm bg-(--color-brand-500) text-white hover:bg-(--color-brand-600) transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-2 py-2 px-4 rounded-lg font-medium text-sm bg-brand-500 text-white hover:bg-brand-600 transition-colors disabled:opacity-50"
           >
             {reply.isPending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-            Send Reply
+            {__('Send Reply')}
           </button>
         </form>
       ) : (
         <div className="rounded-lg border border-(--border-primary) p-4 text-center text-sm text-(--text-muted)">
-          This ticket is closed. Create a new ticket if you need further assistance.
+          {__('This ticket is closed. Create a new ticket if you need further assistance.')}
         </div>
       )}
     </div>

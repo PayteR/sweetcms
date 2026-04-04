@@ -5,6 +5,7 @@ import { Sparkles } from 'lucide-react';
 import { useSession } from '@/lib/auth-client';
 import { trpc } from '@/lib/trpc/client';
 import { TokenBalance } from '@/engine/components/TokenBalance';
+import { useTranslations } from '@/lib/translations';
 
 /**
  * Shows a "Subscribe" button if the user has no active subscription,
@@ -13,6 +14,7 @@ import { TokenBalance } from '@/engine/components/TokenBalance';
  * Styles: .app-subscribe-btn (frontend.css)
  */
 export function SubscribeOrTokens() {
+  const __ = useTranslations();
   const { data: session } = useSession();
   const { data: subscription, isLoading } = trpc.billing.getSubscription.useQuery(
     undefined,
@@ -29,7 +31,7 @@ export function SubscribeOrTokens() {
   return (
     <Link href="/pricing" className="app-subscribe-btn">
       <Sparkles className="h-3.5 w-3.5" />
-      Subscribe
+      {__('Subscribe')}
     </Link>
   );
 }

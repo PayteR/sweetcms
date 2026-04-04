@@ -28,10 +28,9 @@ export default getRequestConfig(async () => {
       if (error.code === 'MISSING_MESSAGE') return;
       console.error('[next-intl]', error.message);
     },
-    getMessageFallback({ key, namespace }) {
-      // Reverse the dot→@@@ transform to return a human-readable fallback
-      const fullKey = namespace ? `${namespace}.${key}` : key;
-      return fullKey.replace(/@@@/g, '.');
+    getMessageFallback({ key }) {
+      // Return the raw key as fallback — reverse the dot→@@@ transform
+      return key.replace(/@@@/g, '.');
     },
   };
 });

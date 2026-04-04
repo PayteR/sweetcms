@@ -1,6 +1,6 @@
 'use client';
 
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { LOCALES, DEFAULT_LOCALE, LOCALE_LABELS } from '@/lib/constants';
 import { localePath } from '@/engine/lib/locale';
 import { useLocale } from '@/engine/hooks/useLocale';
@@ -17,7 +17,6 @@ export function LanguageSwitcher() {
 
 function LanguageSwitcherInner() {
   const pathname = usePathname();
-  const router = useRouter();
   const currentLocale = useLocale();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -30,7 +29,10 @@ function LanguageSwitcherInner() {
 
   function switchLocale(locale: Locale) {
     setOpen(false);
-    router.push(localePath(basePath, locale));
+    // Full page reload required — the root layout's NextIntlClientProvider
+    // must re-render with the new locale's messages from the server.
+    // router.push() would do a soft nav and keep stale translations.
+    window.location.href = localePath(basePath, locale);
   }
 
   // Close on click outside

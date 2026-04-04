@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sweetcms\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-04T22:53:59.937Z\n"
-"PO-Revision-Date: 2026-04-04T22:53:59.937Z\n"
+"POT-Creation-Date: 2026-04-04T23:50:27.426Z\n"
+"PO-Revision-Date: 2026-04-04T23:50:27.426Z\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: es\n"
 "Language: es\n"
@@ -617,7 +617,7 @@ msgstr "Archivo eliminado"
 
 #: src/app/dashboard/(panel)/media/page.tsx:92
 msgid "Upload failed"
-msgstr "Upload failed"
+msgstr "Error al subir el archivo"
 
 #: src/app/dashboard/(panel)/media/page.tsx:108
 #: src/engine/components/MediaPickerDialog.tsx:150
@@ -2142,17 +2142,17 @@ msgstr "No se ha registrado ninguna actividad de este usuario."
 #: src/components/admin/AdminSidebar.tsx:50
 msgctxt "General"
 msgid "Light"
-msgstr "Light"
+msgstr "Luz"
 
 #: src/components/admin/AdminSidebar.tsx:50
 msgctxt "General"
 msgid "Dark"
-msgstr "Dark"
+msgstr "Oscuro"
 
 #: src/components/admin/AdminSidebar.tsx:50
 msgctxt "General"
 msgid "System"
-msgstr "System"
+msgstr "Sistema"
 
 #: src/components/admin/AdminSidebar.tsx:182
 msgid "Theme"
@@ -2249,17 +2249,17 @@ msgstr "Fecha de publicación"
 #: src/components/admin/CmsListView.tsx:40
 msgctxt "General"
 msgid "Draft"
-msgstr "Draft"
+msgstr "Borrador"
 
 #: src/components/admin/CmsListView.tsx:41
 msgctxt "General"
 msgid "Published"
-msgstr "Published"
+msgstr "Publicado"
 
 #: src/components/admin/CmsListView.tsx:42
 msgctxt "General"
 msgid "Scheduled"
-msgstr "Scheduled"
+msgstr "Programado"
 
 #: src/components/admin/CmsListView.tsx:209
 #: src/components/admin/CmsListView.tsx:223
@@ -3546,30 +3546,6 @@ msgstr[1] "{count} items {action}"
 #: src/engine/hooks/useCmsFormState.ts:49
 msgid "Please check the form for errors"
 msgstr "Comprueba si hay errores en el formulario"
-
-#. REMOVED FROM CODE - PRESERVED FOR REFERENCE
-#~ msgid "{count} file(s) uploaded"
-#~ msgstr "{count} archivo(s) subido(s)"
-
-#. REMOVED FROM CODE - PRESERVED FOR REFERENCE
-#~ msgid "Created {count} SEO override page(s)"
-#~ msgstr "Se han creado una o varias páginas de anulación de SEO en {count}"
-
-#. REMOVED FROM CODE - PRESERVED FOR REFERENCE
-#~ msgid "Exported {count} items"
-#~ msgstr "Elementos exportados de «{count}»"
-
-#. REMOVED FROM CODE - PRESERVED FOR REFERENCE
-#~ msgid "{count} items will be moved to trash."
-#~ msgstr "{count} los elementos se moverán a la papelera."
-
-#. REMOVED FROM CODE - PRESERVED FOR REFERENCE
-#~ msgid "Created {count} SEO override(s)"
-#~ msgstr "Se han creado modificaciones de SEO en {count}"
-
-#. REMOVED FROM CODE - PRESERVED FOR REFERENCE
-#~ msgid "{count} items {action}"
-#~ msgstr "{count} artículos {action}"
 
 #. REMOVED FROM CODE - PRESERVED FOR REFERENCE
 #~ msgid "Option "

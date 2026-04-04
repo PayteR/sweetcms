@@ -6,11 +6,13 @@ import { Dialog } from '@/engine/components/Dialog';
 import { useAuthDialogStore } from '@/store/auth-dialog-store';
 import { LoginForm } from '@/app/(public)/login/LoginForm';
 import { RegisterForm } from '@/app/(public)/register/RegisterForm';
+import { useTranslations } from '@/lib/translations';
 
 function LoginDialogInner() {
   const router = useRouter();
   const pathname = usePathname();
   const { showLoginDialog, closeDialog, openRegisterDialog } = useAuthDialogStore();
+  const __ = useTranslations();
 
   const handleSuccess = () => {
     closeDialog();
@@ -19,7 +21,7 @@ function LoginDialogInner() {
 
   return (
     <Dialog open={showLoginDialog} onClose={closeDialog} size="sm" zoomFromClick>
-      <Dialog.Header onClose={closeDialog}>Sign In</Dialog.Header>
+      <Dialog.Header onClose={closeDialog}>{__('Sign In')}</Dialog.Header>
       <Dialog.Body>
         <Suspense fallback={null}>
           <LoginForm
@@ -37,6 +39,7 @@ function RegisterDialogInner() {
   const router = useRouter();
   const pathname = usePathname();
   const { showRegisterDialog, closeDialog, openLoginDialog } = useAuthDialogStore();
+  const __ = useTranslations();
 
   const registrationEnabled = process.env.NEXT_PUBLIC_REGISTRATION_ENABLED !== 'false';
 
@@ -47,7 +50,7 @@ function RegisterDialogInner() {
 
   return (
     <Dialog open={showRegisterDialog} onClose={closeDialog} size="sm" zoomFromClick>
-      <Dialog.Header onClose={closeDialog}>Create Account</Dialog.Header>
+      <Dialog.Header onClose={closeDialog}>{__('Create Account')}</Dialog.Header>
       <Dialog.Body>
         {registrationEnabled ? (
           <Suspense fallback={null}>
@@ -59,7 +62,7 @@ function RegisterDialogInner() {
           </Suspense>
         ) : (
           <p className="text-(--text-secondary) text-sm">
-            Registration is currently not available. Please contact us for access.
+            {__('Registration is currently not available. Please contact us for access.')}
           </p>
         )}
       </Dialog.Body>

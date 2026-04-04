@@ -10,6 +10,7 @@ import { db } from '@/server/db';
 import { getCodedRouteSEO } from '@/engine/crud/page-seo';
 import { getLocale } from '@/lib/locale-server';
 import { localePath } from '@/lib/locale';
+import { getServerTranslations } from '@/lib/translations-server';
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
@@ -31,6 +32,7 @@ export default async function BlogListPage({ searchParams }: Props) {
   const page = Math.max(1, parseInt(params.page ?? '1', 10) || 1);
 
   const locale = await getLocale();
+  const __ = await getServerTranslations();
   let data;
   try {
     const api = await serverTRPC();
@@ -49,7 +51,7 @@ export default async function BlogListPage({ searchParams }: Props) {
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1fr_280px]">
         {/* Main column */}
         <div>
-          <h1 className="text-3xl font-bold text-(--text-primary)">Blog</h1>
+          <h1 className="text-3xl font-bold text-(--text-primary)">{__('Blog')}</h1>
 
           {data && data.results.length > 0 ? (
             <div className="mt-8 space-y-8">
@@ -73,25 +75,25 @@ export default async function BlogListPage({ searchParams }: Props) {
                       href={`${localePath('/blog', locale)}?page=${page - 1}`}
                       className="pagination-btn"
                     >
-                      Previous
+                      {__('Previous')}
                     </Link>
                   )}
                   <span className="pagination-info">
-                    Page {page} of {data.totalPages}
+                    {__('Page {page} of {totalPages}', { page, totalPages: data.totalPages })}
                   </span>
                   {page < data.totalPages && (
                     <Link
                       href={`${localePath('/blog', locale)}?page=${page + 1}`}
                       className="pagination-btn"
                     >
-                      Next
+                      {__('Next')}
                     </Link>
                   )}
                 </div>
               )}
             </div>
           ) : (
-            <p className="mt-8 text-(--text-muted)">No blog posts yet.</p>
+            <p className="mt-8 text-(--text-muted)">{__('No blog posts yet.')}</p>
           )}
         </div>
 

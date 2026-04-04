@@ -10,6 +10,7 @@ import { trpc } from '@/lib/trpc/client';
 import { useSession } from '@/lib/auth-client';
 import { formatRelativeTime } from '@/engine/lib/datetime';
 import { toast } from '@/store/toast-store';
+import { useTranslations } from '@/lib/translations';
 
 interface Props {
   contentType: string;
@@ -64,6 +65,7 @@ function CommentItem({ comment, currentUserId, contentType, contentId, depth = 0
   const [replyText, setReplyText] = useState('');
   const [replying, setReplying] = useState(false);
   const utils = trpc.useUtils();
+  const __ = useTranslations();
 
   const replies = trpc.comments.listReplies.useQuery(
     { parentId: comment.id, pageSize: 50 },
@@ -121,7 +123,7 @@ function CommentItem({ comment, currentUserId, contentType, contentId, depth = 0
               onClick={() => setReplying(!replying)}
               className="font-medium hover:text-white/80"
             >
-              Reply
+              {__('Reply')}
             </button>
           )}
           {isOwn && (
@@ -129,7 +131,7 @@ function CommentItem({ comment, currentUserId, contentType, contentId, depth = 0
               onClick={() => deleteComment.mutate({ id: comment.id })}
               className="font-medium hover:text-red-400"
             >
-              Delete
+              {__('Delete')}
             </button>
           )}
         </div>
@@ -142,7 +144,7 @@ function CommentItem({ comment, currentUserId, contentType, contentId, depth = 0
               value={replyText}
               onChange={(e) => setReplyText(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleReplySubmit(); } }}
-              placeholder="Reply..."
+              placeholder={__('Reply...')}
               maxLength={2000}
               className="flex-1 rounded-full bg-white/10 px-3 py-1.5 text-sm text-white placeholder-white/40 outline-none focus:bg-white/15"
             />
@@ -163,7 +165,7 @@ function CommentItem({ comment, currentUserId, contentType, contentId, depth = 0
             className="mt-2 flex items-center gap-1 text-xs font-medium text-blue-400 hover:text-blue-300"
           >
             <ChevronDown className={cn('h-3.5 w-3.5 transition-transform', showReplies && 'rotate-180')} />
-            {showReplies ? 'Hide' : `${replyCount}`} {replyCount === 1 ? 'reply' : 'replies'}
+            {showReplies ? __('Hide') : `${replyCount}`} {__._n('reply', 'replies', replyCount)}
           </button>
         )}
 
@@ -193,6 +195,7 @@ export function CommentPanel({ contentType, contentId, onClose }: Props) {
   const panelRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const utils = trpc.useUtils();
+  const __ = useTranslations();
 
   // Animation state machine: enter/exit transitions
   // We track "phase" to manage the slide-up/slide-down lifecycle
@@ -318,7 +321,7 @@ export function CommentPanel({ contentType, contentId, onClose }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between border-b border-white/10 px-4 pb-3">
           <h3 className="text-base font-semibold text-white">
-            Comments{totalComments > 0 && ` ${totalComments}`}
+            {__('Comments')}{totalComments > 0 && ` ${totalComments}`}
           </h3>
           <button
             onClick={onClose}
@@ -336,7 +339,7 @@ export function CommentPanel({ contentType, contentId, onClose }: Props) {
             </div>
           ) : comments.data?.results.length === 0 ? (
             <p className="py-8 text-center text-sm text-white/40">
-              No comments yet. Be the first!
+              {__('No comments yet. Be the first!')}
             </p>
           ) : (
             <div className="space-y-4">
@@ -367,7 +370,7 @@ export function CommentPanel({ contentType, contentId, onClose }: Props) {
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); } }}
-                placeholder="Add a comment..."
+                placeholder={__('Add a comment...')}
                 maxLength={2000}
                 className="flex-1 rounded-full bg-white/10 px-4 py-2 text-sm text-white placeholder-white/40 outline-none focus:bg-white/15"
               />
@@ -386,9 +389,9 @@ export function CommentPanel({ contentType, contentId, onClose }: Props) {
           ) : (
             <p className="text-center text-sm text-white/50">
               <Link href="/login" className="font-medium text-blue-400 hover:text-blue-300">
-                Sign in
+                {__('Sign in')}
               </Link>
-              {' '}to comment
+              {' '}{__('to comment')}
             </p>
           )}
         </div>

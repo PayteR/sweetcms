@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { signIn } from '@/lib/auth-client';
 import { SocialLoginButtons } from '@/components/public/SocialLoginButtons';
 import { publicAuthRoutes, accountRoutes } from '@/config/routes';
+import { useBlankTranslations } from '@/lib/translations';
 
 export interface LoginFormProps {
   /** Called after successful login (dialog mode). If not provided, redirects to callbackUrl. */
@@ -17,6 +18,7 @@ export interface LoginFormProps {
 }
 
 export function LoginForm({ onSuccess, onSwitchToRegister, socialCallbackUrl }: LoginFormProps = {}) {
+  const __ = useBlankTranslations();
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') ?? accountRoutes.home;
@@ -33,14 +35,14 @@ export function LoginForm({ onSuccess, onSwitchToRegister, socialCallbackUrl }: 
     try {
       const result = await signIn.email({ email, password });
       if (result.error) {
-        setError(result.error.message ?? 'Invalid email or password');
+        setError(result.error.message ?? __('Invalid email or password'));
       } else if (onSuccess) {
         onSuccess();
       } else {
         router.push(callbackUrl);
       }
     } catch {
-      setError('Something went wrong. Please try again.');
+      setError(__('Something went wrong. Please try again.'));
     } finally {
       setLoading(false);
     }
@@ -52,35 +54,35 @@ export function LoginForm({ onSuccess, onSwitchToRegister, socialCallbackUrl }: 
 
       <div className="flex items-center gap-3 my-6">
         <div className="flex-1 border-t border-(--border-primary)" />
-        <span className="text-xs text-(--text-secondary)">or continue with email</span>
+        <span className="text-xs text-(--text-secondary)">{__('or continue with email')}</span>
         <div className="flex-1 border-t border-(--border-primary)" />
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
-          <div className="text-sm text-(--color-danger-500) bg-(--color-danger-500)/10 px-4 py-2 rounded-lg">
+          <div className="text-sm text-danger-500 bg-danger-500/10 px-4 py-2 rounded-lg">
             {error}
           </div>
         )}
 
         <div>
-          <label htmlFor="login-email" className="block text-sm font-medium mb-1">Email</label>
+          <label htmlFor="login-email" className="block text-sm font-medium mb-1">{__('Email')}</label>
           <input
             id="login-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-(--border-primary) bg-(--surface-primary) text-sm focus:outline-none focus:ring-2 focus:ring-(--color-brand-500)/25"
-            placeholder="you@example.com"
+            className="w-full px-3 py-2 rounded-lg border border-(--border-primary) bg-(--surface-primary) text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/25"
+            placeholder={__('you@example.com')}
             required
           />
         </div>
 
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label htmlFor="login-password" className="block text-sm font-medium">Password</label>
-            <Link href={publicAuthRoutes.forgotPassword} className="text-xs text-(--color-brand-500) hover:underline">
-              Forgot password?
+            <label htmlFor="login-password" className="block text-sm font-medium">{__('Password')}</label>
+            <Link href={publicAuthRoutes.forgotPassword} className="text-xs text-brand-500 hover:underline">
+              {__('Forgot password?')}
             </Link>
           </div>
           <input
@@ -88,8 +90,8 @@ export function LoginForm({ onSuccess, onSwitchToRegister, socialCallbackUrl }: 
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 rounded-lg border border-(--border-primary) bg-(--surface-primary) text-sm focus:outline-none focus:ring-2 focus:ring-(--color-brand-500)/25"
-            placeholder="••••••••"
+            className="w-full px-3 py-2 rounded-lg border border-(--border-primary) bg-(--surface-primary) text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/25"
+            placeholder={__('••••••••')}
             required
           />
         </div>
@@ -97,21 +99,21 @@ export function LoginForm({ onSuccess, onSwitchToRegister, socialCallbackUrl }: 
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-2.5 px-4 rounded-lg font-medium text-sm bg-(--color-brand-500) text-white hover:bg-(--color-brand-600) transition-colors disabled:opacity-50"
+          className="w-full py-2.5 px-4 rounded-lg font-medium text-sm bg-brand-500 text-white hover:bg-brand-600 transition-colors disabled:opacity-50"
         >
-          {loading ? 'Signing in...' : 'Sign In'}
+          {loading ? __('Signing in...') : __('Sign In')}
         </button>
       </form>
 
       <p className="text-center text-sm text-(--text-secondary) mt-6">
-        Don&apos;t have an account?{' '}
+        {__("Don't have an account?")}{' '}
         {onSwitchToRegister ? (
-          <button type="button" onClick={onSwitchToRegister} className="text-(--color-brand-500) hover:underline">
-            Sign up
+          <button type="button" onClick={onSwitchToRegister} className="text-brand-500 hover:underline">
+            {__('Sign up')}
           </button>
         ) : (
-          <Link href={publicAuthRoutes.register} className="text-(--color-brand-500) hover:underline">
-            Sign up
+          <Link href={publicAuthRoutes.register} className="text-brand-500 hover:underline">
+            {__('Sign up')}
           </Link>
         )}
       </p>

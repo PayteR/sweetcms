@@ -6,6 +6,7 @@ import { and, desc, eq, ilike, isNull, or, sql } from 'drizzle-orm';
 import Link from 'next/link';
 import { getLocale } from '@/lib/locale-server';
 import { localePath } from '@/lib/locale';
+import { getServerTranslations } from '@/lib/translations-server';
 
 interface Props {
   searchParams: Promise<{ q?: string; page?: string }>;
@@ -31,6 +32,7 @@ export default async function SearchPage({ searchParams }: Props) {
   let total = 0;
 
   const locale = await getLocale();
+  const __ = await getServerTranslations();
 
   if (query.length >= 1) {
     const hasSearchVector = query.length >= 3;
@@ -122,7 +124,7 @@ export default async function SearchPage({ searchParams }: Props) {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
-      <h1 className="text-3xl font-bold text-(--text-primary)">Search</h1>
+      <h1 className="text-3xl font-bold text-(--text-primary)">{__('Search')}</h1>
 
       <form className="mt-6" action={localePath('/search', locale)} method="GET">
         <div className="flex gap-2">
@@ -130,7 +132,7 @@ export default async function SearchPage({ searchParams }: Props) {
             type="text"
             name="q"
             defaultValue={query}
-            placeholder="Search content..."
+            placeholder={__('Search content...')}
             className="input flex-1 px-4 py-2.5"
             autoFocus
           />
@@ -138,14 +140,14 @@ export default async function SearchPage({ searchParams }: Props) {
             type="submit"
             className="btn btn-primary rounded-md px-4 py-2.5 text-sm font-medium"
           >
-            Search
+            {__('Search')}
           </button>
         </div>
       </form>
 
       {query && (
         <p className="mt-4 text-sm text-(--text-muted)">
-          {total} result{total !== 1 ? 's' : ''} for &quot;{query}&quot;
+          {__._n('1 result for "{query}"', '{total} results for "{query}"', total, { query, total })}
         </p>
       )}
 
@@ -154,7 +156,7 @@ export default async function SearchPage({ searchParams }: Props) {
           <article key={result.id}>
             <Link
               href={result.url}
-              className="text-lg font-medium text-(--color-brand-700) dark:text-(--color-brand-400) hover:underline"
+              className="text-lg font-medium text-brand-700 dark:text-brand-400 hover:underline"
             >
               {result.title}
             </Link>
@@ -178,18 +180,18 @@ export default async function SearchPage({ searchParams }: Props) {
               href={`${localePath('/search', locale)}?q=${encodeURIComponent(query)}&page=${page - 1}`}
               className="rounded-md border border-(--border-primary) px-3 py-1.5 text-sm"
             >
-              Previous
+              {__('Previous')}
             </Link>
           )}
           <span className="text-sm text-(--text-muted)">
-            Page {page} of {totalPages}
+            {__('Page {page} of {totalPages}', { page, totalPages })}
           </span>
           {page < totalPages && (
             <Link
               href={`${localePath('/search', locale)}?q=${encodeURIComponent(query)}&page=${page + 1}`}
               className="rounded-md border border-(--border-primary) px-3 py-1.5 text-sm"
             >
-              Next
+              {__('Next')}
             </Link>
           )}
         </div>

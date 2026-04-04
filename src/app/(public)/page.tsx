@@ -11,6 +11,7 @@ import { db } from '@/server/db';
 import { getCodedRouteSEO } from '@/engine/crud/page-seo';
 import { getLocale } from '@/lib/locale-server';
 import { localePath } from '@/lib/locale';
+import { getServerTranslations } from '@/lib/translations-server';
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
@@ -25,6 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   const locale = await getLocale();
+  const __ = await getServerTranslations();
   let recentPosts: Array<{
     id: string;
     slug: string;
@@ -78,13 +80,13 @@ export default async function HomePage() {
               href={localePath('/blog', locale)}
               className="btn btn-primary rounded-lg px-6 py-3 text-sm shadow-sm"
             >
-              Read the Blog
+              {__('Read the Blog')}
             </Link>
             <Link
               href={localePath('/portfolio', locale)}
               className="btn btn-secondary rounded-lg px-6 py-3 text-sm shadow-sm"
             >
-              View Portfolio
+              {__('View Portfolio')}
             </Link>
           </div>
         </div>
@@ -95,12 +97,12 @@ export default async function HomePage() {
         <section className="section-alt">
           <div className="container">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-(--text-primary)">Recent Posts</h2>
+              <h2 className="text-2xl font-bold text-(--text-primary)">{__('Recent Posts')}</h2>
               <Link
                 href={localePath('/blog', locale)}
-                className="flex items-center gap-1 text-sm font-medium text-(--color-brand-600) hover:text-(--color-brand-500)"
+                className="flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-500"
               >
-                View all
+                {__('View all')}
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>
@@ -143,13 +145,13 @@ export default async function HomePage() {
       {categories.length > 0 && (
         <section className="section">
           <div className="container">
-            <h2 className="text-2xl font-bold text-(--text-primary)">Categories</h2>
+            <h2 className="text-2xl font-bold text-(--text-primary)">{__('Categories')}</h2>
             <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
               {categories.map((cat) => (
                 <Link
                   key={cat.slug}
                   href={localePath(`/category/${cat.slug}`, locale)}
-                  className="rounded-lg border border-(--border-primary) bg-(--surface-secondary) p-4 text-center text-sm font-medium text-(--text-primary) transition-colors hover:border-(--color-brand-300) hover:text-(--color-brand-600)"
+                  className="rounded-lg border border-(--border-primary) bg-(--surface-secondary) p-4 text-center text-sm font-medium text-(--text-primary) transition-colors hover:border-brand-300 hover:text-brand-600"
                 >
                   {cat.name}
                 </Link>
@@ -163,7 +165,7 @@ export default async function HomePage() {
       <TagCloud
         lang={locale}
         limit={15}
-        sectionTitle="Popular Tags"
+        sectionTitle={__('Popular Tags')}
         sectionClassName="section-alt"
         containerClassName="container"
       />

@@ -20,6 +20,7 @@ import { getLocale } from '@/lib/locale-server';
 import { localePath } from '@/lib/locale';
 import { contentRoutes } from '@/config/routes';
 import { AuthDialogs } from '@/components/public/AuthDialogs';
+import { getServerTranslations } from '@/lib/translations-server';
 
 /**
  * App-like layout for the showcase route group.
@@ -44,12 +45,13 @@ export default async function ShowcaseLayout({
   children: React.ReactNode;
 }) {
   const locale = await getLocale();
+  const __ = await getServerTranslations();
 
   const sidebarItems = [
-    { label: 'Home', href: localePath('/', locale), icon: <Home className="h-4 w-4" /> },
-    { label: 'Feed', href: localePath(contentRoutes.showcase, locale), icon: <Compass className="h-4 w-4" /> },
-    { label: 'Blog', href: localePath(contentRoutes.blog, locale), icon: <BookOpen className="h-4 w-4" /> },
-    { label: 'Portfolio', href: localePath(contentRoutes.portfolio, locale), icon: <Briefcase className="h-4 w-4" /> },
+    { label: __('Home'), href: localePath('/', locale), icon: <Home className="h-4 w-4" /> },
+    { label: __('Feed'), href: localePath(contentRoutes.showcase, locale), icon: <Compass className="h-4 w-4" /> },
+    { label: __('Blog'), href: localePath(contentRoutes.blog, locale), icon: <BookOpen className="h-4 w-4" /> },
+    { label: __('Portfolio'), href: localePath(contentRoutes.portfolio, locale), icon: <Briefcase className="h-4 w-4" /> },
   ];
 
   return (
@@ -65,13 +67,13 @@ export default async function ShowcaseLayout({
 
             <nav className="app-nav hidden lg:flex">
               <Link href={localePath(contentRoutes.showcase, locale)} className="app-nav-link">
-                Feed
+                {__('Feed')}
               </Link>
               <Link href={localePath(contentRoutes.blog, locale)} className="app-nav-link">
-                Blog
+                {__('Blog')}
               </Link>
               <Link href={localePath(contentRoutes.portfolio, locale)} className="app-nav-link">
-                Portfolio
+                {__('Portfolio')}
               </Link>
             </nav>
 

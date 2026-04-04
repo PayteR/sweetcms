@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Search, X, ArrowLeft } from 'lucide-react';
 import { useLocale } from '@/engine/hooks/useLocale';
 import { localePath } from '@/engine/lib/locale';
+import { useTranslations } from '@/lib/translations';
 
 /**
  * Expandable search — icon button that expands into a search input.
@@ -22,6 +23,7 @@ export function ExpandableSearch() {
   const desktopInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const locale = useLocale();
+  const __ = useTranslations();
 
   const open = useCallback(() => {
     setExpanded(true);
@@ -70,7 +72,7 @@ export function ExpandableSearch() {
 
   if (!expanded) {
     return (
-      <button type="button" onClick={open} className="app-icon-btn" title="Search (/)">
+      <button type="button" onClick={open} className="app-icon-btn" title={__('Search (/)')}>
         <Search className="h-4 w-4" />
       </button>
     );
@@ -89,7 +91,7 @@ export function ExpandableSearch() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search..."
+            placeholder={__('Search...')}
             className="app-search-input"
           />
         </form>
@@ -109,7 +111,7 @@ export function ExpandableSearch() {
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search..."
+            placeholder={__('Search...')}
           />
           <button type="button" onClick={close} className="app-icon-btn">
             <X className="h-3.5 w-3.5" />

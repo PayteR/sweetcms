@@ -3,9 +3,11 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
+import { useTranslations } from '@/lib/translations';
 
 export function CreateOrgCard() {
   const router = useRouter();
+  const __ = useTranslations();
   const [name, setName] = useState('');
   const [error, setError] = useState('');
 
@@ -34,25 +36,25 @@ export function CreateOrgCard() {
 
   return (
     <div className="rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8">
-      <h2 className="text-xl font-semibold mb-2">Create your organization</h2>
+      <h2 className="text-xl font-semibold mb-2">{__('Create your organization')}</h2>
       <p className="text-sm text-(--text-secondary) mb-6">
-        Get started by creating an organization. You can invite team members later.
+        {__('Get started by creating an organization. You can invite team members later.')}
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="org-name" className="block text-sm font-medium text-(--text-primary) mb-1">
-            Organization name
+            {__('Organization name')}
           </label>
           <input
             id="org-name"
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="My Company"
+            placeholder={__('My Company')}
             maxLength={100}
             required
-            className="w-full rounded-md border border-(--border-primary) bg-(--surface-primary) px-3 py-2 text-sm outline-none focus:border-(--color-brand-500) focus:ring-1 focus:ring-(--color-brand-500)"
+            className="w-full rounded-md border border-(--border-primary) bg-(--surface-primary) px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500"
           />
         </div>
 
@@ -66,7 +68,7 @@ export function CreateOrgCard() {
           className="w-full rounded-md px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
           style={{ background: 'var(--gradient-brand)' }}
         >
-          {isPending ? 'Creating...' : 'Create Organization'}
+          {isPending ? __('Creating...') : __('Create Organization')}
         </button>
       </form>
     </div>

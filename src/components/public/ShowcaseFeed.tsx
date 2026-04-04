@@ -11,6 +11,7 @@ import { ShortcodeRenderer } from '@/engine/components/ShortcodeRenderer';
 import { SHORTCODE_COMPONENTS } from '@/config/shortcodes';
 import { ShowcaseActionBar } from './ShowcaseActionBar';
 import { CommentPanel } from './CommentPanel';
+import { useTranslations } from '@/lib/translations';
 
 interface ShowcaseItem {
   id: string;
@@ -77,7 +78,7 @@ function VideoCard({ item, isActive }: { item: ShowcaseItem; isActive: boolean }
               className="object-cover"
             />
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-(--color-brand-900) to-(--color-accent-900)" />
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-900 to-accent-900" />
           )}
           <div className="relative z-10 flex h-20 w-20 items-center justify-center rounded-full bg-white/20 backdrop-blur-md transition-transform hover:scale-110">
             <Play className="ml-1 h-10 w-10 text-white" fill="white" />
@@ -100,7 +101,7 @@ function ImageCard({ item }: { item: ShowcaseItem }) {
           className="object-cover"
         />
       ) : (
-        <div className="absolute inset-0 bg-gradient-to-br from-(--color-brand-800) to-(--color-accent-800)" />
+        <div className="absolute inset-0 bg-gradient-to-br from-brand-800 to-accent-800" />
       )}
       <div className="absolute inset-0 bg-black/25" />
       <CardOverlay title={item.title} description={item.description} />
@@ -110,7 +111,7 @@ function ImageCard({ item }: { item: ShowcaseItem }) {
 
 function RichTextCard({ item }: { item: ShowcaseItem }) {
   return (
-    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-(--color-brand-950) via-(--color-accent-950) to-(--color-brand-900) p-6">
+    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-brand-950 via-accent-950 to-brand-900 p-6">
       <div className="max-w-2xl text-center">
         <h2 className="text-3xl font-bold leading-tight text-white sm:text-5xl">
           {item.title}
@@ -130,6 +131,7 @@ export function ShowcaseFeed({ items }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [commentPanelId, setCommentPanelId] = useState<string | null>(null);
   const { data: session } = useSession();
+  const __ = useTranslations();
 
   const itemIds = items.map((i) => i.id);
 
@@ -197,7 +199,7 @@ export function ShowcaseFeed({ items }: Props) {
   if (items.length === 0) {
     return (
       <div className="flex h-[calc(100dvh-3.5rem)] items-center justify-center">
-        <p className="text-(--text-muted)">No showcase items yet.</p>
+        <p className="text-(--text-muted)">{__('No showcase items yet.')}</p>
       </div>
     );
   }

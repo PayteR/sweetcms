@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sweetcms\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-04T22:53:59.949Z\n"
-"PO-Revision-Date: 2026-04-04T22:53:59.949Z\n"
+"POT-Creation-Date: 2026-04-04T23:50:27.438Z\n"
+"PO-Revision-Date: 2026-04-04T23:50:27.438Z\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: de\n"
 "Language: de\n"
@@ -617,7 +617,7 @@ msgstr "Datei gelöscht"
 
 #: src/app/dashboard/(panel)/media/page.tsx:92
 msgid "Upload failed"
-msgstr "Upload failed"
+msgstr "Der Upload ist fehlgeschlagen"
 
 #: src/app/dashboard/(panel)/media/page.tsx:108
 #: src/engine/components/MediaPickerDialog.tsx:150
@@ -2142,12 +2142,12 @@ msgstr "Für diesen Benutzer wurden keine Aktivitäten verzeichnet."
 #: src/components/admin/AdminSidebar.tsx:50
 msgctxt "General"
 msgid "Light"
-msgstr "Light"
+msgstr "Licht"
 
 #: src/components/admin/AdminSidebar.tsx:50
 msgctxt "General"
 msgid "Dark"
-msgstr "Dark"
+msgstr "Dunkel"
 
 #: src/components/admin/AdminSidebar.tsx:50
 msgctxt "General"
@@ -2249,17 +2249,17 @@ msgstr "Veröffentlichungsdatum"
 #: src/components/admin/CmsListView.tsx:40
 msgctxt "General"
 msgid "Draft"
-msgstr "Draft"
+msgstr "Entwurf"
 
 #: src/components/admin/CmsListView.tsx:41
 msgctxt "General"
 msgid "Published"
-msgstr "Published"
+msgstr "Veröffentlicht"
 
 #: src/components/admin/CmsListView.tsx:42
 msgctxt "General"
 msgid "Scheduled"
-msgstr "Scheduled"
+msgstr "Geplant"
 
 #: src/components/admin/CmsListView.tsx:209
 #: src/components/admin/CmsListView.tsx:223
@@ -3546,30 +3546,6 @@ msgstr[1] "{count} items {action}"
 #: src/engine/hooks/useCmsFormState.ts:49
 msgid "Please check the form for errors"
 msgstr "Bitte überprüfen Sie das Formular auf Fehler"
-
-#. REMOVED FROM CODE - PRESERVED FOR REFERENCE
-#~ msgid "{count} file(s) uploaded"
-#~ msgstr "{count} Datei(en) hochgeladen"
-
-#. REMOVED FROM CODE - PRESERVED FOR REFERENCE
-#~ msgid "Created {count} SEO override page(s)"
-#~ msgstr "Es wurden SEO-Überschreibungsseiten unter {count} erstellt"
-
-#. REMOVED FROM CODE - PRESERVED FOR REFERENCE
-#~ msgid "Exported {count} items"
-#~ msgstr "Exportierte Elemente aus „{count}“"
-
-#. REMOVED FROM CODE - PRESERVED FOR REFERENCE
-#~ msgid "{count} items will be moved to trash."
-#~ msgstr "{count} Die Elemente werden in den Papierkorb verschoben."
-
-#. REMOVED FROM CODE - PRESERVED FOR REFERENCE
-#~ msgid "Created {count} SEO override(s)"
-#~ msgstr "Erstellt am {count} SEO-Überschreibung(en)"
-
-#. REMOVED FROM CODE - PRESERVED FOR REFERENCE
-#~ msgid "{count} items {action}"
-#~ msgstr "{count} Artikel {action}"
 
 #. REMOVED FROM CODE - PRESERVED FOR REFERENCE
 #~ msgid "Option "

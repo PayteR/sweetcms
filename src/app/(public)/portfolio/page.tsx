@@ -6,6 +6,7 @@ import { siteConfig } from '@/config/site';
 import { serverTRPC } from '@/lib/trpc/server';
 import { getLocale } from '@/lib/locale-server';
 import { localePath } from '@/lib/locale';
+import { getServerTranslations } from '@/lib/translations-server';
 
 export const metadata: Metadata = {
   title: `Portfolio | ${siteConfig.name}`,
@@ -14,6 +15,7 @@ export const metadata: Metadata = {
 
 export default async function PortfolioListPage() {
   const locale = await getLocale();
+  const __ = await getServerTranslations();
   const api = await serverTRPC();
   const { results: items } = await api.portfolio.listPublished({
     lang: locale,
@@ -23,10 +25,10 @@ export default async function PortfolioListPage() {
   return (
     <div className="container py-12">
       <h1 className="text-3xl font-bold text-(--text-primary) sm:text-4xl">
-        Portfolio
+        {__('Portfolio')}
       </h1>
       <p className="mt-2 text-(--text-muted)">
-        Browse our projects and case studies.
+        {__('Browse our projects and case studies.')}
       </p>
 
       {items.length > 0 ? (
@@ -48,7 +50,7 @@ export default async function PortfolioListPage() {
                 </div>
               )}
               <div className="p-4">
-                <h2 className="text-lg font-semibold text-(--text-primary) group-hover:text-(--color-brand-600)">
+                <h2 className="text-lg font-semibold text-(--text-primary) group-hover:text-brand-600">
                   {item.title}
                 </h2>
                 {item.clientName && (
@@ -81,7 +83,7 @@ export default async function PortfolioListPage() {
           ))}
         </div>
       ) : (
-        <p className="mt-10 text-(--text-muted)">No portfolio items yet.</p>
+        <p className="mt-10 text-(--text-muted)">{__('No portfolio items yet.')}</p>
       )}
     </div>
   );

@@ -8,6 +8,7 @@ import { User, Settings, Shield, CreditCard, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { accountRoutes } from '@/config/routes';
 import { useAuthDialogStore } from '@/store/auth-dialog-store';
+import { useTranslations } from '@/lib/translations';
 
 export function UserMenu() {
   const { data: session, isPending } = useSession();
@@ -15,6 +16,7 @@ export function UserMenu() {
   const ref = useRef<HTMLDivElement>(null);
   const openLoginDialog = useAuthDialogStore((s) => s.openLoginDialog);
   const openRegisterDialog = useAuthDialogStore((s) => s.openRegisterDialog);
+  const __ = useTranslations();
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -33,15 +35,15 @@ export function UserMenu() {
       <div className="flex items-center gap-2">
         <button
           onClick={openLoginDialog}
-          className="text-sm font-medium text-(--text-primary) hover:text-(--color-brand-500) transition-colors"
+          className="text-sm font-medium text-(--text-primary) hover:text-brand-500 transition-colors"
         >
-          Sign In
+          {__('Sign In')}
         </button>
         <button
           onClick={openRegisterDialog}
-          className="text-sm font-medium px-3 py-1.5 rounded-lg bg-(--color-brand-500) text-white hover:bg-(--color-brand-600) transition-colors"
+          className="text-sm font-medium px-3 py-1.5 rounded-lg bg-brand-500 text-white hover:bg-brand-600 transition-colors"
         >
-          Sign Up
+          {__('Sign Up')}
         </button>
       </div>
     );
@@ -72,7 +74,7 @@ export function UserMenu() {
             unoptimized
           />
         ) : (
-          <div className="w-8 h-8 rounded-full bg-(--color-brand-500) flex items-center justify-center text-white text-sm font-medium">
+          <div className="w-8 h-8 rounded-full bg-brand-500 flex items-center justify-center text-white text-sm font-medium">
             {(session.user.name?.[0] ?? (session.user.email as string)?.[0] ?? '?').toUpperCase()}
           </div>
         )}
@@ -91,7 +93,7 @@ export function UserMenu() {
             onClick={() => setOpen(false)}
           >
             <User size={16} />
-            Account
+            {__('Account')}
           </Link>
           <Link
             href={accountRoutes.settings}
@@ -99,7 +101,7 @@ export function UserMenu() {
             onClick={() => setOpen(false)}
           >
             <Settings size={16} />
-            Settings
+            {__('Settings')}
           </Link>
           <Link
             href={accountRoutes.security}
@@ -107,7 +109,7 @@ export function UserMenu() {
             onClick={() => setOpen(false)}
           >
             <Shield size={16} />
-            Security
+            {__('Security')}
           </Link>
           <Link
             href={accountRoutes.billing}
@@ -115,16 +117,16 @@ export function UserMenu() {
             onClick={() => setOpen(false)}
           >
             <CreditCard size={16} />
-            Billing
+            {__('Billing')}
           </Link>
 
           <div className="border-t border-(--border-primary) mt-1 pt-1">
             <button
               onClick={handleSignOut}
-              className="flex items-center gap-2 px-3 py-2 text-sm w-full text-left text-(--color-danger-500) hover:bg-(--surface-secondary) transition-colors"
+              className="flex items-center gap-2 px-3 py-2 text-sm w-full text-left text-danger-500 hover:bg-(--surface-secondary) transition-colors"
             >
               <LogOut size={16} />
-              Sign Out
+              {__('Sign Out')}
             </button>
           </div>
         </div>
