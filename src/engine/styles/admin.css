@@ -47,12 +47,12 @@
     padding-block: 1.5rem;
   }
 
-  /* No top-padding variant (e.g. below sticky header) */
+  /* Body variant — same centering, with top spacing for content below sticky headers. */
   .shell-inner-body {
     max-width: var(--content-max-width);
     margin-inline: auto;
     padding-inline: 1.5rem;
-    padding-bottom: 1.5rem;
+    padding-block: 1.5rem;
   }
 
   /* Sticky footer — full-width background, centered content. Sticks to viewport bottom. */

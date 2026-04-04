@@ -332,6 +332,7 @@ export function PostForm({ contentType, postId }: Props) {
       });
       toast.success(__('{label} updated', { label: contentType.label }));
       utils.cms.list.invalidate();
+      utils.revisions.count.invalidate();
       existingPost.refetch();
       // Post-save link validation
       validateLinks(formData.content);
