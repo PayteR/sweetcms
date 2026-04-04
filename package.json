@@ -21,7 +21,8 @@
     "i18n:watch": "bun scripts/i18n/po-to-json.mjs watch",
     "test": "vitest",
     "engine:push": "git subtree push --prefix=src/engine git@github.com:PayteR/sweetcms-engine.git main",
-    "engine:pull": "git subtree pull --prefix=src/engine git@github.com:PayteR/sweetcms-engine.git main --squash"
+    "engine:pull": "git subtree pull --prefix=src/engine git@github.com:PayteR/sweetcms-engine.git main --squash",
+    "prepare": "husky"
   },
   "dependencies": {
     "@better-fetch/fetch": "^1.1.21",
@@ -89,7 +90,9 @@
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
+    "husky": "^9.1.7",
     "jsdom": "^29.0.1",
+    "lint-staged": "^16.4.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.2"
@@ -101,5 +104,8 @@
   "trustedDependencies": [
     "sharp",
     "unrs-resolver"
-  ]
+  ],
+  "lint-staged": {
+    "*.{tsx,jsx,ts,css}": "node scripts/fix-tailwind-classes.mjs"
+  }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import '@/engine/styles/frontend/account.css';
+import './account.css';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -33,7 +33,7 @@ export function AccountSidebar({ navItems }: AccountSidebarProps) {
                 className={cn(
                   'account-sidebar-link flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors',
                   active
-                    ? 'bg-(--color-brand-500)/10 text-(--color-brand-500) font-medium'
+                    ? 'bg-brand-500/10 text-brand-500 font-medium'
                     : 'text-(--text-secondary) hover:bg-(--surface-secondary)'
                 )}
               >

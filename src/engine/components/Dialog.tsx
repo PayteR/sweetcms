@@ -1,6 +1,6 @@
 'use client';
 
-import '@/engine/styles/frontend/dialog.css';
+import './Dialog.css';
 
 import { createContext, useContext, type ReactNode, type RefObject } from 'react';
 import { createPortal } from 'react-dom';
