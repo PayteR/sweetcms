@@ -102,7 +102,7 @@ export default function AdminTicketDetailPage() {
   }
 
   return (
-    <div className="shell-inner support-detail-page">
+    <main className="page-main"><div className="page-inner support-detail-page">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
         <Link
@@ -241,6 +241,6 @@ export default function AdminTicketDetailPage() {
           </div>
         </div>
       </div>
-    </div>
+    </div></main>
   );
 }

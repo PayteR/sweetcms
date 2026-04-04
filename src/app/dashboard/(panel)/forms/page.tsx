@@ -66,7 +66,7 @@ export default function FormsPage() {
   }
 
   return (
-    <div className="shell-inner forms-page">
+    <main className="page-main"><div className="page-inner forms-page">
       {/* Header */}
       <div className="forms-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">
@@ -250,6 +250,6 @@ export default function FormsPage() {
         }}
         onCancel={() => setDeleteTarget(null)}
       />
-    </div>
+    </div></main>
   );
 }

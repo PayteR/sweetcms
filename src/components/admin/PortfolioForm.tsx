@@ -476,7 +476,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                 content={formData.text}
                 onChange={(v) => handleChange('text', v)}
                 placeholder={__('Project description...')}
-                storageKey={`portfolio-${item?.id ?? 'new'}`}
+                storageKey="portfolio"
                 onRequestLinkPicker={openLinkPicker}
                 editorRef={editorRef}
                 shortcodes={shortcodeConfig}

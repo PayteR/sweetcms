@@ -386,7 +386,7 @@ export function CategoryForm({ categoryId }: Props) {
                 content={formData.text}
                 onChange={(v) => handleChange('text', v)}
                 placeholder={__('Category description...')}
-                storageKey={`category-${cat?.id ?? 'new'}`}
+                storageKey="category"
                 onRequestLinkPicker={openLinkPicker}
                 editorRef={editorRef}
                 shortcodes={shortcodeConfig}

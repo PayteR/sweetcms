@@ -49,7 +49,7 @@ export default function AdminSupportPage() {
   });
 
   return (
-    <div className="shell-inner support-page">
+    <main className="page-main"><div className="page-inner support-page">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -184,6 +184,6 @@ export default function AdminSupportPage() {
           </button>
         </div>
       )}
-    </div>
+    </div></main>
   );
 }

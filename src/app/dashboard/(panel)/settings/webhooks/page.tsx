@@ -101,7 +101,7 @@ export default function WebhooksPage() {
   const isPending = createWebhook.isPending || updateWebhook.isPending;
 
   return (
-    <div className="shell-inner webhooks-page">
+    <main className="page-main"><div className="page-inner webhooks-page">
       <div className="webhooks-header flex items-center justify-between">
         <div className="webhooks-header-left flex items-center gap-3">
           <Link
@@ -256,6 +256,6 @@ export default function WebhooksPage() {
         }}
         onCancel={() => setDeleteTarget(null)}
       />
-    </div>
+    </div></main>
   );
 }

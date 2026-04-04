@@ -120,7 +120,7 @@ export default function DiscountCodesPage() {
   const isPending = createCode.isPending || updateCode.isPending;
 
   return (
-    <div className="shell-inner">
+    <main className="page-main"><div className="page-inner">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Link
@@ -338,6 +338,6 @@ export default function DiscountCodesPage() {
         }}
         onCancel={() => setDeleteTarget(null)}
       />
-    </div>
+    </div></main>
   );
 }

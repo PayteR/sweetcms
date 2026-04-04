@@ -25,7 +25,7 @@ export default function DashboardPage() {
   });
 
   return (
-    <div className="shell-inner">
+    <main className="page-main"><div className="page-inner">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-(--text-primary)">{__('Dashboard')}</h1>
@@ -106,6 +106,6 @@ export default function DashboardPage() {
 
       {/* Configurable widget grid with drag-and-drop */}
       <DashboardWidgetGrid />
-    </div>
+    </div></main>
   );
 }

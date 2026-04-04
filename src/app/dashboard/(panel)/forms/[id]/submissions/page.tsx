@@ -118,7 +118,7 @@ export default function SubmissionsPage() {
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="shell-inner submissions-page">
+    <main className="page-main"><div className="page-inner submissions-page">
       {/* Header */}
       <div className="submissions-header flex items-center justify-between">
         <div className="submissions-header-left flex items-center gap-3">
@@ -266,6 +266,6 @@ export default function SubmissionsPage() {
         }}
         onCancel={() => setDeleteTarget(null)}
       />
-    </div>
+    </div></main>
   );
 }

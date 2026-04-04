@@ -173,7 +173,7 @@ export default function UserDetailPage() {
   const RoleIcon = ROLE_ICONS[u.role] ?? Shield;
 
   return (
-    <div className="shell-inner">
+    <main className="page-main"><div className="page-inner">
       {/* Header */}
       <div className="flex items-center gap-3">
         <button
@@ -489,6 +489,6 @@ export default function UserDetailPage() {
         }}
         onCancel={() => setAnonymizeDialogOpen(false)}
       />
-    </div>
+    </div></main>
   );
 }

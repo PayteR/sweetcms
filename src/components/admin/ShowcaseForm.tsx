@@ -483,7 +483,7 @@ export function ShowcaseForm({ showcaseId }: Props) {
                 content={formData.description}
                 onChange={(v) => handleChange('description', v)}
                 placeholder={__('Card description...')}
-                storageKey={`showcase-${item?.id ?? 'new'}`}
+                storageKey="showcase"
                 onRequestLinkPicker={openLinkPicker}
                 editorRef={editorRef}
                 shortcodes={shortcodeConfig}

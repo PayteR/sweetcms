@@ -189,7 +189,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="shell-inner settings-page">
+    <main className="page-main"><div className="page-inner settings-page">
       <div className="settings-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">{__('Settings')}</h1>
         <button
@@ -324,6 +324,6 @@ export default function SettingsPage() {
         locales={LOCALES}
         localeLabels={LOCALE_LABELS}
       />
-    </div>
+    </div></main>
   );
 }

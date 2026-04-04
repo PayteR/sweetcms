@@ -98,7 +98,7 @@ export default function ProjectsPage() {
   const data = projectsQuery.data;
 
   return (
-    <div className="shell-inner">
+    <main className="page-main"><div className="page-inner">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">{__('Projects')}</h1>
         <button
@@ -285,6 +285,6 @@ export default function ProjectsPage() {
         }}
         onCancel={() => setDeleteTarget(null)}
       />
-    </div>
+    </div></main>
   );
 }

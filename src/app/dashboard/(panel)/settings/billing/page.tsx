@@ -69,11 +69,11 @@ function nowISO(): string {
 
 export default function BillingDashboardPage() {
   return (
-    <div className="shell-inner">
+    <main className="page-main"><div className="page-inner">
       <Suspense fallback={<div className="text-(--text-muted)">Loading...</div>}>
         <BillingDashboardContent />
       </Suspense>
-    </div>
+    </div></main>
   );
 }
 

@@ -212,7 +212,7 @@ export default function FormBuilderPage() {
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="shell-inner form-builder-page">
+    <main className="page-main"><div className="page-inner form-builder-page">
       {/* Header */}
       <div className="form-builder-header flex items-center justify-between">
         <div className="form-builder-header-left flex items-center gap-3">
@@ -502,6 +502,6 @@ export default function FormBuilderPage() {
           </pre>
         </div>
       )}
-    </div>
+    </div></main>
   );
 }

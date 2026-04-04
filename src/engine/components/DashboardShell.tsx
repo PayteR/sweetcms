@@ -56,15 +56,15 @@ export function DashboardShell({ navigation, children, extraSectionActions }: Da
   const sectionTokens = deriveSectionTokens(pathname, knownActions);
 
   return (
-    <main
+    <div
       className={cn(
         "min-h-dvh pt-12 xl:pt-0 transition-[margin-left] duration-300 ease-in-out",
         hasLevel2 ? (isL2Collapsed ? "xl:ml-24" : "xl:ml-67") : "xl:ml-[48px]",
       )}
     >
-      <div className="shell-content" data-section={sectionTokens}>
+      <div className="page-container" data-section={sectionTokens}>
         {children}
       </div>
-    </main>
+    </div>
   );
 }

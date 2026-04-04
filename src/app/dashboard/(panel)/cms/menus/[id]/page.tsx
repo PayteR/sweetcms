@@ -45,7 +45,7 @@ export default function MenuEditPage({ params }: Props) {
   }
 
   return (
-    <div className="shell-inner menu-edit-page">
+    <main className="page-main"><div className="page-inner menu-edit-page">
       <div className="menu-edit-header flex items-center justify-between">
         <div className="menu-edit-header-left flex items-center gap-3">
           <Link
@@ -86,6 +86,6 @@ export default function MenuEditPage({ params }: Props) {
         <h2 className="text-lg font-semibold text-(--text-primary) mb-4">{__('Menu Items')}</h2>
         <MenuBuilder menuId={id} />
       </div>
-    </div>
+    </div></main>
   );
 }

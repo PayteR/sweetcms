@@ -32,51 +32,64 @@
 }
 
 @layer components {
-  /* ===================== Shell Layout ===================== */
+  /* ===================== Page Layout ===================== */
 
-  /* Outer container — full width, no constraints. Carries data-section for per-page overrides. */
-  .shell-content {
-    /* intentionally empty — full width of <main> */
-  }
+  /*
+   * Universal page layout classes.
+   *
+   * Structure (semantic HTML):
+   *   .page-container                    ← full width, data-section (div)
+   *     <header class="page-header">     ← sticky, full width bg, scroll-driven fade
+   *       .page-toolbar                  ← centered flex row (max-width, fixed height)
+   *     <main class="page-main">         ← content slot (no constraints)
+   *       .page-inner                    ← centered content (max-width, padding)
+   *     <footer class="page-footer">     ← sticky bottom, full width bg
+   *       .page-toolbar                  ← centered flex row (reused)
+   */
 
-  /* Centered inner — max-width + padding. Used inside shell-content for page content. */
-  .shell-inner {
-    max-width: var(--content-max-width);
-    margin-inline: auto;
-    padding-inline: 1.5rem;
-    padding-block: 1.5rem;
-  }
-
-  /* Body variant — same centering, with top spacing for content below sticky headers. */
-  .shell-inner-body {
-    max-width: var(--content-max-width);
-    margin-inline: auto;
-    padding-inline: 1.5rem;
-    padding-block: 1.5rem;
-  }
-
-  /* Sticky footer — full-width background, centered content. Sticks to viewport bottom. */
-  .shell-footer {
-    position: sticky;
-    bottom: 0;
-    z-index: 30;
-    border-top: 1px solid var(--border-primary);
-    background-color: var(--surface-secondary);
-  }
-
-  .shell-footer .shell-inner {
-    padding-block: 0.75rem;
-  }
-
-  /* Sticky toolbar — fades in background on scroll via scroll-driven animation.
-     No JS needed. Falls back to always-visible background in older browsers. */
-  .form,
-  .list-view {
+  .page-container {
     padding-top: 1rem;
   }
 
-  /* Inner bar for sticky headers — fixed height, centered content. */
-  .shell-toolbar-inner {
+  /* Centered content block — max-width + padding. Used inside main, header, or footer. */
+  .page-inner {
+    max-width: var(--content-max-width);
+    margin-inline: auto;
+    padding-inline: 1.5rem;
+    padding-block: 1.5rem;
+  }
+
+  /* Sticky header — full-width, scroll-driven background fade. */
+  .page-header {
+    position: sticky;
+    top: 3rem;
+    z-index: 30;
+    background-color: var(--surface-secondary);
+    border-bottom: 1px solid var(--border-primary);
+    animation: page-header-fade linear both;
+    animation-timeline: scroll();
+    animation-range: 0px 80px;
+  }
+
+  @media (min-width: 80rem) {
+    .page-header {
+      top: 0;
+    }
+  }
+
+  @keyframes page-header-fade {
+    from {
+      background-color: transparent;
+      border-bottom-color: transparent;
+    }
+    to {
+      background-color: var(--surface-secondary);
+      border-bottom-color: var(--border-primary);
+    }
+  }
+
+  /* Centered toolbar — fixed height, flex row. Used inside header and footer. */
+  .page-toolbar {
     max-width: var(--content-max-width);
     margin-inline: auto;
     padding-inline: 1.5rem;
@@ -86,26 +99,17 @@
     justify-content: space-between;
   }
 
-  /* Sticky header/toolbar — scroll-driven background fade.
-     Shared by form toolbar and list header. */
-  .form-toolbar,
-  .list-header {
+  /* Sticky footer — full-width, sticks to bottom. */
+  .page-footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 30;
+    border-top: 1px solid var(--border-primary);
     background-color: var(--surface-secondary);
-    border-bottom: 1px solid var(--border-primary);
-    animation: sticky-fade linear both;
-    animation-timeline: scroll();
-    animation-range: 0px 80px;
   }
 
-  @keyframes sticky-fade {
-    from {
-      background-color: transparent;
-      border-bottom-color: transparent;
-    }
-    to {
-      background-color: var(--surface-secondary);
-      border-bottom-color: var(--border-primary);
-    }
+  .page-footer .page-toolbar {
+    height: 3rem;
   }
 
   /*
@@ -122,8 +126,8 @@
    *   /dashboard/settings/billing      → "settings billing"
    *
    * Selector examples:
-   *   .shell-content[data-section~="cms"]    { --content-max-width: 90rem; }
-   *   .shell-content[data-section~="media"]  { --content-max-width: 100%; }
+   *   .page-container[data-section~="cms"]    { --content-max-width: 90rem; }
+   *   .page-container[data-section~="media"]  { --content-max-width: 100%; }
    */
 
   /* ===================== Global button cursor ===================== */

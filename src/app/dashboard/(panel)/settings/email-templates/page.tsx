@@ -127,7 +127,7 @@ export default function EmailTemplatesPage() {
   if (editing) {
     const template = TEMPLATES.find((t) => t.name === editing)!;
     return (
-      <div className="shell-inner email-editor-page">
+      <main className="page-main"><div className="page-inner email-editor-page">
         <div className="email-templates-header flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
@@ -232,12 +232,12 @@ export default function EmailTemplatesPage() {
           onConfirm={handleReset}
           onCancel={() => setResetTarget(null)}
         />
-      </div>
+      </div></main>
     );
   }
 
   return (
-    <div className="shell-inner email-templates-page">
+    <main className="page-main"><div className="page-inner email-templates-page">
       <h1 className="text-2xl font-bold text-(--text-primary)">
         {__('Email Templates')}
       </h1>
@@ -276,6 +276,6 @@ export default function EmailTemplatesPage() {
           );
         })}
       </div>
-    </div>
+    </div></main>
   );
 }

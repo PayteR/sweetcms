@@ -121,7 +121,7 @@ export const revisionsRouter = createTRPCRouter({
 
       const rawSnapshot = revision.snapshot as Record<string, unknown>;
 
-      if (revision.contentType === 'post' || revision.contentType === 'page' || revision.contentType === 'blog') {
+      if (['page', 'blog', 'post'].includes(revision.contentType)) {
         const safeData = filterSnapshot(rawSnapshot, SAFE_POST_FIELDS);
         if (Object.keys(safeData).length === 0) {
           throw new TRPCError({

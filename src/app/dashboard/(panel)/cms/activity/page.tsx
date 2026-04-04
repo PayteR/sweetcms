@@ -43,7 +43,7 @@ export default function ActivityPage() {
   }
 
   return (
-    <div className="shell-inner activity-page">
+    <main className="page-main"><div className="page-inner activity-page">
       <h1 className="text-2xl font-bold text-(--text-primary)">{__('Activity Log')}</h1>
 
       {/* Filters */}
@@ -170,6 +170,6 @@ export default function ActivityPage() {
           </div>
         </div>
       )}
-    </div>
+    </div></main>
   );
 }

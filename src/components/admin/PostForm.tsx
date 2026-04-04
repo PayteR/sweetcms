@@ -246,7 +246,7 @@ export function PostForm({ contentType, postId }: Props) {
 
   // Revision count for Status panel link
   const revisionCount = trpc.revisions.count.useQuery(
-    { contentType: 'post', contentId: postId! },
+    { contentType: contentType.id, contentId: postId! },
     { enabled: !!postId && !!session },
   );
 
@@ -957,7 +957,7 @@ export function PostForm({ contentType, postId }: Props) {
               onChange={(v) => handleChange('content', v)}
               placeholder={__('Start writing your content...')}
               postId={post?.id}
-              storageKey={`post-${post?.id ?? 'new'}`}
+              storageKey={contentType.id}
               onRequestLinkPicker={openLinkPicker}
               editorRef={editorRef}
               shortcodes={shortcodeConfig}
@@ -1044,7 +1044,7 @@ export function PostForm({ contentType, postId }: Props) {
       {/* Revisions Dialog */}
       {!isNew && postId && (
         <RevisionHistory
-          contentType="post"
+          contentType={contentType.id}
           contentId={postId}
           currentData={formData}
           onRestored={() => existingPost.refetch()}

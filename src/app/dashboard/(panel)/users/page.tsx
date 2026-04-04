@@ -153,7 +153,7 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="shell-inner users-page">
+    <main className="page-main"><div className="page-inner users-page">
       <h1 className="text-2xl font-bold text-(--text-primary)">{__('Users')}</h1>
 
       {/* Role tabs */}
@@ -456,6 +456,6 @@ export default function UsersPage() {
         }}
         onCancel={() => setAnonymizeTarget(null)}
       />
-    </div>
+    </div></main>
   );
 }

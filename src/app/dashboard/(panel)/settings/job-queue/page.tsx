@@ -66,7 +66,7 @@ export default function JobQueuePage() {
   }
 
   return (
-    <div className="shell-inner job-queue-page">
+    <main className="page-main"><div className="page-inner job-queue-page">
       <div className="job-queue-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">{__('Job Queue')}</h1>
         <button
@@ -231,6 +231,6 @@ export default function JobQueuePage() {
           )}
         </>
       )}
-    </div>
+    </div></main>
   );
 }

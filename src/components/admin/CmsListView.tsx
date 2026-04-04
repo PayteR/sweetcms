@@ -542,10 +542,10 @@ export function CmsListView({ contentType }: Props) {
   }
 
   return (
-    <div className="list-view">
-      {/* Sticky header — full width background, centered content */}
-      <div className="list-header sticky top-12 xl:top-0 z-20">
-        <div className="shell-toolbar-inner">
+    <>
+      {/* Sticky header */}
+      <header className="page-header">
+        <div className="page-toolbar">
         <h1 className="text-2xl font-bold text-(--text-primary)">
           {__(contentType.labelPlural)}
         </h1>
@@ -626,10 +626,11 @@ export function CmsListView({ contentType }: Props) {
           </Link>
         </div>
         </div>
-      </div>
+      </header>
 
-      {/* Body — centered content */}
-      <div className="shell-inner-body">
+      {/* Body */}
+      <main className="page-main">
+      <div className="page-inner">
 
       {/* Taxonomy overview for tags */}
       {isTagType && <div className="mt-4"><TaxonomyOverview /></div>}
@@ -954,6 +955,7 @@ export function CmsListView({ contentType }: Props) {
       )}
 
       </div>
+      </main>
 
       {/* Delete confirmation */}
       <ConfirmDialog
@@ -1010,6 +1012,6 @@ export function CmsListView({ contentType }: Props) {
         locales={LOCALES}
         localeLabels={LOCALE_LABELS}
       />
-    </div>
+    </>
   );
 }

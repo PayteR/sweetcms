@@ -174,7 +174,7 @@ export default function OrganizationsPage() {
   // ─── List View ────────────────────────────────────────────────────────────
   if (viewMode === 'list') {
     return (
-      <div className="shell-inner organizations-page">
+      <main className="page-main"><div className="page-inner organizations-page">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold text-(--text-primary)">{__('Organizations')}</h1>
           <button
@@ -294,7 +294,7 @@ export default function OrganizationsPage() {
             </table>
           )}
         </div>
-      </div>
+      </div></main>
     );
   }
 

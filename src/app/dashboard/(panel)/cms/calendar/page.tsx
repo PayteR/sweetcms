@@ -8,7 +8,7 @@ import { adminPanel } from '@/config/routes';
 
 export default function CalendarPage() {
   return (
-    <div className="shell-inner">
+    <main className="page-main"><div className="page-inner">
       <Suspense
         fallback={
           <div className="calendar-loading flex items-center justify-center py-20">
@@ -18,6 +18,6 @@ export default function CalendarPage() {
       >
         <ContentCalendar editUrlBuilder={(section, id) => adminPanel.cmsItem(section, id)} />
       </Suspense>
-    </div>
+    </div></main>
   );
 }

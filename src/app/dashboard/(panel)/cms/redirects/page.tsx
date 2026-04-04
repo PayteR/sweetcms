@@ -97,7 +97,7 @@ export default function RedirectsPage() {
   }
 
   return (
-    <div className="shell-inner redirects-page">
+    <main className="page-main"><div className="page-inner redirects-page">
       {/* Header */}
       <div className="redirects-header flex items-center justify-between">
         <h1 className="text-2xl font-bold text-(--text-primary)">
@@ -359,6 +359,6 @@ export default function RedirectsPage() {
         }}
         onCancel={() => setDeleteTarget(null)}
       />
-    </div>
+    </div></main>
   );
 }
