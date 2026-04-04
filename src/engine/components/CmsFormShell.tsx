@@ -27,6 +27,7 @@ export default function CmsFormShell({ toolbar, children }: CmsFormShellProps) {
 
   return (
     <div className="form-shell -mx-6 -mt-6">
+      <div className="h-8" />
       <div ref={sentinelRef} className="form-shell-sentinel h-0" />
       <div
         className={cn(

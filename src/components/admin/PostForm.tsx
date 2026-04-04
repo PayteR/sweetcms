@@ -387,27 +387,46 @@ export function PostForm({ contentType, postId }: Props) {
   // All panel IDs
   const allPanelIds = useMemo(() => ALL_PANELS.map((p) => p.id), []);
 
-  // Build ordered lists from saved preferences
-  function buildOrdered(saved: string[], defaults: string[]) {
-    return [
-      ...saved.filter((id) => allPanelIds.includes(id)),
-      ...defaults.filter((id) => !saved.includes(id)),
-    ];
+  // Build both columns together — each panel appears in exactly one column
+  function buildColumns(savedMain: string[], savedSidebar: string[]): { main: string[]; sidebar: string[] } {
+    const assigned = new Set<string>();
+    const main: string[] = [];
+    const sidebar: string[] = [];
+
+    // First pass: add items from saved orders (main wins if in both)
+    for (const id of savedMain) {
+      if (allPanelIds.includes(id) && !assigned.has(id)) {
+        main.push(id);
+        assigned.add(id);
+      }
+    }
+    for (const id of savedSidebar) {
+      if (allPanelIds.includes(id) && !assigned.has(id)) {
+        sidebar.push(id);
+        assigned.add(id);
+      }
+    }
+
+    // Second pass: add any new panels not in either saved order, using their default column
+    for (const id of DEFAULT_MAIN_ORDER) {
+      if (!assigned.has(id)) { main.push(id); assigned.add(id); }
+    }
+    for (const id of DEFAULT_SIDEBAR_ORDER) {
+      if (!assigned.has(id)) { sidebar.push(id); assigned.add(id); }
+    }
+
+    return { main, sidebar };
   }
 
   // Single state object for both columns — atomic updates prevent race conditions during drag
   type Columns = { main: string[]; sidebar: string[] };
-  const [columns, setColumns] = useState<Columns>(() => ({
-    main: buildOrdered(savedMainOrder, DEFAULT_MAIN_ORDER),
-    sidebar: buildOrdered(savedSidebarOrder, DEFAULT_SIDEBAR_ORDER),
-  }));
+  const [columns, setColumns] = useState<Columns>(() =>
+    buildColumns(savedMainOrder, savedSidebarOrder),
+  );
 
   // Sync from preferences when changed externally (e.g. config panel)
   useEffect(() => {
-    setColumns({
-      main: buildOrdered(savedMainOrder, DEFAULT_MAIN_ORDER),
-      sidebar: buildOrdered(savedSidebarOrder, DEFAULT_SIDEBAR_ORDER),
-    });
+    setColumns(buildColumns(savedMainOrder, savedSidebarOrder));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [savedMainOrder, savedSidebarOrder]);
 
