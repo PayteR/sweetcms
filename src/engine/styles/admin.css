@@ -68,14 +68,22 @@
     padding-block: 0.75rem;
   }
 
-  .list-header .shell-inner-body {
-    padding-block: 0.75rem;
-  }
-
   /* Sticky toolbar — fades in background on scroll via scroll-driven animation.
      No JS needed. Falls back to always-visible background in older browsers. */
-  .form {
+  .form,
+  .list-view {
     padding-top: 1rem;
+  }
+
+  /* Inner bar for sticky headers — fixed height, centered content. */
+  .shell-toolbar-inner {
+    max-width: var(--content-max-width);
+    margin-inline: auto;
+    padding-inline: 1.5rem;
+    height: 3.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
   }
 
   /* Sticky header/toolbar — scroll-driven background fade.

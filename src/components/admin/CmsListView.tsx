@@ -545,8 +545,7 @@ export function CmsListView({ contentType }: Props) {
     <div className="list-view">
       {/* Sticky header — full width background, centered content */}
       <div className="list-header sticky top-12 xl:top-0 z-20">
-        <div className="shell-inner-body">
-          <div className="list-view-header flex flex-wrap items-center justify-between gap-3">
+        <div className="shell-toolbar-inner">
         <h1 className="text-2xl font-bold text-(--text-primary)">
           {__(contentType.labelPlural)}
         </h1>
@@ -626,7 +625,6 @@ export function CmsListView({ contentType }: Props) {
             {__('New {label}', { label: contentType.label })}
           </Link>
         </div>
-          </div>
         </div>
       </div>
 
