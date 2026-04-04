@@ -206,28 +206,31 @@ export function RichTextEditor({
     if (saved) setEditorHeight(saved);
   }, [storageKey]);
 
-  // Save height to localStorage on resize — poll via mouseup since ResizeObserver
-  // doesn't reliably fire for CSS `resize: vertical` in all browsers
-  useEffect(() => {
+  // Custom resize handle — drag to resize editor height
+  const handleResizePointerDown = useCallback((e: React.PointerEvent) => {
+    e.preventDefault();
     const wrapper = wrapperRef.current;
-    if (!wrapper || !storageKey) return;
-    let lastH = wrapper.offsetHeight;
-    function checkHeight() {
+    if (!wrapper) return;
+    const startY = e.clientY;
+    const startH = wrapper.offsetHeight;
+
+    function onPointerMove(ev: PointerEvent) {
+      const newH = Math.max(200, startH + ev.clientY - startY);
+      const val = `${newH}px`;
+      wrapper!.style.height = val;
+      setEditorHeight(val);
+    }
+    function onPointerUp() {
+      document.removeEventListener('pointermove', onPointerMove);
+      document.removeEventListener('pointerup', onPointerUp);
+      // Persist
       const h = wrapper!.offsetHeight;
-      if (h > 0 && h !== lastH) {
-        lastH = h;
-        const val = `${h}px`;
-        localStorage.setItem(HEIGHT_STORAGE_PREFIX + storageKey!, val);
-        setEditorHeight(val);
+      if (h > 0 && storageKey) {
+        localStorage.setItem(HEIGHT_STORAGE_PREFIX + storageKey, `${h}px`);
       }
     }
-    wrapper.addEventListener('mouseup', checkHeight);
-    // Also catch when pointer leaves wrapper during drag
-    document.addEventListener('mouseup', checkHeight);
-    return () => {
-      wrapper.removeEventListener('mouseup', checkHeight);
-      document.removeEventListener('mouseup', checkHeight);
-    };
+    document.addEventListener('pointermove', onPointerMove);
+    document.addEventListener('pointerup', onPointerUp);
   }, [storageKey]);
 
   // Build slash command render function (stable ref)
@@ -486,7 +489,7 @@ export function RichTextEditor({
       {/* Editor */}
       <div
         ref={wrapperRef}
-        style={{ height: editorHeight, resize: 'vertical', overflow: 'hidden' }}
+        style={{ height: editorHeight, overflow: 'hidden' }}
         className={cn(
           'relative flex flex-col overflow-hidden rounded-md border border-(--border-primary) focus-within:border-(--color-accent-500) focus-within:ring-1 focus-within:ring-(--color-accent-500)',
           wrapperClassName,
@@ -841,6 +844,14 @@ export function RichTextEditor({
           >
             {__('Source')}
           </button>
+        </div>
+
+        {/* Resize handle */}
+        <div
+          onPointerDown={handleResizePointerDown}
+          className="shrink-0 flex items-center justify-center h-2 cursor-row-resize bg-(--surface-secondary) hover:bg-(--color-brand-500)/20 transition-colors border-t border-(--border-primary) select-none"
+        >
+          <div className="w-8 h-0.5 rounded-full bg-(--text-muted)/40" />
         </div>
       </div>
 
