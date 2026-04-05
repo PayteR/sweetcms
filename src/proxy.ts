@@ -68,6 +68,31 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  // ── Auto-detect locale from Accept-Language (opt-in) ──
+  if (
+    process.env.NEXT_PUBLIC_LOCALE_AUTO_DETECT === 'true' &&
+    !request.cookies.get('locale-chosen')
+  ) {
+    const segments = pathname.split('/');
+    const firstSegment = segments[1];
+    // Only auto-detect when no locale prefix is present
+    if (!firstSegment || !NON_DEFAULT_LOCALE_SET.has(firstSegment)) {
+      const acceptLang = request.headers.get('accept-language');
+      if (acceptLang) {
+        const preferred = acceptLang
+          .split(',')
+          .map((p) => p.trim().split(';')[0]!.split('-')[0]!.toLowerCase());
+        for (const code of preferred) {
+          if (code !== DEFAULT_LOCALE && NON_DEFAULT_LOCALE_SET.has(code)) {
+            const url = request.nextUrl.clone();
+            url.pathname = `/${code}${pathname}`;
+            return NextResponse.redirect(url);
+          }
+        }
+      }
+    }
+  }
+
   // ── Locale prefix detection + rewrite ──
   // Check if first path segment is a non-default locale
   const segments = pathname.split('/');

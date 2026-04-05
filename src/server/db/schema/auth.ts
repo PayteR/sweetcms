@@ -22,6 +22,10 @@ export const user = pgTable('user', {
   banExpires: timestamp('ban_expires'),
   lang: varchar('lang', { length: 2 }),
   country: varchar('country', { length: 2 }),
+  state: varchar('state', { length: 50 }),
+  timezone: varchar('timezone', { length: 50 }),
+  preferredCurrency: varchar('preferred_currency', { length: 3 }),
+  lastIp: varchar('last_ip', { length: 45 }),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),
 });

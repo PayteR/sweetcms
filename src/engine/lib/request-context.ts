@@ -12,7 +12,9 @@ export function extractRequestContext(headers: Headers): RequestContext {
   const ip = cfIp ?? xForwardedFor?.split(',')[0]?.trim() ?? xRealIp ?? '0.0.0.0';
   const userAgent = headers.get('user-agent') ?? undefined;
   const country = headers.get('cf-ipcountry') ?? undefined;
+  const state = headers.get('cf-region-code') ?? undefined;
+  const timezone = headers.get('cf-timezone') ?? undefined;
   const referer = headers.get('referer') ?? undefined;
 
-  return { ip, userAgent, country, referer };
+  return { ip, userAgent, country, state, timezone, referer };
 }

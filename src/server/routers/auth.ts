@@ -5,6 +5,11 @@ import { createTRPCRouter, protectedProcedure, publicProcedure } from '../trpc';
 import { auth } from '@/lib/auth';
 import { user, session } from '@/server/db/schema/auth';
 import { logAudit } from '@/engine/lib/audit';
+import { detectGeo } from '@/engine/lib/geo';
+import { extractRequestContext } from '@/engine/lib/request-context';
+import { createLogger } from '@/engine/lib/logger';
+
+const geoLog = createLogger('geo-sync');
 
 export const authRouter = createTRPCRouter({
   getSession: publicProcedure.query(({ ctx }) => {
@@ -14,6 +19,74 @@ export const authRouter = createTRPCRouter({
   me: protectedProcedure.query(({ ctx }) => {
     return ctx.session.user;
   }),
+
+  /**
+   * Sync geo data (country, state, timezone, currency, IP) to the user record.
+   * Called once per session from the client. Updates only if IP changed or fields are empty.
+   */
+  syncGeo: protectedProcedure.mutation(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+    const reqCtx = extractRequestContext(ctx.headers);
+
+    // Skip if no real IP
+    if (reqCtx.ip === '0.0.0.0') {
+      return { synced: false };
+    }
+
+    // Check if IP changed or geo fields are missing
+    const [existing] = await ctx.db
+      .select({
+        lastIp: user.lastIp,
+        country: user.country,
+        state: user.state,
+        timezone: user.timezone,
+        preferredCurrency: user.preferredCurrency,
+      })
+      .from(user)
+      .where(eq(user.id, userId))
+      .limit(1);
+
+    if (!existing) return { synced: false };
+
+    const ipChanged = existing.lastIp !== reqCtx.ip;
+    const missingGeo = !existing.country || !existing.timezone;
+
+    if (!ipChanged && !missingGeo) {
+      return { synced: false };
+    }
+
+    try {
+      const geo = await detectGeo(ctx.headers, reqCtx.ip);
+
+      const updates: Record<string, unknown> = {
+        lastIp: reqCtx.ip,
+        updatedAt: new Date(),
+      };
+
+      // Always update if IP changed; fill missing fields if first time
+      if (geo.country && (ipChanged || !existing.country)) {
+        updates.country = geo.country;
+      }
+      if (geo.state && (ipChanged || !existing.state)) {
+        updates.state = geo.state;
+      }
+      if (geo.timezone && (ipChanged || !existing.timezone)) {
+        updates.timezone = geo.timezone;
+      }
+      if (geo.currency && (ipChanged || !existing.preferredCurrency)) {
+        updates.preferredCurrency = geo.currency;
+      }
+
+      await ctx.db.update(user).set(updates).where(eq(user.id, userId));
+
+      geoLog.info('Geo synced', { userId, ip: reqCtx.ip, country: geo.country });
+      return { synced: true };
+    } catch (err: unknown) {
+      geoLog.warn('Geo sync failed', { userId, error: String(err) });
+      return { synced: false };
+    }
+  }),
+
 
   updateProfile: protectedProcedure
     .input(z.object({ name: z.string().min(1).max(100) }))

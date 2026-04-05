@@ -26,15 +26,19 @@ let selectResults: unknown[][] = [];
 let selectCallIndex = 0;
 
 function mockSelectChain() {
+  const whereLimit = {
+    where: () => ({
+      limit: () => {
+        const result = selectResults[selectCallIndex] ?? [];
+        selectCallIndex++;
+        return Promise.resolve(result);
+      },
+    }),
+  };
   return {
     from: () => ({
-      where: () => ({
-        limit: () => {
-          const result = selectResults[selectCallIndex] ?? [];
-          selectCallIndex++;
-          return Promise.resolve(result);
-        },
-      }),
+      ...whereLimit,
+      innerJoin: () => whereLimit,
     }),
   };
 }
@@ -65,6 +69,40 @@ vi.mock('@/server/db/schema', () => ({
     id: 'id',
     providerEventId: 'provider_event_id',
   },
+  user: { id: 'user_id', email: 'user_email' },
+}));
+
+vi.mock('@/server/db/schema/organization', () => ({
+  member: { userId: 'user_id', organizationId: 'org_id' },
+}));
+
+vi.mock('@/engine/lib/email-list/index', () => ({
+  tagSubscriber: vi.fn(),
+}));
+
+vi.mock('@/engine/lib/stats-cache', () => ({
+  invalidateStats: vi.fn(),
+}));
+
+vi.mock('@/server/lib/affiliates', () => ({
+  recordConversion: vi.fn(),
+}));
+
+vi.mock('@/config/routes', () => ({
+  adminPanel: { settingsBilling: '/dashboard/settings/billing' },
+}));
+
+vi.mock('@/engine/lib/payment/discount-service', () => ({
+  finalizeUsage: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('@/config/plans', () => ({
+  getPlanByProviderPriceId: vi.fn().mockReturnValue({
+    id: 'pro',
+    priceMonthly: 1900,
+    priceYearly: 19000,
+    providerPrices: { stripe: { monthly: 'price_pro_monthly', yearly: 'price_pro_yearly' } },
+  }),
 }));
 
 vi.mock('@/engine/lib/audit', () => ({
