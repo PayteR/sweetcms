@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { and, count, desc, eq, asc } from 'drizzle-orm';
-import { createTRPCRouter, protectedProcedure, sectionProcedure } from '../trpc';
-import { saasTickets, saasTicketMessages } from '@/server/db/schema/support';
+import { createTRPCRouter, protectedProcedure, sectionProcedure } from '@/server/trpc';
+import { saasTickets, saasTicketMessages } from '@/core-support/schema/support-tickets';
 import { user } from '@/server/db/schema/auth';
 import { parsePagination, paginatedResult } from '@/core/crud/admin-crud';
 import { logAudit } from '@/core/lib/audit';

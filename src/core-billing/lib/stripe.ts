@@ -1,7 +1,7 @@
 import Stripe from 'stripe';
 import { eq } from 'drizzle-orm';
 import { db } from '@/server/db';
-import { saasSubscriptions } from '@/core-payments/schema/billing';
+import { saasSubscriptions } from '@/core-billing/schema/billing';
 import { organization } from '@/server/db/schema/organization';
 
 let stripeClient: Stripe | null = null;

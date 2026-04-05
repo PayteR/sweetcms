@@ -55,7 +55,7 @@ vi.mock('@/server/db', () => ({
   db: mockDb,
 }));
 
-vi.mock('@/core-payments/schema/billing', () => ({
+vi.mock('@/core-billing/schema/billing', () => ({
   saasSubscriptions: {
     id: 'saas_subscriptions.id',
     organizationId: 'saas_subscriptions.organization_id',
@@ -125,7 +125,7 @@ const { mockPaymentsDeps } = vi.hoisted(() => ({
     resolveOrgId: vi.fn().mockResolvedValue('org-1'),
   },
 }));
-vi.mock('@/core-payments/deps', () => ({
+vi.mock('@/core-billing/deps', () => ({
   getPaymentsDeps: () => mockPaymentsDeps,
   setPaymentsDeps: vi.fn(),
 }));
@@ -134,7 +134,7 @@ vi.mock('@/core-payments/deps', () => ({
 // Imports (after mocks)
 // ---------------------------------------------------------------------------
 
-import { checkExpiringSubscriptions, checkExpiredSubscriptions, runDunningChecks } from '@/core-payments/lib/dunning';
+import { checkExpiringSubscriptions, checkExpiredSubscriptions, runDunningChecks } from '@/core-billing/lib/dunning';
 import { logAudit } from '@/core/lib/audit';
 
 // ---------------------------------------------------------------------------

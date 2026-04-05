@@ -1,20 +1,20 @@
-# core-payments — CLAUDE.md
+# core-billing — CLAUDE.md
 
 Free billing module. Multi-provider payment system with subscriptions, tokens, discounts, and dunning.
 
 ## Module Boundary
 
-**core-payments owns:** Billing schema (7 tables), billing/discount-codes routers, Stripe provider, subscription/discount/token/feature-gate services, factory/registry, dunning job, payment+billing types.
+**core-billing owns:** Billing schema (7 tables), billing/discount-codes routers, Stripe provider, subscription/discount/token/feature-gate services, factory/registry, dunning job, payment+billing types.
 
 **Project owns:** Plan definitions (`config/plans.ts`), provider configs (`config/payment-providers.ts`), billing admin pages, webhook routes (`app/api/webhooks/`), dependency wiring (`config/payments-deps.ts`).
 
 ## Import Rules
 
-- core-payments imports from `@/core/*` (core utilities)
+- core-billing imports from `@/core/*` (core utilities)
 - Framework conventions imported directly: `@/server/trpc`, `@/server/db`, `@/server/db/schema/auth`, `@/server/db/schema/organization`, `@/server/db/schema/audit`
 - Project-specific behavior injected via `setPaymentsDeps()`
-- Project imports from `@/core-payments/*`
-- Core (`src/core/`) never imports from core-payments
+- Project imports from `@/core-billing/*`
+- Core (`src/core/`) never imports from core-billing
 
 ## Dependency Injection
 
@@ -39,4 +39,4 @@ Free billing module. Multi-provider payment system with subscriptions, tokens, d
 
 ## Provider Registry
 
-Providers register via `registerPaymentProvider(id, factory)`. Stripe is built-in. Additional providers (e.g., `core-payments-crypto`) register via their own `register.ts` side-effect import.
+Providers register via `registerPaymentProvider(id, factory)`. Stripe is built-in. Additional providers (e.g., `core-billing-crypto`) register via their own `register.ts` side-effect import.

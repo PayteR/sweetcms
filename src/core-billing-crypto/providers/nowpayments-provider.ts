@@ -1,9 +1,9 @@
 import crypto from 'crypto';
 import { eq } from 'drizzle-orm';
-import type { PaymentProvider, CheckoutParams, CheckoutResult, WebhookEvent } from '@/core-payments/types/payment';
-import { TransactionStatus } from '@/core-payments/types/payment';
+import type { PaymentProvider, CheckoutParams, CheckoutResult, WebhookEvent } from '@/core-billing/types/payment';
+import { TransactionStatus } from '@/core-billing/types/payment';
 import { db } from '@/server/db';
-import { saasPaymentTransactions } from '@/core-payments/schema/billing';
+import { saasPaymentTransactions } from '@/core-billing/schema/billing';
 import { getPlan } from '@/config/plans';
 import { createLogger } from '@/core/lib/logger';
 

@@ -1,8 +1,8 @@
 import type Stripe from 'stripe';
-import type { PaymentProvider, CheckoutParams, CheckoutResult, WebhookEvent } from '@/core-payments/types/payment';
-import { DiscountType } from '@/core-payments/types/payment';
-import { getStripe, requireStripe, getOrCreateStripeCustomer } from '@/core-payments/lib/stripe';
-import { getPaymentsDeps } from '@/core-payments/deps';
+import type { PaymentProvider, CheckoutParams, CheckoutResult, WebhookEvent } from '@/core-billing/types/payment';
+import { DiscountType } from '@/core-billing/types/payment';
+import { getStripe, requireStripe, getOrCreateStripeCustomer } from '@/core-billing/lib/stripe';
+import { getPaymentsDeps } from '@/core-billing/deps';
 
 export class StripeProvider implements PaymentProvider {
   config = {
@@ -197,7 +197,7 @@ export class StripeProvider implements PaymentProvider {
    */
   private async createAdHocCoupon(
     stripe: Stripe,
-    discount: import('@/core-payments/types/payment').DiscountDefinition,
+    discount: import('@/core-billing/types/payment').DiscountDefinition,
     originalPriceCents?: number,
   ): Promise<Stripe.Coupon | null> {
     switch (discount.type) {

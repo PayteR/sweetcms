@@ -1,11 +1,11 @@
 import { eq, sql, and, gte, desc } from 'drizzle-orm';
 import { db } from '@/server/db';
-import { saasTokenBalances, saasTokenTransactions } from '@/core-payments/schema/billing';
+import { saasTokenBalances, saasTokenTransactions } from '@/core-billing/schema/billing';
 import { createLogger } from '@/core/lib/logger';
 
 const logger = createLogger('token-service');
 
-import { getPaymentsDeps } from '@/core-payments/deps';
+import { getPaymentsDeps } from '@/core-billing/deps';
 
 // ─── WS broadcast via injected deps ────────────────────────────────────────
 

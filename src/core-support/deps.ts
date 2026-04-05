@@ -1,5 +1,5 @@
 /**
- * core-chat dependency injection.
+ * core-support dependency injection.
  *
  * The chat module needs project-specific capabilities that differ between projects.
  * Call `setChatDeps()` once at startup to provide them.
@@ -83,7 +83,7 @@ export function setChatDeps(deps: ChatDeps): void {
 export function getChatDeps(): ChatDeps {
   if (!_deps) {
     throw new Error(
-      'Chat dependencies not configured. Call setChatDeps() at startup — see src/core-chat/deps.ts',
+      'Chat dependencies not configured. Call setChatDeps() at startup — see src/core-support/deps.ts',
     );
   }
   return _deps;

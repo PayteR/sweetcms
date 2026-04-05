@@ -1,16 +1,16 @@
 /**
- * Wire core-chat module dependencies to project-specific implementations.
+ * Wire core-support module dependencies to project-specific implementations.
  * Imported as a side-effect in server.ts (like email-list registration).
  */
-import { setChatDeps } from '@/core-chat/deps';
-import { saasTickets, saasTicketMessages } from '@/server/db/schema/support';
+import { setChatDeps } from '@/core-support/deps';
+import { saasTickets, saasTicketMessages } from '@/core-support/schema/support-tickets';
 import { user } from '@/server/db/schema/auth';
 import { db } from '@/server/db';
 import { inArray } from 'drizzle-orm';
 import { resolveOrgId } from '@/server/lib/resolve-org';
 import { sendNotification, sendOrgNotification } from '@/server/lib/notifications';
 import { NotificationType, NotificationCategory } from '@/core/types/notifications';
-import { supportChatConfig } from '@/core-chat/config';
+import { supportChatConfig } from '@/core-support/config';
 import { createLogger } from '@/core/lib/logger';
 
 const logger = createLogger('support-chat-ai');

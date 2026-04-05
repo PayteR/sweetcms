@@ -1,8 +1,8 @@
 /**
- * Wire core-payments module dependencies to project-specific implementations.
+ * Wire core-billing module dependencies to project-specific implementations.
  * Imported as a side-effect in server.ts.
  */
-import { setPaymentsDeps } from '@/core-payments/deps';
+import { setPaymentsDeps } from '@/core-billing/deps';
 import { PLANS, getPlan, getPlanByProviderPriceId, getProviderPriceId } from '@/config/plans';
 import { getEnabledProviderConfigs } from '@/config/payment-providers';
 import { resolveOrgId } from '@/server/lib/resolve-org';

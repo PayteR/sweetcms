@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import type { PlanDefinition, PlanFeatures } from '@/core-payments/types/billing';
+import type { PlanDefinition, PlanFeatures } from '@/core-billing/types/billing';
 import { getSubscription } from './subscription-service';
 
 export interface FeatureCheckResult {

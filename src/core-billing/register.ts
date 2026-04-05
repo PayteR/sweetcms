@@ -1,5 +1,5 @@
 /**
- * core-payments module registration entrypoint.
+ * core-billing module registration entrypoint.
  */
 
 // Dependencies

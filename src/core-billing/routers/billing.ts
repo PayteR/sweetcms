@@ -2,21 +2,21 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { eq, and, desc, sql, gte, lte, inArray } from 'drizzle-orm';
 import { createTRPCRouter, protectedProcedure, sectionProcedure } from '@/server/trpc';
-import { getProvider, isBillingEnabled, getEnabledProviders } from '@/core-payments/lib/factory';
-import { getSubscription } from '@/core-payments/lib/subscription-service';
+import { getProvider, isBillingEnabled, getEnabledProviders } from '@/core-billing/lib/factory';
+import { getSubscription } from '@/core-billing/lib/subscription-service';
 import {
   validateCode,
   applyDiscount,
   removeDiscount,
   getActiveDiscount,
-} from '@/core-payments/lib/discount-service';
-import { getPaymentsDeps } from '@/core-payments/deps';
+} from '@/core-billing/lib/discount-service';
+import { getPaymentsDeps } from '@/core-billing/deps';
 import { member } from '@/server/db/schema/organization';
 import {
   saasSubscriptions,
   saasPaymentTransactions,
   saasDiscountCodes,
-} from '@/core-payments/schema/billing';
+} from '@/core-billing/schema/billing';
 import { organization } from '@/server/db/schema/organization';
 import { getStats as getCachedStats } from '@/core/lib/stats-cache';
 import { parsePagination, paginatedResult } from '@/core/crud/admin-crud';
@@ -26,7 +26,7 @@ import {
   addTokens,
   deductTokens,
   getTokenTransactions,
-} from '@/core-payments/lib/token-service';
+} from '@/core-billing/lib/token-service';
 
 const billingAdminProcedure = sectionProcedure('billing');
 
@@ -103,7 +103,7 @@ export const billingRouter = createTRPCRouter({
       }
 
       const originalPriceCents = input.interval === 'yearly' ? plan.priceYearly : plan.priceMonthly;
-      let resolvedDiscount: import('@/core-payments/types/payment').DiscountDefinition | undefined;
+      let resolvedDiscount: import('@/core-billing/types/payment').DiscountDefinition | undefined;
       let finalPriceCents: number | undefined;
 
       // Validate discount code if provided

@@ -1,11 +1,11 @@
 /**
- * core-payments dependency injection.
+ * core-billing dependency injection.
  *
  * Framework conventions (trpc, db, user/org/member tables, audit, core utils)
  * are imported directly. Only project-specific behavior is injected here.
  */
-import type { PlanDefinition } from '@/core-payments/types/billing';
-import type { PaymentProviderConfig } from '@/core-payments/types/payment';
+import type { PlanDefinition } from '@/core-billing/types/billing';
+import type { PaymentProviderConfig } from '@/core-billing/types/payment';
 
 export interface PaymentsDeps {
   /** All plan definitions for this project. */
@@ -49,7 +49,7 @@ export function setPaymentsDeps(deps: PaymentsDeps): void {
 export function getPaymentsDeps(): PaymentsDeps {
   if (!_deps) {
     throw new Error(
-      'Payments dependencies not configured. Call setPaymentsDeps() at startup — see src/core-payments/deps.ts',
+      'Payments dependencies not configured. Call setPaymentsDeps() at startup — see src/core-billing/deps.ts',
     );
   }
   return _deps;

@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/server/db';
 import { saasSubscriptionEvents } from '@/server/db/schema';
-import { getProvider } from '@/core-payments/lib/factory';
-import { activateSubscription } from '@/core-payments/lib/subscription-service';
-import { finalizeUsage } from '@/core-payments/lib/discount-service';
+import { getProvider } from '@/core-billing/lib/factory';
+import { activateSubscription } from '@/core-billing/lib/subscription-service';
+import { finalizeUsage } from '@/core-billing/lib/discount-service';
 import { logAudit } from '@/core/lib/audit';
 import { sendOrgNotification } from '@/server/lib/notifications';
 import { NotificationType, NotificationCategory } from '@/core/types/notifications';

@@ -48,7 +48,7 @@ vi.mock('@/lib/env', () => ({
   },
 }));
 
-vi.mock('@/core-payments/lib/feature-gate', () => ({
+vi.mock('@/core-billing/lib/feature-gate', () => ({
   requireFeature: vi.fn().mockResolvedValue(undefined),
   checkFeature: vi.fn().mockResolvedValue({ allowed: true, limit: 100 }),
   setPlanResolver: vi.fn(),

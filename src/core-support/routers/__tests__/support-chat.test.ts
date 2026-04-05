@@ -46,7 +46,7 @@ const mockChatDeps = {
   lookupUsers: vi.fn().mockResolvedValue(new Map([['user-1', { id: 'user-1', name: 'Test User', email: 'test@test.com' }]])),
   callAI: vi.fn().mockResolvedValue(null),
 };
-vi.mock('@/core-chat/deps', () => ({
+vi.mock('@/core-support/deps', () => ({
   getChatDeps: () => mockChatDeps,
   setChatDeps: vi.fn(),
 }));
@@ -88,7 +88,7 @@ vi.mock('@/core/crud/admin-crud', () => ({
   ),
 }));
 
-vi.mock('@/core-chat/schema/support-chat', () => ({
+vi.mock('@/core-support/schema/support-chat', () => ({
   saasSupportChatSessions: {
     id: 'saas_support_chat_sessions.id',
     visitorId: 'saas_support_chat_sessions.visitor_id',
@@ -111,7 +111,7 @@ vi.mock('@/core-chat/schema/support-chat', () => ({
   },
 }));
 
-vi.mock('@/core-chat/config', () => ({
+vi.mock('@/core-support/config', () => ({
   supportChatConfig: {
     systemPrompt: 'test',
     escalationMessage: 'Escalating...',
@@ -124,7 +124,7 @@ vi.mock('@/core-chat/config', () => ({
 // Imports (after mocks)
 // ---------------------------------------------------------------------------
 
-import { supportChatRouter } from '@/core-chat/routers/support-chat';
+import { supportChatRouter } from '@/core-support/routers/support-chat';
 
 // ---------------------------------------------------------------------------
 // Helpers

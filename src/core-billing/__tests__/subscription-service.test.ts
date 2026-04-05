@@ -33,7 +33,7 @@ vi.mock('@/server/db', () => {
   };
 });
 
-vi.mock('@/core-payments/schema/billing', () => ({
+vi.mock('@/core-billing/schema/billing', () => ({
   saasSubscriptions: {
     id: 'saas_subscriptions.id',
     organizationId: 'saas_subscriptions.organization_id',
@@ -75,7 +75,7 @@ import {
   activateSubscription,
   updateSubscription,
   cancelSubscription,
-} from '@/core-payments/lib/subscription-service';
+} from '@/core-billing/lib/subscription-service';
 import { db } from '@/server/db';
 import { eq, and } from 'drizzle-orm';
 

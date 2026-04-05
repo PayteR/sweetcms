@@ -1,18 +1,18 @@
 import { and, eq, gte, lte, lt } from 'drizzle-orm';
 import { db } from '@/server/db';
-import { saasSubscriptions, saasPaymentTransactions } from '@/core-payments/schema/billing';
+import { saasSubscriptions, saasPaymentTransactions } from '@/core-billing/schema/billing';
 import { member } from '@/server/db/schema/organization';
 import { user } from '@/server/db/schema/auth';
 import { cmsAuditLog } from '@/server/db/schema/audit';
 import { createLogger } from '@/core/lib/logger';
 import { logAudit } from '@/core/lib/audit';
-import { getPaymentsDeps } from '@/core-payments/deps';
+import { getPaymentsDeps } from '@/core-billing/deps';
 
 
 import {
   reconcileStalePendingTransactions,
   type ProviderCheckFn,
-} from '@/core-payments/lib/reconciliation-service';
+} from '@/core-billing/lib/reconciliation-service';
 
 const log = createLogger('dunning');
 

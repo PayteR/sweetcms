@@ -66,7 +66,7 @@ vi.mock('@/core/crud/admin-crud', () => ({
   ),
 }));
 
-vi.mock('@/server/db/schema/support', () => ({
+vi.mock('@/core-support/schema/support-tickets', () => ({
   saasTickets: {
     id: 'saas_tickets.id',
     organizationId: 'saas_tickets.organization_id',
@@ -117,7 +117,7 @@ vi.mock('@/server/lib/resolve-org', () => ({
 // ---------------------------------------------------------------------------
 
 import { asMock } from '@/test-utils';
-import { supportRouter } from '../support';
+import { supportRouter } from '@/core-support/routers/support';
 import { logAudit } from '@/core/lib/audit';
 import { sendNotification, sendOrgNotification } from '@/server/lib/notifications';
 import { resolveOrgId } from '@/server/lib/resolve-org';

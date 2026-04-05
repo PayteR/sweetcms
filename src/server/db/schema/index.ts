@@ -1,6 +1,6 @@
 export * from './auth';
-// Re-export from core-payments module for schema discovery
-export * from '@/core-payments/schema/billing';
+// Re-export from core-billing module for schema discovery
+export * from '@/core-billing/schema/billing';
 export * from './cms';
 export * from './categories';
 export * from './media';

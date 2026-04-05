@@ -2,8 +2,8 @@ import { z } from 'zod';
 import { eq, desc, sql } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { createTRPCRouter, sectionProcedure } from '@/server/trpc';
-import { saasDiscountCodes, saasDiscountUsages } from '@/core-payments/schema/billing';
-import { DiscountType } from '@/core-payments/types/payment';
+import { saasDiscountCodes, saasDiscountUsages } from '@/core-billing/schema/billing';
+import { DiscountType } from '@/core-billing/types/payment';
 
 const billingProcedure = sectionProcedure('billing');
 

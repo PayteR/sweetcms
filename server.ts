@@ -68,7 +68,7 @@ async function main() {
   await import('./src/config/payments-deps');
   await import('./src/config/chat-deps');
   await import('./src/config/affiliates-deps');
-  await import('./src/core-payments-crypto/register');
+  await import('./src/core-billing-crypto/register');
 
   // Register webhook delivery logger
   const { setWebhookDeliveryLogger } = await import('./src/core/lib/webhooks');
@@ -86,7 +86,7 @@ async function main() {
       './src/server/jobs/content/index'
     );
     const { startWebhookWorker } = await import('./src/core/lib/webhooks');
-    const { startSupportChatCleanupWorker } = await import('./src/core-chat/jobs/support-chat');
+    const { startSupportChatCleanupWorker } = await import('./src/core-support/jobs/support-chat');
     const { startMediaWorker } = await import('./src/server/jobs/media/index');
     startEmailWorker();
     startContentWorker();
@@ -106,7 +106,7 @@ async function main() {
           repeat: { pattern: '0 8 * * *' }, // Daily at 8 AM
         });
         createWorker('dunning', async () => {
-          const { runDunningChecks } = await import('./src/core-payments/lib/dunning');
+          const { runDunningChecks } = await import('./src/core-billing/lib/dunning');
           await runDunningChecks();
         });
         console.log('Dunning worker ready (daily at 8 AM)');
@@ -129,7 +129,7 @@ async function main() {
       await enqueueTask('dunning', { action: 'check' }).catch(() => {});
 
       startDbQueueWorker('dunning', async () => {
-        const { runDunningChecks } = await import('./src/core-payments/lib/dunning');
+        const { runDunningChecks } = await import('./src/core-billing/lib/dunning');
         await runDunningChecks();
 
         // Re-enqueue for next day at ~8 AM UTC

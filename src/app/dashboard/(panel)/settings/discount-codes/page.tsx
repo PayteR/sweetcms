@@ -9,7 +9,7 @@ import { useAdminTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
 import { adminPanel } from '@/config/routes';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { DiscountType } from '@/core-payments/types/payment';
+import { DiscountType } from '@/core-billing/types/payment';
 
 const DISCOUNT_TYPE_LABELS: Record<string, string> = {
   [DiscountType.PERCENTAGE]: 'Percentage',

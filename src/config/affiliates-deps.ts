@@ -3,7 +3,7 @@
  * Imported as a side-effect in server.ts.
  */
 import { setAffiliatesDeps } from '@/core-affiliates/deps';
-import { saasPaymentTransactions } from '@/core-payments/schema/billing';
+import { saasPaymentTransactions } from '@/core-billing/schema/billing';
 
 setAffiliatesDeps({
   paymentTransactionsTable: saasPaymentTransactions,

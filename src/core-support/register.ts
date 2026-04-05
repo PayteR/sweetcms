@@ -1,5 +1,5 @@
 /**
- * core-chat module registration entrypoint.
+ * core-support module registration entrypoint.
  *
  * Re-exports everything needed to wire this module into a project:
  * - Router: add to your _app.ts
@@ -9,11 +9,13 @@
  * - Components: use in your app layer
  */
 
-// Router
+// Routers
 export { supportChatRouter } from './routers/support-chat';
+export { supportRouter } from './routers/support';
 
 // Schema
 export { saasSupportChatSessions, saasSupportChatMessages } from './schema/support-chat';
+export { saasTickets, saasTicketMessages } from './schema/support-tickets';
 
 // Jobs
 export { startSupportChatCleanupWorker, cleanupStaleSessions } from './jobs/support-chat';

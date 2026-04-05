@@ -90,7 +90,7 @@ vi.mock('@/core/lib/audit', () => ({
 }));
 
 // Mock payment factory
-vi.mock('@/core-payments/lib/factory', () => ({
+vi.mock('@/core-billing/lib/factory', () => ({
   getProvider: vi.fn().mockResolvedValue(null),
   getDefaultProvider: vi.fn().mockResolvedValue(null),
   getEnabledProviders: vi.fn().mockReturnValue([]),
@@ -98,12 +98,12 @@ vi.mock('@/core-payments/lib/factory', () => ({
 }));
 
 // Mock subscription service
-vi.mock('@/core-payments/lib/subscription-service', () => ({
+vi.mock('@/core-billing/lib/subscription-service', () => ({
   getSubscription: vi.fn().mockResolvedValue(null),
 }));
 
 // Mock discount service
-vi.mock('@/core-payments/lib/discount-service', () => ({
+vi.mock('@/core-billing/lib/discount-service', () => ({
   validateCode: vi.fn().mockResolvedValue({ valid: true, finalPriceCents: 1000 }),
   applyDiscount: vi.fn().mockResolvedValue({
     discount: { type: 'percentage', value: 10 },
@@ -169,7 +169,7 @@ const mockBillingDeps = {
   enqueueTemplateEmail: vi.fn().mockResolvedValue(undefined),
   broadcastEvent: vi.fn(),
 };
-vi.mock('@/core-payments/deps', () => ({
+vi.mock('@/core-billing/deps', () => ({
   getPaymentsDeps: () => mockBillingDeps,
   setPaymentsDeps: vi.fn(),
 }));
@@ -217,9 +217,9 @@ vi.mock('@/server/lib/resolve-org', () => ({
 // ---------------------------------------------------------------------------
 
 import { asMock } from '@/test-utils';
-import { billingRouter } from '@/core-payments/routers/billing';
-import { isBillingEnabled, getProvider, getEnabledProviders } from '@/core-payments/lib/factory';
-import { getSubscription } from '@/core-payments/lib/subscription-service';
+import { billingRouter } from '@/core-billing/routers/billing';
+import { isBillingEnabled, getProvider, getEnabledProviders } from '@/core-billing/lib/factory';
+import { getSubscription } from '@/core-billing/lib/subscription-service';
 
 import { createMockCtx } from '@/server/routers/__tests__/test-helpers';
 

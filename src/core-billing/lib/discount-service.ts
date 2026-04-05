@@ -1,8 +1,8 @@
 import { eq, and, isNull, sql } from 'drizzle-orm';
 import { db } from '@/server/db';
-import { saasDiscountCodes, saasDiscountUsages } from '@/core-payments/schema/billing';
-import { DiscountType } from '@/core-payments/types/payment';
-import type { DiscountDefinition, DiscountValidationResult } from '@/core-payments/types/payment';
+import { saasDiscountCodes, saasDiscountUsages } from '@/core-billing/schema/billing';
+import { DiscountType } from '@/core-billing/types/payment';
+import type { DiscountDefinition, DiscountValidationResult } from '@/core-billing/types/payment';
 import { createLogger } from '@/core/lib/logger';
 
 const logger = createLogger('discount-service');

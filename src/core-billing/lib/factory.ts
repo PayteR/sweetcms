@@ -1,5 +1,5 @@
-import type { PaymentProvider, PaymentProviderConfig } from '@/core-payments/types/payment';
-import { getPaymentsDeps } from '@/core-payments/deps';
+import type { PaymentProvider, PaymentProviderConfig } from '@/core-billing/types/payment';
+import { getPaymentsDeps } from '@/core-billing/deps';
 
 const providerCache = new Map<string, PaymentProvider>();
 
@@ -59,8 +59,8 @@ export function isBillingEnabled(): boolean {
 
 registerPaymentProvider('stripe', async () => {
   if (!process.env.STRIPE_SECRET_KEY) return null;
-  const { StripeProvider } = await import('@/core-payments/providers/stripe-provider');
+  const { StripeProvider } = await import('@/core-billing/providers/stripe-provider');
   return new StripeProvider();
 });
 
-// NOWPayments provider registered by core-payments-crypto module (if installed)
+// NOWPayments provider registered by core-billing-crypto module (if installed)

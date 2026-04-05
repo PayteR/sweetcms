@@ -75,7 +75,7 @@ export async function seedBilling(
     saasPaymentTransactions,
     saasDiscountCodes,
     saasDiscountUsages,
-  } = await import('@/core-payments/schema/billing');
+  } = await import('@/core-billing/schema/billing');
   const {
     saasAffiliates,
     saasReferrals,
@@ -383,7 +383,7 @@ export async function seedBilling(
   const {
     saasTokenBalances,
     saasTokenTransactions,
-  } = await import('@/core-payments/schema/billing');
+  } = await import('@/core-billing/schema/billing');
 
   for (let i = 0; i < orgIds.length; i++) {
     const balance = faker.number.int({ min: 50, max: 5000 });
