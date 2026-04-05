@@ -124,6 +124,26 @@ export const authRouter = createTRPCRouter({
       return { success: true };
     }),
 
+  resendVerification: protectedProcedure.mutation(async ({ ctx }) => {
+    const email = ctx.session.user.email;
+    if (!email) {
+      throw new TRPCError({ code: 'BAD_REQUEST', message: 'No email on account' });
+    }
+
+    try {
+      await auth.api.sendVerificationEmail({
+        body: { email },
+      });
+    } catch {
+      throw new TRPCError({
+        code: 'TOO_MANY_REQUESTS',
+        message: 'Please wait before requesting another verification email',
+      });
+    }
+
+    return { success: true };
+  }),
+
   revokeAllSessions: protectedProcedure.mutation(async ({ ctx }) => {
     // Get current session token to exclude it
     const currentSessionToken = ctx.headers.get('cookie')?.match(/better-auth\.session_token=([^;]+)/)?.[1];

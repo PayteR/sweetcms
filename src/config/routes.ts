@@ -75,6 +75,7 @@ export const publicAuthRoutes = {
   register: '/register',
   forgotPassword: '/forgot-password',
   resetPassword: '/reset-password',
+  verifyEmail: '/verify-email',
 } as const;
 
 // ─── Customer account ────────────────────────────────────────────────────────

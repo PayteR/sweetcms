@@ -17,12 +17,13 @@ import { LanguageSwitcher } from '@/engine/components/LanguageSwitcher';
 import { UserMenu } from '@/components/public/UserMenu';
 import { getLocale } from '@/lib/locale-server';
 import { localePath } from '@/lib/locale';
-import type { Locale } from '@/lib/constants';
+import { LOCALES, DEFAULT_LOCALE, LOCALE_LABELS, type Locale } from '@/lib/constants';
 import { adminRoutes, contentRoutes, apiRoutes } from '@/config/routes';
 import { RefCookieCapture } from '@/components/public/RefCookieCapture';
 import { AuthDialogs } from '@/components/public/AuthDialogs';
 import { SupportChatWidgetWrapper } from '@/components/public/SupportChatWidgetWrapper';
 import { getServerTranslations, type TranslationFn } from '@/lib/translations-server';
+import { LanguageSuggestionBanner } from '@/engine/components/LanguageSuggestionBanner';
 
 async function getPublishedCategories(locale: Locale) {
   try {
@@ -156,6 +157,11 @@ export default async function PublicLayout({
         </div>
       </header>
 
+      <LanguageSuggestionBanner
+        locales={LOCALES}
+        localeLabels={LOCALE_LABELS}
+        defaultLocale={DEFAULT_LOCALE}
+      />
       <AuthDialogs />
       <main className="flex-1">{children}</main>
       <SupportChatWidgetWrapper />

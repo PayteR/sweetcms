@@ -4,6 +4,8 @@ import { getSessionCookie } from 'better-auth/cookies';
 import { LOCALES, DEFAULT_LOCALE } from '@/lib/constants';
 import type { Locale } from '@/lib/constants';
 import { DASHBOARD_PREFIX, ACCOUNT_PREFIX, PUBLIC_ADMIN_PATHS, adminRoutes, publicAuthRoutes } from '@/config/routes';
+import { auth } from '@/lib/auth';
+import { isEmailVerificationRequired } from '@/lib/email-verification';
 
 /**
  * Next.js 16 Proxy — runs before routes are rendered.
@@ -18,7 +20,9 @@ const NON_DEFAULT_LOCALE_SET: Set<string> = new Set(
   LOCALES.filter((l) => l !== DEFAULT_LOCALE)
 );
 
-export function proxy(request: NextRequest) {
+const VERIFY_EMAIL_PATH = publicAuthRoutes.verifyEmail;
+
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // ── Dashboard auth gating ──
@@ -40,6 +44,27 @@ export function proxy(request: NextRequest) {
     const sessionCookie = getSessionCookie(request);
     if (!sessionCookie) {
       return NextResponse.redirect(new URL(`${publicAuthRoutes.login}?callbackUrl=${encodeURIComponent(pathname)}`, request.url));
+    }
+
+    // Check email verification grace period
+    const session = await auth.api.getSession({ headers: request.headers });
+    const u = session?.user as Record<string, unknown> | undefined;
+    if (
+      u &&
+      isEmailVerificationRequired({
+        emailVerified: (u.emailVerified as boolean) ?? false,
+        createdAt: (u.createdAt as string) ?? new Date().toISOString(),
+      })
+    ) {
+      return NextResponse.redirect(new URL(VERIFY_EMAIL_PATH, request.url));
+    }
+  }
+
+  // ── Verify-email page — redirect away if already verified ──
+  if (pathname === VERIFY_EMAIL_PATH) {
+    const sessionCookie = getSessionCookie(request);
+    if (!sessionCookie) {
+      return NextResponse.redirect(new URL(publicAuthRoutes.login, request.url));
     }
   }
 

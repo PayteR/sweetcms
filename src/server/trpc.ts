@@ -6,6 +6,7 @@ import { auth } from '@/lib/auth';
 import { type AdminSection, Policy, Role, type UserRole } from '@/engine/policy';
 import { db } from '@/server/db';
 import { applyRateLimit } from '@/engine/lib/trpc-rate-limit';
+import { isEmailVerificationRequired } from '@/lib/email-verification';
 
 /**
  * Context for tRPC procedures — session + Drizzle DB + headers
@@ -30,6 +31,8 @@ type SessionUser = {
   email?: string;
   role?: UserRole;
   banned?: boolean;
+  emailVerified?: boolean;
+  createdAt?: string;
 };
 
 const t = initTRPC.context<Context>().create({
@@ -76,6 +79,21 @@ const authMiddleware = t.middleware(({ ctx, next }) => {
     throw new TRPCError({
       code: 'FORBIDDEN',
       message: 'Your account has been suspended',
+    });
+  }
+
+  // Skip verification check for staff/admin — they're promoted manually
+  const isStaff = Policy.for(sessionUser.role).canAccessAdmin();
+  if (
+    !isStaff &&
+    isEmailVerificationRequired({
+      emailVerified: sessionUser.emailVerified ?? false,
+      createdAt: sessionUser.createdAt ?? new Date().toISOString(),
+    })
+  ) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Email verification required',
     });
   }
 

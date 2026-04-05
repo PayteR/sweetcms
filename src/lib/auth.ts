@@ -42,11 +42,22 @@ function createAuth() {
     emailAndPassword: {
       enabled: true,
       minPasswordLength: 6,
-      requireEmailVerification: false,
+      requireEmailVerification: false, // We enforce grace period ourselves
       sendResetPassword: async ({ user, url }) => {
         await enqueueTemplateEmail(user.email, 'password-reset', {
           name: user.name ?? 'there',
           resetUrl: url,
+        });
+      },
+    },
+
+    emailVerification: {
+      sendOnSignUp: true,
+      autoSignInAfterVerification: true,
+      sendVerificationEmail: async ({ user, url }) => {
+        await enqueueTemplateEmail(user.email, 'verify-email', {
+          name: user.name ?? 'there',
+          verifyUrl: url,
         });
       },
     },
@@ -155,11 +166,14 @@ function createAuth() {
         },
       }),
       customSession(async ({ user, session }) => {
+        const u = user as Record<string, unknown>;
         return {
           user: {
             ...user,
-            role: (user as Record<string, unknown>).role as string ?? Role.USER,
-            banned: (user as Record<string, unknown>).banned as boolean ?? false,
+            role: u.role as string ?? Role.USER,
+            banned: u.banned as boolean ?? false,
+            emailVerified: u.emailVerified as boolean ?? false,
+            createdAt: u.createdAt as string ?? new Date().toISOString(),
           },
           session: {
             ...session,

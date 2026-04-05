@@ -14,9 +14,9 @@ interface EmailPayload {
   html: string;
 }
 
-export type TemplateName = 'welcome' | 'password-reset' | 'invitation' | 'payment-failed' | 'subscription-activated' | 'subscription-expiring' | 'subscription-expired' | 'subscription-canceled';
+export type TemplateName = 'welcome' | 'verify-email' | 'password-reset' | 'invitation' | 'payment-failed' | 'subscription-activated' | 'subscription-expiring' | 'subscription-expired' | 'subscription-canceled';
 
-export const TEMPLATE_NAMES: TemplateName[] = ['welcome', 'password-reset', 'invitation', 'payment-failed', 'subscription-activated', 'subscription-expiring', 'subscription-expired', 'subscription-canceled'];
+export const TEMPLATE_NAMES: TemplateName[] = ['welcome', 'verify-email', 'password-reset', 'invitation', 'payment-failed', 'subscription-activated', 'subscription-expiring', 'subscription-expired', 'subscription-canceled'];
 
 interface TemplateVars {
   [key: string]: string;
