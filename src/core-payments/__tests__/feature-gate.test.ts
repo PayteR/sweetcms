@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { TRPCError } from '@trpc/server';
 
-vi.mock('@/core/lib/payment/subscription-service', () => ({
+vi.mock('@/core-payments/lib/subscription-service', () => ({
   getSubscription: vi.fn(),
 }));
 
@@ -40,8 +40,8 @@ const PRO_PLAN = {
 const MOCK_PLANS = [FREE_PLAN, PRO_PLAN];
 
 import { asMock } from '@/test-utils';
-import { getSubscription } from '@/core/lib/payment/subscription-service';
-import { setPlanResolver, getPlanFeatures, checkFeature, requireFeature } from '../feature-gate';
+import { getSubscription } from '@/core-payments/lib/subscription-service';
+import { setPlanResolver, getPlanFeatures, checkFeature, requireFeature } from '@/core-payments/lib/feature-gate';
 
 const FREE_FEATURES = FREE_PLAN.features;
 const PRO_FEATURES = PRO_PLAN.features;

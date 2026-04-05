@@ -90,7 +90,7 @@ vi.mock('@/core/lib/audit', () => ({
 }));
 
 // Mock payment factory
-vi.mock('@/server/lib/payment/factory', () => ({
+vi.mock('@/core-payments/lib/factory', () => ({
   getProvider: vi.fn().mockResolvedValue(null),
   getDefaultProvider: vi.fn().mockResolvedValue(null),
   getEnabledProviders: vi.fn().mockReturnValue([]),
@@ -98,12 +98,12 @@ vi.mock('@/server/lib/payment/factory', () => ({
 }));
 
 // Mock subscription service
-vi.mock('@/core/lib/payment/subscription-service', () => ({
+vi.mock('@/core-payments/lib/subscription-service', () => ({
   getSubscription: vi.fn().mockResolvedValue(null),
 }));
 
 // Mock discount service
-vi.mock('@/core/lib/payment/discount-service', () => ({
+vi.mock('@/core-payments/lib/discount-service', () => ({
   validateCode: vi.fn().mockResolvedValue({ valid: true, finalPriceCents: 1000 }),
   applyDiscount: vi.fn().mockResolvedValue({
     discount: { type: 'percentage', value: 10 },
@@ -118,53 +118,61 @@ vi.mock('@/core/lib/stats-cache', () => ({
   getStats: vi.fn().mockImplementation((_key: string, fetchFn: () => Promise<unknown>) => fetchFn()),
 }));
 
-// Inline plan data inside factory
-vi.mock('@/config/plans', () => {
-  const plans = [
-    {
-      id: 'free',
-      name: 'Free',
-      description: 'Free plan',
-      providerPrices: {},
-      priceMonthly: 0,
-      priceYearly: 0,
-      features: { maxMembers: 1, maxStorageMb: 100, customDomain: false, apiAccess: false, prioritySupport: false },
-      displayFeatures: ['1 member'],
-      cta: 'Get Started',
+// Inline plan data inside deps mock
+const mockPlans = [
+  {
+    id: 'free',
+    name: 'Free',
+    description: 'Free plan',
+    providerPrices: {},
+    priceMonthly: 0,
+    priceYearly: 0,
+    features: { maxMembers: 1, maxStorageMb: 100, customDomain: false, apiAccess: false, prioritySupport: false },
+    displayFeatures: ['1 member'],
+    cta: 'Get Started',
+  },
+  {
+    id: 'pro',
+    name: 'Pro',
+    description: 'Pro plan',
+    providerPrices: {
+      stripe: { monthly: 'price_pro_monthly', yearly: 'price_pro_yearly' },
     },
-    {
-      id: 'pro',
-      name: 'Pro',
-      description: 'Pro plan',
-      providerPrices: {
-        stripe: { monthly: 'price_pro_monthly', yearly: 'price_pro_yearly' },
-      },
-      priceMonthly: 4900,
-      priceYearly: 49000,
-      trialDays: 14,
-      features: { maxMembers: 20, maxStorageMb: 10240, customDomain: true, apiAccess: true, prioritySupport: false },
-      displayFeatures: ['20 members'],
-      cta: 'Start Trial',
-      popular: true,
-    },
-  ];
-  return {
-    PLANS: plans,
-    getPlan: (id: string) => plans.find((p) => p.id === id),
-    getPlanByProviderPriceId: (_providerId: string, priceId: string) =>
-      plans.find((p) => {
-        const prices = p.providerPrices['stripe'];
-        if (!prices) return false;
-        return prices.monthly === priceId || prices.yearly === priceId;
-      }),
-    getProviderPriceId: (plan: { providerPrices: Record<string, Record<string, string>> }, providerId: string, interval: string) => {
-      const prices = plan.providerPrices[providerId];
-      if (!prices) return null;
-      return prices[interval] ?? null;
-    },
-    getFreePlan: () => plans[0],
-  };
-});
+    priceMonthly: 4900,
+    priceYearly: 49000,
+    trialDays: 14,
+    features: { maxMembers: 20, maxStorageMb: 10240, customDomain: true, apiAccess: true, prioritySupport: false },
+    displayFeatures: ['20 members'],
+    cta: 'Start Trial',
+    popular: true,
+  },
+];
+const mockBillingDeps = {
+  getPlans: () => mockPlans,
+  getPlan: (id: string) => mockPlans.find((p: { id: string }) => p.id === id),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getPlanByProviderPriceId: (_providerId: string, priceId: string) =>
+    mockPlans.find((p: any) => {
+      const prices = p.providerPrices?.['stripe'];
+      if (!prices) return false;
+      return prices.monthly === priceId || prices.yearly === priceId;
+    }),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getProviderPriceId: (plan: any, providerId: string, interval: string) => {
+    const prices = plan.providerPrices?.[providerId];
+    if (!prices) return null;
+    return prices[interval] ?? null;
+  },
+  getEnabledProviderConfigs: () => [],
+  resolveOrgId: vi.fn().mockResolvedValue('org-1'),
+  sendOrgNotification: vi.fn(),
+  enqueueTemplateEmail: vi.fn().mockResolvedValue(undefined),
+  broadcastEvent: vi.fn(),
+};
+vi.mock('@/core-payments/deps', () => ({
+  getPaymentsDeps: () => mockBillingDeps,
+  setPaymentsDeps: vi.fn(),
+}));
 
 vi.mock('@/server/db/schema', () => ({
   member: {
@@ -209,12 +217,11 @@ vi.mock('@/server/lib/resolve-org', () => ({
 // ---------------------------------------------------------------------------
 
 import { asMock } from '@/test-utils';
-import { billingRouter } from '../billing';
-import { isBillingEnabled, getProvider, getEnabledProviders } from '@/server/lib/payment/factory';
-import { getSubscription } from '@/core/lib/payment/subscription-service';
-import { PLANS } from '@/config/plans';
-import { createMockCtx } from './test-helpers';
-import { resolveOrgId } from '@/server/lib/resolve-org';
+import { billingRouter } from '@/core-payments/routers/billing';
+import { isBillingEnabled, getProvider, getEnabledProviders } from '@/core-payments/lib/factory';
+import { getSubscription } from '@/core-payments/lib/subscription-service';
+
+import { createMockCtx } from '@/server/routers/__tests__/test-helpers';
 
 // ---------------------------------------------------------------------------
 // Shared fixtures
@@ -259,7 +266,7 @@ const MOCK_PROVIDER = {
 describe('billingRouter', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    asMock(resolveOrgId).mockImplementation(async (activeOrgId: string | null) => {
+    mockBillingDeps.resolveOrgId.mockImplementation(async (activeOrgId: string | null) => {
       if (activeOrgId) return activeOrgId;
       throw new Error('No active organization selected');
     });
@@ -280,7 +287,7 @@ describe('billingRouter', () => {
       const caller = billingRouter.createCaller(ctx as never);
       const result = await caller.getPlans();
 
-      expect(result).toHaveLength(PLANS.length);
+      expect(result).toHaveLength(mockPlans.length);
       for (const plan of result) {
         expect(plan).not.toHaveProperty('providerPrices');
       }

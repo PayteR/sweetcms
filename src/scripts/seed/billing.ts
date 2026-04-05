@@ -75,12 +75,12 @@ export async function seedBilling(
     saasPaymentTransactions,
     saasDiscountCodes,
     saasDiscountUsages,
-  } = await import('../../server/db/schema/billing');
+  } = await import('@/core-payments/schema/billing');
   const {
     saasAffiliates,
     saasReferrals,
     saasAffiliateEvents,
-  } = await import('../../server/db/schema/affiliates');
+  } = await import('@/core-affiliates/schema/affiliates');
 
   // ─── Idempotency check ────────────────────────────────────────────
   const [existingSubs] = await db.select({ count: count() }).from(saasSubscriptions);
@@ -383,7 +383,7 @@ export async function seedBilling(
   const {
     saasTokenBalances,
     saasTokenTransactions,
-  } = await import('../../server/db/schema/billing');
+  } = await import('@/core-payments/schema/billing');
 
   for (let i = 0; i < orgIds.length; i++) {
     const balance = faker.number.int({ min: 50, max: 5000 });

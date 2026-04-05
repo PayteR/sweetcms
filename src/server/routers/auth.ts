@@ -198,7 +198,7 @@ export const authRouter = createTRPCRouter({
       extra: z.record(z.string(), z.string().max(2000)).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      const { captureAttribution } = await import('@/server/lib/attribution');
+      const { captureAttribution } = await import('@/core-affiliates/lib/attribution');
       await captureAttribution(ctx.session.user.id, input);
       return { success: true };
     }),

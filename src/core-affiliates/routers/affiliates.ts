@@ -1,10 +1,11 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { and, count, desc, eq } from 'drizzle-orm';
-import { createTRPCRouter, protectedProcedure, sectionProcedure } from '../trpc';
-import { saasAffiliates, saasReferrals, saasAffiliateEvents } from '@/server/db/schema/affiliates';
+import { and, count, desc, eq, sql } from 'drizzle-orm';
+import { createTRPCRouter, protectedProcedure, sectionProcedure } from '@/server/trpc';
+import { saasAffiliates, saasReferrals, saasAffiliateEvents } from '@/core-affiliates/schema/affiliates';
 import { user } from '@/server/db/schema/auth';
 import { parsePagination, paginatedResult } from '@/core/crud/admin-crud';
+import { getStats as getCachedStats } from '@/core/lib/stats-cache';
 import { logAudit } from '@/core/lib/audit';
 
 function generateAffiliateCode(): string {
@@ -229,4 +230,63 @@ export const affiliatesRouter = createTRPCRouter({
 
       return { success: true };
     }),
+
+  /** Affiliate stats for admin dashboard */
+  getAffiliateStats: affiliateAdminProcedure.query(async ({ ctx }) => {
+    return getCachedStats('billing:affiliates', async () => {
+      const [
+        [activeResult],
+        [totalReferralsResult],
+        [convertedResult],
+        [totalEarningsResult],
+        topAffiliates,
+      ] = await Promise.all([
+        ctx.db
+          .select({ count: sql<number>`count(*)`.as('count') })
+          .from(saasAffiliates)
+          .where(eq(saasAffiliates.status, 'active')),
+        ctx.db
+          .select({ count: sql<number>`coalesce(sum(${saasAffiliates.totalReferrals}), 0)`.as('count') })
+          .from(saasAffiliates),
+        ctx.db
+          .select({ count: sql<number>`count(*)`.as('count') })
+          .from(saasReferrals)
+          .where(eq(saasReferrals.status, 'converted')),
+        ctx.db
+          .select({ total: sql<number>`coalesce(sum(${saasAffiliates.totalEarningsCents}), 0)`.as('total') })
+          .from(saasAffiliates),
+        ctx.db
+          .select({
+            id: saasAffiliates.id,
+            code: saasAffiliates.code,
+            userName: user.name,
+            userEmail: user.email,
+            commissionPercent: saasAffiliates.commissionPercent,
+            totalReferrals: saasAffiliates.totalReferrals,
+            totalEarningsCents: saasAffiliates.totalEarningsCents,
+            status: saasAffiliates.status,
+          })
+          .from(saasAffiliates)
+          .leftJoin(user, eq(saasAffiliates.userId, user.id))
+          .where(eq(saasAffiliates.status, 'active'))
+          .orderBy(desc(saasAffiliates.totalEarningsCents))
+          .limit(10),
+      ]);
+
+      const totalReferrals = Number(totalReferralsResult?.count ?? 0);
+      const converted = Number(convertedResult?.count ?? 0);
+      const conversionRate = totalReferrals > 0
+        ? Math.round((converted / totalReferrals) * 10000) / 100
+        : 0;
+
+      return {
+        activeAffiliates: Number(activeResult?.count ?? 0),
+        totalReferrals,
+        convertedReferrals: converted,
+        conversionRate,
+        totalEarningsCents: Number(totalEarningsResult?.total ?? 0),
+        topAffiliates,
+      };
+    }, 120);
+  }),
 });

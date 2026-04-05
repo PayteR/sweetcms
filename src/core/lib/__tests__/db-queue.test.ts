@@ -12,15 +12,15 @@ vi.mock('@/core/lib/logger', () => ({
   }),
 }));
 
-const mockDb = {
-  insert: vi.fn(),
-  select: vi.fn(),
-  update: vi.fn(),
-};
-
-vi.mock('@/server/db', () => ({
-  db: mockDb,
-}));
+vi.mock('@/server/db', () => {
+  return {
+    db: {
+      insert: vi.fn(),
+      select: vi.fn(),
+      update: vi.fn(),
+    },
+  };
+});
 
 vi.mock('@/server/db/schema/task-queue', () => ({
   saasTaskQueue: {
@@ -48,6 +48,7 @@ vi.mock('drizzle-orm', () => ({
   desc: (col: unknown) => ({ _desc: col }),
 }));
 
+import { db as mockDb } from '@/server/db';
 import {
   enqueueTask,
   pollAndProcess,

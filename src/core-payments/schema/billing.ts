@@ -1,5 +1,5 @@
 import { boolean, index, integer, jsonb, pgTable, text, timestamp, varchar } from 'drizzle-orm/pg-core';
-import { organization } from './organization';
+import { organization } from '@/server/db/schema/organization';
 
 // ─── saas_subscriptions ──────────────────────────────────────────────────────
 // Tracks subscriptions per organization (provider-agnostic).

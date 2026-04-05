@@ -4,98 +4,58 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // Mock ALL external dependencies BEFORE imports
 // ---------------------------------------------------------------------------
 
-/**
- * Makes an object thenable so it can be used in Promise.all / await.
- * Drizzle query builders are thenable.
- */
-function thenable(data: unknown, chainMethods: Record<string, unknown> = {}) {
-  return {
-    then: (resolve: (v: unknown) => void, reject?: (e: unknown) => void) =>
-      Promise.resolve(data).then(resolve, reject),
-    ...chainMethods,
-  };
-}
+// vi.hoisted ensures these are available when vi.mock factories run (hoisted above mocks)
+const {
+  mockSelectFn, mockUpdateWhereMock, mockUpdateSetMock, mockUpdateMock, mockDb,
+  selectState, innerJoinState,
+} = vi.hoisted(() => {
+  const selectState = { sequence: [] as unknown[][], callIdx: 0 };
+  const innerJoinState = { sequence: [] as unknown[][], callIdx: 0 };
 
-function _createSelectChain(data: unknown) {
-  const limitMock = vi.fn().mockResolvedValue(data);
-  const offsetMock = vi.fn().mockReturnValue(thenable(data, { limit: limitMock }));
-  const orderByMock = vi.fn().mockReturnValue(thenable(data, { limit: limitMock, offset: offsetMock }));
-  const innerJoinWhereLimitMock = vi.fn().mockResolvedValue([]);
-  const innerJoinWhereMock = vi.fn().mockReturnValue(thenable([], { limit: innerJoinWhereLimitMock }));
-  const innerJoinMock = vi.fn().mockReturnValue(thenable([], { where: innerJoinWhereMock }));
-  const whereMock = vi.fn().mockReturnValue(
-    thenable(data, {
-      limit: limitMock,
-      orderBy: orderByMock,
-      offset: offsetMock,
-      innerJoin: innerJoinMock,
-    })
-  );
-  const fromMock = vi.fn().mockReturnValue(
-    thenable(data, {
-      where: whereMock,
-      orderBy: orderByMock,
-      limit: limitMock,
-      innerJoin: innerJoinMock,
-    })
-  );
-  return { from: fromMock, _innerJoinWhereLimitMock: innerJoinWhereLimitMock };
-}
+  const mockSelectFn = vi.fn().mockImplementation(() => {
+    const data = selectState.sequence[selectState.callIdx] ?? [];
+    selectState.callIdx++;
 
-// We need per-call select chains because the dunning service makes multiple sequential selects
-let selectSequence: unknown[][] = [];
-let selectCallIdx = 0;
-// For innerJoin chains (member+user lookup), separate sequence
-let innerJoinSequence: unknown[][] = [];
-let innerJoinCallIdx = 0;
-
-const mockSelectFn = vi.fn().mockImplementation(() => {
-  const data = selectSequence[selectCallIdx] ?? [];
-  selectCallIdx++;
-
-  const limitMock = vi.fn().mockResolvedValue(data);
-  const innerJoinWhereLimitMock = vi.fn().mockImplementation(() => {
-    const ijData = innerJoinSequence[innerJoinCallIdx] ?? [];
-    innerJoinCallIdx++;
-    return Promise.resolve(ijData);
+    const limitMock = vi.fn().mockResolvedValue(data);
+    const innerJoinWhereLimitMock = vi.fn().mockImplementation(() => {
+      const ijData = innerJoinState.sequence[innerJoinState.callIdx] ?? [];
+      innerJoinState.callIdx++;
+      return Promise.resolve(ijData);
+    });
+    const _thenable = (d: unknown, chain: Record<string, unknown> = {}) => ({
+      then: (res: (v: unknown) => void, rej?: (e: unknown) => void) =>
+        Promise.resolve(d).then(res, rej),
+      ...chain,
+    });
+    const innerJoinWhereMock = vi.fn().mockReturnValue(
+      _thenable([], { limit: innerJoinWhereLimitMock })
+    );
+    const innerJoinMock = vi.fn().mockReturnValue(
+      _thenable([], { where: innerJoinWhereMock })
+    );
+    const whereMock = vi.fn().mockReturnValue(
+      _thenable(data, { limit: limitMock, innerJoin: innerJoinMock })
+    );
+    const fromMock = vi.fn().mockReturnValue(
+      _thenable(data, { where: whereMock, innerJoin: innerJoinMock, limit: limitMock })
+    );
+    return { from: fromMock };
   });
-  const innerJoinWhereMock = vi.fn().mockReturnValue(
-    thenable([], { limit: innerJoinWhereLimitMock })
-  );
-  const innerJoinMock = vi.fn().mockReturnValue(
-    thenable([], { where: innerJoinWhereMock })
-  );
-  const whereMock = vi.fn().mockReturnValue(
-    thenable(data, {
-      limit: limitMock,
-      innerJoin: innerJoinMock,
-    })
-  );
-  const fromMock = vi.fn().mockReturnValue(
-    thenable(data, {
-      where: whereMock,
-      innerJoin: innerJoinMock,
-      limit: limitMock,
-    })
-  );
 
-  return { from: fromMock };
+  const mockUpdateWhereMock = vi.fn().mockResolvedValue(undefined);
+  const mockUpdateSetMock = vi.fn().mockReturnValue({ where: mockUpdateWhereMock });
+  const mockUpdateMock = vi.fn().mockReturnValue({ set: mockUpdateSetMock });
+
+  const mockDb = { select: mockSelectFn, update: mockUpdateMock };
+
+  return { mockSelectFn, mockUpdateWhereMock, mockUpdateSetMock, mockUpdateMock, mockDb, selectState, innerJoinState };
 });
-
-const mockUpdateWhereMock = vi.fn().mockResolvedValue(undefined);
-const mockUpdateSetMock = vi.fn().mockReturnValue({ where: mockUpdateWhereMock });
-const mockUpdateMock = vi.fn().mockReturnValue({ set: mockUpdateSetMock });
-
-const mockDb = {
-  select: mockSelectFn,
-  update: mockUpdateMock,
-};
 
 vi.mock('@/server/db', () => ({
   db: mockDb,
 }));
 
-vi.mock('@/server/db/schema/billing', () => ({
+vi.mock('@/core-payments/schema/billing', () => ({
   saasSubscriptions: {
     id: 'saas_subscriptions.id',
     organizationId: 'saas_subscriptions.organization_id',
@@ -152,22 +112,30 @@ vi.mock('@/core/types/notifications', () => ({
   NotificationCategory: { BILLING: 'billing', ORGANIZATION: 'organization', CONTENT: 'content', SYSTEM: 'system', SECURITY: 'security' },
 }));
 
-vi.mock('@/config/plans', () => ({
-  getPlan: vi.fn().mockReturnValue({ name: 'Pro', priceMonthly: 2900, priceYearly: 29000 }),
+const { mockPaymentsDeps } = vi.hoisted(() => ({
+  mockPaymentsDeps: {
+    getPlan: vi.fn().mockReturnValue({ name: 'Pro', priceMonthly: 2900, priceYearly: 29000 }),
+    sendOrgNotification: vi.fn(),
+    enqueueTemplateEmail: vi.fn().mockResolvedValue(undefined),
+    broadcastEvent: vi.fn(),
+    getPlans: vi.fn().mockReturnValue([]),
+    getPlanByProviderPriceId: vi.fn(),
+    getProviderPriceId: vi.fn(),
+    getEnabledProviderConfigs: vi.fn().mockReturnValue([]),
+    resolveOrgId: vi.fn().mockResolvedValue('org-1'),
+  },
 }));
-
-vi.mock('@/server/jobs/email/index', () => ({
-  enqueueTemplateEmail: vi.fn().mockResolvedValue(undefined),
+vi.mock('@/core-payments/deps', () => ({
+  getPaymentsDeps: () => mockPaymentsDeps,
+  setPaymentsDeps: vi.fn(),
 }));
 
 // ---------------------------------------------------------------------------
 // Imports (after mocks)
 // ---------------------------------------------------------------------------
 
-import { checkExpiringSubscriptions, checkExpiredSubscriptions, runDunningChecks } from '../dunning';
+import { checkExpiringSubscriptions, checkExpiredSubscriptions, runDunningChecks } from '@/core-payments/lib/dunning';
 import { logAudit } from '@/core/lib/audit';
-import { sendOrgNotification } from '@/server/lib/notifications';
-import { enqueueTemplateEmail } from '@/server/jobs/email/index';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -202,10 +170,10 @@ function createExpiredSub(overrides: Record<string, unknown> = {}) {
 describe('dunning service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    selectSequence = [];
-    selectCallIdx = 0;
-    innerJoinSequence = [];
-    innerJoinCallIdx = 0;
+    selectState.sequence = [];
+    selectState.callIdx = 0;
+    innerJoinState.sequence = [];
+    innerJoinState.callIdx = 0;
   });
 
   // =========================================================================
@@ -218,19 +186,19 @@ describe('dunning service', () => {
       // select sequence:
       // 1. expiring subs -> [sub]
       // 2. audit log check (already reminded?) -> []
-      // 3. org member emails (via innerJoin chain) -> handled by innerJoinSequence
-      selectSequence = [
+      // 3. org member emails (via innerJoin chain) -> handled by innerJoinState.sequence
+      selectState.sequence = [
         [sub],  // expiring subs
         [],     // not yet reminded (audit log)
       ];
-      innerJoinSequence = [
+      innerJoinState.sequence = [
         [{ email: 'admin@org.com' }],
       ];
 
       await checkExpiringSubscriptions();
 
       // Notification sent
-      expect(sendOrgNotification).toHaveBeenCalledWith(
+      expect(mockPaymentsDeps.sendOrgNotification).toHaveBeenCalledWith(
         'org-1',
         expect.objectContaining({
           title: 'Subscription expiring soon',
@@ -239,7 +207,7 @@ describe('dunning service', () => {
       );
 
       // Email sent
-      expect(enqueueTemplateEmail).toHaveBeenCalledWith(
+      expect(mockPaymentsDeps.enqueueTemplateEmail).toHaveBeenCalledWith(
         'admin@org.com',
         'subscription-expiring',
         expect.objectContaining({
@@ -262,36 +230,36 @@ describe('dunning service', () => {
     it('skips already-reminded subs', async () => {
       const sub = createExpiringSub();
 
-      selectSequence = [
+      selectState.sequence = [
         [sub],              // expiring subs
         [{ id: 'audit-1' }], // already reminded
       ];
 
       await checkExpiringSubscriptions();
 
-      expect(sendOrgNotification).not.toHaveBeenCalled();
-      expect(enqueueTemplateEmail).not.toHaveBeenCalled();
+      expect(mockPaymentsDeps.sendOrgNotification).not.toHaveBeenCalled();
+      expect(mockPaymentsDeps.enqueueTemplateEmail).not.toHaveBeenCalled();
       expect(logAudit).not.toHaveBeenCalled();
     });
 
     it('handles no expiring subs gracefully', async () => {
-      selectSequence = [[]]; // no expiring subs
+      selectState.sequence = [[]]; // no expiring subs
 
       await checkExpiringSubscriptions();
 
-      expect(sendOrgNotification).not.toHaveBeenCalled();
-      expect(enqueueTemplateEmail).not.toHaveBeenCalled();
+      expect(mockPaymentsDeps.sendOrgNotification).not.toHaveBeenCalled();
+      expect(mockPaymentsDeps.enqueueTemplateEmail).not.toHaveBeenCalled();
       expect(logAudit).not.toHaveBeenCalled();
     });
 
     it('skips subs with null currentPeriodEnd', async () => {
       const sub = createExpiringSub({ currentPeriodEnd: null });
 
-      selectSequence = [[sub]];
+      selectState.sequence = [[sub]];
 
       await checkExpiringSubscriptions();
 
-      expect(sendOrgNotification).not.toHaveBeenCalled();
+      expect(mockPaymentsDeps.sendOrgNotification).not.toHaveBeenCalled();
     });
   });
 
@@ -303,9 +271,9 @@ describe('dunning service', () => {
       const sub = createExpiredSub({ providerId: 'manual' });
 
       // 1. expired subs
-      selectSequence = [[sub]];
+      selectState.sequence = [[sub]];
       // innerJoin: org member emails
-      innerJoinSequence = [[{ email: 'admin@org.com' }]];
+      innerJoinState.sequence = [[{ email: 'admin@org.com' }]];
 
       await checkExpiredSubscriptions();
 
@@ -316,7 +284,7 @@ describe('dunning service', () => {
       );
 
       // Notification sent
-      expect(sendOrgNotification).toHaveBeenCalledWith(
+      expect(mockPaymentsDeps.sendOrgNotification).toHaveBeenCalledWith(
         'org-2',
         expect.objectContaining({
           title: 'Subscription expired',
@@ -325,7 +293,7 @@ describe('dunning service', () => {
       );
 
       // Email sent
-      expect(enqueueTemplateEmail).toHaveBeenCalledWith(
+      expect(mockPaymentsDeps.enqueueTemplateEmail).toHaveBeenCalledWith(
         'admin@org.com',
         'subscription-expired',
         expect.objectContaining({ planName: 'Pro' })
@@ -345,22 +313,22 @@ describe('dunning service', () => {
     it('skips stripe subs (stripe handles own lifecycle)', async () => {
       const sub = createExpiredSub({ providerId: 'stripe' });
 
-      selectSequence = [[sub]];
+      selectState.sequence = [[sub]];
 
       await checkExpiredSubscriptions();
 
       expect(mockDb.update).not.toHaveBeenCalled();
-      expect(sendOrgNotification).not.toHaveBeenCalled();
+      expect(mockPaymentsDeps.sendOrgNotification).not.toHaveBeenCalled();
       expect(logAudit).not.toHaveBeenCalled();
     });
 
     it('handles no expired subs gracefully', async () => {
-      selectSequence = [[]];
+      selectState.sequence = [[]];
 
       await checkExpiredSubscriptions();
 
       expect(mockDb.update).not.toHaveBeenCalled();
-      expect(sendOrgNotification).not.toHaveBeenCalled();
+      expect(mockPaymentsDeps.sendOrgNotification).not.toHaveBeenCalled();
     });
   });
 
@@ -369,7 +337,7 @@ describe('dunning service', () => {
   // =========================================================================
   describe('runDunningChecks', () => {
     it('calls both check functions without throwing', async () => {
-      selectSequence = [[], []]; // empty for both checkExpiring + checkExpired
+      selectState.sequence = [[], []]; // empty for both checkExpiring + checkExpired
 
       await expect(runDunningChecks()).resolves.toBeUndefined();
     });

@@ -1,5 +1,5 @@
-import type { PaymentProvider, PaymentProviderConfig } from '@/core/types/payment';
-import { getEnabledProviderConfigs } from '@/config/payment-providers';
+import type { PaymentProvider, PaymentProviderConfig } from '@/core-payments/types/payment';
+import { getPaymentsDeps } from '@/core-payments/deps';
 
 const providerCache = new Map<string, PaymentProvider>();
 
@@ -35,7 +35,7 @@ export async function getProvider(id: string): Promise<PaymentProvider | null> {
  * Get the default (first enabled) provider.
  */
 export async function getDefaultProvider(): Promise<PaymentProvider | null> {
-  const configs = getEnabledProviderConfigs();
+  const configs = getPaymentsDeps().getEnabledProviderConfigs();
   if (configs.length === 0) return null;
   return getProvider(configs[0]!.id);
 }
@@ -44,14 +44,14 @@ export async function getDefaultProvider(): Promise<PaymentProvider | null> {
  * Get all enabled provider configs (for UI provider selection).
  */
 export function getEnabledProviders(): PaymentProviderConfig[] {
-  return getEnabledProviderConfigs();
+  return getPaymentsDeps().getEnabledProviderConfigs();
 }
 
 /**
  * Check if any payment provider is configured.
  */
 export function isBillingEnabled(): boolean {
-  return getEnabledProviderConfigs().length > 0;
+  return getPaymentsDeps().getEnabledProviderConfigs().length > 0;
 }
 
 // ── Built-in provider registrations ──────────────────────────────────────────
@@ -59,12 +59,8 @@ export function isBillingEnabled(): boolean {
 
 registerPaymentProvider('stripe', async () => {
   if (!process.env.STRIPE_SECRET_KEY) return null;
-  const { StripeProvider } = await import('./stripe-provider');
+  const { StripeProvider } = await import('@/core-payments/providers/stripe-provider');
   return new StripeProvider();
 });
 
-registerPaymentProvider('nowpayments', async () => {
-  if (!process.env.NOWPAYMENTS_API_KEY) return null;
-  const { NowPaymentsProvider } = await import('./nowpayments-provider');
-  return new NowPaymentsProvider();
-});
+// NOWPayments provider registered by core-payments-crypto module (if installed)

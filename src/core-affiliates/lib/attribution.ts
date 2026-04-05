@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 
 import { createLogger } from '@/core/lib/logger';
 import { db } from '@/server/db';
-import { saasUserAcquisitions } from '@/server/db/schema/attributions';
+import { saasUserAcquisitions } from '@/core-affiliates/schema/attributions';
 
 const log = createLogger('attribution');
 
@@ -55,7 +55,7 @@ export async function captureAttribution(userId: string, data: AttributionData):
 
     // If ref code present, try to link to affiliate system
     if (data.refCode) {
-      const { captureReferral } = await import('@/server/lib/affiliates');
+      const { captureReferral } = await import('@/core-affiliates/lib/affiliates');
       await captureReferral(userId, data.refCode);
     }
   } catch (err) {

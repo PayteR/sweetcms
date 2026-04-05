@@ -1,40 +1,38 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { eq, and, desc, sql, gte, lte, inArray } from 'drizzle-orm';
-import { createTRPCRouter, protectedProcedure, sectionProcedure } from '../trpc';
-import { getProvider, isBillingEnabled, getEnabledProviders } from '@/server/lib/payment/factory';
-import { getSubscription } from '@/core/lib/payment/subscription-service';
+import { createTRPCRouter, protectedProcedure, sectionProcedure } from '@/server/trpc';
+import { getProvider, isBillingEnabled, getEnabledProviders } from '@/core-payments/lib/factory';
+import { getSubscription } from '@/core-payments/lib/subscription-service';
 import {
   validateCode,
   applyDiscount,
   removeDiscount,
   getActiveDiscount,
-} from '@/core/lib/payment/discount-service';
-import { PLANS, getPlan } from '@/config/plans';
-import { member } from '@/server/db/schema';
+} from '@/core-payments/lib/discount-service';
+import { getPaymentsDeps } from '@/core-payments/deps';
+import { member } from '@/server/db/schema/organization';
 import {
   saasSubscriptions,
   saasPaymentTransactions,
   saasDiscountCodes,
-} from '@/server/db/schema';
+} from '@/core-payments/schema/billing';
 import { organization } from '@/server/db/schema/organization';
 import { getStats as getCachedStats } from '@/core/lib/stats-cache';
 import { parsePagination, paginatedResult } from '@/core/crud/admin-crud';
-import { saasAffiliates, saasReferrals } from '@/server/db/schema/affiliates';
 import { user } from '@/server/db/schema/auth';
 import {
   getTokenBalanceRecord,
   addTokens,
   deductTokens,
   getTokenTransactions,
-} from '@/core/lib/payment/token-service';
-import { resolveOrgId } from '@/server/lib/resolve-org';
+} from '@/core-payments/lib/token-service';
 
 const billingAdminProcedure = sectionProcedure('billing');
 
 export const billingRouter = createTRPCRouter({
   getPlans: protectedProcedure.query(() => {
-    return PLANS.map(({ providerPrices: _pp, ...plan }) => plan);
+    return getPaymentsDeps().getPlans().map(({ providerPrices: _pp, ...plan }) => plan);
   }),
 
   getProviders: protectedProcedure.query(() => {
@@ -42,7 +40,7 @@ export const billingRouter = createTRPCRouter({
   }),
 
   getSubscription: protectedProcedure.query(async ({ ctx }) => {
-    const orgId = await resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
+    const orgId = await getPaymentsDeps().resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
     const sub = await getSubscription(orgId);
     if (!sub) return { planId: 'free', status: 'active' as const };
     return sub;
@@ -81,7 +79,7 @@ export const billingRouter = createTRPCRouter({
         });
       }
 
-      const orgId = await resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
+      const orgId = await getPaymentsDeps().resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
 
       // Verify user is owner or admin of org
       const [memberRecord] = await ctx.db
@@ -99,13 +97,13 @@ export const billingRouter = createTRPCRouter({
         });
       }
 
-      const plan = getPlan(input.planId);
+      const plan = getPaymentsDeps().getPlan(input.planId);
       if (!plan) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Plan not found' });
       }
 
       const originalPriceCents = input.interval === 'yearly' ? plan.priceYearly : plan.priceMonthly;
-      let resolvedDiscount: import('@/core/types/payment').DiscountDefinition | undefined;
+      let resolvedDiscount: import('@/core-payments/types/payment').DiscountDefinition | undefined;
       let finalPriceCents: number | undefined;
 
       // Validate discount code if provided
@@ -166,7 +164,7 @@ export const billingRouter = createTRPCRouter({
         });
       }
 
-      const orgId = await resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
+      const orgId = await getPaymentsDeps().resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
       const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
       const url = await provider.createPortalSession(
         orgId,
@@ -183,7 +181,7 @@ export const billingRouter = createTRPCRouter({
       planId: z.string().min(1).max(50),
     }))
     .mutation(async ({ ctx, input }) => {
-      const plan = getPlan(input.planId);
+      const plan = getPaymentsDeps().getPlan(input.planId);
       if (!plan) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Plan not found' });
       }
@@ -231,7 +229,7 @@ export const billingRouter = createTRPCRouter({
         });
       }
 
-      const orgId = await resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
+      const orgId = await getPaymentsDeps().resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
 
       // Verify user is owner or admin of org
       const [memberRecord] = await ctx.db
@@ -257,7 +255,7 @@ export const billingRouter = createTRPCRouter({
         });
       }
 
-      const plan = getPlan(input.planId);
+      const plan = getPaymentsDeps().getPlan(input.planId);
       if (!plan) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Plan not found' });
       }
@@ -325,7 +323,7 @@ export const billingRouter = createTRPCRouter({
 
         let mrr = 0;
         for (const group of activeSubGroups) {
-          const plan = getPlan(group.planId);
+          const plan = getPaymentsDeps().getPlan(group.planId);
           if (!plan) continue;
           let isYearly = false;
           if (group.providerPriceId && group.providerId) {
@@ -675,70 +673,10 @@ export const billingRouter = createTRPCRouter({
       }));
     }),
 
-  // ─── Admin: affiliate overview ──────────────────────────────────────────────
-
-  getAffiliateStats: billingAdminProcedure.query(async ({ ctx }) => {
-    return getCachedStats('billing:affiliates', async () => {
-      const [
-        [activeResult],
-        [totalReferralsResult],
-        [convertedResult],
-        [totalEarningsResult],
-        topAffiliates,
-      ] = await Promise.all([
-        ctx.db
-          .select({ count: sql<number>`count(*)`.as('count') })
-          .from(saasAffiliates)
-          .where(eq(saasAffiliates.status, 'active')),
-        ctx.db
-          .select({ count: sql<number>`coalesce(sum(${saasAffiliates.totalReferrals}), 0)`.as('count') })
-          .from(saasAffiliates),
-        ctx.db
-          .select({ count: sql<number>`count(*)`.as('count') })
-          .from(saasReferrals)
-          .where(eq(saasReferrals.status, 'converted')),
-        ctx.db
-          .select({ total: sql<number>`coalesce(sum(${saasAffiliates.totalEarningsCents}), 0)`.as('total') })
-          .from(saasAffiliates),
-        ctx.db
-          .select({
-            id: saasAffiliates.id,
-            code: saasAffiliates.code,
-            userName: user.name,
-            userEmail: user.email,
-            commissionPercent: saasAffiliates.commissionPercent,
-            totalReferrals: saasAffiliates.totalReferrals,
-            totalEarningsCents: saasAffiliates.totalEarningsCents,
-            status: saasAffiliates.status,
-          })
-          .from(saasAffiliates)
-          .leftJoin(user, eq(saasAffiliates.userId, user.id))
-          .where(eq(saasAffiliates.status, 'active'))
-          .orderBy(desc(saasAffiliates.totalEarningsCents))
-          .limit(10),
-      ]);
-
-      const totalReferrals = Number(totalReferralsResult?.count ?? 0);
-      const converted = Number(convertedResult?.count ?? 0);
-      const conversionRate = totalReferrals > 0
-        ? Math.round((converted / totalReferrals) * 10000) / 100
-        : 0;
-
-      return {
-        activeAffiliates: Number(activeResult?.count ?? 0),
-        totalReferrals,
-        convertedReferrals: converted,
-        conversionRate,
-        totalEarningsCents: Number(totalEarningsResult?.total ?? 0),
-        topAffiliates,
-      };
-    }, 120);
-  }),
-
   // ─── Token balance (customer-facing) ────────────────────────────────────
 
   getTokenBalance: protectedProcedure.query(async ({ ctx }) => {
-    const orgId = await resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
+    const orgId = await getPaymentsDeps().resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
     const record = await getTokenBalanceRecord(orgId);
     return {
       orgId,
@@ -751,7 +689,7 @@ export const billingRouter = createTRPCRouter({
   getTokenTransactions: protectedProcedure
     .input(z.object({ limit: z.number().int().min(1).max(100).default(20) }))
     .query(async ({ ctx, input }) => {
-      const orgId = await resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
+      const orgId = await getPaymentsDeps().resolveOrgId(ctx.activeOrganizationId, ctx.session.user.id);
       return getTokenTransactions(orgId, input.limit);
     }),
 

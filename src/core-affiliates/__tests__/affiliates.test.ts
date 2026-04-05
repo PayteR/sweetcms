@@ -56,7 +56,7 @@ vi.mock('@/core/crud/admin-crud', () => ({
   ),
 }));
 
-vi.mock('@/server/db/schema/affiliates', () => ({
+vi.mock('@/core-affiliates/schema/affiliates', () => ({
   saasAffiliates: {
     id: 'saas_affiliates.id',
     userId: 'saas_affiliates.user_id',
@@ -108,7 +108,7 @@ vi.mock('@/lib/env', () => ({
 // Imports (after mocks)
 // ---------------------------------------------------------------------------
 
-import { affiliatesRouter } from '../affiliates';
+import { affiliatesRouter } from '@/core-affiliates/routers/affiliates';
 import { logAudit } from '@/core/lib/audit';
 
 // ---------------------------------------------------------------------------

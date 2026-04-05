@@ -153,7 +153,7 @@ async function checkAndResetIfNeeded(
 ): Promise<ResetResult> {
   // Check multiple tables to detect ANY seeded data (not just CMS)
   const { cmsPosts } = await import('../server/db/schema/cms');
-  const { saasSubscriptions } = await import('../server/db/schema/billing');
+  const { saasSubscriptions } = await import('@/core-payments/schema/billing');
   const { cmsMenus } = await import('../server/db/schema/menu');
 
   const [postCount] = await db.select({ count: count() }).from(cmsPosts);

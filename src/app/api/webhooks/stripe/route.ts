@@ -3,21 +3,21 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/server/db';
 import { saasSubscriptionEvents, user } from '@/server/db/schema';
 import { member } from '@/server/db/schema/organization';
-import { getProvider } from '@/server/lib/payment/factory';
+import { getProvider } from '@/core-payments/lib/factory';
 import {
   activateSubscription,
   updateSubscription,
   cancelSubscription,
   getOrgByProviderSubscription,
-} from '@/core/lib/payment/subscription-service';
-import { finalizeUsage } from '@/core/lib/payment/discount-service';
+} from '@/core-payments/lib/subscription-service';
+import { finalizeUsage } from '@/core-payments/lib/discount-service';
 import { getPlanByProviderPriceId } from '@/config/plans';
 import { logAudit } from '@/core/lib/audit';
 import { sendOrgNotification } from '@/server/lib/notifications';
 import { NotificationType, NotificationCategory } from '@/core/types/notifications';
 import { createLogger } from '@/core/lib/logger';
 import { adminPanel } from '@/config/routes';
-import { recordConversion } from '@/server/lib/affiliates';
+import { recordConversion } from '@/core-affiliates/lib/affiliates';
 import { invalidateStats } from '@/core/lib/stats-cache';
 import { tagSubscriber } from '@/core/lib/email-list/index';
 

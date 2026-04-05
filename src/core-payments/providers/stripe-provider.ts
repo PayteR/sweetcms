@@ -1,8 +1,8 @@
 import type Stripe from 'stripe';
-import type { PaymentProvider, CheckoutParams, CheckoutResult, WebhookEvent } from '@/core/types/payment';
-import { DiscountType } from '@/core/types/payment';
-import { getStripe, requireStripe, getOrCreateStripeCustomer } from '@/server/lib/stripe';
-import { getPlanByProviderPriceId, getPlan, getProviderPriceId } from '@/config/plans';
+import type { PaymentProvider, CheckoutParams, CheckoutResult, WebhookEvent } from '@/core-payments/types/payment';
+import { DiscountType } from '@/core-payments/types/payment';
+import { getStripe, requireStripe, getOrCreateStripeCustomer } from '@/core-payments/lib/stripe';
+import { getPaymentsDeps } from '@/core-payments/deps';
 
 export class StripeProvider implements PaymentProvider {
   config = {
@@ -18,10 +18,10 @@ export class StripeProvider implements PaymentProvider {
     const stripe = requireStripe();
     const customerId = await getOrCreateStripeCustomer(params.organizationId);
 
-    const plan = getPlan(params.planId);
+    const plan = getPaymentsDeps().getPlan(params.planId);
     if (!plan) throw new Error(`Plan not found: ${params.planId}`);
 
-    const priceId = getProviderPriceId(plan, 'stripe', params.interval);
+    const priceId = getPaymentsDeps().getProviderPriceId(plan, 'stripe', params.interval);
     if (!priceId) throw new Error(`No Stripe price for ${params.planId}/${params.interval}`);
 
     const sessionParams: Stripe.Checkout.SessionCreateParams = {
@@ -110,7 +110,7 @@ export class StripeProvider implements PaymentProvider {
         );
         const firstItem = subscription.items.data[0];
         const priceId = firstItem?.price.id;
-        const plan = priceId ? getPlanByProviderPriceId('stripe', priceId) : null;
+        const plan = priceId ? getPaymentsDeps().getPlanByProviderPriceId('stripe', priceId) : null;
 
         return {
           type: 'subscription.activated',
@@ -130,7 +130,7 @@ export class StripeProvider implements PaymentProvider {
         const subscription = event.data.object as Stripe.Subscription;
         const firstItem = subscription.items.data[0];
         const priceId = firstItem?.price.id;
-        const plan = priceId ? getPlanByProviderPriceId('stripe', priceId) : null;
+        const plan = priceId ? getPaymentsDeps().getPlanByProviderPriceId('stripe', priceId) : null;
 
         return {
           type: 'subscription.updated',
@@ -197,7 +197,7 @@ export class StripeProvider implements PaymentProvider {
    */
   private async createAdHocCoupon(
     stripe: Stripe,
-    discount: import('@/core/types/payment').DiscountDefinition,
+    discount: import('@/core-payments/types/payment').DiscountDefinition,
     originalPriceCents?: number,
   ): Promise<Stripe.Coupon | null> {
     switch (discount.type) {

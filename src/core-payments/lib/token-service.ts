@@ -1,23 +1,19 @@
 import { eq, sql, and, gte, desc } from 'drizzle-orm';
 import { db } from '@/server/db';
-import { saasTokenBalances, saasTokenTransactions } from '@/server/db/schema';
+import { saasTokenBalances, saasTokenTransactions } from '@/core-payments/schema/billing';
 import { createLogger } from '@/core/lib/logger';
 
 const logger = createLogger('token-service');
 
-// ─── WS broadcast (lazy import to avoid circular deps) ──────────────────────
+import { getPaymentsDeps } from '@/core-payments/deps';
 
-let _sendToOrg: ((orgId: string, type: string, payload: unknown) => void) | undefined;
+// ─── WS broadcast via injected deps ────────────────────────────────────────
 
 async function broadcastBalance(orgId: string, balance: number) {
   try {
-    if (!_sendToOrg) {
-      const ws = await import('@/server/lib/ws');
-      _sendToOrg = ws.sendToOrg;
-    }
-    _sendToOrg(orgId, 'token_balance_update', { balance, orgId, timestamp: new Date().toISOString() });
+    getPaymentsDeps().broadcastEvent(`org:${orgId}`, 'token_balance_update', { balance, orgId, timestamp: new Date().toISOString() });
   } catch {
-    // WS not available (e.g., worker process) — silently skip
+    // deps not ready or broadcast failed — fire-and-forget
   }
 }
 

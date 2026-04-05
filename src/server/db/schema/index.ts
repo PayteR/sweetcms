@@ -1,5 +1,6 @@
 export * from './auth';
-export * from './billing';
+// Re-export from core-payments module for schema discovery
+export * from '@/core-payments/schema/billing';
 export * from './cms';
 export * from './categories';
 export * from './media';
@@ -20,6 +21,7 @@ export * from './notifications';
 export * from './projects';
 export * from './task-queue';
 export * from './support';
-export * from './affiliates';
-export * from './attributions';
+// Re-export from core-affiliates module for schema discovery
+export * from '@/core-affiliates/schema/affiliates';
+export * from '@/core-affiliates/schema/attributions';
 export * from './webhook-deliveries';

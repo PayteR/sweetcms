@@ -1,6 +1,6 @@
 import { eq, and, sql } from 'drizzle-orm';
 import { db } from '@/server/db';
-import { saasAffiliates, saasReferrals, saasAffiliateEvents } from '@/server/db/schema/affiliates';
+import { saasAffiliates, saasReferrals, saasAffiliateEvents } from '@/core-affiliates/schema/affiliates';
 import { createLogger } from '@/core/lib/logger';
 
 const log = createLogger('affiliates');
@@ -13,31 +13,31 @@ const log = createLogger('affiliates');
 export async function captureReferral(userId: string, refCode: string): Promise<void> {
   try {
     const [affiliate] = await db
-      .select()
+      .select({ id: saasAffiliates.id, userId: saasAffiliates.userId })
       .from(saasAffiliates)
       .where(and(eq(saasAffiliates.code, refCode), eq(saasAffiliates.status, 'active')))
       .limit(1);
 
     if (!affiliate) {
-      log.debug('Invalid or inactive affiliate code', { refCode });
+      log.debug('No active affiliate for code', { refCode });
       return;
     }
 
-    // Don't allow self-referral
+    // Prevent self-referral
     if (affiliate.userId === userId) {
-      log.debug('Self-referral attempt blocked', { userId, refCode });
+      log.debug('Self-referral blocked', { userId, refCode });
       return;
     }
 
-    // Check if user already referred
+    // Check if referral already exists
     const [existing] = await db
       .select({ id: saasReferrals.id })
       .from(saasReferrals)
-      .where(eq(saasReferrals.referredUserId, userId))
+      .where(and(eq(saasReferrals.affiliateId, affiliate.id), eq(saasReferrals.referredUserId, userId)))
       .limit(1);
 
     if (existing) {
-      log.debug('User already referred', { userId });
+      log.debug('Referral already exists', { affiliateId: affiliate.id, userId });
       return;
     }
 
@@ -46,7 +46,6 @@ export async function captureReferral(userId: string, refCode: string): Promise<
       id: referralId,
       affiliateId: affiliate.id,
       referredUserId: userId,
-      status: 'pending',
     });
 
     // Log signup event
@@ -59,21 +58,18 @@ export async function captureReferral(userId: string, refCode: string): Promise<
     // Increment total referrals
     await db
       .update(saasAffiliates)
-      .set({
-        totalReferrals: sql`${saasAffiliates.totalReferrals} + 1`,
-        updatedAt: new Date(),
-      })
+      .set({ totalReferrals: sql`${saasAffiliates.totalReferrals} + 1` })
       .where(eq(saasAffiliates.id, affiliate.id));
 
-    log.info('Referral captured', { affiliateId: affiliate.id, referralId, userId });
+    log.info('Referral captured', { affiliateId: affiliate.id, userId, refCode });
   } catch (err) {
     log.error('Failed to capture referral', { userId, refCode, error: String(err) });
   }
 }
 
 /**
- * Record a conversion when a referred user makes a purchase.
- * Calculates commission based on affiliate's commission percentage.
+ * Record a conversion (payment) for an affiliate referral.
+ * Called from payment webhook handlers after successful payment.
  * Fire-and-forget — catches all errors.
  */
 export async function recordConversion(
@@ -89,10 +85,7 @@ export async function recordConversion(
         affiliateId: saasReferrals.affiliateId,
       })
       .from(saasReferrals)
-      .where(and(
-        eq(saasReferrals.referredUserId, userId),
-        eq(saasReferrals.status, 'pending')
-      ))
+      .where(and(eq(saasReferrals.referredUserId, userId), eq(saasReferrals.status, 'pending')))
       .limit(1);
 
     if (!referral) return;
@@ -106,7 +99,9 @@ export async function recordConversion(
 
     if (!affiliate) return;
 
-    // Mark converted
+    const commissionCents = Math.round((amountCents * affiliate.commissionPercent) / 100);
+
+    // Mark referral as converted
     await db
       .update(saasReferrals)
       .set({ status: 'converted', convertedAt: new Date() })
@@ -121,16 +116,13 @@ export async function recordConversion(
       metadata: { transactionId },
     });
 
-    // Calculate commission
-    const commissionCents = Math.round(amountCents * affiliate.commissionPercent / 100);
-
     // Log commission event
     await db.insert(saasAffiliateEvents).values({
       affiliateId: referral.affiliateId,
       referralId: referral.id,
       type: 'commission',
       amountCents: commissionCents,
-      metadata: { transactionId, originalAmount: amountCents },
+      metadata: { transactionId, rate: affiliate.commissionPercent },
     });
 
     // Update affiliate totals
@@ -144,7 +136,7 @@ export async function recordConversion(
 
     log.info('Conversion recorded', {
       affiliateId: referral.affiliateId,
-      referralId: referral.id,
+      userId,
       amountCents,
       commissionCents,
     });

@@ -10,7 +10,7 @@ const fmtCurrency = (cents: number) =>
 
 export function AffiliateOverview() {
   const __ = useAdminTranslations();
-  const { data, isLoading } = trpc.billing.getAffiliateStats.useQuery();
+  const { data, isLoading } = trpc.affiliates.getAffiliateStats.useQuery();
 
   if (isLoading) {
     return <div className="card p-8 text-center text-(--text-muted)">{__('Loading...')}</div>;

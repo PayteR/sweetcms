@@ -7,6 +7,7 @@ vi.mock('@/lib/constants', () => ({
   LOCALES: ['en', 'es', 'de'] as const,
   DEFAULT_LOCALE: 'en',
   LOCALE_LABELS: { en: 'English', es: 'Espa\u00f1ol', de: 'Deutsch' },
+  IS_MULTILINGUAL: true,
 }));
 
 import { resolveSlug, buildAlternates } from '../resolve';

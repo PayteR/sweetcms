@@ -1,19 +1,18 @@
 import { and, eq, gte, lte, lt } from 'drizzle-orm';
 import { db } from '@/server/db';
-import { saasSubscriptions, saasPaymentTransactions } from '@/server/db/schema/billing';
+import { saasSubscriptions, saasPaymentTransactions } from '@/core-payments/schema/billing';
 import { member } from '@/server/db/schema/organization';
 import { user } from '@/server/db/schema/auth';
 import { cmsAuditLog } from '@/server/db/schema/audit';
 import { createLogger } from '@/core/lib/logger';
 import { logAudit } from '@/core/lib/audit';
-import { sendOrgNotification } from '@/server/lib/notifications';
-import { NotificationType, NotificationCategory } from '@/core/types/notifications';
-import { enqueueTemplateEmail } from '@/server/jobs/email/index';
-import { getPlan } from '@/config/plans';
+import { getPaymentsDeps } from '@/core-payments/deps';
+
+
 import {
   reconcileStalePendingTransactions,
   type ProviderCheckFn,
-} from '@/core/lib/payment/reconciliation-service';
+} from '@/core-payments/lib/reconciliation-service';
 
 const log = createLogger('dunning');
 
@@ -60,17 +59,15 @@ export async function checkExpiringSubscriptions(): Promise<void> {
 
     if (alreadyReminded) continue;
 
-    const plan = getPlan(sub.planId);
+    const plan = getPaymentsDeps().getPlan(sub.planId);
     const daysLeft = Math.ceil(
       (sub.currentPeriodEnd.getTime() - now.getTime()) / (24 * 60 * 60 * 1000)
     );
 
     // Send notification to all org members
-    sendOrgNotification(sub.organizationId, {
+    getPaymentsDeps().sendOrgNotification(sub.organizationId, {
       title: 'Subscription expiring soon',
       body: `Your ${plan?.name ?? sub.planId} plan expires in ${daysLeft} days. Please renew to avoid service interruption.`,
-      type: NotificationType.WARNING,
-      category: NotificationCategory.BILLING,
       actionUrl: '/dashboard/settings/billing',
     });
 
@@ -84,7 +81,7 @@ export async function checkExpiringSubscriptions(): Promise<void> {
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
     for (const admin of admins) {
-      enqueueTemplateEmail(admin.email, 'subscription-expiring', {
+      getPaymentsDeps().enqueueTemplateEmail(admin.email, 'subscription-expiring', {
         planName: plan?.name ?? sub.planId,
         daysLeft: String(daysLeft),
         billingUrl: `${appUrl}/dashboard/settings/billing`,
@@ -136,13 +133,11 @@ export async function checkExpiredSubscriptions(): Promise<void> {
       .set({ status: 'past_due', updatedAt: new Date() })
       .where(eq(saasSubscriptions.id, sub.id));
 
-    const plan = getPlan(sub.planId);
+    const plan = getPaymentsDeps().getPlan(sub.planId);
 
-    sendOrgNotification(sub.organizationId, {
+    getPaymentsDeps().sendOrgNotification(sub.organizationId, {
       title: 'Subscription expired',
       body: `Your ${plan?.name ?? sub.planId} plan has expired. Please renew to continue using premium features.`,
-      type: NotificationType.ERROR,
-      category: NotificationCategory.BILLING,
       actionUrl: '/dashboard/settings/billing',
     });
 
@@ -156,7 +151,7 @@ export async function checkExpiredSubscriptions(): Promise<void> {
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
     for (const admin of admins) {
-      enqueueTemplateEmail(admin.email, 'subscription-expired', {
+      getPaymentsDeps().enqueueTemplateEmail(admin.email, 'subscription-expired', {
         planName: plan?.name ?? sub.planId,
         billingUrl: `${appUrl}/dashboard/settings/billing`,
       }).catch((err) => log.error('Failed to send expired email', { error: String(err) }));
@@ -203,13 +198,11 @@ export async function checkGracePeriods(): Promise<void> {
       .set({ status: 'past_due', gracePeriodEndsAt: null, updatedAt: new Date() })
       .where(eq(saasSubscriptions.id, sub.id));
 
-    const plan = getPlan(sub.planId);
+    const plan = getPaymentsDeps().getPlan(sub.planId);
 
-    sendOrgNotification(sub.organizationId, {
+    getPaymentsDeps().sendOrgNotification(sub.organizationId, {
       title: 'Payment overdue',
       body: `Your ${plan?.name ?? sub.planId} plan grace period has ended. Please update your payment method to avoid losing access.`,
-      type: NotificationType.ERROR,
-      category: NotificationCategory.BILLING,
       actionUrl: '/dashboard/settings/billing',
     });
 
@@ -258,13 +251,11 @@ export async function checkLongOverdueSubscriptions(): Promise<void> {
       .set({ status: 'canceled', planId: 'free', updatedAt: new Date() })
       .where(eq(saasSubscriptions.id, sub.id));
 
-    const plan = getPlan(sub.planId);
+    const plan = getPaymentsDeps().getPlan(sub.planId);
 
-    sendOrgNotification(sub.organizationId, {
+    getPaymentsDeps().sendOrgNotification(sub.organizationId, {
       title: 'Subscription canceled',
       body: `Your ${plan?.name ?? sub.planId} plan has been canceled due to non-payment. You have been downgraded to the free plan.`,
-      type: NotificationType.ERROR,
-      category: NotificationCategory.BILLING,
       actionUrl: '/dashboard/settings/billing',
     });
 
@@ -278,7 +269,7 @@ export async function checkLongOverdueSubscriptions(): Promise<void> {
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
     for (const admin of admins) {
-      enqueueTemplateEmail(admin.email, 'subscription-canceled', {
+      getPaymentsDeps().enqueueTemplateEmail(admin.email, 'subscription-canceled', {
         planName: plan?.name ?? sub.planId,
         billingUrl: `${appUrl}/dashboard/settings/billing`,
       }).catch((err) => log.error('Failed to send cancellation email', { error: String(err) }));

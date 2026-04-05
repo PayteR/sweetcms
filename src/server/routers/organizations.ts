@@ -8,7 +8,7 @@ import { auth } from '@/lib/auth';
 import { logAudit } from '@/core/lib/audit';
 import { sendNotification, sendBulkNotification } from '@/server/lib/notifications';
 import { NotificationType, NotificationCategory } from '@/core/types/notifications';
-import { requireFeature } from '@/core/lib/payment/feature-gate';
+import { requireFeature } from '@/core-payments/lib/feature-gate';
 
 export const organizationsRouter = createTRPCRouter({
   /** List organizations the current user is a member of */

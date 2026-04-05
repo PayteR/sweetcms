@@ -2,11 +2,11 @@ import { and, count, desc, eq, gte, isNotNull, lte, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { parsePagination, paginatedResult } from '@/core/crud/admin-crud';
-import { saasUserAcquisitions } from '@/server/db/schema/attributions';
+import { saasUserAcquisitions } from '@/core-affiliates/schema/attributions';
 import { user } from '@/server/db/schema/auth';
-import { saasPaymentTransactions } from '@/server/db/schema/billing';
+import { getAffiliatesDeps } from '@/core-affiliates/deps';
 
-import { createTRPCRouter, sectionProcedure } from '../trpc';
+import { createTRPCRouter, sectionProcedure } from '@/server/trpc';
 
 const billingProcedure = sectionProcedure('billing');
 
@@ -59,6 +59,7 @@ export const attributionsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
+      const deps = getAffiliatesDeps();
       const groupByCol =
         input.groupBy === 'utm_medium'
           ? saasUserAcquisitions.utmMedium
@@ -76,34 +77,59 @@ export const attributionsRouter = createTRPCRouter({
         conditions.push(lte(saasUserAcquisitions.capturedAt, new Date(input.endDate + 'T23:59:59')));
       }
 
+      const txTable = deps.paymentTransactionsTable;
+
+      // If billing module provides payment table, include revenue data
+      if (txTable) {
+        const rows = await ctx.db
+          .select({
+            label: groupByCol,
+            signups: sql<number>`COUNT(DISTINCT ${saasUserAcquisitions.userId})`,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any -- injected table ref
+            paidUsers: sql<number>`COUNT(DISTINCT CASE WHEN ${txTable.status as any} = 'succeeded' THEN ${saasUserAcquisitions.userId} END)`,
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            totalRevenueCents: sql<number>`COALESCE(SUM(CASE WHEN ${txTable.status as any} = 'succeeded' THEN ${txTable.amountCents as any} ELSE 0 END), 0)`,
+          })
+          .from(saasUserAcquisitions)
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          .leftJoin(txTable as any, eq((txTable as any).userId, saasUserAcquisitions.userId))
+          .where(and(...conditions))
+          .groupBy(groupByCol)
+          .orderBy(desc(sql`COUNT(DISTINCT ${saasUserAcquisitions.userId})`))
+          .limit(100);
+
+        return rows.map((r) => {
+          const signups = Number(r.signups);
+          const paidUsers = Number(r.paidUsers);
+          return {
+            label: r.label ?? '(unknown)',
+            signups,
+            paidUsers,
+            conversionRate: signups > 0 ? Math.round((paidUsers / signups) * 1000) / 10 : 0,
+            totalRevenueCents: Number(r.totalRevenueCents),
+          };
+        });
+      }
+
+      // No billing — just return signup counts
       const rows = await ctx.db
         .select({
           label: groupByCol,
           signups: sql<number>`COUNT(DISTINCT ${saasUserAcquisitions.userId})`,
-          paidUsers: sql<number>`COUNT(DISTINCT CASE WHEN ${saasPaymentTransactions.status} = 'succeeded' THEN ${saasUserAcquisitions.userId} END)`,
-          totalRevenueCents: sql<number>`COALESCE(SUM(CASE WHEN ${saasPaymentTransactions.status} = 'succeeded' THEN ${saasPaymentTransactions.amountCents} ELSE 0 END), 0)`,
         })
         .from(saasUserAcquisitions)
-        .leftJoin(
-          saasPaymentTransactions,
-          eq(saasPaymentTransactions.userId, saasUserAcquisitions.userId)
-        )
         .where(and(...conditions))
         .groupBy(groupByCol)
         .orderBy(desc(sql`COUNT(DISTINCT ${saasUserAcquisitions.userId})`))
         .limit(100);
 
-      return rows.map((r) => {
-        const signups = Number(r.signups);
-        const paidUsers = Number(r.paidUsers);
-        return {
-          label: r.label ?? '(unknown)',
-          signups,
-          paidUsers,
-          conversionRate: signups > 0 ? Math.round((paidUsers / signups) * 1000) / 10 : 0,
-          totalRevenueCents: Number(r.totalRevenueCents),
-        };
-      });
+      return rows.map((r) => ({
+        label: r.label ?? '(unknown)',
+        signups: Number(r.signups),
+        paidUsers: 0,
+        conversionRate: 0,
+        totalRevenueCents: 0,
+      }));
     }),
 
   // ─── Paginated attribution list (for admin user list integration) ──
