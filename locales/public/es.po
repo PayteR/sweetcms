@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: sweetcms\n"
+"Project-Id-Version: indigo\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-05T08:52:44.685Z\n"
 "PO-Revision-Date: 2026-04-05T08:52:44.685Z\n"
@@ -200,8 +200,8 @@ msgid "Admin"
 msgstr "Admin"
 
 #: src/app/(public)/layout.tsx:233
-msgid "Powered by SweetCMS"
-msgstr "Desarrollado con SweetCMS"
+msgid "Powered by Indigo"
+msgstr "Desarrollado con Indigo"
 
 #: src/app/(public)/login/page.tsx:15
 #: src/components/public/AuthDialogs.tsx:24

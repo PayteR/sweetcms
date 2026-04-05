@@ -1,9 +1,9 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "SweetCMS REST API v1",
+    "title": "Indigo REST API v1",
     "version": "1.0.0",
-    "description": "Public REST API for SweetCMS content delivery. All endpoints require an API key via the X-API-Key header (unless no key is configured in CMS options). Rate limited to 100 requests per minute per IP via Redis sliding window."
+    "description": "Public REST API for Indigo content delivery. All endpoints require an API key via the X-API-Key header (unless no key is configured in CMS options). Rate limited to 100 requests per minute per IP via Redis sliding window."
   },
   "servers": [
     {

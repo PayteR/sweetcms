@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: sweetcms\n"
+"Project-Id-Version: indigo\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-05T08:52:44.695Z\n"
 "PO-Revision-Date: 2026-04-05T08:52:44.695Z\n"
@@ -843,8 +843,8 @@ msgid "Dashboard"
 msgstr "Dashboard"
 
 #: src/app/dashboard/(panel)/page.tsx:32
-msgid "Welcome to SweetCMS admin panel."
-msgstr "Willkommen im SweetCMS-Adminbereich."
+msgid "Welcome to Indigo admin panel."
+msgstr "Willkommen im Indigo-Adminbereich."
 
 #: src/app/dashboard/(panel)/page.tsx:44
 msgid "Pages"

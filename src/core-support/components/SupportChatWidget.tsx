@@ -43,10 +43,10 @@ export interface SupportChatWidgetProps {
 
 function getVisitorId(): string {
   if (typeof window === 'undefined') return '';
-  let id = localStorage.getItem('sweetcms-visitor-id');
+  let id = localStorage.getItem('indigo-visitor-id');
   if (!id) {
     id = crypto.randomUUID();
-    localStorage.setItem('sweetcms-visitor-id', id);
+    localStorage.setItem('indigo-visitor-id', id);
   }
   return id;
 }

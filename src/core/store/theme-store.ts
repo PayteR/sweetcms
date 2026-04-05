@@ -5,9 +5,9 @@ const DASHBOARD_PREFIX = '/dashboard';
 type Theme = 'light' | 'dark' | 'system';
 type ResolvedTheme = 'light' | 'dark';
 
-const LEGACY_KEY = 'sweetcms-theme';
-const ADMIN_KEY = 'sweetcms-theme-admin';
-const PUBLIC_KEY = 'sweetcms-theme-public';
+const LEGACY_KEY = 'indigo-theme';
+const ADMIN_KEY = 'indigo-theme-admin';
+const PUBLIC_KEY = 'indigo-theme-public';
 
 function detectStorageKey(): string {
   if (typeof window === 'undefined') return PUBLIC_KEY;

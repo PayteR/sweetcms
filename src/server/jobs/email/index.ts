@@ -200,7 +200,7 @@ async function getBranding(): Promise<EmailBranding> {
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-  const siteName = opts['email.site_name'] || opts['site.name'] || 'SweetCMS';
+  const siteName = opts['email.site_name'] || opts['site.name'] || 'Indigo';
   const siteUrl = opts['email.site_url'] || opts['site.url'] || appUrl;
   const contactEmail = opts['email.contact_email'] || FROM_EMAIL;
   const brandColor = opts['email.brand_color'] || '#e91e63';

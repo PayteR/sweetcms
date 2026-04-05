@@ -355,7 +355,7 @@ Yes. The admin panel includes a Tiptap-based rich text editor with support for h
   const portfolioRecords = await db.insert(cmsPortfolio).values([
     {
       name: 'Indigo Website',
-      slug: 'sweetcms-website',
+      slug: 'indigo-website',
       lang: 'en',
       title: 'Indigo — Official Website',
       text: `## Project Overview

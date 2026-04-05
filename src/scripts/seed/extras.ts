@@ -267,7 +267,7 @@ export async function seedExtras(
 
   const NOTIFICATION_TEMPLATES = [
     {
-      title: 'Welcome to SweetCMS',
+      title: 'Welcome to Indigo',
       body: 'Your CMS is set up and ready to use.',
       category: 'system',
       type: 'success',
@@ -324,7 +324,7 @@ export async function seedExtras(
     },
     {
       title: 'System update available',
-      body: 'A new version of SweetCMS is available.',
+      body: 'A new version of Indigo is available.',
       category: 'system',
       type: 'info',
       actionUrl: null,

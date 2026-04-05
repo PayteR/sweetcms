@@ -1,5 +1,5 @@
 /**
- * Shared helpers, types, and data arrays for the SweetCMS seed scripts.
+ * Shared helpers, types, and data arrays for the Indigo seed scripts.
  * Extracted from init.ts — do not change logic, only the module boundary.
  */
 

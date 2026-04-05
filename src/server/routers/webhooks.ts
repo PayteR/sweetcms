@@ -167,7 +167,7 @@ export const webhooksRouter = createTRPCRouter({
       const body = JSON.stringify({
         event: 'test',
         timestamp: new Date().toISOString(),
-        data: { message: 'This is a test webhook from SweetCMS' },
+        data: { message: 'This is a test webhook from Indigo' },
       });
 
       const signature = crypto

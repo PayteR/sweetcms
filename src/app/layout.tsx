@@ -39,7 +39,7 @@ export default async function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){var p=location.pathname;var k=p.startsWith('/dashboard')?'sweetcms-theme-admin':'sweetcms-theme-public';var t=localStorage.getItem(k)||localStorage.getItem('sweetcms-theme');var d=t==='dark'||(t==='system')&&matchMedia('(prefers-color-scheme:dark)').matches;if(d)document.documentElement.classList.add('dark')})()`,
+            __html: `(function(){var p=location.pathname;var k=p.startsWith('/dashboard')?'indigo-theme-admin':'indigo-theme-public';var t=localStorage.getItem(k)||localStorage.getItem('indigo-theme');var d=t==='dark'||(t==='system')&&matchMedia('(prefers-color-scheme:dark)').matches;if(d)document.documentElement.classList.add('dark')})()`,
           }}
         />
       </head>

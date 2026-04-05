@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
 import { useSession } from '@/lib/auth-client';
 import { trpc } from '@/lib/trpc/client';
 
-const COOKIE_NAME = 'sweetcms_attribution';
+const COOKIE_NAME = 'indigo_attribution';
 const COOKIE_MAX_AGE = 30 * 24 * 60 * 60; // 30 days
 
 /** URL params to capture. ref + standard UTM params. */

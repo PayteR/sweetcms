@@ -1,7 +1,7 @@
 {
   "rate_limiting": {
     "phase": "http_ratelimit",
-    "description": "SweetCMS rate limiting rules",
+    "description": "Indigo rate limiting rules",
     "rules": [
       {
         "description": "Brute force protection — /dashboard/login",
@@ -73,7 +73,7 @@
   },
   "waf_custom": {
     "phase": "http_request_firewall_custom",
-    "description": "SweetCMS WAF custom rules",
+    "description": "Indigo WAF custom rules",
     "rules": [
       {
         "description": "Block known bots on /dashboard/*",
@@ -93,7 +93,7 @@
     ]
   },
   "cache": {
-    "description": "SweetCMS cache rules",
+    "description": "Indigo cache rules",
     "rules": [
       {
         "description": "Cache uploaded files for 30 days",

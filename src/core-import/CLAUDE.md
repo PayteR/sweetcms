@@ -1,10 +1,10 @@
 # core-import — CLAUDE.md
 
-Paid module. Content import from WordPress, Ghost, CSV, and SweetCMS JSON. Also handles full CMS export.
+Paid module. Content import from WordPress, Ghost, CSV, and Indigo JSON. Also handles full CMS export.
 
 ## Module Boundary
 
-**core-import owns:** Import parsers (WordPress WXR, Ghost JSON, CSV, SweetCMS JSON), import/export router, import types.
+**core-import owns:** Import parsers (WordPress WXR, Ghost JSON, CSV, Indigo JSON), import/export router, import types.
 
 **Project owns:** Admin import page (`dashboard/settings/import/`).
 
@@ -25,5 +25,5 @@ Paid module. Content import from WordPress, Ghost, CSV, and SweetCMS JSON. Also 
 - **WordPress:** WXR (XML) export files
 - **Ghost:** JSON export files
 - **CSV:** Column-mapped CSV import
-- **SweetCMS:** Native JSON backup format
+- **Indigo:** Native JSON backup format
 - **Export:** Full CMS content as JSON (posts, categories, tags)

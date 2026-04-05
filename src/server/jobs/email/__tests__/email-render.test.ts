@@ -184,7 +184,7 @@ describe('email rendering pipeline', () => {
       // Default brand color
       expect(html).toContain('#e91e63');
       // Default site name
-      expect(html).toContain('SweetCMS');
+      expect(html).toContain('Indigo');
     });
   });
 

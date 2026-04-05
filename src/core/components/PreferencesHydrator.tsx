@@ -6,7 +6,7 @@ import { trpc } from '@/lib/trpc/client';
 import { usePreferencesStore } from '@/core/store/preferences-store';
 import { useThemeStore } from '@/core/store/theme-store';
 
-const ADMIN_THEME_KEY = 'sweetcms-theme-admin';
+const ADMIN_THEME_KEY = 'indigo-theme-admin';
 
 /**
  * Hydrates the preferences Zustand store from the DB via tRPC.
