@@ -104,7 +104,7 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
               onChange={(e) =>
                 setSelectedIndex(revisions.data!.length - 1 - Number(e.target.value))
               }
-              className="w-full accent-(--color-brand-500)"
+              className="w-full accent-brand-500"
             />
             <div className="flex justify-between text-xs text-(--text-muted)">
               <span>{__('Oldest')}</span>
@@ -135,7 +135,7 @@ export function RevisionHistory({ contentType, contentId, currentData, onRestore
                         className={cn(
                           'w-full rounded-md px-3 py-2 text-left transition-colors',
                           selectedIndex === idx
-                            ? 'bg-[oklch(0.55_0.20_var(--brand-hue)_/_0.12)] text-(--color-brand-600) dark:text-(--color-brand-400)'
+                            ? 'bg-[oklch(0.55_0.20_var(--brand-hue)_/_0.12)] text-brand-600 dark:text-brand-400'
                             : 'text-(--text-secondary) hover:bg-(--surface-secondary)',
                         )}
                       >

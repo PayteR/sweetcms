@@ -198,7 +198,7 @@ export function PostAttachments({ postId, uploadEndpoint = '/api/upload' }: Prop
                     onClick={() =>
                       setEditingAlt({ id: att.id, altText: att.altText ?? '' })
                     }
-                    className="rounded p-1 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"
+                    className="rounded p-1 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-brand-600"
                     title={__('Edit alt text')}
                   >
                     <Pencil className="h-3.5 w-3.5" />

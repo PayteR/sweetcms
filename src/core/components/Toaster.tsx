@@ -14,7 +14,7 @@ const icons = {
 const styles = {
   success: 'bg-green-50 dark:bg-green-500/15 text-green-800 dark:text-green-300 border-green-200 dark:border-green-500/30',
   error: 'bg-red-50 dark:bg-red-500/15 text-red-800 dark:text-red-300 border-red-200 dark:border-red-500/30',
-  info: 'bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] text-(--color-brand-800) dark:text-(--color-brand-300) border-(--color-brand-200) dark:border-[oklch(0.65_0.17_var(--brand-hue)_/_0.30)]',
+  info: 'bg-brand-50 dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] text-brand-800 dark:text-brand-300 border-brand-200 dark:border-[oklch(0.65_0.17_var(--brand-hue)_/_0.30)]',
 };
 
 export function Toaster() {

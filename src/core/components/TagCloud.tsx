@@ -57,7 +57,7 @@ export async function TagCloud({
         <Link
           key={tag.id}
           href={localePath(`/tag/${tag.slug}`, locale)}
-          className={`inline-block rounded-full border border-(--border-primary) bg-(--surface-primary) px-3 py-1 text-(--text-secondary) transition-colors hover:border-(--color-brand-300) dark:hover:border-[oklch(0.65_0.17_var(--brand-hue)_/_0.30)] hover:bg-(--color-brand-50) dark:hover:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] hover:text-(--color-brand-700) dark:hover:text-(--color-brand-400) ${getSizeClass(Number(tag.count))}`}
+          className={`inline-block rounded-full border border-(--border-primary) bg-(--surface-primary) px-3 py-1 text-(--text-secondary) transition-colors hover:border-brand-300 dark:hover:border-[oklch(0.65_0.17_var(--brand-hue)_/_0.30)] hover:bg-brand-50 dark:hover:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] hover:text-brand-700 dark:hover:text-brand-400 ${getSizeClass(Number(tag.count))}`}
         >
           {tag.name}
           <span className="ml-1 text-(--text-muted)">({Number(tag.count)})</span>

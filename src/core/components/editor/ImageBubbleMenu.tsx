@@ -41,7 +41,7 @@ function ImgButton({
         danger
           ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30'
           : active
-            ? 'bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-(--color-brand-700) dark:text-(--color-brand-400)'
+            ? 'bg-brand-50 dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-brand-700 dark:text-brand-400'
             : 'text-(--text-secondary) hover:bg-[oklch(1_0_0_/_0.1)] dark:hover:bg-[oklch(1_0_0_/_0.08)]',
       )}
     >
@@ -97,7 +97,7 @@ export function ImageBubbleMenu({ editor, __, onReplace }: Props) {
           e.stopPropagation();
         }}
         placeholder={__('Alt text')}
-        className="w-40 rounded border border-(--border-primary) bg-(--surface-secondary) px-2 py-1 text-xs text-(--text-primary) placeholder:text-(--text-muted) outline-none focus:border-(--color-accent-500)"
+        className="w-40 rounded border border-(--border-primary) bg-(--surface-secondary) px-2 py-1 text-xs text-(--text-primary) placeholder:text-(--text-muted) outline-none focus:border-accent-500"
       />
 
       <div className="mx-0.5 h-5 w-px bg-(--border-primary)" />

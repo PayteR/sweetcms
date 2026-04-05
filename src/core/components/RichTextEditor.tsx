@@ -114,7 +114,7 @@ function ToolbarButton({
       className={cn(
         'rounded p-1.5 transition-colors',
         active
-          ? 'bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-(--color-brand-700) dark:text-(--color-brand-400)'
+          ? 'bg-brand-50 dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-brand-700 dark:text-brand-400'
           : 'text-(--text-secondary) hover:bg-(--surface-secondary) hover:text-(--text-primary)',
         disabled && 'cursor-not-allowed opacity-30'
       )}
@@ -493,7 +493,7 @@ export function RichTextEditor({
         ref={wrapperRef}
         style={{ height: editorHeight, overflow: 'hidden' }}
         className={cn(
-          'relative flex flex-col overflow-hidden rounded-md border border-(--border-primary) focus-within:border-(--color-accent-500) focus-within:ring-1 focus-within:ring-(--color-accent-500)',
+          'relative flex flex-col overflow-hidden rounded-md border border-(--border-primary) focus-within:border-accent-500 focus-within:ring-1 focus-within:ring-accent-500',
           wrapperClassName,
         )}
       >
@@ -827,7 +827,7 @@ export function RichTextEditor({
             className={cn(
               '-mt-px border-t-2 px-4 py-1.5 text-[13px] transition-colors',
               mode === 'wysiwyg'
-                ? 'border-(--color-brand-500) text-(--color-brand-500) dark:border-(--color-brand-400) dark:text-(--color-brand-400) bg-(--surface-primary)'
+                ? 'border-brand-500 text-brand-500 dark:border-brand-400 dark:text-brand-400 bg-(--surface-primary)'
                 : 'border-transparent text-(--text-secondary) hover:text-(--text-primary) hover:bg-(--surface-primary)',
             )}
             onClick={() => mode !== 'wysiwyg' && toggleMode()}
@@ -839,7 +839,7 @@ export function RichTextEditor({
             className={cn(
               '-mt-px border-t-2 px-4 py-1.5 text-[13px] transition-colors',
               mode === 'source'
-                ? 'border-(--color-brand-500) text-(--color-brand-500) dark:border-(--color-brand-400) dark:text-(--color-brand-400) bg-(--surface-primary)'
+                ? 'border-brand-500 text-brand-500 dark:border-brand-400 dark:text-brand-400 bg-(--surface-primary)'
                 : 'border-transparent text-(--text-secondary) hover:text-(--text-primary) hover:bg-(--surface-primary)',
             )}
             onClick={() => mode !== 'source' && toggleMode()}
@@ -851,7 +851,7 @@ export function RichTextEditor({
         {/* Resize handle */}
         <div
           onPointerDown={handleResizePointerDown}
-          className="shrink-0 flex items-center justify-center h-2 cursor-row-resize bg-(--surface-inset) hover:bg-(--color-brand-500)/20 transition-colors border-t border-(--border-primary) select-none"
+          className="shrink-0 flex items-center justify-center h-2 cursor-row-resize bg-(--surface-inset) hover:bg-brand-500/20 transition-colors border-t border-(--border-primary) select-none"
         >
           <div className="w-8 h-0.5 rounded-full bg-(--text-muted)/60" />
         </div>

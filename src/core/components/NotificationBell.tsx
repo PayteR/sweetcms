@@ -62,7 +62,7 @@ export function NotificationBell({ notificationsHref }: NotificationBellProps) {
       >
         <Bell className="h-5 w-5" />
         {(unreadCount ?? 0) > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-(--color-danger-500) rounded-full">
+          <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold text-white bg-danger-500 rounded-full">
             {unreadCount! > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -76,7 +76,7 @@ export function NotificationBell({ notificationsHref }: NotificationBellProps) {
               <button
                 type="button"
                 onClick={handleMarkAllRead}
-                className="text-xs text-(--color-brand-500) hover:underline"
+                className="text-xs text-brand-500 hover:underline"
               >
                 {__('Mark all read')}
               </button>
@@ -104,7 +104,7 @@ export function NotificationBell({ notificationsHref }: NotificationBellProps) {
               >
                 <div className="flex items-start gap-2">
                   {!n.read && (
-                    <span className="w-2 h-2 rounded-full bg-(--color-brand-500) shrink-0 mt-1.5" />
+                    <span className="w-2 h-2 rounded-full bg-brand-500 shrink-0 mt-1.5" />
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{n.title}</p>
@@ -122,7 +122,7 @@ export function NotificationBell({ notificationsHref }: NotificationBellProps) {
 
           <a
             href={notificationsHref}
-            className="block text-center text-xs text-(--color-brand-500) hover:underline px-4 py-3 border-t border-(--border-primary)"
+            className="block text-center text-xs text-brand-500 hover:underline px-4 py-3 border-t border-(--border-primary)"
           >
             {__('View all notifications')}
           </a>

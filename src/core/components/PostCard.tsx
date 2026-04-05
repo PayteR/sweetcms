@@ -42,7 +42,7 @@ export function PostCard({
         href={href}
         className="post-card group rounded-lg border border-(--border-primary) bg-(--surface-primary) p-6 shadow-sm transition-shadow hover:shadow-md"
       >
-        <h3 className="text-lg font-semibold text-(--text-primary) group-hover:text-(--color-brand-600)">
+        <h3 className="text-lg font-semibold text-(--text-primary) group-hover:text-brand-600">
           {title}
         </h3>
         {metaDescription && (
@@ -70,7 +70,7 @@ export function PostCard({
     <article className="post-card-article border-b border-(--border-secondary) pb-6">
       <Link
         href={href}
-        className="text-xl font-semibold text-(--text-primary) hover:text-(--color-brand-600)"
+        className="text-xl font-semibold text-(--text-primary) hover:text-brand-600"
       >
         {title}
       </Link>

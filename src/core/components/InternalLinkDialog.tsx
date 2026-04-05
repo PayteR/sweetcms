@@ -68,7 +68,7 @@ function DialogContent({ onClose, onSelect, searchInputRef, typeConfig }: Dialog
         <div className="mt-4 max-h-80 min-h-[120px] overflow-y-auto">
           {isLoading && debouncedQuery.length >= 2 && (
             <div className="flex items-center justify-center py-8 text-(--text-muted)">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-(--border-primary) border-t-(--color-brand-400)" />
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-(--border-primary) border-t-brand-400" />
               <span className="ml-2">{__('Searching...')}</span>
             </div>
           )}

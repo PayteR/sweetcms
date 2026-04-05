@@ -198,7 +198,7 @@ export function AiAssistMenu({ editor, __, open, onClose, onSubmit }: AiAssistMe
     >
       {/* Header */}
       <div className="flex items-center gap-2 border-b border-(--border-primary) px-3 py-2">
-        <Sparkles className="h-4 w-4 text-(--color-accent-500)" />
+        <Sparkles className="h-4 w-4 text-accent-500" />
         <span className="text-sm font-medium text-(--text-primary)">{__('AI Assist')}</span>
         <button
           type="button"
@@ -212,7 +212,7 @@ export function AiAssistMenu({ editor, __, open, onClose, onSubmit }: AiAssistMe
       {/* Loading state */}
       {loading && (
         <div className="flex items-center gap-2 px-3 py-4">
-          <Loader2 className="h-4 w-4 animate-spin text-(--color-accent-500)" />
+          <Loader2 className="h-4 w-4 animate-spin text-accent-500" />
           <span className="text-sm text-(--text-secondary)">{__('Thinking...')}</span>
         </div>
       )}

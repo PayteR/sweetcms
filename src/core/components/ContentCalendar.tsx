@@ -17,7 +17,7 @@ const MONTHS = [
 
 const STATUS_CHIP: Record<number, string> = {
   [ContentStatus.PUBLISHED]: 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400',
-  [ContentStatus.SCHEDULED]: 'bg-(--color-brand-100) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-(--color-brand-700) dark:text-(--color-brand-400)',
+  [ContentStatus.SCHEDULED]: 'bg-brand-100 dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-brand-700 dark:text-brand-400',
   [ContentStatus.DRAFT]: 'bg-(--surface-secondary) text-(--text-secondary)',
 };
 
@@ -131,7 +131,7 @@ export function ContentCalendar({ editUrlBuilder, resolveSection }: ContentCalen
                       <span className={cn(
                         'inline-flex items-center justify-center text-xs font-medium mb-1',
                         isToday(day)
-                          ? 'rounded-full bg-(--color-brand-600) text-(--text-inverse) w-5 h-5'
+                          ? 'rounded-full bg-brand-600 text-(--text-inverse) w-5 h-5'
                           : 'text-(--text-muted)'
                       )}>
                         {day}

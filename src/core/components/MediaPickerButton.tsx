@@ -74,7 +74,7 @@ export function MediaPickerButton({
           <button
             type="button"
             onClick={() => setOpen(true)}
-            className="text-xs text-(--color-brand-600) hover:text-(--color-brand-700)"
+            className="text-xs text-brand-600 hover:text-brand-700"
           >
             {__('Change')}
           </button>

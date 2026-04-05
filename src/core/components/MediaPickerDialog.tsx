@@ -297,7 +297,7 @@ export function MediaPickerDialog({
         className={cn(
           "flex flex-1 min-h-0 transition-colors",
           dragOver &&
-            "bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.05)]",
+            "bg-brand-50 dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.05)]",
         )}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -307,10 +307,10 @@ export function MediaPickerDialog({
         <div className="flex-1 overflow-y-auto p-6">
           {/* Drag-drop overlay */}
           {dragOver && (
-            <div className="flex items-center justify-center rounded-lg border-2 border-dashed border-(--color-brand-400) py-12 mb-4">
+            <div className="flex items-center justify-center rounded-lg border-2 border-dashed border-brand-400 py-12 mb-4">
               <div className="text-center">
                 <Upload className="mx-auto h-8 w-8 text-brand-500" />
-                <p className="mt-2 text-sm font-medium text-brand-600 dark:text-(--color-brand-400)">
+                <p className="mt-2 text-sm font-medium text-brand-600 dark:text-brand-400">
                   {__("Drop files to upload")}
                 </p>
               </div>
@@ -343,7 +343,7 @@ export function MediaPickerDialog({
                     className={cn(
                       "group relative aspect-square overflow-hidden rounded-lg border-2 transition-colors",
                       selectedId === item.id
-                        ? "border-(--color-brand-500) ring-2 ring-(--color-brand-200) dark:ring-[oklch(0.65_0.17_var(--brand-hue)_/_0.25)]"
+                        ? "border-brand-500 ring-2 ring-brand-200 dark:ring-[oklch(0.65_0.17_var(--brand-hue)_/_0.25)]"
                         : "border-transparent hover:border-(--border-primary)",
                     )}
                   >
@@ -354,8 +354,8 @@ export function MediaPickerDialog({
                       className="object-cover"
                     />
                     {selectedId === item.id && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-(--color-brand-500)/20">
-                        <div className="rounded-full bg-(--color-brand-500) p-1">
+                      <div className="absolute inset-0 flex items-center justify-center bg-brand-500/20">
+                        <div className="rounded-full bg-brand-500 p-1">
                           <Check className="h-4 w-4 text-white" />
                         </div>
                       </div>

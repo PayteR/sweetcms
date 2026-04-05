@@ -167,13 +167,13 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
           {selectedTags.map((tag) => (
             <span
               key={tag.id}
-              className="tag-input-chip inline-flex items-center gap-1 rounded-full bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2.5 py-0.5 text-xs font-medium text-(--color-brand-700) dark:text-(--color-brand-400)"
+              className="tag-input-chip inline-flex items-center gap-1 rounded-full bg-brand-50 dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2.5 py-0.5 text-xs font-medium text-brand-700 dark:text-brand-400"
             >
               {tag.name}
               <button
                 type="button"
                 onClick={() => removeTag(tag.id)}
-                className="ml-0.5 rounded-full p-0.5 hover:bg-(--color-brand-200) dark:hover:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.25)]"
+                className="ml-0.5 rounded-full p-0.5 hover:bg-brand-200 dark:hover:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.25)]"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -223,7 +223,7 @@ export function TagInput({ selectedTagIds, onChange, lang = 'en' }: Props) {
                 }
                 className={`flex w-full items-center justify-between px-3 py-1.5 text-left text-sm ${
                   index === highlightedIndex
-                    ? 'bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] text-(--color-brand-700) dark:text-(--color-brand-400)'
+                    ? 'bg-brand-50 dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] text-brand-700 dark:text-brand-400'
                     : 'hover:bg-(--surface-secondary)'
                 }`}
               >

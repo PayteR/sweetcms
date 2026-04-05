@@ -30,9 +30,9 @@ function AutosaveRecoveryBanner({
   const __ = useAdminTranslations();
 
   return (
-    <div className="rounded-lg border border-(--color-brand-200) dark:border-[oklch(0.65_0.17_var(--brand-hue)_/_0.25)] bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.08)] px-4 py-3">
+    <div className="rounded-lg border border-brand-200 dark:border-[oklch(0.65_0.17_var(--brand-hue)_/_0.25)] bg-brand-50 dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.08)] px-4 py-3">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-sm text-(--color-brand-700) dark:text-(--color-brand-300)">
+        <span className="text-sm text-brand-700 dark:text-brand-300">
           {__('Unsaved changes recovered from')} {timeAgo(savedAt)}.
         </span>
         <div className="flex items-center gap-2">
@@ -46,7 +46,7 @@ function AutosaveRecoveryBanner({
           <button
             type="button"
             onClick={onDismiss}
-            className="text-(--color-brand-400) transition-colors hover:text-(--color-brand-300)"
+            className="text-brand-400 transition-colors hover:text-brand-300"
           >
             <X size={16} />
           </button>

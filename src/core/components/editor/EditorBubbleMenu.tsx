@@ -40,7 +40,7 @@ function BubbleButton({
       className={cn(
         'rounded p-1.5 transition-colors',
         active
-          ? 'bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-(--color-brand-700) dark:text-(--color-brand-400)'
+          ? 'bg-brand-50 dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-brand-700 dark:text-brand-400'
           : 'text-(--text-secondary) hover:bg-[oklch(1_0_0_/_0.1)] dark:hover:bg-[oklch(1_0_0_/_0.08)]',
       )}
     >

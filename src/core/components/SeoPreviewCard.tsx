@@ -55,7 +55,7 @@ export function SeoPreviewCard({ title, description, slug, urlPrefix, featuredIm
             className={cn(
               'border-b-2 px-3 pb-2 text-sm font-medium transition-colors',
               activeTab === t.key
-                ? 'border-(--color-brand-600) text-(--color-brand-600)'
+                ? 'border-brand-600 text-brand-600'
                 : 'border-transparent text-(--text-muted) hover:border-(--border-primary) hover:text-(--text-primary)'
             )}
           >
@@ -67,7 +67,7 @@ export function SeoPreviewCard({ title, description, slug, urlPrefix, featuredIm
       {/* Google tab */}
       {activeTab === 'google' && (
         <div className="seo-preview-google mt-4 rounded-md border border-(--border-primary) bg-(--surface-primary) p-4">
-          <p className="seo-preview-title text-sm text-(--color-brand-700) dark:text-(--color-brand-400) truncate">{displayTitle}</p>
+          <p className="seo-preview-title text-sm text-brand-700 dark:text-brand-400 truncate">{displayTitle}</p>
           <p className="seo-preview-url text-xs text-green-700 dark:text-green-400">{displayUrl}</p>
           <p className="seo-preview-description mt-1 text-xs text-(--text-secondary) line-clamp-2">{displayDesc}</p>
         </div>
