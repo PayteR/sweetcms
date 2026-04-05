@@ -7,11 +7,14 @@ import { logAudit } from '@/engine/lib/audit';
 import { parseCSV } from '@/engine/lib/importers/csv';
 import { parseGhostJSON } from '@/engine/lib/importers/ghost';
 import { parseWordPressWXR } from '@/engine/lib/importers/wordpress';
+import { parseSweetCmsJSON } from '@/engine/lib/importers/sweetcms';
+import { exportContent } from '@/engine/lib/export';
 import { ContentStatus, PostType } from '@/engine/types/cms';
 
 import { createTRPCRouter, sectionProcedure } from '../trpc';
 
 const proc = sectionProcedure('content');
+const settingsProc = sectionProcedure('settings');
 
 export const importRouter = createTRPCRouter({
   /** Parse an import file and return a preview of items to import */
@@ -19,7 +22,7 @@ export const importRouter = createTRPCRouter({
     .input(
       z.object({
         content: z.string().max(50_000_000), // 50MB
-        format: z.enum(['wordpress', 'ghost', 'csv']),
+        format: z.enum(['wordpress', 'ghost', 'csv', 'sweetcms']),
         columnMap: z.record(z.string(), z.string()).optional(),
       })
     )
@@ -31,6 +34,8 @@ export const importRouter = createTRPCRouter({
           return parseGhostJSON(input.content);
         case 'csv':
           return parseCSV(input.content, input.columnMap ?? {});
+        case 'sweetcms':
+          return parseSweetCmsJSON(input.content);
       }
     }),
 
@@ -143,4 +148,20 @@ export const importRouter = createTRPCRouter({
 
       return { created, skipped, errors };
     }),
+
+  /** Export all CMS content as JSON (for backup or migration between instances) */
+  export: settingsProc.mutation(async ({ ctx }) => {
+    const data = await exportContent(ctx.db);
+
+    logAudit({
+      db: ctx.db,
+      userId: ctx.session.user.id,
+      action: 'export',
+      entityType: 'system',
+      entityId: crypto.randomUUID(),
+      entityTitle: `Exported ${data.posts.length} posts, ${data.categories.length} categories`,
+    });
+
+    return data;
+  }),
 });

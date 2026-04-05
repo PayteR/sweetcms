@@ -21,3 +21,5 @@ export * from './projects';
 export * from './task-queue';
 export * from './support';
 export * from './affiliates';
+export * from './attributions';
+export * from './webhook-deliveries';

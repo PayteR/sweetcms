@@ -1,11 +1,12 @@
 import { TRPCError } from '@trpc/server';
 import crypto from 'crypto';
-import { eq } from 'drizzle-orm';
+import { desc, eq, sql, and, count } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { cmsWebhooks } from '@/server/db/schema';
-import { fetchOrNotFound } from '@/engine/crud/admin-crud';
+import { cmsWebhooks, cmsWebhookDeliveries } from '@/server/db/schema';
+import { fetchOrNotFound, parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
 import { logAudit } from '@/engine/lib/audit';
+import { getDeliveryStats } from '@/engine/lib/webhook-delivery-log';
 import { createTRPCRouter, sectionProcedure } from '../trpc';
 
 const settingsProcedure = sectionProcedure('settings');
@@ -114,6 +115,45 @@ export const webhooksRouter = createTRPCRouter({
       });
 
       return { success: true };
+    }),
+
+  /** Get delivery history for a webhook */
+  deliveries: settingsProcedure
+    .input(
+      z.object({
+        webhookId: z.string().uuid(),
+        page: z.number().int().min(1).default(1),
+        pageSize: z.number().int().min(1).max(100).default(20),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { page, pageSize, offset } = parsePagination(input);
+
+      const conditions = eq(cmsWebhookDeliveries.webhookId, input.webhookId);
+
+      const [items, countResult] = await Promise.all([
+        ctx.db
+          .select()
+          .from(cmsWebhookDeliveries)
+          .where(conditions)
+          .orderBy(desc(cmsWebhookDeliveries.createdAt))
+          .offset(offset)
+          .limit(pageSize),
+        ctx.db
+          .select({ count: count() })
+          .from(cmsWebhookDeliveries)
+          .where(conditions),
+      ]);
+
+      const total = Number(countResult[0]?.count ?? 0);
+      return paginatedResult(items, total, page, pageSize);
+    }),
+
+  /** Get delivery stats for a webhook */
+  deliveryStats: settingsProcedure
+    .input(z.object({ webhookId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      return getDeliveryStats(ctx.db, cmsWebhookDeliveries, input.webhookId);
     }),
 
   /** Test a webhook by sending a test payload */

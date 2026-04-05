@@ -66,6 +66,15 @@ async function main() {
   // Register email list providers (side-effect import)
   await import('./src/config/email-list');
 
+  // Register webhook delivery logger
+  const { setWebhookDeliveryLogger } = await import('./src/engine/lib/webhooks');
+  const { logWebhookDelivery } = await import('./src/engine/lib/webhook-delivery-log');
+  const { db: appDb } = await import('./src/server/db');
+  const { cmsWebhookDeliveries } = await import('./src/server/db/schema/webhook-deliveries');
+  setWebhookDeliveryLogger((entry) => {
+    logWebhookDelivery(appDb, cmsWebhookDeliveries, entry);
+  });
+
   // Initialize BullMQ workers
   if (enableWorkers) {
     const { startEmailWorker } = await import('./src/server/jobs/email/index');

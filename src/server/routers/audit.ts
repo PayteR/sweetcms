@@ -1,4 +1,4 @@
-import { and, count, desc, eq, ilike, or } from 'drizzle-orm';
+import { and, count, desc, eq, ilike, inArray, or } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { cmsAuditLog, user } from '@/server/db/schema';
@@ -7,6 +7,13 @@ import { createTRPCRouter, sectionProcedure } from '../trpc';
 
 const settingsProcedure = sectionProcedure('settings');
 const dashboardProcedure = sectionProcedure('dashboard');
+const contentProcedure = sectionProcedure('content');
+
+/** Actions relevant to content editors */
+const CONTENT_ACTIONS = [
+  'create', 'update', 'publish', 'unpublish', 'delete',
+  'restore', 'import', 'media.upload', 'media.delete',
+];
 
 export const auditRouter = createTRPCRouter({
   /** Last N audit entries for dashboard widget */
@@ -91,6 +98,62 @@ export const auditRouter = createTRPCRouter({
           .select({ count: count() })
           .from(cmsAuditLog)
           .leftJoin(user, eq(cmsAuditLog.userId, user.id))
+          .where(where),
+      ]);
+
+      return paginatedResult(items, countRow?.count ?? 0, page, pageSize);
+    }),
+
+  /** Activity feed for content editors — shows content-relevant actions */
+  feed: contentProcedure
+    .input(
+      z.object({
+        page: z.number().int().min(1).default(1),
+        pageSize: z.number().int().min(1).max(50).default(20),
+        entityTypes: z
+          .array(z.string().max(30))
+          .max(10)
+          .optional(),
+        actions: z
+          .array(z.string().max(30))
+          .max(10)
+          .optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { page, pageSize, offset } = parsePagination(input);
+
+      const conditions = [
+        inArray(cmsAuditLog.action, input.actions ?? CONTENT_ACTIONS),
+      ];
+      if (input.entityTypes && input.entityTypes.length > 0) {
+        conditions.push(inArray(cmsAuditLog.entityType, input.entityTypes));
+      }
+
+      const where = and(...conditions);
+
+      const [items, [countRow]] = await Promise.all([
+        ctx.db
+          .select({
+            id: cmsAuditLog.id,
+            action: cmsAuditLog.action,
+            entityType: cmsAuditLog.entityType,
+            entityId: cmsAuditLog.entityId,
+            entityTitle: cmsAuditLog.entityTitle,
+            metadata: cmsAuditLog.metadata,
+            createdAt: cmsAuditLog.createdAt,
+            userName: user.name,
+            userImage: user.image,
+          })
+          .from(cmsAuditLog)
+          .leftJoin(user, eq(cmsAuditLog.userId, user.id))
+          .where(where)
+          .orderBy(desc(cmsAuditLog.createdAt))
+          .offset(offset)
+          .limit(pageSize),
+        ctx.db
+          .select({ count: count() })
+          .from(cmsAuditLog)
           .where(where),
       ]);
 

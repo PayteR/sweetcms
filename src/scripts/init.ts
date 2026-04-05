@@ -244,6 +244,16 @@ async function ensureSuperadmin(db: ReturnType<typeof drizzle>): Promise<string>
     password: hashedPassword,
   });
 
+  // Audit log the superadmin creation
+  const { cmsAuditLog } = await import('../server/db/schema/audit');
+  await db.insert(cmsAuditLog).values({
+    userId,
+    action: 'init.superadmin',
+    entityType: 'user',
+    entityId: userId,
+    entityTitle: name,
+  }).catch(() => {}); // Table may not have been migrated yet
+
   console.log('');
   log('✅', `Superadmin "${name}" <${email}> created.`);
   return userId;
@@ -348,6 +358,16 @@ async function seedOptions(db: ReturnType<typeof drizzle>, companyInfo: CompanyI
   }
 
   log('✅', `${Object.keys(defaults).length} default options created.`);
+
+  // Audit log options seeding (best-effort — userId may not be available yet)
+  const { cmsAuditLog } = await import('../server/db/schema/audit');
+  await db.insert(cmsAuditLog).values({
+    userId: 'system',
+    action: 'init.options',
+    entityType: 'system',
+    entityId: crypto.randomUUID(),
+    entityTitle: `Seeded ${Object.keys(defaults).length} default options`,
+  }).catch(() => {});
 }
 
 // ─── Main ───────────────────────────────────────────────────────────────────
@@ -428,6 +448,24 @@ async function main() {
           userIds: billingResult?.userIds ?? [],
           orgIds: billingResult?.orgIds ?? [],
         });
+      }
+
+      // Audit log seed completion
+      const { cmsAuditLog } = await import('../server/db/schema/audit');
+      const seeded = [
+        wantCms && 'cms',
+        wantBilling && 'billing',
+        wantExtras && 'extras',
+      ].filter(Boolean);
+      if (seeded.length > 0) {
+        await db.insert(cmsAuditLog).values({
+          userId: superadminUserId,
+          action: 'init.seed',
+          entityType: 'system',
+          entityId: crypto.randomUUID(),
+          entityTitle: `Database seeded: ${seeded.join(', ')}`,
+          metadata: { seeded },
+        }).catch(() => {});
       }
     }
   } finally {

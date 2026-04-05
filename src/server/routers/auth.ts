@@ -188,12 +188,18 @@ export const authRouter = createTRPCRouter({
       return { success: true };
     }),
 
-  /** Capture affiliate referral after registration */
-  captureReferral: protectedProcedure
-    .input(z.object({ refCode: z.string().min(1).max(50) }))
+  /** Capture marketing attribution after registration (ref code, UTM params, referrer, etc.) */
+  captureAttribution: protectedProcedure
+    .input(z.object({
+      refCode: z.string().max(255).optional(),
+      utmSource: z.string().max(255).optional(),
+      utmMedium: z.string().max(255).optional(),
+      utmCampaign: z.string().max(500).optional(),
+      extra: z.record(z.string(), z.string().max(2000)).optional(),
+    }))
     .mutation(async ({ ctx, input }) => {
-      const { captureReferral } = await import('@/server/lib/affiliates');
-      await captureReferral(ctx.session.user.id, input.refCode);
+      const { captureAttribution } = await import('@/server/lib/attribution');
+      await captureAttribution(ctx.session.user.id, input);
       return { success: true };
     }),
 

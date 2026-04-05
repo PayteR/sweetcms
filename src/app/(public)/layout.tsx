@@ -20,7 +20,7 @@ import { getLocale } from '@/lib/locale-server';
 import { localePath } from '@/lib/locale';
 import { LOCALES, DEFAULT_LOCALE, LOCALE_LABELS, type Locale } from '@/lib/constants';
 import { adminRoutes, contentRoutes, apiRoutes } from '@/config/routes';
-import { RefCookieCapture } from '@/components/public/RefCookieCapture';
+import { AttributionCapture } from '@/components/public/AttributionCapture';
 import { AuthDialogs } from '@/components/public/AuthDialogs';
 import { SupportChatWidgetWrapper } from '@/components/public/SupportChatWidgetWrapper';
 import { getServerTranslations, type TranslationFn } from '@/lib/translations-server';
@@ -112,7 +112,7 @@ export default async function PublicLayout({
   return (
     <>
       <Suspense fallback={null}>
-        <RefCookieCapture />
+        <AttributionCapture />
       </Suspense>
       <link
         rel="alternate"

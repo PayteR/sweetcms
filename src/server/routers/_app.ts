@@ -28,6 +28,7 @@ import { discountCodesRouter } from './discount-codes';
 import { supportRouter } from './support';
 import { supportChatRouter } from './support-chat';
 import { affiliatesRouter } from './affiliates';
+import { attributionsRouter } from './attributions';
 import { aiRouter } from './ai';
 import { webhooksRouter } from './webhooks';
 
@@ -36,6 +37,7 @@ import { webhooksRouter } from './webhooks';
  */
 export const appRouter = createTRPCRouter({
   affiliates: affiliatesRouter,
+  attributions: attributionsRouter,
   ai: aiRouter,
   analytics: analyticsRouter,
   audit: auditRouter,
