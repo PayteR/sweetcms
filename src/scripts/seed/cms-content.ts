@@ -372,7 +372,7 @@ Built the official website and documentation for the Indigo open-source project.
       publishedAt: new Date(now - 10 * 24 * 60 * 60 * 1000),
       completedAt: new Date(now - 10 * 24 * 60 * 60 * 1000),
       clientName: 'SweetAI',
-      projectUrl: 'https://github.com/sweetai/sweetcms',
+      projectUrl: 'https://github.com/indigo-fw/starter',
       techStack: ['Next.js', 'TypeScript', 'Tailwind CSS', 'PostgreSQL', 'tRPC'],
       metaDescription: 'Official website for the Indigo open-source headless CMS, built with Next.js and TypeScript.',
       featuredImage: '/api/uploads/seed/portfolio-01.png',

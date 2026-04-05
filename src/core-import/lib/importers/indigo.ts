@@ -1,10 +1,10 @@
 import type { ImportResult, ImportedItem } from './types';
 
 /**
- * Parse a SweetCMS JSON export file.
+ * Parse a Indigo JSON export file.
  * Expected format: `{ posts: [...], categories: [...], ... }`
  */
-export function parseSweetCmsJSON(content: string): ImportResult {
+export function parseIndigoJSON(content: string): ImportResult {
   const warnings: string[] = [];
 
   let data: { posts?: Array<Record<string, unknown>> };

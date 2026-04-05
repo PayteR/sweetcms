@@ -34,7 +34,7 @@ function createPoHeader(locale, timestamp) {
   const now = timestamp || new Date().toISOString();
   return `msgid ""
 msgstr ""
-"Project-Id-Version: sweetcms\\n"
+"Project-Id-Version: indigo\\n"
 "Report-Msgid-Bugs-To: \\n"
 "POT-Creation-Date: ${now}\\n"
 "PO-Revision-Date: ${now}\\n"

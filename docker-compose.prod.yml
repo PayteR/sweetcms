@@ -4,7 +4,7 @@ services:
     ports:
       - "${PORT:-3000}:3000"
     environment:
-      - DATABASE_URL=postgresql://sweetcms:${POSTGRES_PASSWORD}@postgres:5432/sweetcms
+      - DATABASE_URL=postgresql://indigo:${POSTGRES_PASSWORD}@postgres:5432/indigo
       - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
       - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
       - REDIS_URL=redis://redis:6379
@@ -32,7 +32,7 @@ services:
   # worker:
   #   build: .
   #   environment:
-  #     - DATABASE_URL=postgresql://sweetcms:${POSTGRES_PASSWORD}@postgres:5432/sweetcms
+  #     - DATABASE_URL=postgresql://indigo:${POSTGRES_PASSWORD}@postgres:5432/indigo
   #     - BETTER_AUTH_SECRET=${BETTER_AUTH_SECRET}
   #     - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
   #     - REDIS_URL=redis://redis:6379
@@ -48,13 +48,13 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      - POSTGRES_USER=sweetcms
+      - POSTGRES_USER=indigo
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=sweetcms
+      - POSTGRES_DB=indigo
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U sweetcms"]
+      test: ["CMD-SHELL", "pg_isready -U indigo"]
       interval: 5s
       timeout: 5s
       retries: 5

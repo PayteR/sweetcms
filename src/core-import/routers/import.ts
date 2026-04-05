@@ -7,7 +7,7 @@ import { logAudit } from '@/core/lib/audit';
 import { parseCSV } from '@/core-import/lib/importers/csv';
 import { parseGhostJSON } from '@/core-import/lib/importers/ghost';
 import { parseWordPressWXR } from '@/core-import/lib/importers/wordpress';
-import { parseSweetCmsJSON } from '@/core-import/lib/importers/sweetcms';
+import { parseIndigoJSON } from '@/core-import/lib/importers/indigo';
 import { exportContent } from '@/core-import/lib/export';
 import { ContentStatus, PostType } from '@/core/types/cms';
 
@@ -22,7 +22,7 @@ export const importRouter = createTRPCRouter({
     .input(
       z.object({
         content: z.string().max(50_000_000), // 50MB
-        format: z.enum(['wordpress', 'ghost', 'csv', 'sweetcms']),
+        format: z.enum(['wordpress', 'ghost', 'csv', 'indigo']),
         columnMap: z.record(z.string(), z.string()).optional(),
       })
     )
@@ -34,8 +34,8 @@ export const importRouter = createTRPCRouter({
           return parseGhostJSON(input.content);
         case 'csv':
           return parseCSV(input.content, input.columnMap ?? {});
-        case 'sweetcms':
-          return parseSweetCmsJSON(input.content);
+        case 'indigo':
+          return parseIndigoJSON(input.content);
       }
     }),
 

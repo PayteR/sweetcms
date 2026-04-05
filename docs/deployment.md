@@ -4,13 +4,13 @@
 
 ## Stack Overview
 
-| Component | Service | Cost |
-|---|---|---|
-| VPS | Hetzner CX22 (2 vCPU, 4GB RAM, 40GB SSD) | ~$4/mo |
-| CI/CD | GitHub Actions | Free |
-| CDN + SSL | Cloudflare | Free |
-| Email | Resend (3K emails/mo) or Brevo (300/day) | Free |
-| **Total** | | **~$4/mo** |
+| Component | Service                                  | Cost       |
+| --------- | ---------------------------------------- | ---------- |
+| VPS       | Hetzner CX22 (2 vCPU, 4GB RAM, 40GB SSD) | ~$4/mo     |
+| CI/CD     | GitHub Actions                           | Free       |
+| CDN + SSL | Cloudflare                               | Free       |
+| Email     | Resend (3K emails/mo) or Brevo (300/day) | Free       |
+| **Total** |                                          | **~$4/mo** |
 
 This setup handles ~100-200 concurrent users (~5,000-10,000 daily visitors). To scale up, upgrade to CX32 (4 vCPU, 8GB, ~$7/mo).
 
@@ -38,7 +38,7 @@ curl -fsSL https://get.docker.com | sh
 apt install -y docker-compose-plugin
 
 # Create app directory
-mkdir -p /opt/sweetcms
+mkdir -p /opt/indigo
 ```
 
 ## 3. Configure Environment
@@ -46,7 +46,7 @@ mkdir -p /opt/sweetcms
 Create the `.env` file on the server:
 
 ```bash
-cat > /opt/sweetcms/.env << 'EOF'
+cat > /opt/indigo/.env << 'EOF'
 # ─── Required ──────────────────────────────────────────────────────────────
 POSTGRES_PASSWORD=GENERATE_WITH_openssl_rand_hex_16
 BETTER_AUTH_SECRET=GENERATE_WITH_openssl_rand_hex_32
@@ -83,21 +83,22 @@ Copy the production Docker Compose file and Dockerfile to the server. You can ei
 
 ```bash
 # Option A: Clone the repo on the server
-cd /opt/sweetcms
+cd /opt/indigo
 git clone git@github.com:YOUR_USER/YOUR_REPO.git .
 
 # Option B: Copy files manually
-scp docker-compose.prod.yml Dockerfile docker-entrypoint.sh root@YOUR_SERVER_IP:/opt/sweetcms/
+scp docker-compose.prod.yml Dockerfile docker-entrypoint.sh root@YOUR_SERVER_IP:/opt/indigo/
 ```
 
 ## 5. Deploy
 
 ```bash
-cd /opt/sweetcms
+cd /opt/indigo
 docker compose -f docker-compose.prod.yml up -d --build
 ```
 
 First run automatically:
+
 - Starts PostgreSQL and Redis
 - Builds the app container
 - Runs database migrations (via `docker-entrypoint.sh`)
@@ -133,7 +134,7 @@ curl http://localhost:3000/api/health
 apt install -y nginx
 
 # Create Nginx config
-cat > /etc/nginx/sites-available/sweetcms << 'EOF'
+cat > /etc/nginx/sites-available/indigo << 'EOF'
 server {
     listen 443 ssl;
     server_name yourdomain.com www.yourdomain.com;
@@ -162,12 +163,13 @@ server {
 }
 EOF
 
-ln -s /etc/nginx/sites-available/sweetcms /etc/nginx/sites-enabled/
+ln -s /etc/nginx/sites-available/indigo /etc/nginx/sites-enabled/
 rm /etc/nginx/sites-enabled/default
 nginx -t && systemctl restart nginx
 ```
 
 To get the origin certificate:
+
 1. In Cloudflare dashboard -> SSL/TLS -> Origin Server -> Create Certificate
 2. Save the certificate to `/etc/ssl/cloudflare/origin.pem`
 3. Save the private key to `/etc/ssl/cloudflare/origin-key.pem`
@@ -194,13 +196,14 @@ jobs:
           username: root
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
-            cd /opt/sweetcms
+            cd /opt/indigo
             git pull origin main
             docker compose -f docker-compose.prod.yml up -d --build
             docker image prune -f
 ```
 
 Add GitHub repository secrets:
+
 1. Go to your repo -> Settings -> Secrets -> Actions
 2. Add `VPS_HOST` = your server IP
 3. Add `VPS_SSH_KEY` = your private SSH key (the one whose public key is on the server)
@@ -215,7 +218,7 @@ Set up a daily PostgreSQL backup with a cron job on the server:
 mkdir -p /opt/backups
 
 # Add daily backup cron (runs at 3 AM)
-(crontab -l 2>/dev/null; echo '0 3 * * * docker compose -f /opt/sweetcms/docker-compose.prod.yml exec -T postgres pg_dump -U sweetcms sweetcms | gzip > /opt/backups/sweetcms-$(date +\%Y\%m\%d).sql.gz && find /opt/backups -mtime +7 -delete') | crontab -
+(crontab -l 2>/dev/null; echo '0 3 * * * docker compose -f /opt/indigo/docker-compose.prod.yml exec -T postgres pg_dump -U indigo indigo | gzip > /opt/backups/indigo-$(date +\%Y\%m\%d).sql.gz && find /opt/backups -mtime +7 -delete') | crontab -
 ```
 
 This keeps the last 7 days of backups. For offsite backups, sync to an S3-compatible storage (Hetzner Object Storage is ~$1/mo for small amounts).
@@ -223,7 +226,7 @@ This keeps the last 7 days of backups. For offsite backups, sync to an S3-compat
 ## Common Operations
 
 ```bash
-cd /opt/sweetcms
+cd /opt/indigo
 
 # View logs
 docker compose -f docker-compose.prod.yml logs -f app
@@ -241,7 +244,7 @@ docker compose -f docker-compose.prod.yml exec app bun run promote user@example.
 docker compose -f docker-compose.prod.yml exec app bun run change-password user@example.com
 
 # Open database shell
-docker compose -f docker-compose.prod.yml exec postgres psql -U sweetcms
+docker compose -f docker-compose.prod.yml exec postgres psql -U indigo
 
 # Stop everything
 docker compose -f docker-compose.prod.yml down

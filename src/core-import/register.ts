@@ -9,7 +9,7 @@ export { importRouter } from './routers/import';
 export { parseCSV } from './lib/importers/csv';
 export { parseGhostJSON } from './lib/importers/ghost';
 export { parseWordPressWXR } from './lib/importers/wordpress';
-export { parseSweetCmsJSON } from './lib/importers/sweetcms';
+export { parseIndigoJSON } from './lib/importers/indigo';
 export { exportContent } from './lib/export';
 
 // Types

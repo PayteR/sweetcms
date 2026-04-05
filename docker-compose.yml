@@ -1,8 +1,8 @@
-# SweetCMS development services
+# Indigo development services
 # Usage: docker compose up -d
 #
 # This starts PostgreSQL and Redis for local development.
-# The SweetCMS app itself runs outside Docker via `bun run dev`.
+# The Indigo app itself runs outside Docker via `bun run dev`.
 
 services:
   postgres:
@@ -13,7 +13,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: sweetcms
+      POSTGRES_DB: indigo
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
