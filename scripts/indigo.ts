@@ -85,41 +85,34 @@ function removeFromConfig(id: string, importName: string) {
   writeFileSync(configPath, content);
 }
 
+async function getModuleProjectFiles(id: string): Promise<string[]> {
+  try {
+    const configModule = await import(resolve(root, 'src', id, 'module.config.ts'));
+    return configModule.default?.projectFiles ?? [];
+  } catch {
+    return [];
+  }
+}
+
 function scaffoldTemplates(id: string) {
   const templatesDir = resolve(root, 'src', id, '_templates');
   if (!existsSync(templatesDir)) return;
 
   console.log('  Scaffolding template files...');
+  // force: false = don't overwrite existing files (preserve user customizations)
   cpSync(templatesDir, resolve(root, 'src'), { recursive: true, force: false });
 }
 
-function cleanupScaffoldedFiles(id: string) {
-  const templatesDir = resolve(root, 'src', id, '_templates');
-  if (!existsSync(templatesDir)) return;
+async function cleanupScaffoldedFiles(id: string) {
+  const projectFiles = await getModuleProjectFiles(id);
 
-  // Read the template directory structure and delete matching files from project
-  const templateFiles = getTemplateFiles(templatesDir, templatesDir);
-  for (const relPath of templateFiles) {
+  for (const relPath of projectFiles) {
     const targetPath = resolve(root, 'src', relPath);
     if (existsSync(targetPath)) {
-      console.log(`  Removing scaffolded file: src/${relPath}`);
+      console.log(`  Removing: src/${relPath}`);
       rmSync(targetPath);
     }
   }
-}
-
-function getTemplateFiles(dir: string, baseDir: string): string[] {
-  const { readdirSync, statSync } = require('fs');
-  const files: string[] = [];
-  for (const entry of readdirSync(dir)) {
-    const full = join(dir, entry);
-    if (statSync(full).isDirectory()) {
-      files.push(...getTemplateFiles(full, baseDir));
-    } else {
-      files.push(full.slice(baseDir.length + 1).replace(/\\/g, '/'));
-    }
-  }
-  return files;
 }
 
 // ─── Commands ───────────────────────────────────────────────────────────────
@@ -151,6 +144,8 @@ async function add(id: string) {
   console.log(`\nInstalling ${id}...`);
 
   // Step 1: Git subtree add (or skip if directory already exists)
+  // TODO: Requires git repo to exist at entry.repo. Until indigo-fw GitHub repos
+  // are created, this will fail. For local dev, manually place module in src/.
   if (!moduleExists(id)) {
     run(
       `git subtree add --prefix=src/${id} ${entry.repo} main --squash`,
@@ -227,7 +222,7 @@ async function remove(id: string) {
   run('bun run indigo:sync', 'Regenerating glue files...');
 
   // Step 3: Clean up scaffolded files
-  cleanupScaffoldedFiles(id);
+  await cleanupScaffoldedFiles(id);
 
   // Step 4: Remove module directory
   if (moduleExists(id)) {

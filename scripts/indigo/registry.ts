@@ -1,5 +1,13 @@
 /**
  * Module registry — maps module IDs to their git repos and metadata.
+ *
+ * TODO: Create these GitHub repos under the indigo-fw org:
+ *   - indigo-fw/core-billing
+ *   - indigo-fw/core-billing-crypto
+ *   - indigo-fw/core-support
+ *   - indigo-fw/core-affiliates
+ * Until repos exist, `indigo add` will fail on git subtree pull.
+ * For local development, modules are already in src/ — use `indigo sync` instead.
  */
 
 export interface ModuleRegistryEntry {

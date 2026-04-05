@@ -41,4 +41,10 @@ export interface ModuleConfig {
   jobs: JobEntry[];
   /** Components to inject into public layout */
   layoutWidgets: WidgetEntry[];
+  /**
+   * Project-layer files scaffolded by this module (relative to src/).
+   * Copied from _templates/ during `indigo add`, removed during `indigo remove`.
+   * These are the project-side files the module needs to function (deps, admin pages, etc.).
+   */
+  projectFiles: string[];
 }

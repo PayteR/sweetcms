@@ -17,6 +17,12 @@ const config: ModuleConfig = {
   layoutWidgets: [
     { name: 'AttributionCapture', from: '@/core-affiliates/components/AttributionCapture' },
   ],
+  projectFiles: [
+    'config/affiliates-deps.ts',
+    'app/dashboard/(panel)/settings/affiliates/page.tsx',
+    'app/dashboard/(panel)/settings/billing/components/AffiliateOverview.tsx',
+    'app/(public)/account/affiliates/page.tsx',
+  ],
 };
 
 export default config;

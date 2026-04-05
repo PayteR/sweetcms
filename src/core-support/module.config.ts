@@ -19,6 +19,16 @@ const config: ModuleConfig = {
   layoutWidgets: [
     { name: 'SupportChatWidgetWrapper', from: '@/components/public/SupportChatWidgetWrapper' },
   ],
+  projectFiles: [
+    'config/support-deps.ts',
+    'components/public/SupportChatWidgetWrapper.tsx',
+    'app/dashboard/(panel)/settings/support/page.tsx',
+    'app/dashboard/(panel)/settings/support/[id]/page.tsx',
+    'app/dashboard/(panel)/settings/support/chat/[id]/page.tsx',
+    'app/(public)/account/support/page.tsx',
+    'app/(public)/account/support/new/page.tsx',
+    'app/(public)/account/support/[id]/page.tsx',
+  ],
 };
 
 export default config;

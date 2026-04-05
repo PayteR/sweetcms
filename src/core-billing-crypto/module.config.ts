@@ -9,6 +9,10 @@ const config: ModuleConfig = {
   ],
   jobs: [],
   layoutWidgets: [],
+  projectFiles: [
+    'app/api/webhooks/nowpayments/route.ts',
+    'app/api/webhooks/nowpayments/__tests__/route.test.ts',
+  ],
 };
 
 export default config;
