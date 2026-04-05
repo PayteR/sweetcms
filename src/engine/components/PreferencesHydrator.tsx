@@ -11,17 +11,30 @@ const ADMIN_THEME_KEY = 'sweetcms-theme-admin';
 /**
  * Hydrates the preferences Zustand store from the DB via tRPC.
  * Also syncs the admin theme preference from DB → localStorage for cross-device consistency.
+ * Also triggers geo sync (country/state/timezone from IP) once per session.
  * Renders nothing — mount once in the dashboard layout.
  */
 export function PreferencesHydrator() {
   const didHydrate = useRef(false);
+  const didGeoSync = useRef(false);
   const hydrate = usePreferencesStore((s) => s.hydrate);
   const utils = trpc.useUtils();
   const setTheme = useThemeStore((s) => s.setTheme);
+  const geoSync = trpc.auth.syncGeo.useMutation();
 
   const { data } = trpc.users.getPreferences.useQuery(undefined, {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
+
+  // Geo sync — once per session (fire-and-forget)
+  useEffect(() => {
+    if (didGeoSync.current) return;
+    didGeoSync.current = true;
+    geoSync.mutate(undefined, {
+      onError: (err) => console.warn('[GeoSync]', err.message),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fire once on mount
+  }, []);
 
   useEffect(() => {
     if (!data || didHydrate.current) return;

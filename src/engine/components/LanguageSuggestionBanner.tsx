@@ -81,6 +81,8 @@ export function LanguageSuggestionBanner({
 
   function switchLocale() {
     dismiss();
+    // Mark that user explicitly chose a locale
+    document.cookie = 'locale-chosen=1; path=/; max-age=31536000; SameSite=Lax';
     const basePath = currentLocale !== defaultLocale
       ? '/' + pathname.split('/').slice(2).join('/') || '/'
       : pathname;

@@ -29,9 +29,10 @@ function LanguageSwitcherInner() {
 
   function switchLocale(locale: Locale) {
     setOpen(false);
+    // Mark that user explicitly chose a locale — prevents auto-detect redirect
+    document.cookie = 'locale-chosen=1; path=/; max-age=31536000; SameSite=Lax';
     // Full page reload required — the root layout's NextIntlClientProvider
     // must re-render with the new locale's messages from the server.
-    // router.push() would do a soft nav and keep stale translations.
     window.location.assign(localePath(basePath, locale));
   }
 
