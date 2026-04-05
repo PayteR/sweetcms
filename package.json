@@ -20,6 +20,7 @@
     "i18n:translate": "bun scripts/i18n/generate-po-files.js && bun scripts/i18n/translate-po.mjs && bun scripts/i18n/po-to-json.mjs",
     "i18n:watch": "bun scripts/i18n/po-to-json.mjs watch",
     "test": "vitest",
+    "indigo": "bun run scripts/indigo.ts",
     "indigo:sync": "bun run scripts/sync-modules.ts",
     "core:push": "git subtree push --prefix=src/core git@github.com:indigo-fw/core.git main",
     "core:pull": "git subtree pull --prefix=src/core git@github.com:indigo-fw/core.git main --squash",
