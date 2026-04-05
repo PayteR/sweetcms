@@ -37,7 +37,7 @@ vi.mock('@/core/lib/logger', () => ({
   }),
 }));
 
-const mockChatDeps = {
+const mockSupportDeps = {
   createTicketFromChat: vi.fn().mockResolvedValue({ ticketId: 'ticket-1' }),
   resolveOrgId: vi.fn().mockResolvedValue('org-1'),
   sendNotification: vi.fn(),
@@ -47,8 +47,8 @@ const mockChatDeps = {
   callAI: vi.fn().mockResolvedValue(null),
 };
 vi.mock('@/core-support/deps', () => ({
-  getChatDeps: () => mockChatDeps,
-  setChatDeps: vi.fn(),
+  getSupportDeps: () => mockSupportDeps,
+  setSupportDeps: vi.fn(),
 }));
 
 vi.mock('@/core/types/notifications', () => ({
@@ -411,7 +411,7 @@ describe('supportChatRouter', () => {
       expect(result.ticketId).toBe('ticket-1');
       expect(result.emailCaptured).toBe(false);
       // Ticket creation delegated to injected deps
-      expect(mockChatDeps.createTicketFromChat).toHaveBeenCalledWith(
+      expect(mockSupportDeps.createTicketFromChat).toHaveBeenCalledWith(
         expect.objectContaining({
           userId: 'admin-1',
           orgId: 'org-1',
@@ -589,7 +589,7 @@ describe('supportChatRouter', () => {
         body: 'We are looking into this.',
       });
 
-      expect(mockChatDeps.sendNotification).toHaveBeenCalledWith(
+      expect(mockSupportDeps.sendNotification).toHaveBeenCalledWith(
         expect.objectContaining({
           userId: 'user-1',
           title: 'New message from support',

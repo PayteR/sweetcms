@@ -21,12 +21,12 @@ export { saasTickets, saasTicketMessages } from './schema/support-tickets';
 export { startSupportChatCleanupWorker, cleanupStaleSessions } from './jobs/support-chat';
 
 // Config
-export { supportChatConfig, setChatConfig } from './config';
+export { supportChatConfig, setSupportConfig } from './config';
 export type { SupportChatConfig } from './config';
 
-// Dependencies (call setChatDeps at startup)
-export { setChatDeps, getChatDeps } from './deps';
-export type { ChatDeps, EscalationResult, UserInfo } from './deps';
+// Dependencies (call setSupportDeps at startup)
+export { setSupportDeps, getSupportDeps } from './deps';
+export type { SupportDeps, EscalationResult, UserInfo } from './deps';
 
 // Components
 export { SupportChatWidget } from './components/SupportChatWidget';

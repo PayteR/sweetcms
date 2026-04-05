@@ -12,7 +12,7 @@ Paid module. Referral tracking, marketing attribution, and affiliate management.
 
 - Imports from `@/core/*` (core utilities — logger, audit, admin-crud)
 - Framework conventions imported directly: `@/server/trpc`, `@/server/db`, `@/server/db/schema/auth`
-- Payment transactions table injected via `setAffiliatesDeps()` (avoids hard dep on core-payments)
+- Payment transactions table injected via `setAffiliatesDeps()` (avoids hard dep on core-billing)
 - Project imports from `@/core-affiliates/*`
 - Core (`src/core/`) never imports from core-affiliates
 
@@ -20,7 +20,7 @@ Paid module. Referral tracking, marketing attribution, and affiliate management.
 
 `deps.ts` defines `AffiliatesDeps`. Injected deps:
 
-- **paymentTransactionsTable** — Drizzle table ref for attribution revenue breakdowns (from core-payments). Pass null if billing not installed — breakdowns show 0 revenue.
+- **paymentTransactionsTable** — Drizzle table ref for attribution revenue breakdowns (from core-billing). Pass null if billing not installed — breakdowns show 0 revenue.
 - **getRevenueByUsers** — reserved for future use
 
 ## Wiring Into a Project
@@ -34,5 +34,5 @@ Paid module. Referral tracking, marketing attribution, and affiliate management.
 
 ## Cross-Module Dependencies
 
-- core-affiliates → core-payments: optional (via injected `paymentTransactionsTable`)
-- core-payments → core-affiliates: billing router imports affiliate schema for stats dashboard
+- core-affiliates → core-billing: optional (via injected `paymentTransactionsTable`)
+- core-billing → core-affiliates: none (getAffiliateStats lives in affiliates router)

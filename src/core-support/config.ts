@@ -1,7 +1,7 @@
 /**
  * Support chat widget configuration — system prompt, welcome message, escalation settings.
  *
- * Defaults are provided here. Projects override via `setChatConfig()` at startup.
+ * Defaults are provided here. Projects override via `setSupportConfig()` at startup.
  * The AI uses an OpenAI-compatible API (same as the editor AI assist).
  * Set AI_API_KEY + optionally AI_API_URL / AI_MODEL in env to enable AI responses.
  * Without AI_API_KEY the widget still works — it just creates tickets immediately.
@@ -45,9 +45,9 @@ let _config: SupportChatConfig = { ...defaults };
 
 /**
  * Override chat config. Merges with defaults — only provide the fields you want to change.
- * Call once at startup (typically in your chat-deps.ts).
+ * Call once at startup (typically in your support-deps.ts).
  */
-export function setChatConfig(overrides: Partial<SupportChatConfig>): void {
+export function setSupportConfig(overrides: Partial<SupportChatConfig>): void {
   _config = { ...defaults, ...overrides };
 }
 

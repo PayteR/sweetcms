@@ -6,19 +6,19 @@ Paid module. AI-powered support chat widget + ticket system with escalation.
 
 **core-support owns:** SupportChatWidget component, chat session/message schema, ticket/ticket-message schema, support-chat + support (tickets) tRPC routers, chat cleanup job, default config, dependency interface.
 
-**Project owns:** admin pages (`/dashboard/settings/support/`), `SupportChatWidgetWrapper`, account support pages, dependency wiring (`config/chat-deps.ts`).
+**Project owns:** admin pages (`/dashboard/settings/support/`), `SupportChatWidgetWrapper`, account support pages, dependency wiring (`config/support-deps.ts`).
 
 ## Import Rules
 
 - core-support imports from `@/core/*` (core utilities)
 - Framework conventions imported directly: `@/server/trpc`, `@/server/db`, `@/server/db/schema/auth`, `@/server/db/schema/organization`, `@/server/lib/ws`
-- Project-specific behavior injected via `setChatDeps()`
+- Project-specific behavior injected via `setSupportDeps()`
 - Project imports from `@/core-support/*`
 - Core (`src/core/`) never imports from core-support
 
 ## Dependency Injection
 
-`deps.ts` defines `ChatDeps`. Injected deps:
+`deps.ts` defines `SupportDeps`. Injected deps:
 
 - **createTicketFromChat** — escalation creates a ticket (or null)
 - **resolveOrgId** — resolve active org for a user
@@ -29,7 +29,7 @@ Paid module. AI-powered support chat widget + ticket system with escalation.
 
 ## Wiring Into a Project
 
-1. **Deps:** Create `config/chat-deps.ts` calling `setChatDeps()`, import in `server.ts`
+1. **Deps:** Create `config/support-deps.ts` calling `setSupportDeps()`, import in `server.ts`
 2. **Routers:** Import `supportChatRouter` + `supportRouter` in `_app.ts`
 3. **Schema:** Re-export tables from `schema/index.ts`
 4. **Job:** Import `startSupportChatCleanupWorker` in `server.ts`

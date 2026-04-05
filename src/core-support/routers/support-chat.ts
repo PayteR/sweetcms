@@ -4,7 +4,7 @@ import { and, count, desc, eq, asc, ne } from 'drizzle-orm';
 import { createTRPCRouter, publicProcedure, sectionProcedure } from '@/server/trpc';
 import { saasSupportChatSessions, saasSupportChatMessages } from '@/core-support/schema/support-chat';
 import { parsePagination, paginatedResult } from '@/core/crud/admin-crud';
-import { getChatDeps } from '@/core-support/deps';
+import { getSupportDeps } from '@/core-support/deps';
 import { supportChatConfig } from '@/core-support/config';
 import { createLogger } from '@/core/lib/logger';
 import { getRedis } from '@/core/lib/redis';
@@ -32,7 +32,7 @@ const ESCALATE_PREFIX = '[ESCALATE]';
 /** Fire-and-forget WS broadcast via injected deps */
 function broadcastSupportChatEvent(sessionId: string, type: string, payload: Record<string, unknown>): void {
   try {
-    getChatDeps().broadcastEvent(`supportChat:${sessionId}`, type, { ...payload, type });
+    getSupportDeps().broadcastEvent(`supportChat:${sessionId}`, type, { ...payload, type });
   } catch {
     // deps not ready or broadcast failed — fire-and-forget
   }
@@ -41,7 +41,7 @@ function broadcastSupportChatEvent(sessionId: string, type: string, payload: Rec
 /** Process AI response asynchronously — called fire-and-forget from sendMessage */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- private fn, accepts any Drizzle db instance via ctx.db
 async function processAiResponse(db: any, sessionId: string): Promise<void> {
-  const deps = getChatDeps();
+  const deps = getSupportDeps();
 
   // Check message count for forced escalation
   const [msgCount] = await db
@@ -290,7 +290,7 @@ export const supportChatRouter = createTRPCRouter({
       subject: z.string().max(255).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      const deps = getChatDeps();
+      const deps = getSupportDeps();
       const authenticatedUser = ctx.session?.user
         ? (ctx.session.user as unknown as { id: string })
         : null;
@@ -454,7 +454,7 @@ export const supportChatRouter = createTRPCRouter({
       pageSize: z.number().int().min(1).max(100).default(20),
     }))
     .query(async ({ ctx, input }) => {
-      const deps = getChatDeps();
+      const deps = getSupportDeps();
       const { page, pageSize, offset } = parsePagination(input);
 
       const conditions = [];
@@ -537,7 +537,7 @@ export const supportChatRouter = createTRPCRouter({
   adminGet: supportChatAdminProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
-      const deps = getChatDeps();
+      const deps = getSupportDeps();
 
       const [session] = await ctx.db
         .select()
@@ -623,7 +623,7 @@ export const supportChatRouter = createTRPCRouter({
 
       // Notify user if they have an account
       if (session.userId) {
-        const deps = getChatDeps();
+        const deps = getSupportDeps();
         deps.sendNotification({
           userId: session.userId,
           title: 'New message from support',

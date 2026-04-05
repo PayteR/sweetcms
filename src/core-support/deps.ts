@@ -2,7 +2,7 @@
  * core-support dependency injection.
  *
  * The chat module needs project-specific capabilities that differ between projects.
- * Call `setChatDeps()` once at startup to provide them.
+ * Call `setSupportDeps()` once at startup to provide them.
  *
  * After this, the only hard project-layer import is `@/server/trpc`
  * (the one true framework convention).
@@ -18,7 +18,7 @@ export interface UserInfo {
   email: string;
 }
 
-export interface ChatDeps {
+export interface SupportDeps {
   /**
    * Create a support ticket from an escalated chat session.
    * Returns null if the project doesn't support tickets.
@@ -74,16 +74,16 @@ export interface ChatDeps {
   callAI: (messages: { role: string; body: string }[]) => Promise<string | null>;
 }
 
-let _deps: ChatDeps | null = null;
+let _deps: SupportDeps | null = null;
 
-export function setChatDeps(deps: ChatDeps): void {
+export function setSupportDeps(deps: SupportDeps): void {
   _deps = deps;
 }
 
-export function getChatDeps(): ChatDeps {
+export function getSupportDeps(): SupportDeps {
   if (!_deps) {
     throw new Error(
-      'Chat dependencies not configured. Call setChatDeps() at startup — see src/core-support/deps.ts',
+      'Chat dependencies not configured. Call setSupportDeps() at startup — see src/core-support/deps.ts',
     );
   }
   return _deps;

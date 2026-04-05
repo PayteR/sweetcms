@@ -4,7 +4,7 @@ import type { PaymentProvider, CheckoutParams, CheckoutResult, WebhookEvent } fr
 import { TransactionStatus } from '@/core-billing/types/payment';
 import { db } from '@/server/db';
 import { saasPaymentTransactions } from '@/core-billing/schema/billing';
-import { getPlan } from '@/config/plans';
+import { getPaymentsDeps } from '@/core-billing/deps';
 import { createLogger } from '@/core/lib/logger';
 
 const logger = createLogger('nowpayments');
@@ -83,7 +83,7 @@ export class NowPaymentsProvider implements PaymentProvider {
       throw new Error('NOWPayments only supports yearly interval');
     }
 
-    const plan = getPlan(params.planId);
+    const plan = getPaymentsDeps().getPlan(params.planId);
     if (!plan) throw new Error(`Plan not found: ${params.planId}`);
 
     const originalPriceCents = plan.priceYearly;

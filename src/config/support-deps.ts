@@ -2,7 +2,7 @@
  * Wire core-support module dependencies to project-specific implementations.
  * Imported as a side-effect in server.ts (like email-list registration).
  */
-import { setChatDeps } from '@/core-support/deps';
+import { setSupportDeps } from '@/core-support/deps';
 import { saasTickets, saasTicketMessages } from '@/core-support/schema/support-tickets';
 import { user } from '@/server/db/schema/auth';
 import { db } from '@/server/db';
@@ -18,7 +18,7 @@ const logger = createLogger('support-chat-ai');
 const DEFAULT_API_URL = 'https://api.openai.com/v1/chat/completions';
 const DEFAULT_MODEL = 'gpt-4o-mini';
 
-setChatDeps({
+setSupportDeps({
   async createTicketFromChat({ userId, orgId, subject, chatSessionId, transcript }) {
     const ticketId = crypto.randomUUID();
 

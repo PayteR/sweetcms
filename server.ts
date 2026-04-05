@@ -66,7 +66,7 @@ async function main() {
   // Register side-effect dependencies
   await import('./src/config/email-list');
   await import('./src/config/payments-deps');
-  await import('./src/config/chat-deps');
+  await import('./src/config/support-deps');
   await import('./src/config/affiliates-deps');
   await import('./src/core-billing-crypto/register');
 
