@@ -51,6 +51,11 @@ const TEMPLATES: { name: TemplateName; label: string; variables: string[] }[] = 
     label: 'Subscription Expired',
     variables: ['planName', 'billingUrl', 'siteName'],
   },
+  {
+    name: 'subscription-canceled',
+    label: 'Subscription Canceled',
+    variables: ['planName', 'billingUrl', 'siteName'],
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -118,7 +123,7 @@ function TemplateEditor({
 
   function handleReset() {
     if (!resetTarget) return;
-    deleteOption.mutate({ key: `email.template.${resetTarget}` });
+    deleteOption.mutate({ key: `email.template.en.${resetTarget}` });
     setResetTarget(null);
   }
 

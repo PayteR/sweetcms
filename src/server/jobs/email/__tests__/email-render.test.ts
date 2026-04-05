@@ -132,15 +132,21 @@ describe('email rendering pipeline', () => {
       expect(html).toContain('One quick step to activate your account');
     });
 
-    it('omits preheader span when template has no preheader', async () => {
-      // Create a mock scenario — all current templates have preheaders,
-      // so we test that the block is present (not omitted)
-      const { html } = await renderTemplate('welcome', {
-        appUrl: 'https://example.com',
+    it('does not inject preheader span when subject comment is removed', async () => {
+      // All current templates have preheaders. Verify a different template's
+      // preheader doesn't bleed into another render.
+      const { html: html1 } = await renderTemplate('verify-email', {
+        name: 'A', verifyUrl: 'https://x.com',
+      });
+      const { html: html2 } = await renderTemplate('password-reset', {
+        name: 'A', resetUrl: 'https://x.com',
       });
 
-      // welcome.html has a preheader, so it should be present
-      expect(html).toContain('Your account has been created');
+      // Each render should contain its OWN preheader, not the other's
+      expect(html1).toContain('One quick step');
+      expect(html1).not.toContain('Click the link to reset');
+      expect(html2).toContain('Click the link to reset');
+      expect(html2).not.toContain('One quick step');
     });
   });
 

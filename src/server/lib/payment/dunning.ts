@@ -278,7 +278,7 @@ export async function checkLongOverdueSubscriptions(): Promise<void> {
 
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
     for (const admin of admins) {
-      enqueueTemplateEmail(admin.email, 'subscription-expired', {
+      enqueueTemplateEmail(admin.email, 'subscription-canceled', {
         planName: plan?.name ?? sub.planId,
         billingUrl: `${appUrl}/dashboard/settings/billing`,
       }).catch((err) => log.error('Failed to send cancellation email', { error: String(err) }));

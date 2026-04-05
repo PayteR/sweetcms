@@ -184,6 +184,7 @@ async function getBranding(): Promise<EmailBranding> {
   ];
 
   const opts: Record<string, string> = {};
+  let dbSuccess = false;
   try {
     const rows = await appDb
       .select({ key: cmsOptions.key, value: cmsOptions.value })
@@ -193,8 +194,9 @@ async function getBranding(): Promise<EmailBranding> {
     for (const row of rows) {
       opts[row.key] = typeof row.value === 'string' ? row.value : String(row.value ?? '');
     }
+    dbSuccess = true;
   } catch {
-    // DB not available — use fallbacks
+    // DB not available — use fallbacks, don't cache
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
@@ -214,7 +216,9 @@ async function getBranding(): Promise<EmailBranding> {
   }
 
   const branding = { siteName, siteUrl, contactEmail, logoUrl, brandColor };
-  _brandingCache = { data: branding, expiry: Date.now() + BRANDING_CACHE_TTL };
+  if (dbSuccess) {
+    _brandingCache = { data: branding, expiry: Date.now() + BRANDING_CACHE_TTL };
+  }
   return branding;
 }
 

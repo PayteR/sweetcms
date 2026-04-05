@@ -26,4 +26,8 @@ export const siteConfig = {
    * When false (default), users see content in the URL's locale and get a
    * suggestion banner instead. Set to true for apps where UX > SEO. */
   localeAutoDetect: false,
+
+  /** Seconds after registration before unverified users are blocked.
+   * Set to 0 to require immediate verification. Set to -1 to disable (never block). */
+  emailVerificationGracePeriod: 24 * 60 * 60, // 24 hours
 } as const;
