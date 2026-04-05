@@ -19,7 +19,7 @@ export { saasSupportChatSessions, saasSupportChatMessages } from './schema/suppo
 export { startSupportChatCleanupWorker, cleanupStaleSessions } from './jobs/support-chat';
 
 // Config
-export { supportChatConfig } from './config';
+export { supportChatConfig, setChatConfig } from './config';
 export type { SupportChatConfig } from './config';
 
 // Dependencies (call setChatDeps at startup)

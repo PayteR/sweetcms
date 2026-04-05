@@ -39,7 +39,8 @@ function broadcastSupportChatEvent(sessionId: string, type: string, payload: Rec
 }
 
 /** Process AI response asynchronously — called fire-and-forget from sendMessage */
-async function processAiResponse(db: typeof import('@/server/db').db, sessionId: string): Promise<void> {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- private fn, accepts any Drizzle db instance via ctx.db
+async function processAiResponse(db: any, sessionId: string): Promise<void> {
   const deps = getChatDeps();
 
   // Check message count for forced escalation
