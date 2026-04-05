@@ -9,6 +9,11 @@ import { affiliatesRouter } from '@/core-affiliates/routers/affiliates';
 import { attributionsRouter } from '@/core-affiliates/routers/attributions';
 import { aiWriterRouter } from '@/core-ai-writer/routers/ai-writer';
 import { importRouter } from '@/core-import/routers/import';
+import { docsRouter } from '@/core-docs/routers/docs';
+import { storeProductsRouter } from '@/core-store/routers/products';
+import { storeCartRouter } from '@/core-store/routers/cart';
+import { storeCheckoutRouter } from '@/core-store/routers/checkout';
+import { storeOrdersRouter } from '@/core-store/routers/orders';
 
 export const moduleRouters = {
   billing: billingRouter,
@@ -19,4 +24,9 @@ export const moduleRouters = {
   attributions: attributionsRouter,
   aiWriter: aiWriterRouter,
   import: importRouter,
+  docs: docsRouter,
+  storeProducts: storeProductsRouter,
+  storeCart: storeCartRouter,
+  storeCheckout: storeCheckoutRouter,
+  storeOrders: storeOrdersRouter,
 } as const;

@@ -1,39 +1,25 @@
 /**
  * Seed Billing Demo Data
  *
- * Creates realistic demo data for the subscription admin dashboard:
- * - 20 customers, 12 orgs, 15 subscriptions, 40 transactions
- * - 5 discount codes, token balances + ledger entries
+ * Creates billing-specific demo data:
+ * - 15 subscriptions, 40 transactions, 5 discount codes
+ * - Token balances + ledger entries for all orgs
  *
+ * Requires users/orgs to be seeded first (passed via context).
  * Uses faker seed(42) for deterministic output.
- * Safe to run multiple times — skips if billing data already exists.
  */
 
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { count } from 'drizzle-orm';
 import crypto from 'crypto';
 import { faker } from '@faker-js/faker';
-import { hashPassword } from '@/lib/password';
 import { log } from '@/scripts/seed/helpers';
 
-// ─── Configuration ──────────────────────────────────────────────────────────
-
 const SEED = 42;
-const NUM_CUSTOMERS = 20;
-const NUM_ORGS = 12;
 const NUM_SUBSCRIPTIONS = 15;
 const NUM_TRANSACTIONS = 40;
 const NUM_DISCOUNT_CODES = 5;
 const TRANSACTION_SPREAD_DAYS = 120;
-
-// ─── Result type ────────────────────────────────────────────────────────────
-
-export interface BillingSeedResult {
-  userIds: string[];
-  orgIds: string[];
-}
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
 
 function uuid(): string {
   return crypto.randomUUID();
@@ -47,8 +33,6 @@ function pick<T>(arr: T[]): T {
   return faker.helpers.arrayElement(arr);
 }
 
-// ─── Plan data (mirrors src/config/plans.ts) ────────────────────────────────
-
 const PLANS = ['starter', 'pro', 'enterprise'] as const;
 const PLAN_PRICES: Record<string, { monthly: number; yearly: number }> = {
   starter: { monthly: 1900, yearly: 19000 },
@@ -58,16 +42,21 @@ const PLAN_PRICES: Record<string, { monthly: number; yearly: number }> = {
 
 const DISCOUNT_TYPES = ['percentage', 'fixed_price', 'trial', 'free_trial'] as const;
 
-// ─── Main ───────────────────────────────────────────────────────────────────
-
 export async function seedBilling(
   db: PostgresJsDatabase,
-  superadminUserId: string,
-): Promise<BillingSeedResult> {
+  _superadminUserId: string,
+  context?: { userIds: string[]; orgIds: string[] },
+): Promise<{ userIds?: string[]; orgIds?: string[] }> {
   faker.seed(SEED);
 
-  const { user, account } = await import('@/server/db/schema/auth');
-  const { organization, member } = await import('@/server/db/schema/organization');
+  const userIds = context?.userIds ?? [];
+  const orgIds = context?.orgIds ?? [];
+
+  if (userIds.length === 0 || orgIds.length === 0) {
+    log('\u26A0\uFE0F', 'No users/orgs available. Seed demo users first.');
+    return {};
+  }
+
   const {
     saasSubscriptions,
     saasPaymentTransactions,
@@ -77,86 +66,14 @@ export async function seedBilling(
     saasTokenTransactions,
   } = await import('@/core-billing/schema/billing');
 
-  // ─── Idempotency check ────────────────────────────────────────────
+  // Idempotency check
   const [existingSubs] = await db.select({ count: count() }).from(saasSubscriptions);
   if ((existingSubs?.count ?? 0) > 0) {
     log('\u23ED\uFE0F', 'Billing data already exists. Skipping seed.');
-    return { userIds: [], orgIds: [] };
+    return {};
   }
 
-  // ─── 1. Customers ─────────────────────────────────────────────────
-  log('\uD83D\uDC64', `Creating ${NUM_CUSTOMERS} customers...`);
-  const hashedPw = await hashPassword('demo1234');
-  const userIds: string[] = [];
-
-  for (let i = 0; i < NUM_CUSTOMERS; i++) {
-    const id = uuid();
-    userIds.push(id);
-    const firstName = faker.person.firstName();
-    const lastName = faker.person.lastName();
-
-    await db.insert(user).values({
-      id,
-      name: `${firstName} ${lastName}`,
-      email: faker.internet.email({ firstName, lastName }).toLowerCase(),
-      emailVerified: faker.datatype.boolean(0.8),
-      image: faker.image.avatar(),
-      role: 'user',
-      createdAt: faker.date.past({ years: 1 }),
-    }).onConflictDoNothing();
-
-    await db.insert(account).values({
-      id: uuid(),
-      accountId: id,
-      providerId: 'credential',
-      userId: id,
-      password: hashedPw,
-    }).onConflictDoNothing();
-  }
-  log('\u2705', `${NUM_CUSTOMERS} customers created.`);
-
-  // ─── 2. Organizations ─────────────────────────────────────────────
-  log('\uD83C\uDFE2', `Creating ${NUM_ORGS} organizations...`);
-  const orgIds: string[] = [];
-
-  for (let i = 0; i < NUM_ORGS; i++) {
-    const orgId = uuid();
-    orgIds.push(orgId);
-    const companyName = faker.company.name();
-
-    await db.insert(organization).values({
-      id: orgId,
-      name: companyName,
-      slug: faker.helpers.slugify(companyName).toLowerCase().slice(0, 40),
-      logo: faker.image.urlPicsumPhotos({ width: 64, height: 64 }),
-      createdAt: faker.date.past({ years: 1 }),
-    }).onConflictDoNothing();
-
-    const ownerId = i === 0 ? superadminUserId : userIds[i % userIds.length]!;
-
-    await db.insert(member).values({
-      id: uuid(),
-      organizationId: orgId,
-      userId: ownerId,
-      role: 'owner',
-      createdAt: faker.date.past({ years: 1 }),
-    }).onConflictDoNothing();
-
-    const extraMembers = faker.number.int({ min: 1, max: 3 });
-    for (let m = 0; m < extraMembers; m++) {
-      const memberIdx = (i + m + NUM_ORGS) % userIds.length;
-      await db.insert(member).values({
-        id: uuid(),
-        organizationId: orgId,
-        userId: userIds[memberIdx]!,
-        role: pick(['member', 'member', 'admin']),
-        createdAt: faker.date.past({ years: 1 }),
-      }).onConflictDoNothing();
-    }
-  }
-  log('\u2705', `${NUM_ORGS} organizations created.`);
-
-  // ─── 3. Subscriptions ─────────────────────────────────────────────
+  // ─── 1. Subscriptions ─────────────────────────────────────────────
   log('\uD83D\uDCB3', `Creating ${NUM_SUBSCRIPTIONS} subscriptions...`);
 
   const statusWeights = [
@@ -199,7 +116,7 @@ export async function seedBilling(
   }
   log('\u2705', `${NUM_SUBSCRIPTIONS} subscriptions created.`);
 
-  // ─── 4. Transactions ──────────────────────────────────────────────
+  // ─── 2. Transactions ──────────────────────────────────────────────
   log('\uD83D\uDCB0', `Creating ${NUM_TRANSACTIONS} transactions...`);
 
   const txStatusWeights = [
@@ -236,7 +153,7 @@ export async function seedBilling(
   }
   log('\u2705', `${NUM_TRANSACTIONS} transactions created.`);
 
-  // ─── 5. Discount codes ────────────────────────────────────────────
+  // ─── 3. Discount codes ────────────────────────────────────────────
   log('\uD83C\uDFF7\uFE0F', `Creating ${NUM_DISCOUNT_CODES} discount codes...`);
 
   for (let i = 0; i < NUM_DISCOUNT_CODES; i++) {
@@ -288,8 +205,8 @@ export async function seedBilling(
   }
   log('\u2705', `${NUM_DISCOUNT_CODES} discount codes created.`);
 
-  // ─── 6. Token balances ──────────────────────────────────────────────
-  log('\uD83E\uDE99', `Creating token balances for ${NUM_ORGS} organizations...`);
+  // ─── 4. Token balances ──────────────────────────────────────────────
+  log('\uD83E\uDE99', `Creating token balances for ${orgIds.length} organizations...`);
 
   for (let i = 0; i < orgIds.length; i++) {
     const balance = faker.number.int({ min: 50, max: 5000 });
@@ -328,7 +245,7 @@ export async function seedBilling(
       });
     }
   }
-  log('\u2705', `Token balances and ${NUM_ORGS * 5} ledger entries created.`);
+  log('\u2705', `Token balances and ledger entries created.`);
 
-  return { userIds, orgIds };
+  return {};
 }

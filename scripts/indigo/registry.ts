@@ -58,6 +58,20 @@ export const REGISTRY: ModuleRegistryEntry[] = [
     importName: 'coreAiWriter',
     description: 'AI content generation, SEO optimization, translation, image alt text',
   },
+  {
+    id: 'core-docs',
+    repo: 'git@github.com:indigo-fw/core-docs.git',
+    importName: 'coreDocs',
+    free: true,
+    description: 'Documentation system — CMS, .md, .mdx sources with LLM export',
+  },
+  {
+    id: 'core-store',
+    repo: 'git@github.com:indigo-fw/core-store.git',
+    importName: 'coreStore',
+    requires: ['core-billing'],
+    description: 'E-commerce — products, variants, cart, checkout, orders, shipping, tax (EU VAT)',
+  },
 ];
 
 export function getRegistryEntry(id: string): ModuleRegistryEntry | undefined {

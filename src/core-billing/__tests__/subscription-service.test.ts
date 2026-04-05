@@ -126,24 +126,53 @@ describe('subscription-service', () => {
   });
 
   // NOTE: getSubscription and getOrgByProviderSubscription are trivial DB
-  // wrappers. Skipping unit tests here because bun's test runner has mock
-  // leakage between files in the same __tests__/ dir. They're covered
-  // implicitly through billing.test.ts and feature-gate.test.ts.
+  // wrappers — covered implicitly through billing.test.ts and feature-gate.test.ts.
 
   // =========================================================================
   // cancelSubscription
   // =========================================================================
   describe('cancelSubscription', () => {
-    it('sets status to "canceled" and planId to "free"', async () => {
+    it('selects subscription before updating', async () => {
+      await cancelSubscription('sub_stripe_123');
+      // SELECT must happen to check cancelAtPeriodEnd
+      expect(db.select).toHaveBeenCalledTimes(1);
+      expect(db.update).toHaveBeenCalledTimes(1);
+    });
+
+    it('sets status to "canceled" and planId to "free" when not cancel-at-period-end', async () => {
+      // Default: m.limit returns [] → sub is undefined → planId: 'free'
       await cancelSubscription('sub_stripe_123');
       expect(m.set).toHaveBeenCalledWith(
         expect.objectContaining({ status: 'canceled', planId: 'free', updatedAt: expect.any(Date) }),
       );
     });
 
-    it('filters by providerSubscriptionId', async () => {
+    it('keeps current plan when cancelAtPeriodEnd is true and period has not ended', async () => {
+      const futureDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+      m.limit.mockResolvedValue([{ cancelAtPeriodEnd: true, currentPeriodEnd: futureDate }]);
+
+      await cancelSubscription('sub_stripe_123');
+      const setArg = asMock(m.set).mock.calls[0]![0] as Record<string, unknown>;
+      expect(setArg.status).toBe('canceled');
+      expect(setArg).not.toHaveProperty('planId');
+    });
+
+    it('downgrades to free when cancelAtPeriodEnd is true but period already ended', async () => {
+      const pastDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      m.limit.mockResolvedValue([{ cancelAtPeriodEnd: true, currentPeriodEnd: pastDate }]);
+
+      await cancelSubscription('sub_stripe_123');
+      expect(m.set).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'canceled', planId: 'free' }),
+      );
+    });
+
+    it('filters both SELECT and UPDATE by providerSubscriptionId', async () => {
       await cancelSubscription('sub_stripe_789');
-      expect(eq).toHaveBeenCalledWith('saas_subscriptions.provider_subscription_id', 'sub_stripe_789');
+      // eq called twice: once for SELECT WHERE, once for UPDATE WHERE
+      expect(eq).toHaveBeenCalledTimes(2);
+      expect(eq).toHaveBeenNthCalledWith(1, 'saas_subscriptions.provider_subscription_id', 'sub_stripe_789');
+      expect(eq).toHaveBeenNthCalledWith(2, 'saas_subscriptions.provider_subscription_id', 'sub_stripe_789');
     });
   });
 
@@ -246,10 +275,14 @@ describe('subscription-service', () => {
           providerCustomerId: 'cus_crypto_123',
         });
 
+        // SELECT uses composite WHERE (org + provider)
         expect(and).toHaveBeenCalled();
+        // UPDATE targets the existing row by id
         expect(m.set).toHaveBeenCalledWith(
           expect.objectContaining({ providerCustomerId: 'cus_crypto_123', planId: 'pro', status: 'active' }),
         );
+        expect(m.updateWhere).toHaveBeenCalled();
+        expect(eq).toHaveBeenCalledWith('saas_subscriptions.id', 'existing-sub-id');
       });
 
       it('inserts a new subscription when none exists', async () => {

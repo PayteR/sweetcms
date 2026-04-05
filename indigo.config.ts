@@ -15,6 +15,8 @@ import coreSupport from './src/core-support/module.config';
 import coreAffiliates from './src/core-affiliates/module.config';
 import coreAiWriter from './src/core-ai-writer/module.config';
 import coreImport from './src/core-import/module.config';
+import coreDocs from './src/core-docs/module.config';
+import coreStore from './src/core-store/module.config';
 
 const modules: ModuleConfig[] = [
   coreBilling,
@@ -23,6 +25,8 @@ const modules: ModuleConfig[] = [
   coreAffiliates,
   coreAiWriter,
   coreImport,
+  coreDocs,
+  coreStore,
 ];
 
 export default modules;

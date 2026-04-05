@@ -6,9 +6,14 @@ import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import { seedBilling } from '@/core-billing/seed';
 import { seedAffiliates } from '@/core-affiliates/seed';
 
+export interface SeedContext {
+  userIds: string[];
+  orgIds: string[];
+}
+
 export interface ModuleSeed {
   label: string;
-  fn: (db: PostgresJsDatabase, superadminUserId: string) => Promise<{ userIds?: string[]; orgIds?: string[] }>;
+  fn: (db: PostgresJsDatabase, superadminUserId: string, context?: SeedContext) => Promise<{ userIds?: string[]; orgIds?: string[] }>;
 }
 
 export const MODULE_SEEDS: ModuleSeed[] = [

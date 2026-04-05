@@ -10,6 +10,7 @@ export async function initModuleDeps(): Promise<void> {
   await import('@/core-billing-crypto/register');
   await import('@/config/support-deps');
   await import('@/config/affiliates-deps');
+  await import('@/config/store-deps');
 }
 
 /**

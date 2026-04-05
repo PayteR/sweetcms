@@ -28,8 +28,15 @@ function pick<T>(arr: T[]): T {
 export async function seedAffiliates(
   db: PostgresJsDatabase,
   _superadminUserId: string,
+  context?: { userIds: string[]; orgIds: string[] },
 ): Promise<{ userIds?: string[]; orgIds?: string[] }> {
   faker.seed(SEED);
+
+  const userIds = context?.userIds ?? [];
+  if (userIds.length < NUM_AFFILIATES) {
+    log('\u26A0\uFE0F', `Not enough users (${userIds.length}) for affiliate seed. Seed demo users first.`);
+    return {};
+  }
 
   const {
     saasAffiliates,
@@ -43,15 +50,6 @@ export async function seedAffiliates(
     log('\u23ED\uFE0F', 'Affiliate data already exists. Skipping seed.');
     return {};
   }
-
-  // Get existing user IDs from billing seed (or any users)
-  const { user } = await import('@/server/db/schema/auth');
-  const users = await db.select({ id: user.id }).from(user).limit(NUM_AFFILIATES + 5);
-  if (users.length < NUM_AFFILIATES) {
-    log('\u26A0\uFE0F', `Not enough users (${users.length}) for affiliate seed. Run billing seed first.`);
-    return {};
-  }
-  const userIds = users.map((u) => u.id);
 
   log('\uD83E\uDD1D', `Creating ${NUM_AFFILIATES} affiliates...`);
 

@@ -33,6 +33,7 @@ import {
   type CompanyInfo,
 } from './seed/helpers';
 import { seedMedia, seedCmsContent } from './seed/cms-content';
+import { seedUsersAndOrgs } from './seed/users-orgs';
 import { seedExtras } from './seed/extras';
 import { MODULE_SEEDS } from '@/generated/module-seeds';
 
@@ -422,19 +423,25 @@ async function main() {
       log('📋', 'What to seed:');
       const wantCms = await promptYesNo('  Seed CMS content (pages, blog, portfolio, showcase)?', true);
 
+      // Only ask about demo users/modules if there are module seeds
+      const hasModuleSeeds = MODULE_SEEDS.length > 0;
+      const wantDemoUsers = hasModuleSeeds
+        ? await promptYesNo('  Seed demo users & organizations (required for module data)?', true)
+        : false;
+
       // Module seeds — ask for each installed module that has seed data
       const moduleSeeds: { label: string; fn: typeof MODULE_SEEDS[number]['fn']; accepted: boolean }[] = [];
-      for (const seed of MODULE_SEEDS) {
-        const accepted = await promptYesNo(`  Seed ${seed.label}?`, true);
-        moduleSeeds.push({ label: seed.label, fn: seed.fn, accepted });
+      if (wantDemoUsers) {
+        for (const seed of MODULE_SEEDS) {
+          const accepted = await promptYesNo(`  Seed ${seed.label}?`, true);
+          moduleSeeds.push({ label: seed.label, fn: seed.fn, accepted });
+        }
       }
 
       const wantExtras = await promptYesNo('  Seed extras (menus, forms, audit log, notifications)?', true);
       console.log('');
 
       let cmsResult: Awaited<ReturnType<typeof seedCmsContent>> | undefined;
-      const allUserIds: string[] = [];
-      const allOrgIds: string[] = [];
 
       // Seed CMS content
       if (wantCms) {
@@ -442,13 +449,18 @@ async function main() {
         cmsResult = await seedCmsContent(db, companyInfo);
       }
 
-      // Run accepted module seeds
+      // Seed demo users & orgs (core framework data)
+      let seedContext = { userIds: [] as string[], orgIds: [] as string[] };
+      if (wantDemoUsers) {
+        const usersOrgsResult = await seedUsersAndOrgs(db, superadminUserId);
+        seedContext = { userIds: usersOrgsResult.userIds, orgIds: usersOrgsResult.orgIds };
+      }
+
+      // Run accepted module seeds with context
       const seededModules: string[] = [];
       for (const seed of moduleSeeds) {
         if (!seed.accepted) continue;
-        const result = await seed.fn(db, superadminUserId);
-        if (result?.userIds) allUserIds.push(...result.userIds);
-        if (result?.orgIds) allOrgIds.push(...result.orgIds);
+        await seed.fn(db, superadminUserId, seedContext);
         seededModules.push(seed.label);
       }
 
@@ -458,8 +470,8 @@ async function main() {
           superadminUserId,
           postIds: cmsResult?.postIds ?? [],
           categoryIds: cmsResult?.categoryIds ?? [],
-          userIds: allUserIds,
-          orgIds: allOrgIds,
+          userIds: seedContext.userIds,
+          orgIds: seedContext.orgIds,
         });
       }
 

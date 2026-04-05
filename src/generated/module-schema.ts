@@ -6,3 +6,7 @@ export * from '@/core-support/schema/support-chat';
 export * from '@/core-support/schema/support-tickets';
 export * from '@/core-affiliates/schema/affiliates';
 export * from '@/core-affiliates/schema/attributions';
+export * from '@/core-docs/schema/docs';
+export * from '@/core-store/schema/products';
+export * from '@/core-store/schema/orders';
+export * from '@/core-store/schema/shipping-tax';
