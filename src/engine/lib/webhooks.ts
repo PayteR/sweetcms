@@ -8,6 +8,31 @@ import { createQueue, createWorker } from '@/engine/lib/queue';
 
 const log = createLogger('webhooks');
 
+// ---------------------------------------------------------------------------
+// Delivery logger — set by server.ts to log deliveries to the DB
+// ---------------------------------------------------------------------------
+
+type DeliveryLoggerFn = (entry: {
+  webhookId: string;
+  event: string;
+  status: 'success' | 'failed';
+  statusCode?: number;
+  error?: string;
+  durationMs?: number;
+}) => void;
+
+let deliveryLogger: DeliveryLoggerFn | null = null;
+
+/** Register a delivery logger (called from server.ts after DB is available). */
+export function setWebhookDeliveryLogger(fn: DeliveryLoggerFn): void {
+  deliveryLogger = fn;
+}
+
+/** Get the registered delivery logger (if any). */
+export function getDeliveryLogger(): DeliveryLoggerFn | null {
+  return deliveryLogger;
+}
+
 const WEBHOOK_QUEUE = 'webhook-delivery';
 
 // Lazy-initialised queue — null when Redis is not available.

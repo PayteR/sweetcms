@@ -1330,7 +1330,7 @@ export const cmsRouter = createTRPCRouter({
           id: cmsPosts.id,
           title: cmsPosts.title,
           slug: cmsPosts.slug,
-          postType: cmsPosts.postType,
+          postType: cmsPosts.type,
           publishedAt: cmsPosts.publishedAt,
           lang: cmsPosts.lang,
         })

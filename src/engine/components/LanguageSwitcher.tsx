@@ -30,10 +30,13 @@ function LanguageSwitcherInner() {
   function switchLocale(locale: Locale) {
     setOpen(false);
     // Mark that user explicitly chose a locale — prevents auto-detect redirect
-    document.cookie = 'locale-chosen=1; path=/; max-age=31536000; SameSite=Lax';
     // Full page reload required — the root layout's NextIntlClientProvider
     // must re-render with the new locale's messages from the server.
-    window.location.assign(localePath(basePath, locale));
+    const target = localePath(basePath, locale);
+    requestAnimationFrame(() => {
+      document.cookie = 'locale-chosen=1; path=/; max-age=31536000; SameSite=Lax';
+      window.location.assign(target);
+    });
   }
 
   // Close on click outside

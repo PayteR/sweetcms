@@ -1,11 +1,11 @@
 import { index, jsonb, pgTable, text, timestamp, varchar } from 'drizzle-orm/pg-core';
 
-// ─── saas_attributions ───────────────────────────────────────────────────────
+// ─── saas_user_acquisitions ───────────────────────────────────────────────────────
 // First-touch marketing attribution for each user.
 // Captures HOW the user arrived (UTM, ref code, referrer, landing page).
 // Separate from affiliate tracking — not every ref code is an affiliate partner.
 
-export const saasAttributions = pgTable('saas_attributions', {
+export const saasUserAcquisitions = pgTable('saas_user_acquisitions', {
   id: text('id')
     .primaryKey()
     .$defaultFn(() => crypto.randomUUID()),
@@ -23,9 +23,9 @@ export const saasAttributions = pgTable('saas_attributions', {
 
   capturedAt: timestamp('captured_at').notNull().defaultNow(),
 }, (table) => [
-  index('idx_attributions_utm_source').on(table.utmSource),
-  index('idx_attributions_ref_code').on(table.refCode),
+  index('idx_user_acquisitions_utm_source').on(table.utmSource),
+  index('idx_user_acquisitions_ref_code').on(table.refCode),
 ]);
 
-export type Attribution = typeof saasAttributions.$inferSelect;
-export type NewAttribution = typeof saasAttributions.$inferInsert;
+export type UserAcquisition = typeof saasUserAcquisitions.$inferSelect;
+export type NewUserAcquisition = typeof saasUserAcquisitions.$inferInsert;

@@ -35,11 +35,6 @@ export function TranslationBar({
   const [dropdownLang, setDropdownLang] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  if (locales.length <= 1) return null;
-
-  const existingLangs = new Set([currentLang, ...translations.map((t) => t.lang)]);
-  const missingLangs = locales.filter((l) => !existingLangs.has(l));
-
   useEffect(() => {
     if (!dropdownLang) return;
     const handleClickOutside = (e: MouseEvent) => {
@@ -57,6 +52,11 @@ export function TranslationBar({
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [dropdownLang]);
+
+  if (locales.length <= 1) return null;
+
+  const existingLangs = new Set([currentLang, ...translations.map((t) => t.lang)]);
+  const missingLangs = locales.filter((l) => !existingLangs.has(l));
 
   const handleDuplicate = async (lang: string, autoTranslate: boolean) => {
     setDropdownLang(null);

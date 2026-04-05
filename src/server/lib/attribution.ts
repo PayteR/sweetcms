@@ -2,7 +2,7 @@ import { eq } from 'drizzle-orm';
 
 import { createLogger } from '@/engine/lib/logger';
 import { db } from '@/server/db';
-import { saasAttributions } from '@/server/db/schema/attributions';
+import { saasUserAcquisitions } from '@/server/db/schema/attributions';
 
 const log = createLogger('attribution');
 
@@ -26,9 +26,9 @@ export async function captureAttribution(userId: string, data: AttributionData):
   try {
     // Check if attribution already exists (first-touch only)
     const [existing] = await db
-      .select({ id: saasAttributions.id })
-      .from(saasAttributions)
-      .where(eq(saasAttributions.userId, userId))
+      .select({ id: saasUserAcquisitions.id })
+      .from(saasUserAcquisitions)
+      .where(eq(saasUserAcquisitions.userId, userId))
       .limit(1);
 
     if (existing) {
@@ -37,7 +37,7 @@ export async function captureAttribution(userId: string, data: AttributionData):
     }
 
     // Store attribution
-    await db.insert(saasAttributions).values({
+    await db.insert(saasUserAcquisitions).values({
       userId,
       refCode: data.refCode ?? null,
       utmSource: data.utmSource ?? null,

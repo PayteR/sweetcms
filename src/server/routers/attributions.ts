@@ -2,7 +2,7 @@ import { and, count, desc, eq, gte, isNotNull, lte, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
-import { saasAttributions } from '@/server/db/schema/attributions';
+import { saasUserAcquisitions } from '@/server/db/schema/attributions';
 import { user } from '@/server/db/schema/auth';
 import { saasPaymentTransactions } from '@/server/db/schema/billing';
 
@@ -15,28 +15,28 @@ export const attributionsRouter = createTRPCRouter({
   distinctValues: billingProcedure.query(async ({ ctx }) => {
     const [sources, mediums, campaigns, refCodes] = await Promise.all([
       ctx.db
-        .selectDistinct({ value: saasAttributions.utmSource })
-        .from(saasAttributions)
-        .where(isNotNull(saasAttributions.utmSource))
-        .orderBy(saasAttributions.utmSource)
+        .selectDistinct({ value: saasUserAcquisitions.utmSource })
+        .from(saasUserAcquisitions)
+        .where(isNotNull(saasUserAcquisitions.utmSource))
+        .orderBy(saasUserAcquisitions.utmSource)
         .limit(200),
       ctx.db
-        .selectDistinct({ value: saasAttributions.utmMedium })
-        .from(saasAttributions)
-        .where(isNotNull(saasAttributions.utmMedium))
-        .orderBy(saasAttributions.utmMedium)
+        .selectDistinct({ value: saasUserAcquisitions.utmMedium })
+        .from(saasUserAcquisitions)
+        .where(isNotNull(saasUserAcquisitions.utmMedium))
+        .orderBy(saasUserAcquisitions.utmMedium)
         .limit(200),
       ctx.db
-        .selectDistinct({ value: saasAttributions.utmCampaign })
-        .from(saasAttributions)
-        .where(isNotNull(saasAttributions.utmCampaign))
-        .orderBy(saasAttributions.utmCampaign)
+        .selectDistinct({ value: saasUserAcquisitions.utmCampaign })
+        .from(saasUserAcquisitions)
+        .where(isNotNull(saasUserAcquisitions.utmCampaign))
+        .orderBy(saasUserAcquisitions.utmCampaign)
         .limit(200),
       ctx.db
-        .selectDistinct({ value: saasAttributions.refCode })
-        .from(saasAttributions)
-        .where(isNotNull(saasAttributions.refCode))
-        .orderBy(saasAttributions.refCode)
+        .selectDistinct({ value: saasUserAcquisitions.refCode })
+        .from(saasUserAcquisitions)
+        .where(isNotNull(saasUserAcquisitions.refCode))
+        .orderBy(saasUserAcquisitions.refCode)
         .limit(200),
     ]);
     return {
@@ -61,36 +61,36 @@ export const attributionsRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const groupByCol =
         input.groupBy === 'utm_medium'
-          ? saasAttributions.utmMedium
+          ? saasUserAcquisitions.utmMedium
           : input.groupBy === 'utm_campaign'
-            ? saasAttributions.utmCampaign
+            ? saasUserAcquisitions.utmCampaign
             : input.groupBy === 'ref_code'
-              ? saasAttributions.refCode
-              : saasAttributions.utmSource;
+              ? saasUserAcquisitions.refCode
+              : saasUserAcquisitions.utmSource;
 
       const conditions = [isNotNull(groupByCol)];
       if (input.startDate) {
-        conditions.push(gte(saasAttributions.capturedAt, new Date(input.startDate)));
+        conditions.push(gte(saasUserAcquisitions.capturedAt, new Date(input.startDate)));
       }
       if (input.endDate) {
-        conditions.push(lte(saasAttributions.capturedAt, new Date(input.endDate + 'T23:59:59')));
+        conditions.push(lte(saasUserAcquisitions.capturedAt, new Date(input.endDate + 'T23:59:59')));
       }
 
       const rows = await ctx.db
         .select({
           label: groupByCol,
-          signups: sql<number>`COUNT(DISTINCT ${saasAttributions.userId})`,
-          paidUsers: sql<number>`COUNT(DISTINCT CASE WHEN ${saasPaymentTransactions.status} = 'succeeded' THEN ${saasAttributions.userId} END)`,
+          signups: sql<number>`COUNT(DISTINCT ${saasUserAcquisitions.userId})`,
+          paidUsers: sql<number>`COUNT(DISTINCT CASE WHEN ${saasPaymentTransactions.status} = 'succeeded' THEN ${saasUserAcquisitions.userId} END)`,
           totalRevenueCents: sql<number>`COALESCE(SUM(CASE WHEN ${saasPaymentTransactions.status} = 'succeeded' THEN ${saasPaymentTransactions.amountCents} ELSE 0 END), 0)`,
         })
-        .from(saasAttributions)
+        .from(saasUserAcquisitions)
         .leftJoin(
           saasPaymentTransactions,
-          eq(saasPaymentTransactions.userId, saasAttributions.userId)
+          eq(saasPaymentTransactions.userId, saasUserAcquisitions.userId)
         )
         .where(and(...conditions))
         .groupBy(groupByCol)
-        .orderBy(desc(sql`COUNT(DISTINCT ${saasAttributions.userId})`))
+        .orderBy(desc(sql`COUNT(DISTINCT ${saasUserAcquisitions.userId})`))
         .limit(100);
 
       return rows.map((r) => {
@@ -124,36 +124,36 @@ export const attributionsRouter = createTRPCRouter({
       const { page, pageSize, offset } = parsePagination(input);
 
       const conditions = [];
-      if (input.utmSource) conditions.push(eq(saasAttributions.utmSource, input.utmSource));
-      if (input.utmMedium) conditions.push(eq(saasAttributions.utmMedium, input.utmMedium));
-      if (input.utmCampaign) conditions.push(eq(saasAttributions.utmCampaign, input.utmCampaign));
-      if (input.refCode) conditions.push(eq(saasAttributions.refCode, input.refCode));
-      if (input.startDate) conditions.push(gte(saasAttributions.capturedAt, new Date(input.startDate)));
-      if (input.endDate) conditions.push(lte(saasAttributions.capturedAt, new Date(input.endDate + 'T23:59:59')));
+      if (input.utmSource) conditions.push(eq(saasUserAcquisitions.utmSource, input.utmSource));
+      if (input.utmMedium) conditions.push(eq(saasUserAcquisitions.utmMedium, input.utmMedium));
+      if (input.utmCampaign) conditions.push(eq(saasUserAcquisitions.utmCampaign, input.utmCampaign));
+      if (input.refCode) conditions.push(eq(saasUserAcquisitions.refCode, input.refCode));
+      if (input.startDate) conditions.push(gte(saasUserAcquisitions.capturedAt, new Date(input.startDate)));
+      if (input.endDate) conditions.push(lte(saasUserAcquisitions.capturedAt, new Date(input.endDate + 'T23:59:59')));
 
       const where = conditions.length > 0 ? and(...conditions) : undefined;
 
       const [items, [countRow]] = await Promise.all([
         ctx.db
           .select({
-            id: saasAttributions.id,
-            userId: saasAttributions.userId,
+            id: saasUserAcquisitions.id,
+            userId: saasUserAcquisitions.userId,
             userName: user.name,
             userEmail: user.email,
-            refCode: saasAttributions.refCode,
-            utmSource: saasAttributions.utmSource,
-            utmMedium: saasAttributions.utmMedium,
-            utmCampaign: saasAttributions.utmCampaign,
-            extra: saasAttributions.extra,
-            capturedAt: saasAttributions.capturedAt,
+            refCode: saasUserAcquisitions.refCode,
+            utmSource: saasUserAcquisitions.utmSource,
+            utmMedium: saasUserAcquisitions.utmMedium,
+            utmCampaign: saasUserAcquisitions.utmCampaign,
+            extra: saasUserAcquisitions.extra,
+            capturedAt: saasUserAcquisitions.capturedAt,
           })
-          .from(saasAttributions)
-          .leftJoin(user, eq(user.id, saasAttributions.userId))
+          .from(saasUserAcquisitions)
+          .leftJoin(user, eq(user.id, saasUserAcquisitions.userId))
           .where(where)
-          .orderBy(desc(saasAttributions.capturedAt))
+          .orderBy(desc(saasUserAcquisitions.capturedAt))
           .offset(offset)
           .limit(pageSize),
-        ctx.db.select({ count: count() }).from(saasAttributions).where(where),
+        ctx.db.select({ count: count() }).from(saasUserAcquisitions).where(where),
       ]);
 
       return paginatedResult(items, countRow?.count ?? 0, page, pageSize);

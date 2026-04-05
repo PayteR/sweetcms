@@ -3,7 +3,7 @@ import path from 'node:path';
 import nodemailer from 'nodemailer';
 import type Mail from 'nodemailer/lib/mailer';
 
-import { eq, inArray } from 'drizzle-orm';
+import { inArray } from 'drizzle-orm';
 
 import { db as appDb } from '@/server/db';
 import { cmsOptions } from '@/server/db/schema';

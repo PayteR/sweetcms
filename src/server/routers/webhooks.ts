@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import crypto from 'crypto';
-import { desc, eq, sql, and, count } from 'drizzle-orm';
+import { desc, eq, count } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { cmsWebhooks, cmsWebhookDeliveries } from '@/server/db/schema';
