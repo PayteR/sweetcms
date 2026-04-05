@@ -2,7 +2,6 @@ import { createTRPCRouter } from '../trpc';
 import { analyticsRouter } from './analytics';
 import { auditRouter } from './audit';
 import { authRouter } from './auth';
-import { billingRouter } from '@/core-billing/routers/billing';
 import { categoriesRouter } from './categories';
 import { commentsRouter } from './comments';
 import { cmsRouter } from './cms';
@@ -24,31 +23,24 @@ import { usersRouter } from './users';
 import { organizationsRouter } from './organizations';
 import { notificationsRouter } from './notifications';
 import { projectsRouter } from './projects';
-import { discountCodesRouter } from '@/core-billing/routers/discount-codes';
-import { supportRouter } from '@/core-support/routers/support';
-import { supportChatRouter } from '@/core-support/routers/support-chat';
-import { affiliatesRouter } from '@/core-affiliates/routers/affiliates';
-import { attributionsRouter } from '@/core-affiliates/routers/attributions';
 import { aiRouter } from './ai';
 import { webhooksRouter } from './webhooks';
+import { moduleRouters } from '@/generated/module-routers';
 
 /**
- * Root tRPC router — combines all sub-routers
+ * Root tRPC router — combines all sub-routers.
+ * Module routers are auto-generated from indigo.config.ts via `bun run indigo:sync`.
  */
 export const appRouter = createTRPCRouter({
-  affiliates: affiliatesRouter,
-  attributions: attributionsRouter,
+  // ─── Core routers (always present) ────────────────────────────────────────
   ai: aiRouter,
   analytics: analyticsRouter,
   audit: auditRouter,
   auth: authRouter,
-  billing: billingRouter,
   cms: cmsRouter,
   comments: commentsRouter,
   categories: categoriesRouter,
-  supportChat: supportChatRouter,
   contentSearch: contentSearchRouter,
-  discountCodes: discountCodesRouter,
   customFields: customFieldsRouter,
   forms: formsRouter,
   import: importRouter,
@@ -64,10 +56,11 @@ export const appRouter = createTRPCRouter({
   projects: projectsRouter,
   redirects: redirectsRouter,
   revisions: revisionsRouter,
-  support: supportRouter,
   tags: tagsRouter,
   users: usersRouter,
   webhooks: webhooksRouter,
+  // ─── Module routers (from indigo.config.ts) ───────────────────────────────
+  ...moduleRouters,
 });
 
 export type AppRouter = typeof appRouter;

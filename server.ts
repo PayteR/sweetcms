@@ -65,10 +65,9 @@ async function main() {
 
   // Register side-effect dependencies
   await import('./src/config/email-list');
-  await import('./src/config/payments-deps');
-  await import('./src/config/support-deps');
-  await import('./src/config/affiliates-deps');
-  await import('./src/core-billing-crypto/register');
+  // Module deps + registrations (generated from indigo.config.ts)
+  const { initModuleDeps } = await import('./src/generated/module-server');
+  await initModuleDeps();
 
   // Register webhook delivery logger
   const { setWebhookDeliveryLogger } = await import('./src/core/lib/webhooks');
@@ -86,14 +85,14 @@ async function main() {
       './src/server/jobs/content/index'
     );
     const { startWebhookWorker } = await import('./src/core/lib/webhooks');
-    const { startSupportChatCleanupWorker } = await import('./src/core-support/jobs/support-chat');
+    const { startModuleWorkers } = await import('./src/generated/module-server');
     const { startMediaWorker } = await import('./src/server/jobs/media/index');
     startEmailWorker();
     startContentWorker();
     startWebhookWorker();
-    startSupportChatCleanupWorker();
+    await startModuleWorkers();
     startMediaWorker();
-    console.log('BullMQ workers ready (email + content + webhook + support-chat-cleanup + media workers started)');
+    console.log('BullMQ workers ready (email + content + webhook + module + media workers started)');
 
     // Schedule dunning checks (daily)
     const { getRedis } = await import('./src/core/lib/redis');

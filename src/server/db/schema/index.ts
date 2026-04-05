@@ -1,6 +1,5 @@
+// ─── Core schema (always present) ───────────────────────────────────────────
 export * from './auth';
-// Re-export from core-billing module for schema discovery
-export * from '@/core-billing/schema/billing';
 export * from './cms';
 export * from './categories';
 export * from './media';
@@ -20,8 +19,7 @@ export * from './organization';
 export * from './notifications';
 export * from './projects';
 export * from './task-queue';
-export * from './support';
-// Re-export from core-affiliates module for schema discovery
-export * from '@/core-affiliates/schema/affiliates';
-export * from '@/core-affiliates/schema/attributions';
 export * from './webhook-deliveries';
+
+// ─── Module schema (from indigo.config.ts via `bun run indigo:sync`) ────────
+export * from '@/generated/module-schema';

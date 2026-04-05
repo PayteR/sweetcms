@@ -9,7 +9,7 @@ import { createLogger } from '@/core/lib/logger';
 import { slugify } from '@/core/lib/slug';
 import { db } from '@/server/db';
 import { organization as organizationTable, member } from '@/server/db/schema/organization';
-import { saasSupportChatSessions } from '@/server/db/schema/support';
+import { saasSupportChatSessions } from '@/core-support/schema/support-chat';
 import { enqueueTemplateEmail } from '@/server/jobs/email';
 import { syncSubscriber } from '@/core/lib/email-list/index';
 

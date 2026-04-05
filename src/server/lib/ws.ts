@@ -4,7 +4,8 @@ import type { Server } from 'http';
 import { eq, and } from 'drizzle-orm';
 import { db } from '@/server/db';
 import { member as memberTable } from '@/server/db/schema/organization';
-import { saasTickets, saasSupportChatSessions } from '@/server/db/schema/support';
+import { saasTickets } from '@/core-support/schema/support-tickets';
+import { saasSupportChatSessions } from '@/core-support/schema/support-chat';
 import { user as userTable } from '@/server/db/schema/auth';
 import { Policy } from '@/core/policy';
 

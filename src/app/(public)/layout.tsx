@@ -20,9 +20,8 @@ import { getLocale } from '@/lib/locale-server';
 import { localePath } from '@/lib/locale';
 import { LOCALES, DEFAULT_LOCALE, LOCALE_LABELS, type Locale } from '@/lib/constants';
 import { adminRoutes, contentRoutes, apiRoutes } from '@/config/routes';
-import { AttributionCapture } from '@/core-affiliates/components/AttributionCapture';
 import { AuthDialogs } from '@/components/public/AuthDialogs';
-import { SupportChatWidgetWrapper } from '@/components/public/SupportChatWidgetWrapper';
+import { PUBLIC_LAYOUT_WIDGETS } from '@/generated/module-widgets';
 import { getServerTranslations, type TranslationFn } from '@/lib/translations-server';
 import { LanguageSuggestionBanner } from '@/core/components/LanguageSuggestionBanner';
 import { getLanguageSuggestion } from '@/core/lib/language-suggestion';
@@ -112,7 +111,7 @@ export default async function PublicLayout({
   return (
     <>
       <Suspense fallback={null}>
-        <AttributionCapture />
+        {PUBLIC_LAYOUT_WIDGETS.map((Widget, i) => <Widget key={i} />)}
       </Suspense>
       <link
         rel="alternate"
@@ -177,7 +176,6 @@ export default async function PublicLayout({
       )}
       <AuthDialogs />
       <main className="flex-1">{children}</main>
-      <SupportChatWidgetWrapper />
 
       {/* ═══ Footer ═══ */}
       <footer className="footer">
