@@ -13,12 +13,16 @@ import coreBilling from './src/core-billing/module.config';
 import coreBillingCrypto from './src/core-billing-crypto/module.config';
 import coreSupport from './src/core-support/module.config';
 import coreAffiliates from './src/core-affiliates/module.config';
+import coreAiWriter from './src/core-ai-writer/module.config';
+import coreImport from './src/core-import/module.config';
 
 const modules: ModuleConfig[] = [
   coreBilling,
   coreBillingCrypto,
   coreSupport,
   coreAffiliates,
+  coreAiWriter,
+  coreImport,
 ];
 
 export default modules;

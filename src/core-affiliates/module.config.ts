@@ -14,6 +14,9 @@ const config: ModuleConfig = {
     '@/config/affiliates-deps',
   ],
   jobs: [],
+  seed: [
+    { name: 'seedAffiliates', from: '@/core-affiliates/seed', label: 'Affiliate demo data (referrals, commissions)' },
+  ],
   layoutWidgets: [
     { name: 'AttributionCapture', from: '@/core-affiliates/components/AttributionCapture' },
   ],

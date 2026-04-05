@@ -13,6 +13,9 @@ const config: ModuleConfig = {
     '@/config/payments-deps',
   ],
   jobs: [],
+  seed: [
+    { name: 'seedBilling', from: '@/core-billing/seed', label: 'Billing demo data (users, orgs, subscriptions, tokens)' },
+  ],
   layoutWidgets: [],
   projectFiles: [
     'config/payments-deps.ts',

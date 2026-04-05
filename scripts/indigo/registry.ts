@@ -52,6 +52,12 @@ export const REGISTRY: ModuleRegistryEntry[] = [
     importName: 'coreAffiliates',
     description: 'Referral tracking, attribution, affiliate management',
   },
+  {
+    id: 'core-ai-writer',
+    repo: 'git@github.com:indigo-fw/core-ai-writer.git',
+    importName: 'coreAiWriter',
+    description: 'AI content generation, SEO optimization, translation, image alt text',
+  },
 ];
 
 export function getRegistryEntry(id: string): ModuleRegistryEntry | undefined {

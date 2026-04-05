@@ -16,6 +16,7 @@ const config: ModuleConfig = {
   jobs: [
     { name: 'startSupportChatCleanupWorker', from: '@/core-support/jobs/support-chat' },
   ],
+  seed: [],
   layoutWidgets: [
     { name: 'SupportChatWidgetWrapper', from: '@/components/public/SupportChatWidgetWrapper' },
   ],

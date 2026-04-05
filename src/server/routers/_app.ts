@@ -8,7 +8,6 @@ import { cmsRouter } from './cms';
 import { contentSearchRouter } from './content-search';
 import { customFieldsRouter } from './custom-fields';
 import { formsRouter } from './forms';
-import { importRouter } from './import';
 import { jobQueueRouter } from './job-queue';
 import { mediaRouter } from './media';
 import { menusRouter } from './menus';
@@ -43,7 +42,6 @@ export const appRouter = createTRPCRouter({
   contentSearch: contentSearchRouter,
   customFields: customFieldsRouter,
   forms: formsRouter,
-  import: importRouter,
   jobQueue: jobQueueRouter,
   media: mediaRouter,
   menus: menusRouter,

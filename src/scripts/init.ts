@@ -33,8 +33,8 @@ import {
   type CompanyInfo,
 } from './seed/helpers';
 import { seedMedia, seedCmsContent } from './seed/cms-content';
-import { seedBilling } from './seed/billing';
 import { seedExtras } from './seed/extras';
+import { MODULE_SEEDS } from '@/generated/module-seeds';
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -421,12 +421,20 @@ async function main() {
       console.log('');
       log('📋', 'What to seed:');
       const wantCms = await promptYesNo('  Seed CMS content (pages, blog, portfolio, showcase)?', true);
-      const wantBilling = await promptYesNo('  Seed billing demo data (users, orgs, subscriptions)?', true);
+
+      // Module seeds — ask for each installed module that has seed data
+      const moduleSeeds: { label: string; fn: typeof MODULE_SEEDS[number]['fn']; accepted: boolean }[] = [];
+      for (const seed of MODULE_SEEDS) {
+        const accepted = await promptYesNo(`  Seed ${seed.label}?`, true);
+        moduleSeeds.push({ label: seed.label, fn: seed.fn, accepted });
+      }
+
       const wantExtras = await promptYesNo('  Seed extras (menus, forms, audit log, notifications)?', true);
       console.log('');
 
       let cmsResult: Awaited<ReturnType<typeof seedCmsContent>> | undefined;
-      let billingResult: Awaited<ReturnType<typeof seedBilling>> | undefined;
+      const allUserIds: string[] = [];
+      const allOrgIds: string[] = [];
 
       // Seed CMS content
       if (wantCms) {
@@ -434,9 +442,14 @@ async function main() {
         cmsResult = await seedCmsContent(db, companyInfo);
       }
 
-      // Seed billing
-      if (wantBilling) {
-        billingResult = await seedBilling(db, superadminUserId);
+      // Run accepted module seeds
+      const seededModules: string[] = [];
+      for (const seed of moduleSeeds) {
+        if (!seed.accepted) continue;
+        const result = await seed.fn(db, superadminUserId);
+        if (result?.userIds) allUserIds.push(...result.userIds);
+        if (result?.orgIds) allOrgIds.push(...result.orgIds);
+        seededModules.push(seed.label);
       }
 
       // Seed extras
@@ -445,8 +458,8 @@ async function main() {
           superadminUserId,
           postIds: cmsResult?.postIds ?? [],
           categoryIds: cmsResult?.categoryIds ?? [],
-          userIds: billingResult?.userIds ?? [],
-          orgIds: billingResult?.orgIds ?? [],
+          userIds: allUserIds,
+          orgIds: allOrgIds,
         });
       }
 
@@ -454,7 +467,7 @@ async function main() {
       const { cmsAuditLog } = await import('../server/db/schema/audit');
       const seeded = [
         wantCms && 'cms',
-        wantBilling && 'billing',
+        ...seededModules,
         wantExtras && 'extras',
       ].filter(Boolean);
       if (seeded.length > 0) {

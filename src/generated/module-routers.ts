@@ -7,6 +7,8 @@ import { supportChatRouter } from '@/core-support/routers/support-chat';
 import { supportRouter } from '@/core-support/routers/support';
 import { affiliatesRouter } from '@/core-affiliates/routers/affiliates';
 import { attributionsRouter } from '@/core-affiliates/routers/attributions';
+import { aiWriterRouter } from '@/core-ai-writer/routers/ai-writer';
+import { importRouter } from '@/core-import/routers/import';
 
 export const moduleRouters = {
   billing: billingRouter,
@@ -15,4 +17,6 @@ export const moduleRouters = {
   support: supportRouter,
   affiliates: affiliatesRouter,
   attributions: attributionsRouter,
+  aiWriter: aiWriterRouter,
+  import: importRouter,
 } as const;

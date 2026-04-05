@@ -3,8 +3,7 @@
  *
  * Creates realistic demo data for the subscription admin dashboard:
  * - 20 customers, 12 orgs, 15 subscriptions, 40 transactions
- * - 5 discount codes, 6 affiliates with referrals + events
- * - Token balances + ledger entries for all orgs
+ * - 5 discount codes, token balances + ledger entries
  *
  * Uses faker seed(42) for deterministic output.
  * Safe to run multiple times — skips if billing data already exists.
@@ -15,22 +14,21 @@ import { count } from 'drizzle-orm';
 import crypto from 'crypto';
 import { faker } from '@faker-js/faker';
 import { hashPassword } from '@/lib/password';
-import { log } from './helpers';
+import { log } from '@/scripts/seed/helpers';
 
 // ─── Configuration ──────────────────────────────────────────────────────────
 
-const SEED = 42; // deterministic faker output
+const SEED = 42;
 const NUM_CUSTOMERS = 20;
 const NUM_ORGS = 12;
 const NUM_SUBSCRIPTIONS = 15;
 const NUM_TRANSACTIONS = 40;
 const NUM_DISCOUNT_CODES = 5;
-const NUM_AFFILIATES = 6;
 const TRANSACTION_SPREAD_DAYS = 120;
 
 // ─── Result type ────────────────────────────────────────────────────────────
 
-export interface BillingResult {
+export interface BillingSeedResult {
   userIds: string[];
   orgIds: string[];
 }
@@ -65,22 +63,19 @@ const DISCOUNT_TYPES = ['percentage', 'fixed_price', 'trial', 'free_trial'] as c
 export async function seedBilling(
   db: PostgresJsDatabase,
   superadminUserId: string,
-): Promise<BillingResult> {
+): Promise<BillingSeedResult> {
   faker.seed(SEED);
 
-  const { user, account } = await import('../../server/db/schema/auth');
-  const { organization, member } = await import('../../server/db/schema/organization');
+  const { user, account } = await import('@/server/db/schema/auth');
+  const { organization, member } = await import('@/server/db/schema/organization');
   const {
     saasSubscriptions,
     saasPaymentTransactions,
     saasDiscountCodes,
     saasDiscountUsages,
+    saasTokenBalances,
+    saasTokenTransactions,
   } = await import('@/core-billing/schema/billing');
-  const {
-    saasAffiliates,
-    saasReferrals,
-    saasAffiliateEvents,
-  } = await import('@/core-affiliates/schema/affiliates');
 
   // ─── Idempotency check ────────────────────────────────────────────
   const [existingSubs] = await db.select({ count: count() }).from(saasSubscriptions);
@@ -137,7 +132,6 @@ export async function seedBilling(
       createdAt: faker.date.past({ years: 1 }),
     }).onConflictDoNothing();
 
-    // First org owned by superadmin, rest by faker users
     const ownerId = i === 0 ? superadminUserId : userIds[i % userIds.length]!;
 
     await db.insert(member).values({
@@ -148,7 +142,6 @@ export async function seedBilling(
       createdAt: faker.date.past({ years: 1 }),
     }).onConflictDoNothing();
 
-    // 1-3 extra members
     const extraMembers = faker.number.int({ min: 1, max: 3 });
     for (let m = 0; m < extraMembers; m++) {
       const memberIdx = (i + m + NUM_ORGS) % userIds.length;
@@ -281,7 +274,6 @@ export async function seedBilling(
       createdAt: daysAgo(faker.number.int({ min: 30, max: 120 })),
     });
 
-    // A few usage records
     const usageCount = Math.min(currentUses, faker.number.int({ min: 1, max: 5 }));
     for (let u = 0; u < usageCount; u++) {
       await db.insert(saasDiscountUsages).values({
@@ -296,94 +288,8 @@ export async function seedBilling(
   }
   log('\u2705', `${NUM_DISCOUNT_CODES} discount codes created.`);
 
-  // ─── 6. Affiliates ────────────────────────────────────────────────
-  log('\uD83E\uDD1D', `Creating ${NUM_AFFILIATES} affiliates...`);
-
-  for (let i = 0; i < NUM_AFFILIATES; i++) {
-    const affId = uuid();
-    const totalReferrals = faker.number.int({ min: 2, max: 20 });
-    const convertedCount = Math.ceil(totalReferrals * faker.number.float({ min: 0.3, max: 0.8 }));
-    const commissionPercent = pick([15, 20, 20, 20, 25, 30]);
-    const avgPurchase = pick([1900, 4900, 9900]);
-    const totalEarnings = Math.round(convertedCount * avgPurchase * commissionPercent / 100);
-
-    await db.insert(saasAffiliates).values({
-      id: affId,
-      userId: userIds[i]!,
-      code: faker.string.alpha({ length: 3, casing: 'upper' })
-        + '-'
-        + faker.string.alphanumeric({ length: 5, casing: 'upper' }),
-      commissionPercent,
-      status: faker.helpers.weightedArrayElement([
-        { value: 'active', weight: 80 },
-        { value: 'suspended', weight: 15 },
-        { value: 'banned', weight: 5 },
-      ]),
-      totalReferrals,
-      totalEarningsCents: totalEarnings,
-      createdAt: faker.date.past({ years: 1 }),
-      updatedAt: faker.date.recent({ days: 30 }),
-    });
-
-    // Create referral records
-    const refCount = Math.min(totalReferrals, 8); // cap actual records
-    for (let r = 0; r < refCount; r++) {
-      const refId = uuid();
-      const isConverted = r < convertedCount;
-
-      await db.insert(saasReferrals).values({
-        id: refId,
-        affiliateId: affId,
-        referredUserId: uuid(), // synthetic user IDs for referrals
-        status: isConverted ? 'converted' : 'pending',
-        convertedAt: isConverted ? faker.date.recent({ days: 60 }) : null,
-        createdAt: faker.date.past({ years: 1 }),
-      });
-
-      // Signup event
-      await db.insert(saasAffiliateEvents).values({
-        id: uuid(),
-        affiliateId: affId,
-        referralId: refId,
-        type: 'signup',
-        amountCents: null,
-        createdAt: faker.date.past({ years: 1 }),
-      });
-
-      if (isConverted) {
-        const purchaseAmount = pick([1900, 4900, 9900, 19000, 49000]);
-        const commission = Math.round(purchaseAmount * commissionPercent / 100);
-
-        await db.insert(saasAffiliateEvents).values({
-          id: uuid(),
-          affiliateId: affId,
-          referralId: refId,
-          type: 'purchase',
-          amountCents: purchaseAmount,
-          metadata: { transactionId: `pi_${faker.string.alphanumeric(16)}` },
-          createdAt: faker.date.recent({ days: 60 }),
-        });
-
-        await db.insert(saasAffiliateEvents).values({
-          id: uuid(),
-          affiliateId: affId,
-          referralId: refId,
-          type: 'commission',
-          amountCents: commission,
-          createdAt: faker.date.recent({ days: 55 }),
-        });
-      }
-    }
-  }
-  log('\u2705', `${NUM_AFFILIATES} affiliates created.`);
-
-  // ─── 7. Token balances ──────────────────────────────────────────────
+  // ─── 6. Token balances ──────────────────────────────────────────────
   log('\uD83E\uDE99', `Creating token balances for ${NUM_ORGS} organizations...`);
-
-  const {
-    saasTokenBalances,
-    saasTokenTransactions,
-  } = await import('@/core-billing/schema/billing');
 
   for (let i = 0; i < orgIds.length; i++) {
     const balance = faker.number.int({ min: 50, max: 5000 });
@@ -400,7 +306,6 @@ export async function seedBilling(
       updatedAt: faker.date.recent({ days: 7 }),
     }).onConflictDoNothing();
 
-    // A few ledger entries
     const txCount = faker.number.int({ min: 3, max: 8 });
     let runningBalance = 0;
     for (let t = 0; t < txCount; t++) {

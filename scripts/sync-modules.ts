@@ -32,12 +32,14 @@ async function main() {
   generateSchema(modules);
   generateServer(modules);
   generateWidgets(modules);
+  generateSeeds(modules);
 
   console.log(`Module sync complete — ${modules.length} modules registered`);
   console.log('  src/generated/module-routers.ts');
   console.log('  src/generated/module-schema.ts');
   console.log('  src/generated/module-server.ts');
   console.log('  src/generated/module-widgets.ts');
+  console.log('  src/generated/module-seeds.ts');
 }
 
 function generateRouters(modules: ModuleConfig[]) {
@@ -138,6 +140,43 @@ function generateWidgets(modules: ModuleConfig[]) {
     resolve(outDir, 'module-widgets.ts'),
     `${HEADER}\nimport type { ComponentType } from 'react';\n\n${imports}\n\nexport const PUBLIC_LAYOUT_WIDGETS: ComponentType[] = [\n${entries}\n];\n`,
   );
+}
+
+function generateSeeds(modules: ModuleConfig[]) {
+  const seeds = modules.flatMap((m) => m.seed ?? []);
+
+  if (seeds.length === 0) {
+    writeFileSync(
+      resolve(outDir, 'module-seeds.ts'),
+      `${HEADER}\nimport type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';\n\nexport interface ModuleSeed {\n  label: string;\n  fn: (db: PostgresJsDatabase, superadminUserId: string) => Promise<{ userIds?: string[]; orgIds?: string[] }>;\n}\n\nexport const MODULE_SEEDS: ModuleSeed[] = [];\n`,
+    );
+    return;
+  }
+
+  const imports = seeds
+    .map((s) => `import { ${s.name} } from '${s.from}';`)
+    .join('\n');
+
+  const entries = seeds
+    .map((s) => `  { label: '${s.label}', fn: ${s.name} },`)
+    .join('\n');
+
+  const content = `${HEADER}
+import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
+
+${imports}
+
+export interface ModuleSeed {
+  label: string;
+  fn: (db: PostgresJsDatabase, superadminUserId: string) => Promise<{ userIds?: string[]; orgIds?: string[] }>;
+}
+
+export const MODULE_SEEDS: ModuleSeed[] = [
+${entries}
+];
+`;
+
+  writeFileSync(resolve(outDir, 'module-seeds.ts'), content);
 }
 
 main().catch((err) => {

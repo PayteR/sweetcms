@@ -99,15 +99,15 @@ vi.mock('@/core/lib/slug', () => ({
   ),
 }));
 
-vi.mock('@/core/lib/importers/csv', () => ({
+vi.mock('@/core-import/lib/importers/csv', () => ({
   parseCSV: vi.fn(),
 }));
 
-vi.mock('@/core/lib/importers/ghost', () => ({
+vi.mock('@/core-import/lib/importers/ghost', () => ({
   parseGhostJSON: vi.fn(),
 }));
 
-vi.mock('@/core/lib/importers/wordpress', () => ({
+vi.mock('@/core-import/lib/importers/wordpress', () => ({
   parseWordPressWXR: vi.fn(),
 }));
 
@@ -139,12 +139,12 @@ vi.mock('@/lib/env', () => ({
 // ---------------------------------------------------------------------------
 
 import { asMock } from '@/test-utils';
-import { importRouter } from '../import';
-import { parseCSV } from '@/core/lib/importers/csv';
-import { parseGhostJSON } from '@/core/lib/importers/ghost';
-import { parseWordPressWXR } from '@/core/lib/importers/wordpress';
+import { importRouter } from '@/core-import/routers/import';
+import { parseCSV } from '@/core-import/lib/importers/csv';
+import { parseGhostJSON } from '@/core-import/lib/importers/ghost';
+import { parseWordPressWXR } from '@/core-import/lib/importers/wordpress';
 import { logAudit } from '@/core/lib/audit';
-import { createMockCtx } from './test-helpers';
+import { createMockCtx } from '@/server/routers/__tests__/test-helpers';
 
 // ---------------------------------------------------------------------------
 // Helpers

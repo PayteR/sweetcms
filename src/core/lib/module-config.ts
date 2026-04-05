@@ -28,6 +28,15 @@ export interface WidgetEntry {
   from: string;
 }
 
+export interface SeedEntry {
+  /** Export name of the seed function (e.g. 'seedBilling') */
+  name: string;
+  /** Import path */
+  from: string;
+  /** Human-readable label shown during init (e.g. 'Billing demo data') */
+  label: string;
+}
+
 export interface ModuleConfig {
   /** Module identifier (e.g. 'core-billing') */
   id: string;
@@ -41,6 +50,8 @@ export interface ModuleConfig {
   jobs: JobEntry[];
   /** Components to inject into public layout */
   layoutWidgets: WidgetEntry[];
+  /** Seed functions for demo data (run during `bun run init`) */
+  seed: SeedEntry[];
   /**
    * Project-layer files scaffolded by this module (relative to src/).
    * Copied from _templates/ during `indigo add`, removed during `indigo remove`.

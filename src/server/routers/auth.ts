@@ -188,7 +188,8 @@ export const authRouter = createTRPCRouter({
       return { success: true };
     }),
 
-  /** Capture marketing attribution after registration (ref code, UTM params, referrer, etc.) */
+  /** Capture marketing attribution after registration (ref code, UTM params, referrer, etc.)
+   *  Requires core-affiliates module — silently no-ops if not installed. */
   captureAttribution: protectedProcedure
     .input(z.object({
       refCode: z.string().max(255).optional(),
@@ -198,8 +199,12 @@ export const authRouter = createTRPCRouter({
       extra: z.record(z.string(), z.string().max(2000)).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
-      const { captureAttribution } = await import('@/core-affiliates/lib/attribution');
-      await captureAttribution(ctx.session.user.id, input);
+      try {
+        const { captureAttribution } = await import('@/core-affiliates/lib/attribution');
+        await captureAttribution(ctx.session.user.id, input);
+      } catch {
+        // core-affiliates not installed — silently skip
+      }
       return { success: true };
     }),
 

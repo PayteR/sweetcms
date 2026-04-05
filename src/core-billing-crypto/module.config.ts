@@ -8,6 +8,7 @@ const config: ModuleConfig = {
     '@/core-billing-crypto/register',
   ],
   jobs: [],
+  seed: [],
   layoutWidgets: [],
   projectFiles: [
     'app/api/webhooks/nowpayments/route.ts',

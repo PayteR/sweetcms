@@ -17,7 +17,6 @@ import { sendOrgNotification } from '@/server/lib/notifications';
 import { NotificationType, NotificationCategory } from '@/core/types/notifications';
 import { createLogger } from '@/core/lib/logger';
 import { adminPanel } from '@/config/routes';
-import { recordConversion } from '@/core-affiliates/lib/affiliates';
 import { invalidateStats } from '@/core/lib/stats-cache';
 import { tagSubscriber } from '@/core/lib/email-list/index';
 
@@ -113,14 +112,16 @@ export async function POST(request: Request) {
           actionUrl: adminPanel.settingsBilling,
         });
 
-        // Record affiliate conversion if applicable
+        // Record affiliate conversion if applicable (core-affiliates module optional)
         const checkoutUserId = metadata?.userId as string | undefined;
         if (checkoutUserId) {
           const activatedPlanObj = getPlanByProviderPriceId('stripe', event.providerPriceId ?? '');
           const amountCents = activatedPlanObj
             ? (inferredInterval === 'yearly' ? activatedPlanObj.priceYearly : activatedPlanObj.priceMonthly)
             : 0;
-          recordConversion(checkoutUserId, event.providerSubscriptionId!, amountCents).catch(() => {});
+          import('@/core-affiliates/lib/affiliates')
+            .then(({ recordConversion }) => recordConversion(checkoutUserId, event.providerSubscriptionId!, amountCents))
+            .catch(() => {/* core-affiliates not installed */});
         }
 
         // Tag subscriber in email list with plan name
