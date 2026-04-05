@@ -13,7 +13,7 @@ import {
 
 import { trpc } from '@/lib/trpc/client';
 import { useAdminTranslations } from '@/lib/translations';
-import { PostType } from '@/engine/types/cms';
+import { PostType } from '@/core/types/cms';
 import { toast } from '@/store/toast-store';
 import { cn } from '@/lib/utils';
 
@@ -313,7 +313,7 @@ export default function ImportPage() {
               className={cn(
                 'text-sm font-medium',
                 i === currentStepIndex
-                  ? 'text-(--color-brand-600)'
+                  ? 'text-brand-600'
                   : i < currentStepIndex
                     ? 'text-(--text-primary)'
                     : 'text-(--text-muted)'
@@ -346,7 +346,7 @@ export default function ImportPage() {
                   className={cn(
                     'rounded-lg border p-4 text-left transition-colors',
                     format === opt.value
-                      ? 'border-(--color-brand-500) bg-(--color-brand-50)'
+                      ? 'border-brand-500 bg-brand-50'
                       : 'border-(--border-primary) hover:border-(--border-primary) hover:bg-(--surface-secondary)'
                   )}
                 >
@@ -380,11 +380,11 @@ export default function ImportPage() {
               />
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="import-dropzone flex cursor-pointer flex-col items-center rounded-lg border-2 border-dashed border-(--border-primary) px-6 py-10 transition-colors hover:border-(--color-brand-400) hover:bg-(--surface-secondary)"
+                className="import-dropzone flex cursor-pointer flex-col items-center rounded-lg border-2 border-dashed border-(--border-primary) px-6 py-10 transition-colors hover:border-brand-400 hover:bg-(--surface-secondary)"
               >
                 {fileName ? (
                   <>
-                    <FileText className="h-10 w-10 text-(--color-brand-500)" />
+                    <FileText className="h-10 w-10 text-brand-500" />
                     <p className="mt-2 text-sm font-medium text-(--text-primary)">
                       {fileName}
                     </p>
@@ -564,7 +564,7 @@ export default function ImportPage() {
               <button
                 type="button"
                 onClick={toggleAll}
-                className="text-sm text-(--color-brand-600) hover:underline"
+                className="text-sm text-brand-600 hover:underline"
               >
                 {selectedIndices.size === previewItems.length
                   ? __('Deselect all')

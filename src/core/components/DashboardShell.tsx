@@ -7,9 +7,9 @@ import {
   getActiveSectionId,
   getNavItem,
   isNavGroup,
-} from "@/engine/config/admin-nav";
-import type { NavItem } from "@/engine/config/admin-nav";
-import { useSidebarStore } from "@/engine/store/sidebar-store";
+} from "@/core/config/admin-nav";
+import type { NavItem } from "@/core/config/admin-nav";
+import { useSidebarStore } from "@/core/store/sidebar-store";
 
 const DEFAULT_KNOWN_ACTIONS = new Set(["edit", "new"]);
 

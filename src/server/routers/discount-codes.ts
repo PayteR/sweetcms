@@ -3,7 +3,7 @@ import { eq, desc, sql } from 'drizzle-orm';
 import { TRPCError } from '@trpc/server';
 import { createTRPCRouter, sectionProcedure } from '../trpc';
 import { saasDiscountCodes, saasDiscountUsages } from '@/server/db/schema';
-import { DiscountType } from '@/engine/types/payment';
+import { DiscountType } from '@/core/types/payment';
 
 const billingProcedure = sectionProcedure('billing');
 

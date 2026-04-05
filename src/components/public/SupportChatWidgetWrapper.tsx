@@ -1,9 +1,9 @@
 'use client';
 
-import { SupportChatWidget } from '@/engine/components/SupportChatWidget';
+import { SupportChatWidget } from '@/core-chat/components/SupportChatWidget';
 import { useBlankTranslations } from '@/lib/translations';
 import { clientEnv } from '@/lib/env-client';
-import { supportChatConfig } from '@/config/support-chat';
+import { supportChatConfig } from '@/core-chat/config';
 import { accountRoutes } from '@/config/routes';
 
 export function SupportChatWidgetWrapper() {

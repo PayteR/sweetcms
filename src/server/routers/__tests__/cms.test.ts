@@ -12,15 +12,15 @@ vi.mock('@/lib/auth', () => ({
   },
 }));
 
-vi.mock('@/engine/lib/redis', () => ({
+vi.mock('@/core/lib/redis', () => ({
   getRedis: vi.fn().mockReturnValue(null),
 }));
 
-vi.mock('@/engine/lib/trpc-rate-limit', () => ({
+vi.mock('@/core/lib/trpc-rate-limit', () => ({
   applyRateLimit: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('@/engine/policy', () => ({
+vi.mock('@/core/policy', () => ({
   Policy: {
     for: vi.fn().mockReturnValue({
       canAccessAdmin: vi.fn().mockReturnValue(true),
@@ -35,7 +35,7 @@ vi.mock('@/engine/policy', () => ({
   },
 }));
 
-vi.mock('@/engine/crud/admin-crud', () => ({
+vi.mock('@/core/crud/admin-crud', () => ({
   buildAdminList: vi.fn().mockResolvedValue({
     results: [],
     total: 0,
@@ -76,11 +76,11 @@ vi.mock('@/engine/crud/admin-crud', () => ({
   ),
 }));
 
-vi.mock('@/engine/crud/cms-helpers', () => ({
+vi.mock('@/core/crud/cms-helpers', () => ({
   updateWithRevision: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('@/engine/crud/taxonomy-helpers', () => ({
+vi.mock('@/core/crud/taxonomy-helpers', () => ({
   syncTermRelationships: vi.fn().mockResolvedValue(undefined),
   getTermRelationships: vi.fn().mockResolvedValue([]),
   deleteAllTermRelationships: vi.fn().mockResolvedValue(undefined),
@@ -89,11 +89,11 @@ vi.mock('@/engine/crud/taxonomy-helpers', () => ({
   ),
 }));
 
-vi.mock('@/engine/lib/audit', () => ({
+vi.mock('@/core/lib/audit', () => ({
   logAudit: vi.fn(),
 }));
 
-vi.mock('@/engine/lib/webhooks', () => ({
+vi.mock('@/core/lib/webhooks', () => ({
   dispatchWebhook: vi.fn(),
 }));
 
@@ -105,7 +105,7 @@ vi.mock('@/server/translation/translate-fields', () => ({
   createFieldTranslator: vi.fn(),
 }));
 
-vi.mock('@/engine/storage', () => ({
+vi.mock('@/core/storage', () => ({
   getStorage: vi.fn().mockReturnValue({
     url: vi.fn((path: string) => `/uploads/${path}`),
   }),
@@ -123,7 +123,7 @@ vi.mock('@/lib/constants', () => ({
   DEFAULT_LOCALE: 'en',
 }));
 
-vi.mock('@/engine/lib/logger', () => ({
+vi.mock('@/core/lib/logger', () => ({
   createLogger: vi.fn().mockReturnValue({
     info: vi.fn(),
     error: vi.fn(),
@@ -132,7 +132,7 @@ vi.mock('@/engine/lib/logger', () => ({
   }),
 }));
 
-vi.mock('@/engine/lib/seo-routes', () => ({
+vi.mock('@/core/lib/seo-routes', () => ({
   SEO_OVERRIDE_ROUTES: [],
   SEO_OVERRIDE_SLUGS: new Set<string>(),
 }));
@@ -207,12 +207,12 @@ vi.mock('@/server/db/schema', () => ({
 import { TRPCError } from '@trpc/server';
 import { asMock } from '@/test-utils';
 import { cmsRouter } from '../cms';
-import { buildStatusCounts, fetchOrNotFound } from '@/engine/crud/admin-crud';
-import { getTermRelationships, syncTermRelationships, resolveTagsForPosts } from '@/engine/crud/taxonomy-helpers';
-import { updateWithRevision } from '@/engine/crud/cms-helpers';
-import { softDelete, softRestore } from '@/engine/crud/admin-crud';
-import { logAudit } from '@/engine/lib/audit';
-import { dispatchWebhook } from '@/engine/lib/webhooks';
+import { buildStatusCounts, fetchOrNotFound } from '@/core/crud/admin-crud';
+import { getTermRelationships, syncTermRelationships, resolveTagsForPosts } from '@/core/crud/taxonomy-helpers';
+import { updateWithRevision } from '@/core/crud/cms-helpers';
+import { softDelete, softRestore } from '@/core/crud/admin-crud';
+import { logAudit } from '@/core/lib/audit';
+import { dispatchWebhook } from '@/core/lib/webhooks';
 import { createMockCtx } from './test-helpers';
 
 const MOCK_POST = {

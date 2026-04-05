@@ -2,8 +2,8 @@
 
 import { useCallback, useState } from 'react';
 
-import { useAdminTranslations } from '@/engine/lib/translations';
-import { toast } from '@/engine/store/toast-store';
+import { useAdminTranslations } from '@/core/lib/translations';
+import { toast } from '@/core/store/toast-store';
 
 interface BulkActionsMutations {
   deleteMutateAsync: (input: { id: string }) => Promise<unknown>;

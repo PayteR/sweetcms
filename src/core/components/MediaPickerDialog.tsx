@@ -13,12 +13,12 @@ import {
 } from "lucide-react";
 
 import { trpc } from "@/lib/trpc/client";
-import { useAdminTranslations } from "@/engine/lib/translations";
-import { FileType } from "@/engine/types/cms";
-import { toast } from "@/engine/store/toast-store";
+import { useAdminTranslations } from "@/core/lib/translations";
+import { FileType } from "@/core/types/cms";
+import { toast } from "@/core/store/toast-store";
 import { cn } from "@/lib/utils";
-import { Dialog } from "@/engine/components/Dialog";
-import { ConfirmDialog } from "@/engine/components/ConfirmDialog";
+import { Dialog } from "@/core/components/Dialog";
+import { ConfirmDialog } from "@/core/components/ConfirmDialog";
 
 export interface MediaPickerDialogProps {
   open: boolean;

@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
 
 import { auth } from '@/lib/auth';
-import { Policy } from '@/engine/policy';
+import { Policy } from '@/core/policy';
 import { db } from '@/server/db';
-import { exportUserData } from '@/engine/lib/gdpr';
+import { exportUserData } from '@/core/lib/gdpr';
 
 interface RouteParams {
   params: Promise<{ userId: string }>;

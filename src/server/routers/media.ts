@@ -3,11 +3,11 @@ import { and, count, desc, eq, ilike, inArray, isNull, or } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { cmsMedia } from '@/server/db/schema';
-import { getStorage } from '@/engine/storage';
-import { slugifyFilename } from '@/engine/lib/slug';
-import { FileType } from '@/engine/types/cms';
-import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
-import { logAudit } from '@/engine/lib/audit';
+import { getStorage } from '@/core/storage';
+import { slugifyFilename } from '@/core/lib/slug';
+import { FileType } from '@/core/types/cms';
+import { parsePagination, paginatedResult } from '@/core/crud/admin-crud';
+import { logAudit } from '@/core/lib/audit';
 import { enqueueMediaProcessing } from '@/server/jobs/media/index';
 import {
   createTRPCRouter,

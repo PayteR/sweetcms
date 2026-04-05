@@ -1,6 +1,6 @@
 # Config — CLAUDE.md
 
-Config files are the extension points for this template. Most new features are added here, not in engine or server code.
+Config files are the extension points for this template. Most new features are added here, not in core or server code.
 
 ## How to Add a New Content Type
 
@@ -22,9 +22,9 @@ Config files are the extension points for this template. Most new features are a
 
 ## How to Add a New Shortcode
 
-1. Create component in `src/engine/components/shortcodes/` (or project-specific location)
+1. Create component in `src/core/components/shortcodes/` (or project-specific location)
 2. Register in `src/config/shortcodes.ts` — add to `SHORTCODE_COMPONENTS` map
-3. Engine's `ShortcodeRenderer` accepts `components` prop (no engine edit needed)
+3. Core's `ShortcodeRenderer` accepts `components` prop (no core edit needed)
 
 ## How to Add a New Dashboard Widget
 
@@ -34,4 +34,4 @@ Config files are the extension points for this template. Most new features are a
 
 ## How to Add a Custom Field Type
 
-Engine's `CustomFieldsEditor` accepts optional `fieldRenderers` prop — pass custom renderers to override/extend built-in types. No engine edit needed.
+Core's `CustomFieldsEditor` accepts optional `fieldRenderers` prop — pass custom renderers to override/extend built-in types. No core edit needed.

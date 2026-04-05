@@ -4,10 +4,10 @@ import { eq, and, ne } from 'drizzle-orm';
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '../trpc';
 import { auth } from '@/lib/auth';
 import { user, session } from '@/server/db/schema/auth';
-import { logAudit } from '@/engine/lib/audit';
-import { detectGeo } from '@/engine/lib/geo';
-import { extractRequestContext } from '@/engine/lib/request-context';
-import { createLogger } from '@/engine/lib/logger';
+import { logAudit } from '@/core/lib/audit';
+import { detectGeo } from '@/core/lib/geo';
+import { extractRequestContext } from '@/core/lib/request-context';
+import { createLogger } from '@/core/lib/logger';
 
 const geoLog = createLogger('geo-sync');
 
@@ -132,7 +132,7 @@ export const authRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
       const mode = input?.mode ?? 'full';
-      const { anonymizeUser } = await import('@/engine/lib/gdpr');
+      const { anonymizeUser } = await import('@/core/lib/gdpr');
 
       try {
         await anonymizeUser(ctx.db, userId, userId, mode);

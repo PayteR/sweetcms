@@ -3,7 +3,7 @@ import { Link, getPathname } from '@/i18n/navigation';
 import { getServerTranslations } from '@/lib/translations-server';
 import { db } from '@/server/db';
 import { cmsCategories, cmsPosts, cmsTermRelationships } from '@/server/db/schema';
-import { ContentStatus } from '@/engine/types/cms';
+import { ContentStatus } from '@/core/types/cms';
 import { and, count, eq, isNull } from 'drizzle-orm';
 import { serverTRPC } from '@/lib/trpc/server';
 import { DEFAULT_LOCALE } from '@/lib/constants';

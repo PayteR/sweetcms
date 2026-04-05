@@ -6,7 +6,7 @@ import { CONTENT_TYPES } from '@/config/cms';
 import { LOCALES, DEFAULT_LOCALE, IS_MULTILINGUAL } from '@/lib/constants';
 import type { Locale } from '@/lib/constants';
 import { localePath } from '@/lib/locale';
-import { PostType, ContentStatus } from '@/engine/types/cms';
+import { PostType, ContentStatus } from '@/core/types/cms';
 import { db } from '@/server/db';
 import { cmsPosts, cmsCategories, cmsPortfolio, cmsShowcase, cmsTerms } from '@/server/db/schema';
 

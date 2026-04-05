@@ -3,8 +3,8 @@ import { eq } from 'drizzle-orm';
 
 import type { DbClient } from '@/server/db';
 import { cmsWebhooks } from '@/server/db/schema/webhooks';
-import { createLogger } from '@/engine/lib/logger';
-import { createQueue, createWorker } from '@/engine/lib/queue';
+import { createLogger } from '@/core/lib/logger';
+import { createQueue, createWorker } from '@/core/lib/queue';
 
 const log = createLogger('webhooks');
 

@@ -1,17 +1,14 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { and, count, desc, eq, asc, ne, inArray } from 'drizzle-orm';
-import { createTRPCRouter, publicProcedure, sectionProcedure } from '../trpc';
-import { saasSupportChatSessions, saasSupportChatMessages, saasTickets, saasTicketMessages } from '@/server/db/schema/support';
-import { user } from '@/server/db/schema/auth';
-import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
-import { sendNotification, sendOrgNotification } from '@/server/lib/notifications';
-import { NotificationType, NotificationCategory } from '@/engine/types/notifications';
-import { resolveOrgId } from '@/server/lib/resolve-org';
-import { supportChatConfig } from '@/config/support-chat';
-import { createLogger } from '@/engine/lib/logger';
-import { getRedis } from '@/engine/lib/redis';
-import { checkRateLimit } from '@/engine/lib/rate-limit';
+import { and, count, desc, eq, asc, ne } from 'drizzle-orm';
+import { createTRPCRouter, publicProcedure, sectionProcedure } from '@/server/trpc';
+import { saasSupportChatSessions, saasSupportChatMessages } from '@/core-chat/schema/support-chat';
+import { parsePagination, paginatedResult } from '@/core/crud/admin-crud';
+import { getChatDeps } from '@/core-chat/deps';
+import { supportChatConfig } from '@/core-chat/config';
+import { createLogger } from '@/core/lib/logger';
+import { getRedis } from '@/core/lib/redis';
+import { checkRateLimit } from '@/core/lib/rate-limit';
 
 const logger = createLogger('support-chat');
 
@@ -30,67 +27,21 @@ async function applyChatRateLimit(headers: Headers): Promise<void> {
   }
 }
 
-const DEFAULT_API_URL = 'https://api.openai.com/v1/chat/completions';
-const DEFAULT_MODEL = 'gpt-4o-mini';
 const ESCALATE_PREFIX = '[ESCALATE]';
 
-/** Fire-and-forget WS broadcast */
+/** Fire-and-forget WS broadcast via injected deps */
 function broadcastSupportChatEvent(sessionId: string, type: string, payload: Record<string, unknown>): void {
-  import('@/server/lib/ws')
-    .then(({ broadcastToChannel }) => broadcastToChannel(`supportChat:${sessionId}`, type, { ...payload, type }))
-    .catch(() => {/* WS not available */});
-}
-
-/** Call AI with conversation history, return assistant text */
-async function callAI(messages: { role: string; body: string }[]): Promise<string | null> {
-  const { env } = await import('@/lib/env');
-  if (!env.AI_API_KEY) return null;
-
-  const apiUrl = env.AI_API_URL ?? DEFAULT_API_URL;
-  const model = supportChatConfig.model ?? env.AI_MODEL ?? DEFAULT_MODEL;
-
-  const apiMessages = [
-    { role: 'system', content: supportChatConfig.systemPrompt },
-    ...messages.map((m) => ({
-      role: m.role === 'ai' ? 'assistant' : 'user',
-      content: m.body,
-    })),
-  ];
-
   try {
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${env.AI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages: apiMessages,
-        temperature: 0.7,
-        max_tokens: 1000,
-      }),
-    });
-
-    if (!response.ok) {
-      const errBody = await response.text().catch(() => 'Unknown error');
-      logger.error('Chat AI API error', { status: String(response.status), body: errBody });
-      return null;
-    }
-
-    const data = (await response.json()) as {
-      choices?: { message?: { content?: string } }[];
-    };
-
-    return data.choices?.[0]?.message?.content?.trim() ?? null;
-  } catch (err) {
-    logger.error('Chat AI call failed', { error: String(err) });
-    return null;
+    getChatDeps().broadcastEvent(`supportChat:${sessionId}`, type, { ...payload, type });
+  } catch {
+    // deps not ready or broadcast failed — fire-and-forget
   }
 }
 
 /** Process AI response asynchronously — called fire-and-forget from sendMessage */
 async function processAiResponse(db: typeof import('@/server/db').db, sessionId: string): Promise<void> {
+  const deps = getChatDeps();
+
   // Check message count for forced escalation
   const [msgCount] = await db
     .select({ count: count() })
@@ -115,7 +66,7 @@ async function processAiResponse(db: typeof import('@/server/db').db, sessionId:
     .orderBy(asc(saasSupportChatMessages.createdAt))
     .limit(50);
 
-  const aiText = await callAI(history);
+  const aiText = await deps.callAI(history);
   if (!aiText) return; // AI unavailable
 
   const shouldEscalate = aiText.startsWith(ESCALATE_PREFIX);
@@ -338,6 +289,7 @@ export const supportChatRouter = createTRPCRouter({
       subject: z.string().max(255).optional(),
     }))
     .mutation(async ({ ctx, input }) => {
+      const deps = getChatDeps();
       const authenticatedUser = ctx.session?.user
         ? (ctx.session.user as unknown as { id: string })
         : null;
@@ -362,10 +314,10 @@ export const supportChatRouter = createTRPCRouter({
 
       const subject = input.subject || session.subject || 'Chat support request';
 
-      // ── Authenticated user: create ticket (existing flow) ─────────────────
+      // ── Authenticated user: create ticket via injected deps ──────────────
       if (authenticatedUser) {
         const userId = authenticatedUser.id;
-        const orgId = await resolveOrgId(
+        const orgId = await deps.resolveOrgId(
           (ctx as unknown as { activeOrganizationId?: string }).activeOrganizationId ?? null,
           userId,
         );
@@ -381,37 +333,25 @@ export const supportChatRouter = createTRPCRouter({
           .map((m) => `**${m.role === 'user' ? 'You' : m.role === 'ai' ? 'AI' : 'Agent'}** (${new Date(m.createdAt).toLocaleTimeString()}):\n${m.body}`)
           .join('\n\n---\n\n');
 
-        const ticketId = crypto.randomUUID();
-
-        await ctx.db.insert(saasTickets).values({
-          id: ticketId,
-          organizationId: orgId,
+        const result = await deps.createTicketFromChat({
           userId,
+          orgId,
           subject,
-          status: 'open',
-          priority: 'normal',
-          source: 'chat',
           chatSessionId: input.sessionId,
+          transcript,
         });
 
-        await ctx.db.insert(saasTicketMessages).values({
-          ticketId,
-          userId,
-          isStaff: false,
-          body: `**Chat transcript:**\n\n${transcript}`,
-        });
+        const ticketId = result?.ticketId ?? null;
 
         await ctx.db
           .update(saasSupportChatSessions)
           .set({ status: 'escalated', ticketId, subject })
           .where(eq(saasSupportChatSessions.id, input.sessionId));
 
-        sendOrgNotification(orgId, {
+        deps.sendOrgNotification(orgId, {
           title: 'Chat escalated to ticket',
           body: `Chat escalated: ${subject}`,
-          type: NotificationType.INFO,
-          category: NotificationCategory.SYSTEM,
-          actionUrl: `/dashboard/settings/support/${ticketId}`,
+          actionUrl: ticketId ? `/dashboard/settings/support/${ticketId}` : undefined,
         });
 
         broadcastSupportChatEvent(input.sessionId, 'chat_status', {
@@ -513,6 +453,7 @@ export const supportChatRouter = createTRPCRouter({
       pageSize: z.number().int().min(1).max(100).default(20),
     }))
     .query(async ({ ctx, input }) => {
+      const deps = getChatDeps();
       const { page, pageSize, offset } = parsePagination(input);
 
       const conditions = [];
@@ -545,23 +486,14 @@ export const supportChatRouter = createTRPCRouter({
         ctx.db.select({ count: count() }).from(saasSupportChatSessions).where(where),
       ]);
 
-      // Enrich with user info — only fetch relevant users
+      // Enrich with user info via injected lookup
       const userIds = [...new Set(items.map((i) => i.userId).filter(Boolean) as string[])];
-      let userMap: Record<string, { name: string | null; email: string }> = {};
-      if (userIds.length > 0) {
-        const users = await ctx.db
-          .select({ id: user.id, name: user.name, email: user.email })
-          .from(user)
-          .where(inArray(user.id, userIds))
-          .limit(100);
-        userMap = Object.fromEntries(users.map((u) => [u.id, { name: u.name, email: u.email }]));
-      }
+      const userMap = userIds.length > 0 ? await deps.lookupUsers(userIds) : new Map();
 
       // Batch fetch last message for each session (single query instead of N+1)
       const sessionIds = items.map((i) => i.id);
       const lastMessageMap: Record<string, { body: string; role: string; createdAt: Date }> = {};
       if (sessionIds.length > 0) {
-        // Fetch latest message per session — one query per page (bounded by pageSize)
         const lastMsgRows = await Promise.all(
           sessionIds.map((sid) =>
             ctx.db
@@ -586,10 +518,11 @@ export const supportChatRouter = createTRPCRouter({
 
       const enriched = items.map((item) => {
         const lastMsg = lastMessageMap[item.id];
+        const userInfo = item.userId ? userMap.get(item.userId) : undefined;
         return {
           ...item,
-          userName: item.userId ? userMap[item.userId]?.name ?? null : null,
-          userEmail: item.userId ? userMap[item.userId]?.email ?? null : null,
+          userName: userInfo?.name ?? null,
+          userEmail: userInfo?.email ?? null,
           lastMessage: lastMsg
             ? { body: lastMsg.body.slice(0, 100), role: lastMsg.role, createdAt: lastMsg.createdAt }
             : null,
@@ -603,6 +536,8 @@ export const supportChatRouter = createTRPCRouter({
   adminGet: supportChatAdminProcedure
     .input(z.object({ id: z.string().uuid() }))
     .query(async ({ ctx, input }) => {
+      const deps = getChatDeps();
+
       const [session] = await ctx.db
         .select()
         .from(saasSupportChatSessions)
@@ -626,15 +561,12 @@ export const supportChatRouter = createTRPCRouter({
         .orderBy(asc(saasSupportChatMessages.createdAt))
         .limit(200);
 
-      // Get user info if available
+      // Get user info via injected lookup
       let creator = null;
       if (session.userId) {
-        const [u] = await ctx.db
-          .select({ id: user.id, name: user.name, email: user.email })
-          .from(user)
-          .where(eq(user.id, session.userId))
-          .limit(1);
-        creator = u ?? null;
+        const users = await deps.lookupUsers([session.userId]);
+        const u = users.get(session.userId);
+        creator = u ? { id: u.id, name: u.name, email: u.email } : null;
       }
 
       return { ...session, messages, creator };
@@ -690,12 +622,11 @@ export const supportChatRouter = createTRPCRouter({
 
       // Notify user if they have an account
       if (session.userId) {
-        sendNotification({
+        const deps = getChatDeps();
+        deps.sendNotification({
           userId: session.userId,
           title: 'New message from support',
           body: input.body.slice(0, 100),
-          type: NotificationType.INFO,
-          category: NotificationCategory.SYSTEM,
           actionUrl: `/account/support`,
         });
       }

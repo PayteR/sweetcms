@@ -20,7 +20,7 @@ import {
 import Image from 'next/image';
 import { trpc } from '@/lib/trpc/client';
 import { useAdminTranslations } from '@/lib/translations';
-import { ROLES, Role } from '@/engine/policy';
+import { ROLES, Role } from '@/core/policy';
 import { adminPanel, apiRoutes } from '@/config/routes';
 import { toast } from '@/store/toast-store';
 import { cn } from '@/lib/utils';
@@ -28,7 +28,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 const ROLE_COLORS: Record<string, string> = {
   [Role.USER]: 'bg-(--surface-secondary) text-(--text-secondary)',
-  [Role.EDITOR]: 'bg-(--color-brand-100) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-(--color-brand-700) dark:text-(--color-brand-400)',
+  [Role.EDITOR]: 'bg-brand-100 dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-brand-700 dark:text-brand-400',
   [Role.ADMIN]: 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400',
   [Role.SUPERADMIN]: 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400',
 };

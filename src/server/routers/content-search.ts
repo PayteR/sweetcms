@@ -6,9 +6,9 @@ import { cmsCategories } from '@/server/db/schema/categories';
 import { cmsPortfolio } from '@/server/db/schema/portfolio';
 import { cmsShowcase } from '@/server/db/schema/showcase';
 import { cmsTerms } from '@/server/db/schema/terms';
-import { ContentStatus } from '@/engine/types/cms';
+import { ContentStatus } from '@/core/types/cms';
 import { CONTENT_TYPES } from '@/config/cms';
-import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
+import { parsePagination, paginatedResult } from '@/core/crud/admin-crud';
 import { createTRPCRouter, publicProcedure, sectionProcedure } from '../trpc';
 
 /**

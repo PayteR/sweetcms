@@ -4,13 +4,13 @@ import { useCallback, useMemo, useState } from 'react';
 
 import { History, RotateCcw } from 'lucide-react';
 
-import { useAdminTranslations } from '@/engine/lib/translations';
-import { computeFieldDiffs } from '@/engine/lib/revision-diff';
-import type { FieldDiff } from '@/engine/lib/revision-diff';
+import { useAdminTranslations } from '@/core/lib/translations';
+import { computeFieldDiffs } from '@/core/lib/revision-diff';
+import type { FieldDiff } from '@/core/lib/revision-diff';
 import { trpc } from '@/lib/trpc/client';
-import { toast } from '@/engine/store/toast-store';
-import { Dialog } from '@/engine/components/Dialog';
-import { ConfirmDialog } from '@/engine/components/ConfirmDialog';
+import { toast } from '@/core/store/toast-store';
+import { Dialog } from '@/core/components/Dialog';
+import { ConfirmDialog } from '@/core/components/ConfirmDialog';
 import { cn } from '@/lib/utils';
 
 interface Props {

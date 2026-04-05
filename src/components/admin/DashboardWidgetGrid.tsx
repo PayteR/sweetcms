@@ -22,7 +22,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 
 import { cn } from '@/lib/utils';
-import { usePreferencesStore } from '@/engine/store/preferences-store';
+import { usePreferencesStore } from '@/core/store/preferences-store';
 import {
   DASHBOARD_WIDGETS,
   DEFAULT_WIDGET_ORDER,

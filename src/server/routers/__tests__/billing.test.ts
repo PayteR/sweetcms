@@ -12,15 +12,15 @@ vi.mock('@/lib/auth', () => ({
   },
 }));
 
-vi.mock('@/engine/lib/redis', () => ({
+vi.mock('@/core/lib/redis', () => ({
   getRedis: vi.fn().mockReturnValue(null),
 }));
 
-vi.mock('@/engine/lib/trpc-rate-limit', () => ({
+vi.mock('@/core/lib/trpc-rate-limit', () => ({
   applyRateLimit: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('@/engine/policy', () => ({
+vi.mock('@/core/policy', () => ({
   Policy: {
     for: vi.fn().mockReturnValue({
       canAccessAdmin: vi.fn().mockReturnValue(true),
@@ -35,7 +35,7 @@ vi.mock('@/engine/policy', () => ({
   },
 }));
 
-vi.mock('@/engine/lib/logger', () => ({
+vi.mock('@/core/lib/logger', () => ({
   createLogger: vi.fn().mockReturnValue({
     info: vi.fn(),
     error: vi.fn(),
@@ -44,7 +44,7 @@ vi.mock('@/engine/lib/logger', () => ({
   }),
 }));
 
-vi.mock('@/engine/crud/admin-crud', () => ({
+vi.mock('@/core/crud/admin-crud', () => ({
   buildAdminList: vi.fn().mockResolvedValue({
     results: [],
     total: 0,
@@ -85,7 +85,7 @@ vi.mock('@/engine/crud/admin-crud', () => ({
   ),
 }));
 
-vi.mock('@/engine/lib/audit', () => ({
+vi.mock('@/core/lib/audit', () => ({
   logAudit: vi.fn(),
 }));
 
@@ -98,12 +98,12 @@ vi.mock('@/server/lib/payment/factory', () => ({
 }));
 
 // Mock subscription service
-vi.mock('@/engine/lib/payment/subscription-service', () => ({
+vi.mock('@/core/lib/payment/subscription-service', () => ({
   getSubscription: vi.fn().mockResolvedValue(null),
 }));
 
 // Mock discount service
-vi.mock('@/engine/lib/payment/discount-service', () => ({
+vi.mock('@/core/lib/payment/discount-service', () => ({
   validateCode: vi.fn().mockResolvedValue({ valid: true, finalPriceCents: 1000 }),
   applyDiscount: vi.fn().mockResolvedValue({
     discount: { type: 'percentage', value: 10 },
@@ -114,7 +114,7 @@ vi.mock('@/engine/lib/payment/discount-service', () => ({
   getActiveDiscount: vi.fn().mockResolvedValue(null),
 }));
 
-vi.mock('@/engine/lib/stats-cache', () => ({
+vi.mock('@/core/lib/stats-cache', () => ({
   getStats: vi.fn().mockImplementation((_key: string, fetchFn: () => Promise<unknown>) => fetchFn()),
 }));
 
@@ -211,7 +211,7 @@ vi.mock('@/server/lib/resolve-org', () => ({
 import { asMock } from '@/test-utils';
 import { billingRouter } from '../billing';
 import { isBillingEnabled, getProvider, getEnabledProviders } from '@/server/lib/payment/factory';
-import { getSubscription } from '@/engine/lib/payment/subscription-service';
+import { getSubscription } from '@/core/lib/payment/subscription-service';
 import { PLANS } from '@/config/plans';
 import { createMockCtx } from './test-helpers';
 import { resolveOrgId } from '@/server/lib/resolve-org';

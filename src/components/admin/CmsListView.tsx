@@ -22,18 +22,18 @@ import type { ContentTypeDeclaration } from '@/config/cms';
 import { adminPanel } from '@/config/routes';
 import { trpc } from '@/lib/trpc/client';
 import { useAdminTranslations, dataTranslations } from '@/lib/translations';
-import { ContentStatus } from '@/engine/types/cms';
+import { ContentStatus } from '@/core/types/cms';
 import { LOCALES, LOCALE_LABELS, IS_MULTILINGUAL } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { toast } from '@/store/toast-store';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { SeoOverridesDialog } from '@/engine/components/SeoOverridesDialog';
+import { SeoOverridesDialog } from '@/core/components/SeoOverridesDialog';
 import { TaxonomyOverview } from '@/components/admin/TaxonomyOverview';
-import { useListViewState, SortIcon } from '@/engine/hooks/useListViewState';
-import { useBulkSelection } from '@/engine/hooks/useBulkSelection';
-import { useBulkActions } from '@/engine/hooks/useBulkActions';
-import { useColumnVisibility } from '@/engine/hooks/useColumnVisibility';
-import BulkActionBar from '@/engine/components/BulkActionBar';
+import { useListViewState, SortIcon } from '@/core/hooks/useListViewState';
+import { useBulkSelection } from '@/core/hooks/useBulkSelection';
+import { useBulkActions } from '@/core/hooks/useBulkActions';
+import { useColumnVisibility } from '@/core/hooks/useColumnVisibility';
+import BulkActionBar from '@/core/components/BulkActionBar';
 
 const _d = dataTranslations('General');
 const STATUS_LABELS: Record<number, string> = {

@@ -1,4 +1,4 @@
-import type { WsChannel } from '@/engine/types/realtime';
+import type { WsChannel } from '@/core/types/realtime';
 
 export const WS_CHANNELS: WsChannel[] = [
   {

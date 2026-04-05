@@ -2,8 +2,8 @@
 
 import { useEffect, useState, useTransition } from 'react';
 import { X } from 'lucide-react';
-import { localePath } from '@/engine/lib/locale';
-import { useLocale } from '@/engine/hooks/useLocale';
+import { localePath } from '@/core/lib/locale';
+import { useLocale } from '@/core/hooks/useLocale';
 import { usePathname } from 'next/navigation';
 
 const STORAGE_KEY = 'lang-suggestion-dismissed';

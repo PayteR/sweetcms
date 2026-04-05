@@ -33,11 +33,11 @@ import { buildAlternates } from './resolve';
 registerContentRenderer('page', {
   async render({ slug, preview }) {
     const { PostDetail } = await import('./renderers/PostDetail');
-    const { PostType } = await import('@/engine/types/cms');
+    const { PostType } = await import('@/core/types/cms');
     return <PostDetail slug={slug} postType={PostType.PAGE} preview={preview} />;
   },
   async generateMetadata({ slug, locale, baseUrl }) {
-    const { PostType } = await import('@/engine/types/cms');
+    const { PostType } = await import('@/core/types/cms');
     const post = await getCachedPost(slug, PostType.PAGE, locale);
     const siblings = await getPostTranslationSiblings(post.id);
     const languages = buildAlternates(baseUrl, siblings, locale as import('@/lib/constants').Locale, slug, '/');
@@ -62,11 +62,11 @@ registerContentRenderer('page', {
 registerContentRenderer('blog', {
   async render({ slug, preview }) {
     const { PostDetail } = await import('./renderers/PostDetail');
-    const { PostType } = await import('@/engine/types/cms');
+    const { PostType } = await import('@/core/types/cms');
     return <PostDetail slug={slug} postType={PostType.BLOG} preview={preview} />;
   },
   async generateMetadata({ slug, locale, baseUrl }) {
-    const { PostType } = await import('@/engine/types/cms');
+    const { PostType } = await import('@/core/types/cms');
     const post = await getCachedPost(slug, PostType.BLOG, locale);
     const siblings = await getPostTranslationSiblings(post.id);
     const languages = buildAlternates(baseUrl, siblings, locale as import('@/lib/constants').Locale, slug, '/blog/');

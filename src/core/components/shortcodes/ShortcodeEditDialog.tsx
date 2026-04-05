@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import type { ShortcodeDef } from '@/engine/types/shortcodes';
-import { useAdminTranslations } from '@/engine/lib/translations';
-import { Dialog } from '@/engine/components/Dialog';
+import type { ShortcodeDef } from '@/core/types/shortcodes';
+import { useAdminTranslations } from '@/core/lib/translations';
+import { Dialog } from '@/core/components/Dialog';
 
 interface Props {
   def: ShortcodeDef;

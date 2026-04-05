@@ -1,7 +1,7 @@
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { DashboardShellWrapper } from '@/components/admin/DashboardShellWrapper';
-import { PreferencesHydrator } from '@/engine/components/PreferencesHydrator';
-import { Toaster } from '@/engine/components/Toaster';
+import { PreferencesHydrator } from '@/core/components/PreferencesHydrator';
+import { Toaster } from '@/core/components/Toaster';
 
 export default function PanelLayout({
   children,

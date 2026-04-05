@@ -6,13 +6,13 @@ import crypto from 'crypto';
 import { getContentTypeByPostType } from '@/config/cms';
 import { env } from '@/lib/env';
 import { LOCALES } from '@/lib/constants';
-import { createLogger } from '@/engine/lib/logger';
+import { createLogger } from '@/core/lib/logger';
 import {
   SEO_OVERRIDE_ROUTES,
   SEO_OVERRIDE_SLUGS,
-} from '@/engine/lib/seo-routes';
+} from '@/core/lib/seo-routes';
 import { cmsPosts, cmsCategories, cmsTerms, cmsTermRelationships, cmsPostAttachments } from '@/server/db/schema';
-import { ContentStatus, PostType } from '@/engine/types/cms';
+import { ContentStatus, PostType } from '@/core/types/cms';
 import {
   buildAdminList,
   buildStatusCounts,
@@ -25,23 +25,23 @@ import {
   getTranslationSiblings,
   serializeExport,
   prepareTranslationCopy,
-} from '@/engine/crud/admin-crud';
-import { adminListInput, exportBulkInput } from '@/engine/crud/router-schemas';
-import { updateWithRevision } from '@/engine/crud/cms-helpers';
+} from '@/core/crud/admin-crud';
+import { adminListInput, exportBulkInput } from '@/core/crud/router-schemas';
+import { updateWithRevision } from '@/core/crud/cms-helpers';
 import {
   syncTermRelationships,
   getTermRelationships,
   deleteAllTermRelationships,
   resolveTagsForPosts,
-} from '@/engine/crud/taxonomy-helpers';
-import { logAudit } from '@/engine/lib/audit';
+} from '@/core/crud/taxonomy-helpers';
+import { logAudit } from '@/core/lib/audit';
 import { createFieldTranslator } from '@/server/translation/translate-fields';
-import { dispatchWebhook } from '@/engine/lib/webhooks';
-import { getStorage } from '@/engine/storage';
+import { dispatchWebhook } from '@/core/lib/webhooks';
+import { getStorage } from '@/core/storage';
 import { sendBulkNotification } from '@/server/lib/notifications';
-import { NotificationType, NotificationCategory } from '@/engine/types/notifications';
+import { NotificationType, NotificationCategory } from '@/core/types/notifications';
 import { user } from '@/server/db/schema';
-import { Role } from '@/engine/policy';
+import { Role } from '@/core/policy';
 import {
   createTRPCRouter,
   publicProcedure,

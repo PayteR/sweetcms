@@ -2,7 +2,7 @@ import { and, eq, isNull } from 'drizzle-orm';
 
 import type { DbClient } from '@/server/db';
 import { cmsPosts } from '@/server/db/schema';
-import { ContentStatus, PostType } from '@/engine/types/cms';
+import { ContentStatus, PostType } from '@/core/types/cms';
 
 export async function getCodedRouteSEO(
   db: DbClient,

@@ -4,11 +4,11 @@ import { ArrowRight } from "lucide-react";
 
 import { siteConfig } from "@/config/site";
 import { serverTRPC } from "@/lib/trpc/server";
-import { PostType } from "@/engine/types/cms";
-import { PostCard } from "@/engine/components/PostCard";
-import { TagCloud } from "@/engine/components/TagCloud";
+import { PostType } from "@/core/types/cms";
+import { PostCard } from "@/core/components/PostCard";
+import { TagCloud } from "@/core/components/TagCloud";
 import { db } from "@/server/db";
-import { getCodedRouteSEO } from "@/engine/crud/page-seo";
+import { getCodedRouteSEO } from "@/core/crud/page-seo";
 import { getLocale } from "@/lib/locale-server";
 import { localePath } from "@/lib/locale";
 import { getServerTranslations } from "@/lib/translations-server";

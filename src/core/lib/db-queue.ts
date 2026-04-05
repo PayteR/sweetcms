@@ -1,7 +1,7 @@
 import { and, eq, lte, asc, desc } from 'drizzle-orm';
 import { db } from '@/server/db';
 import { saasTaskQueue } from '@/server/db/schema/task-queue';
-import { createLogger } from '@/engine/lib/logger';
+import { createLogger } from '@/core/lib/logger';
 
 const log = createLogger('db-queue');
 

@@ -3,9 +3,9 @@ import superjson from 'superjson';
 import { ZodError } from 'zod';
 
 import { auth } from '@/lib/auth';
-import { type AdminSection, Policy, Role, type UserRole } from '@/engine/policy';
+import { type AdminSection, Policy, Role, type UserRole } from '@/core/policy';
 import { db } from '@/server/db';
-import { applyRateLimit } from '@/engine/lib/trpc-rate-limit';
+import { applyRateLimit } from '@/core/lib/trpc-rate-limit';
 import { isEmailVerificationRequired } from '@/lib/email-verification';
 
 /**

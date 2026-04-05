@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getLocale } from 'next-intl/server';
-import { getAdminMessages } from '@/engine/lib/admin-messages';
+import { getAdminMessages } from '@/core/lib/admin-messages';
 
 import './assets/admin.css';
 

@@ -14,9 +14,9 @@ import {
 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useAdminTranslations } from '@/engine/lib/translations';
-import { FileType } from '@/engine/types/cms';
-import { toast } from '@/engine/store/toast-store';
+import { useAdminTranslations } from '@/core/lib/translations';
+import { FileType } from '@/core/types/cms';
+import { toast } from '@/core/store/toast-store';
 
 interface Props {
   postId: string | undefined;

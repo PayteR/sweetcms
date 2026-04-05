@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 import { CONTENT_TYPES } from '@/config/cms';
 import { siteConfig } from '@/config/site';
 import { getLocale } from '@/lib/locale-server';
-import { resolveSlugRedirect } from '@/engine/crud/slug-redirects';
+import { resolveSlugRedirect } from '@/core/crud/slug-redirects';
 import { resolveSlug } from './resolve';
 import { getContentRenderer } from './renderer-registry';
 import './register-renderers';

@@ -3,9 +3,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import { trpc } from '@/lib/trpc/client';
-import { useAdminTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/core/lib/translations';
 import { cn } from '@/lib/utils';
-import { formatRelativeTime } from '@/engine/lib/datetime';
+import { formatRelativeTime } from '@/core/lib/datetime';
 
 interface NotificationBellProps {
   notificationsHref: string;

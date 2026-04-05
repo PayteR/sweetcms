@@ -1,6 +1,6 @@
 'use client';
 
-import '@/engine/components/account.css';
+import '@/core/components/account.css';
 
 import { signIn } from '@/lib/auth-client';
 import { accountRoutes } from '@/config/routes';

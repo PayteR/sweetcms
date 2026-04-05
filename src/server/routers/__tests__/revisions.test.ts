@@ -12,15 +12,15 @@ vi.mock('@/lib/auth', () => ({
   },
 }));
 
-vi.mock('@/engine/lib/redis', () => ({
+vi.mock('@/core/lib/redis', () => ({
   getRedis: vi.fn().mockReturnValue(null),
 }));
 
-vi.mock('@/engine/lib/trpc-rate-limit', () => ({
+vi.mock('@/core/lib/trpc-rate-limit', () => ({
   applyRateLimit: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('@/engine/policy', () => ({
+vi.mock('@/core/policy', () => ({
   Policy: {
     for: vi.fn().mockReturnValue({
       canAccessAdmin: vi.fn().mockReturnValue(true),
@@ -35,7 +35,7 @@ vi.mock('@/engine/policy', () => ({
   },
 }));
 
-vi.mock('@/engine/crud/admin-crud', () => ({
+vi.mock('@/core/crud/admin-crud', () => ({
   buildAdminList: vi.fn().mockResolvedValue({
     results: [],
     total: 0,
@@ -76,15 +76,15 @@ vi.mock('@/engine/crud/admin-crud', () => ({
   ),
 }));
 
-vi.mock('@/engine/crud/content-revisions', () => ({
+vi.mock('@/core/crud/content-revisions', () => ({
   getRevisions: vi.fn().mockResolvedValue([]),
 }));
 
-vi.mock('@/engine/lib/audit', () => ({
+vi.mock('@/core/lib/audit', () => ({
   logAudit: vi.fn(),
 }));
 
-vi.mock('@/engine/lib/logger', () => ({
+vi.mock('@/core/lib/logger', () => ({
   createLogger: vi.fn().mockReturnValue({
     info: vi.fn(),
     error: vi.fn(),
@@ -127,8 +127,8 @@ vi.mock('@/lib/env', () => ({
 
 import { asMock } from '@/test-utils';
 import { revisionsRouter } from '../revisions';
-import { getRevisions } from '@/engine/crud/content-revisions';
-import { logAudit } from '@/engine/lib/audit';
+import { getRevisions } from '@/core/crud/content-revisions';
+import { logAudit } from '@/core/lib/audit';
 import { createMockCtx } from './test-helpers';
 
 // ---------------------------------------------------------------------------

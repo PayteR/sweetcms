@@ -2,7 +2,7 @@
 
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react';
 
-import { useToastStore } from '@/engine/store/toast-store';
+import { useToastStore } from '@/core/store/toast-store';
 import { cn } from '@/lib/utils';
 
 const icons = {

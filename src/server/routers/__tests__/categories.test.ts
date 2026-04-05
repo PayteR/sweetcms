@@ -12,15 +12,15 @@ vi.mock('@/lib/auth', () => ({
   },
 }));
 
-vi.mock('@/engine/lib/redis', () => ({
+vi.mock('@/core/lib/redis', () => ({
   getRedis: vi.fn().mockReturnValue(null),
 }));
 
-vi.mock('@/engine/lib/trpc-rate-limit', () => ({
+vi.mock('@/core/lib/trpc-rate-limit', () => ({
   applyRateLimit: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('@/engine/policy', () => ({
+vi.mock('@/core/policy', () => ({
   Policy: {
     for: vi.fn().mockReturnValue({
       canAccessAdmin: vi.fn().mockReturnValue(true),
@@ -35,7 +35,7 @@ vi.mock('@/engine/policy', () => ({
   },
 }));
 
-vi.mock('@/engine/crud/admin-crud', () => ({
+vi.mock('@/core/crud/admin-crud', () => ({
   buildAdminList: vi.fn().mockResolvedValue({
     results: [],
     total: 0,
@@ -76,22 +76,22 @@ vi.mock('@/engine/crud/admin-crud', () => ({
   ),
 }));
 
-vi.mock('@/engine/crud/cms-helpers', () => ({
+vi.mock('@/core/crud/cms-helpers', () => ({
   updateWithRevision: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('@/engine/crud/taxonomy-helpers', () => ({
+vi.mock('@/core/crud/taxonomy-helpers', () => ({
   syncTermRelationships: vi.fn().mockResolvedValue(undefined),
   getTermRelationships: vi.fn().mockResolvedValue([]),
   deleteAllTermRelationships: vi.fn().mockResolvedValue(undefined),
   deleteTermRelationshipsByTerm: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('@/engine/lib/audit', () => ({
+vi.mock('@/core/lib/audit', () => ({
   logAudit: vi.fn(),
 }));
 
-vi.mock('@/engine/lib/webhooks', () => ({
+vi.mock('@/core/lib/webhooks', () => ({
   dispatchWebhook: vi.fn(),
 }));
 
@@ -106,7 +106,7 @@ vi.mock('@/lib/env', () => ({
   },
 }));
 
-vi.mock('@/engine/lib/logger', () => ({
+vi.mock('@/core/lib/logger', () => ({
   createLogger: vi.fn().mockReturnValue({
     info: vi.fn(),
     error: vi.fn(),
@@ -153,15 +153,15 @@ import {
   softRestore,
   permanentDelete,
   fetchOrNotFound,
-} from '@/engine/crud/admin-crud';
+} from '@/core/crud/admin-crud';
 import { TRPCError } from '@trpc/server';
 import {
   getTermRelationships,
   syncTermRelationships,
   deleteTermRelationshipsByTerm,
-} from '@/engine/crud/taxonomy-helpers';
-import { updateWithRevision } from '@/engine/crud/cms-helpers';
-import { logAudit } from '@/engine/lib/audit';
+} from '@/core/crud/taxonomy-helpers';
+import { updateWithRevision } from '@/core/crud/cms-helpers';
+import { logAudit } from '@/core/lib/audit';
 import { createMockCtx } from './test-helpers';
 
 const MOCK_CATEGORY = {

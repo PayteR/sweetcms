@@ -18,7 +18,7 @@ import {
 import Image from 'next/image';
 import { trpc } from '@/lib/trpc/client';
 import { useAdminTranslations } from '@/lib/translations';
-import { FileType } from '@/engine/types/cms';
+import { FileType } from '@/core/types/cms';
 import { apiRoutes } from '@/config/routes';
 import { toast } from '@/store/toast-store';
 import { cn } from '@/lib/utils';
@@ -197,7 +197,7 @@ export default function MediaPage() {
             className={cn(
               'border-b-2 px-3 pb-2 text-sm font-medium transition-colors',
               filterType === t.key
-                ? 'border-(--color-brand-600) text-(--color-brand-600)'
+                ? 'border-brand-600 text-brand-600'
                 : 'border-transparent text-(--text-muted) hover:border-(--border-primary) hover:text-(--text-primary)'
             )}
           >

@@ -40,11 +40,11 @@ import {
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { useAdminTranslations } from '@/engine/lib/translations';
-import { htmlToMarkdown, markdownToHtml } from '@/engine/lib/markdown';
-import { toast } from '@/engine/store/toast-store';
-import type { EditorHandle } from '@/engine/hooks/useLinkPicker';
-import type { ShortcodeConfig } from '@/engine/types/shortcodes';
+import { useAdminTranslations } from '@/core/lib/translations';
+import { htmlToMarkdown, markdownToHtml } from '@/core/lib/markdown';
+import { toast } from '@/core/store/toast-store';
+import type { EditorHandle } from '@/core/hooks/useLinkPicker';
+import type { ShortcodeConfig } from '@/core/types/shortcodes';
 import { ResizableImage } from './editor/ResizableImage';
 import { DragHandle } from './editor/DragHandle';
 import { createSlashCommandExtension } from './editor/slash-commands';

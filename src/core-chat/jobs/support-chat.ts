@@ -1,9 +1,9 @@
 import { and, eq, lt } from 'drizzle-orm';
 
-import { createQueue, createWorker } from '@/engine/lib/queue';
+import { createQueue, createWorker } from '@/core/lib/queue';
 import { db } from '@/server/db';
-import { saasSupportChatSessions } from '@/server/db/schema/support';
-import { createLogger } from '@/engine/lib/logger';
+import { saasSupportChatSessions } from '@/core-chat/schema/support-chat';
+import { createLogger } from '@/core/lib/logger';
 
 const logger = createLogger('support-chat-cleanup');
 const _supportChatQueue = createQueue('support-chat-cleanup');

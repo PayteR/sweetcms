@@ -1,11 +1,11 @@
 import { eq } from 'drizzle-orm';
 
-import { createQueue, createWorker } from '@/engine/lib/queue';
-import { enqueue } from '@/engine/lib/queue-adapter';
-import { processImage } from '@/engine/lib/media-processing';
-import { getStorage } from '@/engine/storage';
-import { createLogger } from '@/engine/lib/logger';
-import { FileType } from '@/engine/types/cms';
+import { createQueue, createWorker } from '@/core/lib/queue';
+import { enqueue } from '@/core/lib/queue-adapter';
+import { processImage } from '@/core/lib/media-processing';
+import { getStorage } from '@/core/storage';
+import { createLogger } from '@/core/lib/logger';
+import { FileType } from '@/core/types/cms';
 import { db } from '@/server/db';
 import { cmsMedia } from '@/server/db/schema';
 

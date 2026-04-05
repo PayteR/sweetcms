@@ -1,7 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 
-import { getQueues } from '@/engine/lib/queue';
+import { getQueues } from '@/core/lib/queue';
 import { createTRPCRouter, sectionProcedure } from '../trpc';
 
 const settingsProcedure = sectionProcedure('settings');

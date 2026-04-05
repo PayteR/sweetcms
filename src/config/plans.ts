@@ -1,4 +1,4 @@
-import type { PlanDefinition } from '@/engine/types/billing';
+import type { PlanDefinition } from '@/core/types/billing';
 
 /**
  * Extended plan definition with display-layer fields used to derive pricing.ts.
@@ -150,5 +150,5 @@ export function getFreePlan(): ExtendedPlanDefinition {
 }
 
 // ─── Register plan resolver for engine's feature-gate ──────────────────────
-import { setPlanResolver } from '@/engine/lib/payment/feature-gate';
+import { setPlanResolver } from '@/core/lib/payment/feature-gate';
 setPlanResolver({ getPlan, getFreePlan });

@@ -1,8 +1,8 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 @custom-variant dark (html.dark &);
-@import "../engine/styles/tokens.css";
-@import "../engine/styles/overlay.css";
+@import "../core/styles/tokens.css";
+@import "../core/styles/overlay.css";
 
 @layer base {
   body {

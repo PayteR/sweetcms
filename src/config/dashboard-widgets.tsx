@@ -4,17 +4,17 @@ import type { ComponentType, ReactNode } from 'react';
 import Link from 'next/link';
 import { Clock } from 'lucide-react';
 
-import type { DashboardWidgetDef } from '@/engine/config/dashboard-widgets';
+import type { DashboardWidgetDef } from '@/core/config/dashboard-widgets';
 import { useAdminTranslations } from '@/lib/translations';
 import { adminPanel } from '@/config/routes';
-import GA4Widget from '@/engine/components/GA4Widget';
-import RecentActivity from '@/engine/components/RecentActivity';
-import ContentStatusWidget from '@/engine/components/ContentStatusWidget';
-import type { ContentStatusEntry } from '@/engine/components/ContentStatusWidget';
-import { PostType } from '@/engine/types/cms';
+import GA4Widget from '@/core/components/GA4Widget';
+import RecentActivity from '@/core/components/RecentActivity';
+import ContentStatusWidget from '@/core/components/ContentStatusWidget';
+import type { ContentStatusEntry } from '@/core/components/ContentStatusWidget';
+import { PostType } from '@/core/types/cms';
 import QuickActionsWidget from '@/components/admin/QuickActionsWidget';
 
-export type { DashboardWidgetDef } from '@/engine/config/dashboard-widgets';
+export type { DashboardWidgetDef } from '@/core/config/dashboard-widgets';
 
 // ── Widget component type ──────────────────────────────────
 export type WidgetComponent = ComponentType<{ dragHandle?: ReactNode }>;

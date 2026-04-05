@@ -1,4 +1,4 @@
-import type { PaymentProvider, PaymentProviderConfig } from '@/engine/types/payment';
+import type { PaymentProvider, PaymentProviderConfig } from '@/core/types/payment';
 import { getEnabledProviderConfigs } from '@/config/payment-providers';
 
 const providerCache = new Map<string, PaymentProvider>();

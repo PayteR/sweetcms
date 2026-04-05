@@ -1,7 +1,7 @@
 'use client';
 
 import { User, Settings, Shield, CreditCard, LifeBuoy, Link2 } from 'lucide-react';
-import { AccountSidebar } from '@/engine/components/AccountSidebar';
+import { AccountSidebar } from '@/core/components/AccountSidebar';
 import { accountRoutes } from '@/config/routes';
 
 const ACCOUNT_NAV_ITEMS = [

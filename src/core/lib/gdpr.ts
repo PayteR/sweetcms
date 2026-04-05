@@ -4,8 +4,8 @@ import { createHmac } from 'crypto';
 import type { DbClient } from '@/server/db';
 import { user, session, account } from '@/server/db/schema/auth';
 import { cmsAuditLog } from '@/server/db/schema/audit';
-import { Policy } from '@/engine/policy';
-import { logAudit } from '@/engine/lib/audit';
+import { Policy } from '@/core/policy';
+import { logAudit } from '@/core/lib/audit';
 
 export type AnonymizationMode = 'full' | 'pseudonymize';
 

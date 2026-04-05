@@ -1,13 +1,13 @@
-import '@/engine/styles/tokens-public.css';
-import '@/engine/styles/frontend/index.css';
-import '@/engine/styles/frontend/app-layout.css';
+import '@/core/styles/tokens-public.css';
+import '@/core/styles/frontend/index.css';
+import '@/core/styles/frontend/app-layout.css';
 
 import { Link, getPathname } from '@/i18n/navigation';
 import { Compass, BookOpen, Briefcase, Home } from 'lucide-react';
 
 import { siteConfig } from '@/config/site';
-import { ThemeToggle } from '@/engine/components/ThemeToggle';
-import { LanguageSwitcher } from '@/engine/components/LanguageSwitcher';
+import { ThemeToggle } from '@/core/components/ThemeToggle';
+import { LanguageSwitcher } from '@/core/components/LanguageSwitcher';
 import { UserMenu } from '@/components/public/UserMenu';
 import { SubscribeOrTokens } from '@/components/public/SubscribeOrTokens';
 import { ExpandableSearch } from '@/components/public/ExpandableSearch';

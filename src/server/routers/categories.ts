@@ -4,10 +4,10 @@ import { z } from 'zod';
 import crypto from 'crypto';
 
 import { env } from '@/lib/env';
-import { createLogger } from '@/engine/lib/logger';
+import { createLogger } from '@/core/lib/logger';
 import { cmsCategories } from '@/server/db/schema';
 import { createFieldTranslator } from '@/server/translation/translate-fields';
-import { ContentStatus } from '@/engine/types/cms';
+import { ContentStatus } from '@/core/types/cms';
 import {
   buildAdminList,
   buildStatusCounts,
@@ -23,15 +23,15 @@ import {
   parsePagination,
   paginatedResult,
   prepareTranslationCopy,
-} from '@/engine/crud/admin-crud';
-import { adminListInput, exportBulkInput } from '@/engine/crud/router-schemas';
-import { updateWithRevision } from '@/engine/crud/cms-helpers';
+} from '@/core/crud/admin-crud';
+import { adminListInput, exportBulkInput } from '@/core/crud/router-schemas';
+import { updateWithRevision } from '@/core/crud/cms-helpers';
 import {
   deleteTermRelationshipsByTerm,
   getTermRelationships,
   syncTermRelationships,
-} from '@/engine/crud/taxonomy-helpers';
-import { logAudit } from '@/engine/lib/audit';
+} from '@/core/crud/taxonomy-helpers';
+import { logAudit } from '@/core/lib/audit';
 import {
   createTRPCRouter,
   publicProcedure,

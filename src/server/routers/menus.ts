@@ -3,8 +3,8 @@ import { asc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { cmsMenus, cmsMenuItems } from '@/server/db/schema';
-import { ensureSlugUnique, fetchOrNotFound } from '@/engine/crud/admin-crud';
-import { logAudit } from '@/engine/lib/audit';
+import { ensureSlugUnique, fetchOrNotFound } from '@/core/crud/admin-crud';
+import { logAudit } from '@/core/lib/audit';
 import {
   createTRPCRouter,
   publicProcedure,

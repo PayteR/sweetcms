@@ -1,4 +1,4 @@
-import { createLogger } from '@/engine/lib/logger';
+import { createLogger } from '@/core/lib/logger';
 
 const logger = createLogger('geo');
 

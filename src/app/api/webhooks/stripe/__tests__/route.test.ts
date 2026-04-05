@@ -14,7 +14,7 @@ const mockActivateSubscription = vi.fn().mockResolvedValue(undefined);
 const mockUpdateSubscription = vi.fn().mockResolvedValue(undefined);
 const mockCancelSubscription = vi.fn().mockResolvedValue(undefined);
 const mockGetOrgByProviderSubscription = vi.fn().mockResolvedValue(null);
-vi.mock('@/engine/lib/payment/subscription-service', () => ({
+vi.mock('@/core/lib/payment/subscription-service', () => ({
   activateSubscription: (...args: unknown[]) => mockActivateSubscription(...args),
   updateSubscription: (...args: unknown[]) => mockUpdateSubscription(...args),
   cancelSubscription: (...args: unknown[]) => mockCancelSubscription(...args),
@@ -76,11 +76,11 @@ vi.mock('@/server/db/schema/organization', () => ({
   member: { userId: 'user_id', organizationId: 'org_id' },
 }));
 
-vi.mock('@/engine/lib/email-list/index', () => ({
+vi.mock('@/core/lib/email-list/index', () => ({
   tagSubscriber: vi.fn(),
 }));
 
-vi.mock('@/engine/lib/stats-cache', () => ({
+vi.mock('@/core/lib/stats-cache', () => ({
   invalidateStats: vi.fn(),
 }));
 
@@ -92,7 +92,7 @@ vi.mock('@/config/routes', () => ({
   adminPanel: { settingsBilling: '/dashboard/settings/billing' },
 }));
 
-vi.mock('@/engine/lib/payment/discount-service', () => ({
+vi.mock('@/core/lib/payment/discount-service', () => ({
   finalizeUsage: vi.fn().mockResolvedValue(undefined),
 }));
 
@@ -105,7 +105,7 @@ vi.mock('@/config/plans', () => ({
   }),
 }));
 
-vi.mock('@/engine/lib/audit', () => ({
+vi.mock('@/core/lib/audit', () => ({
   logAudit: vi.fn(),
 }));
 
@@ -113,12 +113,12 @@ vi.mock('@/server/lib/notifications', () => ({
   sendOrgNotification: vi.fn(),
 }));
 
-vi.mock('@/engine/types/notifications', () => ({
+vi.mock('@/core/types/notifications', () => ({
   NotificationType: { SUCCESS: 'success', WARNING: 'warning', ERROR: 'error' },
   NotificationCategory: { BILLING: 'billing' },
 }));
 
-vi.mock('@/engine/lib/logger', () => ({
+vi.mock('@/core/lib/logger', () => ({
   createLogger: () => ({
     info: vi.fn(),
     warn: vi.fn(),
@@ -129,7 +129,7 @@ vi.mock('@/engine/lib/logger', () => ({
 import { POST } from '../route';
 import { getProvider } from '@/server/lib/payment/factory';
 import { sendOrgNotification } from '@/server/lib/notifications';
-import { logAudit } from '@/engine/lib/audit';
+import { logAudit } from '@/core/lib/audit';
 import { asMock } from '@/test-utils';
 
 function makeRequest(body: string, signature = 'sig_valid') {

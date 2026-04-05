@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import type { PreferenceData, PreferenceKey, PreferenceValueMap } from '@/engine/types/preferences';
+import type { PreferenceData, PreferenceKey, PreferenceValueMap } from '@/core/types/preferences';
 
 type PersistFn = (key: string, value: unknown) => void;
 

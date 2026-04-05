@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { ShortcodeRenderer } from '@/engine/components/ShortcodeRenderer';
+import { ShortcodeRenderer } from '@/core/components/ShortcodeRenderer';
 import { SHORTCODE_COMPONENTS } from '@/config/shortcodes';
 import { getLocale } from '@/lib/locale-server';
 import { getCachedPortfolio } from '../data';
@@ -56,7 +56,7 @@ export async function PortfolioDetail({ slug, preview }: Props) {
             href={item.projectUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-(--color-brand-600) hover:text-(--color-brand-700) hover:underline"
+            className="text-brand-600 hover:text-brand-700 hover:underline"
           >
             Visit Project
           </a>

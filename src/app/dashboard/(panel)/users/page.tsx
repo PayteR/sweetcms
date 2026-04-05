@@ -20,7 +20,7 @@ import {
 import Image from 'next/image';
 import { trpc } from '@/lib/trpc/client';
 import { useAdminTranslations } from '@/lib/translations';
-import { Role, ROLES } from '@/engine/policy';
+import { Role, ROLES } from '@/core/policy';
 import { adminPanel, apiRoutes } from '@/config/routes';
 import { toast } from '@/store/toast-store';
 import { cn } from '@/lib/utils';
@@ -28,7 +28,7 @@ import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 const ROLE_COLORS: Record<string, string> = {
   [Role.USER]: 'bg-(--surface-secondary) text-(--text-secondary)',
-  [Role.EDITOR]: 'bg-(--color-brand-100) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-(--color-brand-700) dark:text-(--color-brand-400)',
+  [Role.EDITOR]: 'bg-brand-100 dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-brand-700 dark:text-brand-400',
   [Role.ADMIN]: 'bg-purple-100 dark:bg-purple-500/20 text-purple-700 dark:text-purple-400',
   [Role.SUPERADMIN]: 'bg-red-100 dark:bg-red-500/20 text-red-700 dark:text-red-400',
 };
@@ -173,7 +173,7 @@ export default function UsersPage() {
             className={cn(
               'border-b-2 px-3 pb-2 text-sm font-medium transition-colors',
               roleFilter === t.key
-                ? 'border-(--color-brand-600) text-(--color-brand-600)'
+                ? 'border-brand-600 text-brand-600'
                 : 'border-transparent text-(--text-muted) hover:border-(--border-primary) hover:text-(--text-primary)'
             )}
           >
@@ -263,7 +263,7 @@ export default function UsersPage() {
                           <div className="users-info">
                             <Link
                               href={adminPanel.userDetail(u.id)}
-                              className="font-medium text-(--text-primary) hover:text-(--color-brand-600) hover:underline"
+                              className="font-medium text-(--text-primary) hover:text-brand-600 hover:underline"
                             >
                               {u.name}
                             </Link>
@@ -307,7 +307,7 @@ export default function UsersPage() {
                               });
                               setSelectedRole(u.role);
                             }}
-                            className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"
+                            className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-brand-600"
                             title={__('Change role')}
                           >
                             <ShieldCheck className="h-4 w-4" />
@@ -338,7 +338,7 @@ export default function UsersPage() {
                             href={apiRoutes.gdprExport(u.id)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"
+                            className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-brand-600"
                             title={__('Export data (GDPR)')}
                           >
                             <Download className="h-4 w-4" />

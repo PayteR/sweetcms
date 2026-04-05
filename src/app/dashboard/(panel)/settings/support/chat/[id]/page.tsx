@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft, Loader2, Send, X } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useChannel } from '@/engine/lib/ws-client';
+import { useChannel } from '@/core/lib/ws-client';
 import { useAdminTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
 import { adminPanel } from '@/config/routes';
@@ -227,7 +227,7 @@ export default function AdminChatDetailPage() {
                   'max-w-[70%] rounded-xl px-4 py-2 text-sm whitespace-pre-wrap',
                   msg.role === 'user' && 'bg-(--surface-inset) text-(--text-primary)',
                   msg.role === 'ai' && 'bg-(--surface-secondary) text-(--text-primary) border-l-2 border-(--text-muted)',
-                  msg.role === 'agent' && 'bg-(--surface-secondary) text-(--text-primary) border-l-2 border-(--color-brand-500)',
+                  msg.role === 'agent' && 'bg-(--surface-secondary) text-(--text-primary) border-l-2 border-brand-500',
                 )}
               >
                 <div className="text-xs font-semibold text-(--text-muted) mb-0.5">

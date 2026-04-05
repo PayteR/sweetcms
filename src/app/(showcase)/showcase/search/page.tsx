@@ -1,6 +1,6 @@
 import { db } from '@/server/db';
 import { cmsPosts } from '@/server/db/schema';
-import { ContentStatus } from '@/engine/types/cms';
+import { ContentStatus } from '@/core/types/cms';
 import { CONTENT_TYPES } from '@/config/cms';
 import { and, desc, eq, ilike, isNull, or } from 'drizzle-orm';
 import NextLink from 'next/link';

@@ -77,7 +77,7 @@ export type { UserRole, AdminSection, Capability } from './policy';
 
 - [ ] **Step 3: Update all consumers of `@/types/cms`**
 
-Replace `@/types/cms` → `@/engine/types/cms` in these files:
+Replace `@/types/cms` → `@/core/types/cms` in these files:
 - `src/app/(public)/blog/page.tsx`
 - `src/app/(public)/layout.tsx`
 - `src/app/(public)/page.tsx`
@@ -110,11 +110,11 @@ Replace `@/types/cms` → `@/engine/types/cms` in these files:
 - `src/server/utils/admin-crud.ts` (still at old path for now)
 - `src/server/utils/content-revisions.ts` (still at old path for now)
 
-Use find-and-replace across the codebase: `from '@/types/cms'` → `from '@/engine/types/cms'`
+Use find-and-replace across the codebase: `from '@/types/cms'` → `from '@/core/types/cms'`
 
 - [ ] **Step 4: Update all consumers of `@/lib/policy`**
 
-Replace `@/lib/policy` → `@/engine/policy` in these files:
+Replace `@/lib/policy` → `@/core/policy` in these files:
 - `src/app/api/gdpr-export/[userId]/route.ts`
 - `src/app/api/upload/route.ts`
 - `src/app/dashboard/users/page.tsx`
@@ -124,7 +124,7 @@ Replace `@/lib/policy` → `@/engine/policy` in these files:
 - `src/server/trpc.ts`
 - `src/server/utils/gdpr.ts`
 
-Use find-and-replace: `from '@/lib/policy'` → `from '@/engine/policy'`
+Use find-and-replace: `from '@/lib/policy'` → `from '@/core/policy'`
 
 - [ ] **Step 5: Verify typecheck**
 
@@ -168,7 +168,7 @@ export { htmlToMarkdown, markdownToHtml } from './markdown';
 
 - [ ] **Step 3: Update all consumers of `@/lib/slug`**
 
-Replace `@/lib/slug` → `@/engine/lib/slug` in:
+Replace `@/lib/slug` → `@/core/lib/slug` in:
 - `src/app/api/upload/route.ts`
 - `src/app/dashboard/cms/menus/page.tsx`
 - `src/components/admin/CategoryForm.tsx`
@@ -183,7 +183,7 @@ Replace `@/lib/slug` → `@/engine/lib/slug` in:
 
 - [ ] **Step 4: Update all consumers of `@/lib/markdown`**
 
-Replace `@/lib/markdown` → `@/engine/lib/markdown` in:
+Replace `@/lib/markdown` → `@/core/lib/markdown` in:
 - `src/components/admin/RichTextEditor.tsx`
 - `src/components/public/ShortcodeRenderer.tsx`
 
@@ -233,11 +233,11 @@ mv src/server/utils/webhooks.ts src/engine/lib/webhooks.ts
 
 - [ ] **Step 3: Fix import in admin-crud.ts**
 
-`admin-crud.ts` imports `@/types/cms` → already moved → update to `@/engine/types/cms`.
+`admin-crud.ts` imports `@/types/cms` → already moved → update to `@/core/types/cms`.
 
 - [ ] **Step 4: Fix import in content-revisions.ts**
 
-`content-revisions.ts` imports `@/types/cms` → update to `@/engine/types/cms`.
+`content-revisions.ts` imports `@/types/cms` → update to `@/core/types/cms`.
 
 - [ ] **Step 5: Update barrel files**
 
@@ -269,7 +269,7 @@ export { dispatchWebhook } from './webhooks';
 
 - [ ] **Step 6: Update all consumers of `@/server/utils/admin-crud`**
 
-Replace `@/server/utils/admin-crud` → `@/engine/crud/admin-crud` in:
+Replace `@/server/utils/admin-crud` → `@/core/crud/admin-crud` in:
 - `src/server/routers/audit.ts`
 - `src/server/routers/categories.ts`
 - `src/server/routers/cms.ts`
@@ -284,7 +284,7 @@ Replace `@/server/utils/admin-crud` → `@/engine/crud/admin-crud` in:
 
 - [ ] **Step 7: Update all consumers of `@/server/utils/taxonomy-helpers`**
 
-Replace `@/server/utils/taxonomy-helpers` → `@/engine/crud/taxonomy-helpers` in:
+Replace `@/server/utils/taxonomy-helpers` → `@/core/crud/taxonomy-helpers` in:
 - `src/server/routers/categories.ts`
 - `src/server/routers/cms.ts`
 - `src/server/routers/portfolio.ts`
@@ -292,17 +292,17 @@ Replace `@/server/utils/taxonomy-helpers` → `@/engine/crud/taxonomy-helpers` i
 
 - [ ] **Step 8: Update all consumers of `@/server/utils/cms-helpers`**
 
-Replace `@/server/utils/cms-helpers` → `@/engine/crud/cms-helpers` in:
+Replace `@/server/utils/cms-helpers` → `@/core/crud/cms-helpers` in:
 - `src/server/routers/categories.ts`
 - `src/server/routers/cms.ts`
 - `src/server/routers/portfolio.ts`
 
 - [ ] **Step 9: Update consumers of content-revisions, slug-redirects, audit, webhooks**
 
-Replace `@/server/utils/content-revisions` → `@/engine/crud/content-revisions` in all consumers.
-Replace `@/server/utils/slug-redirects` → `@/engine/crud/slug-redirects` in all consumers.
-Replace `@/server/utils/audit` → `@/engine/lib/audit` in all consumers.
-Replace `@/server/utils/webhooks` → `@/engine/lib/webhooks` in all consumers.
+Replace `@/server/utils/content-revisions` → `@/core/crud/content-revisions` in all consumers.
+Replace `@/server/utils/slug-redirects` → `@/core/crud/slug-redirects` in all consumers.
+Replace `@/server/utils/audit` → `@/core/lib/audit` in all consumers.
+Replace `@/server/utils/webhooks` → `@/core/lib/webhooks` in all consumers.
 
 Search for each import path and update all occurrences.
 
@@ -366,15 +366,15 @@ export { useLinkValidation } from './useLinkValidation';
 - [ ] **Step 3: Update all consumers**
 
 Find-and-replace across codebase:
-- `from '@/hooks/useCmsFormState'` → `from '@/engine/hooks/useCmsFormState'`
-- `from '@/hooks/useCmsAutosave'` → `from '@/engine/hooks/useCmsAutosave'`
-- `from '@/hooks/useListViewState'` → `from '@/engine/hooks/useListViewState'`
-- `from '@/hooks/useBulkSelection'` → `from '@/engine/hooks/useBulkSelection'`
-- `from '@/hooks/useBulkActions'` → `from '@/engine/hooks/useBulkActions'`
-- `from '@/hooks/useColumnVisibility'` → `from '@/engine/hooks/useColumnVisibility'`
-- `from '@/hooks/useKeyboardShortcuts'` → `from '@/engine/hooks/useKeyboardShortcuts'`
-- `from '@/hooks/useLinkPicker'` → `from '@/engine/hooks/useLinkPicker'`
-- `from '@/hooks/useLinkValidation'` → `from '@/engine/hooks/useLinkValidation'`
+- `from '@/hooks/useCmsFormState'` → `from '@/core/hooks/useCmsFormState'`
+- `from '@/hooks/useCmsAutosave'` → `from '@/core/hooks/useCmsAutosave'`
+- `from '@/hooks/useListViewState'` → `from '@/core/hooks/useListViewState'`
+- `from '@/hooks/useBulkSelection'` → `from '@/core/hooks/useBulkSelection'`
+- `from '@/hooks/useBulkActions'` → `from '@/core/hooks/useBulkActions'`
+- `from '@/hooks/useColumnVisibility'` → `from '@/core/hooks/useColumnVisibility'`
+- `from '@/hooks/useKeyboardShortcuts'` → `from '@/core/hooks/useKeyboardShortcuts'`
+- `from '@/hooks/useLinkPicker'` → `from '@/core/hooks/useLinkPicker'`
+- `from '@/hooks/useLinkValidation'` → `from '@/core/hooks/useLinkValidation'`
 
 - [ ] **Step 4: Remove old src/hooks/ directory if empty**
 
@@ -428,11 +428,11 @@ RichTextEditor imports `./shortcodes/ShortcodeNode` and `./shortcodes/shortcode-
 - `./shortcodes/ShortcodeNode` → `@/components/admin/shortcodes/ShortcodeNode`
 - `./shortcodes/shortcode-utils` → `@/components/admin/shortcodes/shortcode-utils`
 
-RichTextEditor imports `@/hooks/useLinkPicker` → already moved → `@/engine/hooks/useLinkPicker`
+RichTextEditor imports `@/hooks/useLinkPicker` → already moved → `@/core/hooks/useLinkPicker`
 
 RevisionHistory imports `@/components/ui/ConfirmDialog` — stays as-is (UI component, project-level).
 
-All moved components import `@/types/cms` → already moved → update to `@/engine/types/cms`
+All moved components import `@/types/cms` → already moved → update to `@/core/types/cms`
 
 - [ ] **Step 3: Write barrel file**
 
@@ -452,14 +452,14 @@ export { default as BulkActionBar } from './BulkActionBar';
 - [ ] **Step 4: Update all consumers**
 
 Find-and-replace across codebase. Consumers are primarily the form components (PostForm, CategoryForm, PortfolioForm, TermForm, CmsListView):
-- `from '@/components/admin/CmsFormShell'` → `from '@/engine/components/CmsFormShell'`
-- `from '@/components/admin/RichTextEditor'` → `from '@/engine/components/RichTextEditor'`
-- `from '@/components/admin/SEOFields'` → `from '@/engine/components/SEOFields'`
-- `from '@/components/admin/TagInput'` → `from '@/engine/components/TagInput'`
-- `from '@/components/admin/MediaPickerDialog'` → `from '@/engine/components/MediaPickerDialog'`
-- `from '@/components/admin/CustomFieldsEditor'` → `from '@/engine/components/CustomFieldsEditor'`
-- `from '@/components/admin/RevisionHistory'` → `from '@/engine/components/RevisionHistory'`
-- `from '@/components/admin/BulkActionBar'` → `from '@/engine/components/BulkActionBar'`
+- `from '@/components/admin/CmsFormShell'` → `from '@/core/components/CmsFormShell'`
+- `from '@/components/admin/RichTextEditor'` → `from '@/core/components/RichTextEditor'`
+- `from '@/components/admin/SEOFields'` → `from '@/core/components/SEOFields'`
+- `from '@/components/admin/TagInput'` → `from '@/core/components/TagInput'`
+- `from '@/components/admin/MediaPickerDialog'` → `from '@/core/components/MediaPickerDialog'`
+- `from '@/components/admin/CustomFieldsEditor'` → `from '@/core/components/CustomFieldsEditor'`
+- `from '@/components/admin/RevisionHistory'` → `from '@/core/components/RevisionHistory'`
+- `from '@/components/admin/BulkActionBar'` → `from '@/core/components/BulkActionBar'`
 
 - [ ] **Step 5: Verify typecheck**
 
@@ -590,8 +590,8 @@ export { createTaxonomyHelpers } from './taxonomies';
 Remove the interface and standalone functions. Import interface from engine. Use factory:
 
 ```typescript
-import type { ContentTypeDeclaration } from '@/engine/config/content-types';
-import { createContentTypeHelpers } from '@/engine/config/content-types';
+import type { ContentTypeDeclaration } from '@/core/config/content-types';
+import { createContentTypeHelpers } from '@/core/config/content-types';
 
 export const CONTENT_TYPES = [
   // ... existing array, unchanged
@@ -613,8 +613,8 @@ export const getContentTypeByAdminSlug = helpers.getContentTypeByAdminSlug;
 Same pattern — import interface from engine, use factory:
 
 ```typescript
-import type { TaxonomyDeclaration } from '@/engine/config/taxonomies';
-import { createTaxonomyHelpers } from '@/engine/config/taxonomies';
+import type { TaxonomyDeclaration } from '@/core/config/taxonomies';
+import { createTaxonomyHelpers } from '@/core/config/taxonomies';
 
 export const TAXONOMIES = [
   // ... existing array, unchanged
@@ -1474,12 +1474,12 @@ Add after "## Architecture Overview":
 Engine provides: config interfaces, types, RBAC policy, CRUD utils, hooks, shared components, styles.
 Project provides: content type data, DB schema, routers, form components, routes, public UI.
 
-Import rule: project imports from `@/engine/*`. Engine imports from `@/server/db` and `@/lib/` (stable infrastructure).
+Import rule: project imports from `@/core/*`. Engine imports from `@/server/db` and `@/lib/` (stable infrastructure).
 ```
 
 Update the file structure tree to show `src/engine/` and remove moved files from their old locations.
 
-Update the "Shared Utilities — Key Rules" section to use `@/engine/` import paths.
+Update the "Shared Utilities — Key Rules" section to use `@/core/` import paths.
 
 - [ ] **Step 2: Update CSS architecture section**
 

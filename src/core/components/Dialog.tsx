@@ -7,8 +7,8 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { useBlankTranslations } from '@/engine/lib/translations';
-import { useOverlay } from '@/engine/hooks/useOverlay';
+import { useBlankTranslations } from '@/core/lib/translations';
+import { useOverlay } from '@/core/hooks/useOverlay';
 
 /* ── Size presets ── */
 

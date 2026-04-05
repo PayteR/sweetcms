@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm';
 import type {
   NotificationType,
   NotificationCategory,
-} from '@/engine/types/notifications';
+} from '@/core/types/notifications';
 
 interface SendNotificationInput {
   userId: string;

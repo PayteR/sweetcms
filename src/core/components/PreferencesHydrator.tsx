@@ -3,8 +3,8 @@
 import { useEffect, useRef } from 'react';
 
 import { trpc } from '@/lib/trpc/client';
-import { usePreferencesStore } from '@/engine/store/preferences-store';
-import { useThemeStore } from '@/engine/store/theme-store';
+import { usePreferencesStore } from '@/core/store/preferences-store';
+import { useThemeStore } from '@/core/store/theme-store';
 
 const ADMIN_THEME_KEY = 'sweetcms-theme-admin';
 

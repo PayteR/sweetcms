@@ -1,1 +1,1 @@
-export { getLocale } from '@/engine/lib/locale-server';
+export { getLocale } from '@/core/lib/locale-server';

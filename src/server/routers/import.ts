@@ -1,15 +1,15 @@
 import crypto from 'crypto';
 import { z } from 'zod';
 
-import { slugify } from '@/engine/lib/slug';
+import { slugify } from '@/core/lib/slug';
 import { cmsPosts } from '@/server/db/schema';
-import { logAudit } from '@/engine/lib/audit';
-import { parseCSV } from '@/engine/lib/importers/csv';
-import { parseGhostJSON } from '@/engine/lib/importers/ghost';
-import { parseWordPressWXR } from '@/engine/lib/importers/wordpress';
-import { parseSweetCmsJSON } from '@/engine/lib/importers/sweetcms';
-import { exportContent } from '@/engine/lib/export';
-import { ContentStatus, PostType } from '@/engine/types/cms';
+import { logAudit } from '@/core/lib/audit';
+import { parseCSV } from '@/core/lib/importers/csv';
+import { parseGhostJSON } from '@/core/lib/importers/ghost';
+import { parseWordPressWXR } from '@/core/lib/importers/wordpress';
+import { parseSweetCmsJSON } from '@/core/lib/importers/sweetcms';
+import { exportContent } from '@/core/lib/export';
+import { ContentStatus, PostType } from '@/core/types/cms';
 
 import { createTRPCRouter, sectionProcedure } from '../trpc';
 

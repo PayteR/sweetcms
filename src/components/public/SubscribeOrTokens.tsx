@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Sparkles } from 'lucide-react';
 import { useSession } from '@/lib/auth-client';
 import { trpc } from '@/lib/trpc/client';
-import { TokenBalance } from '@/engine/components/TokenBalance';
+import { TokenBalance } from '@/core/components/TokenBalance';
 import { useTranslations } from '@/lib/translations';
 
 /**

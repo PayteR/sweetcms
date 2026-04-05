@@ -1,8 +1,8 @@
-import type { ShortcodeComponentMap } from '@/engine/components/ShortcodeRenderer';
-import { CalloutBlock } from '@/engine/components/shortcodes/CalloutBlock';
-import { CtaBlock } from '@/engine/components/shortcodes/CtaBlock';
-import { YoutubeEmbed } from '@/engine/components/shortcodes/YoutubeEmbed';
-import { GalleryBlock } from '@/engine/components/shortcodes/GalleryBlock';
+import type { ShortcodeComponentMap } from '@/core/components/ShortcodeRenderer';
+import { CalloutBlock } from '@/core/components/shortcodes/CalloutBlock';
+import { CtaBlock } from '@/core/components/shortcodes/CtaBlock';
+import { YoutubeEmbed } from '@/core/components/shortcodes/YoutubeEmbed';
+import { GalleryBlock } from '@/core/components/shortcodes/GalleryBlock';
 
 /**
  * Project-level shortcode component registry.

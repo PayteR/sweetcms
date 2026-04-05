@@ -1,5 +1,5 @@
-import { parseShortcodes } from '@/engine/lib/shortcodes-parser';
-import { markdownToHtml } from '@/engine/lib/markdown';
+import { parseShortcodes } from '@/core/lib/shortcodes-parser';
+import { markdownToHtml } from '@/core/lib/markdown';
 
 /** Map of shortcode names to their React components. Passed by the project layer. */
 export type ShortcodeComponentMap = Record<

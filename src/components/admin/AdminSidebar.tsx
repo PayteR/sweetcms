@@ -8,17 +8,17 @@ import { Briefcase, ChevronsLeft, ChevronsRight, ExternalLink, FolderOpen, Hash,
 import { cn } from '@/lib/utils';
 import { useAdminTranslations, dataTranslations } from '@/lib/translations';
 import { signOut, useSession } from '@/lib/auth-client';
-import { useSidebarStore } from '@/engine/store/sidebar-store';
-import { useThemeStore } from '@/engine/store/theme-store';
-import { usePreferencesStore } from '@/engine/store/preferences-store';
+import { useSidebarStore } from '@/core/store/sidebar-store';
+import { useThemeStore } from '@/core/store/theme-store';
+import { usePreferencesStore } from '@/core/store/preferences-store';
 import { siteConfig } from '@/config/site';
 import { adminRoutes, adminPanel } from '@/config/routes';
 import { navigation, isNavGroup, getActiveSectionId, flatNavItems } from '@/config/admin-nav';
 import type { NavChild } from '@/config/admin-nav';
-import { CommandPalette, useCommandPaletteShortcut } from '@/engine/components/CommandPalette';
-import { NotificationBell } from '@/engine/components/NotificationBell';
-import { OrgSwitcher } from '@/engine/components/OrgSwitcher';
-import { TokenBalance } from '@/engine/components/TokenBalance';
+import { CommandPalette, useCommandPaletteShortcut } from '@/core/components/CommandPalette';
+import { NotificationBell } from '@/core/components/NotificationBell';
+import { OrgSwitcher } from '@/core/components/OrgSwitcher';
+import { TokenBalance } from '@/core/components/TokenBalance';
 import { ORGANIZATIONS_VISIBLE } from '@/lib/constants';
 
 /* ── Helpers ── */

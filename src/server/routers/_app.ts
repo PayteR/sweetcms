@@ -26,7 +26,7 @@ import { notificationsRouter } from './notifications';
 import { projectsRouter } from './projects';
 import { discountCodesRouter } from './discount-codes';
 import { supportRouter } from './support';
-import { supportChatRouter } from './support-chat';
+import { supportChatRouter } from '@/core-chat/routers/support-chat';
 import { affiliatesRouter } from './affiliates';
 import { attributionsRouter } from './attributions';
 import { aiRouter } from './ai';

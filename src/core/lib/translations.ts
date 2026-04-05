@@ -1,7 +1,7 @@
 /**
  * Translation helpers — client-safe, powered by next-intl.
  *
- * `useAdminTranslations(namespace?)` — admin/engine client components (next-intl hook).
+ * `useAdminTranslations(namespace?)` — admin/core client components (next-intl hook).
  *   Requires messages loaded by the dashboard layout (public + admin merged).
  *   Do NOT use in components rendered on public pages — the admin namespace won't exist.
  *
@@ -11,7 +11,7 @@
  * `dataTranslations(namespace)` — module-scope extraction marker (identity at runtime).
  *
  * For server components, use `getServerTranslations` from
- * `@/engine/lib/translations-server` (or the re-export at `@/lib/translations-server`).
+ * `@/core/lib/translations-server` (or the re-export at `@/lib/translations-server`).
  *
  * The PO→JSON pipeline replaces dots with @@@ in keys, so we apply the same
  * transform at lookup time to match.

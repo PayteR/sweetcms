@@ -22,15 +22,15 @@ vi.mock('@/lib/auth', () => ({
   },
 }));
 
-vi.mock('@/engine/lib/redis', () => ({
+vi.mock('@/core/lib/redis', () => ({
   getRedis: vi.fn().mockReturnValue(null),
 }));
 
-vi.mock('@/engine/lib/trpc-rate-limit', () => ({
+vi.mock('@/core/lib/trpc-rate-limit', () => ({
   applyRateLimit: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('@/engine/lib/audit', () => ({
+vi.mock('@/core/lib/audit', () => ({
   logAudit: vi.fn(),
 }));
 
@@ -54,7 +54,7 @@ vi.mock('@/lib/env', () => ({
 
 import { organizationsRouter } from '../organizations';
 import { auth } from '@/lib/auth';
-import { logAudit } from '@/engine/lib/audit';
+import { logAudit } from '@/core/lib/audit';
 import { sendNotification, sendBulkNotification } from '@/server/lib/notifications';
 
 // Typed access to nested mock functions — vi.mocked() cannot traverse nested

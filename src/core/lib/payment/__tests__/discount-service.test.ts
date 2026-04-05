@@ -4,7 +4,7 @@ import { describe, it, expect } from 'vitest';
 // (bun's test runner has cross-file mock leakage that makes direct DB mock tests unreliable)
 
 import { calculateFinalPrice } from '../discount-service';
-import { DiscountType } from '@/engine/types/payment';
+import { DiscountType } from '@/core/types/payment';
 
 describe('discount-service', () => {
   describe('calculateFinalPrice', () => {

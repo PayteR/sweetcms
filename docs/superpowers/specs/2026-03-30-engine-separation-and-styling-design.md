@@ -91,7 +91,7 @@ src/lib/auth.ts, env.ts      — project-specific config
 
 Engine imports nothing from project. Project imports from engine. One-way dependency.
 
-Path alias: `@/engine/*` → `src/engine/*`
+Path alias: `@/core/*` → `src/engine/*`
 
 ### Config interface split
 

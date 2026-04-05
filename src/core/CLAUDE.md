@@ -1,25 +1,25 @@
-# Engine — CLAUDE.md
+# Core — CLAUDE.md
 
-`src/engine/` is a git subtree from `sweetcms-engine` repo. Do not modify per-project.
+`src/core/` is a git subtree from `indigo-fw/core` repo. Do not modify per-project.
 
 ```bash
 # Pull updates
-git subtree pull --prefix=src/engine git@github.com:PayteR/sweetcms-engine.git main --squash
+git subtree pull --prefix=src/core git@github.com:indigo-fw/core.git main --squash
 # Push changes
-git subtree push --prefix=src/engine git@github.com:PayteR/sweetcms-engine.git main
+git subtree push --prefix=src/core git@github.com:indigo-fw/core.git main
 ```
 
-## Engine vs Project Boundary
+## Core vs Project Boundary
 
-**Engine owns:** reusable CMS infrastructure — CRUD helpers, hooks, shared components, types, RBAC policy, storage, payment services, CSS tokens, lib utilities. Browse `src/engine/` subdirectories to see what's available.
+**Core owns:** reusable CMS infrastructure — CRUD helpers, hooks, shared components, types, RBAC policy, storage, payment services, CSS tokens, lib utilities. Browse `src/core/` subdirectories to see what's available.
 
 **Project owns:** `src/config/` (content types, taxonomies, plans, nav, widgets, shortcodes), `src/server/` (DB schema, tRPC routers), `src/app/` (routes), `src/components/` (forms, list views, sidebar, public UI). Customize freely.
 
 ## Import Rules
 
-- Project imports from `@/engine/*`
-- Engine may only import from: `@/server/db`, `@/server/db/schema/*`, `@/lib/trpc/client`, `@/lib/trpc/server`, `@/lib/utils`, `@/lib/constants`, `@/config/plans`
-- Engine components that need project-specific data accept it via **props** (not config imports). Examples: `NotificationBell.notificationsHref`, `OrgSwitcher.manageOrgsHref`, `ContentCalendar.editUrlBuilder`, `MediaPickerButton` wraps `MediaPickerDialog` as `value`/`onChange`
+- Project imports from `@/core/*`
+- Core may only import from: `@/server/db`, `@/server/db/schema/*`, `@/lib/trpc/client`, `@/lib/trpc/server`, `@/lib/utils`, `@/lib/constants`, `@/config/plans`
+- Core components that need project-specific data accept it via **props** (not config imports). Examples: `NotificationBell.notificationsHref`, `OrgSwitcher.manageOrgsHref`, `ContentCalendar.editUrlBuilder`, `MediaPickerButton` wraps `MediaPickerDialog` as `value`/`onChange`
 - Feature-gate uses `setPlanResolver()` DI — project calls it once in `plans.ts`
 
 ## Shared Utilities — Use These, Not Manual Alternatives
@@ -46,7 +46,7 @@ git subtree push --prefix=src/engine git@github.com:PayteR/sweetcms-engine.git m
 ## Translations
 
 ```typescript
-// Admin / engine components (dashboard layout provides next-intl messages):
+// Admin / core components (dashboard layout provides next-intl messages):
 import { useAdminTranslations } from '@/lib/translations';
 const __ = useAdminTranslations();
 
@@ -55,7 +55,7 @@ import { useBlankTranslations } from '@/lib/translations';
 const __ = useBlankTranslations();
 
 // Server components:
-import { getServerTranslations } from '@/engine/lib/translations-server';
+import { getServerTranslations } from '@/core/lib/translations-server';
 const __ = await getServerTranslations();
 
 // All user-visible text must be wrapped:

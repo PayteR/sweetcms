@@ -63,12 +63,13 @@ async function main() {
     }
   });
 
-  // Register email list providers (side-effect import)
+  // Register side-effect dependencies
   await import('./src/config/email-list');
+  await import('./src/config/chat-deps');
 
   // Register webhook delivery logger
-  const { setWebhookDeliveryLogger } = await import('./src/engine/lib/webhooks');
-  const { logWebhookDelivery } = await import('./src/engine/lib/webhook-delivery-log');
+  const { setWebhookDeliveryLogger } = await import('./src/core/lib/webhooks');
+  const { logWebhookDelivery } = await import('./src/core/lib/webhook-delivery-log');
   const { db: appDb } = await import('./src/server/db');
   const { cmsWebhookDeliveries } = await import('./src/server/db/schema/webhook-deliveries');
   setWebhookDeliveryLogger((entry) => {
@@ -81,8 +82,8 @@ async function main() {
     const { startContentWorker } = await import(
       './src/server/jobs/content/index'
     );
-    const { startWebhookWorker } = await import('./src/engine/lib/webhooks');
-    const { startSupportChatCleanupWorker } = await import('./src/server/jobs/support-chat/index');
+    const { startWebhookWorker } = await import('./src/core/lib/webhooks');
+    const { startSupportChatCleanupWorker } = await import('./src/core-chat/jobs/support-chat');
     const { startMediaWorker } = await import('./src/server/jobs/media/index');
     startEmailWorker();
     startContentWorker();
@@ -92,10 +93,10 @@ async function main() {
     console.log('BullMQ workers ready (email + content + webhook + support-chat-cleanup + media workers started)');
 
     // Schedule dunning checks (daily)
-    const { getRedis } = await import('./src/engine/lib/redis');
+    const { getRedis } = await import('./src/core/lib/redis');
     const redis = getRedis();
     if (redis) {
-      const { createQueue, createWorker } = await import('./src/engine/lib/queue');
+      const { createQueue, createWorker } = await import('./src/core/lib/queue');
       const dunningQueue = createQueue('dunning');
       if (dunningQueue) {
         await dunningQueue.add('check', {}, {
@@ -119,7 +120,7 @@ async function main() {
       }
       console.log('Maintenance worker ready (daily at 3 AM)');
     } else {
-      const { startDbQueueWorker, enqueueTask } = await import('./src/engine/lib/db-queue');
+      const { startDbQueueWorker, enqueueTask } = await import('./src/core/lib/db-queue');
 
       // Seed initial dunning task (idempotent — pollAndProcess skips if one is already pending)
       await enqueueTask('dunning', { action: 'check' }).catch(() => {});
@@ -164,7 +165,7 @@ async function main() {
 
     // Recover stale DB queue tasks on startup
     try {
-      const { recoverStaleTasks } = await import('./src/engine/lib/db-queue');
+      const { recoverStaleTasks } = await import('./src/core/lib/db-queue');
       const recovered = await recoverStaleTasks();
       if (recovered > 0) console.log(`Recovered ${recovered} stale DB queue tasks`);
     } catch {
@@ -193,7 +194,7 @@ async function main() {
       }
     }
 
-    const { shutdownAllWorkers } = await import('./src/engine/lib/queue');
+    const { shutdownAllWorkers } = await import('./src/core/lib/queue');
     await shutdownAllWorkers();
     server.close(() => {
       console.log('Server closed');

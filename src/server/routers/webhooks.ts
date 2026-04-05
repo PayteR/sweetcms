@@ -4,9 +4,9 @@ import { desc, eq, count } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { cmsWebhooks, cmsWebhookDeliveries } from '@/server/db/schema';
-import { fetchOrNotFound, parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
-import { logAudit } from '@/engine/lib/audit';
-import { getDeliveryStats } from '@/engine/lib/webhook-delivery-log';
+import { fetchOrNotFound, parsePagination, paginatedResult } from '@/core/crud/admin-crud';
+import { logAudit } from '@/core/lib/audit';
+import { getDeliveryStats } from '@/core/lib/webhook-delivery-log';
 import { createTRPCRouter, sectionProcedure } from '../trpc';
 
 const settingsProcedure = sectionProcedure('settings');

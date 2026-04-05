@@ -1,2 +1,2 @@
-export { useToastStore, toast } from '@/engine/store/toast-store';
-export type { Toast } from '@/engine/store/toast-store';
+export { useToastStore, toast } from '@/core/store/toast-store';
+export type { Toast } from '@/core/store/toast-store';

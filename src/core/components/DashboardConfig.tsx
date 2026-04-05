@@ -19,10 +19,10 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, Eye, EyeOff, Settings2 } from 'lucide-react';
 
-import { useAdminTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/core/lib/translations';
 import { cn } from '@/lib/utils';
-import { SlideOver } from '@/engine/components/SlideOver';
-import { usePreferencesStore } from '@/engine/store/preferences-store';
+import { SlideOver } from '@/core/components/SlideOver';
+import { usePreferencesStore } from '@/core/store/preferences-store';
 
 interface WidgetDef {
   id: string;

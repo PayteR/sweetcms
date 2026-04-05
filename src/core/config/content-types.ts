@@ -1,7 +1,7 @@
 /**
  * Engine: ContentTypeDeclaration interface + helper factory
  *
- * The engine owns the SHAPE. Projects own the DATA (src/config/cms.ts).
+ * The core owns the SHAPE. Projects own the DATA (src/config/cms.ts).
  */
 
 export interface ContentTypeDeclaration {

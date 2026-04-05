@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type RefObject } from 'react';
-import { getClickOrigin } from '@/engine/lib/click-origin';
+import { getClickOrigin } from '@/core/lib/click-origin';
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"]):not([disabled])';

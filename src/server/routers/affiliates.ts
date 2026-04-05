@@ -4,8 +4,8 @@ import { and, count, desc, eq } from 'drizzle-orm';
 import { createTRPCRouter, protectedProcedure, sectionProcedure } from '../trpc';
 import { saasAffiliates, saasReferrals, saasAffiliateEvents } from '@/server/db/schema/affiliates';
 import { user } from '@/server/db/schema/auth';
-import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
-import { logAudit } from '@/engine/lib/audit';
+import { parsePagination, paginatedResult } from '@/core/crud/admin-crud';
+import { logAudit } from '@/core/lib/audit';
 
 function generateAffiliateCode(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';

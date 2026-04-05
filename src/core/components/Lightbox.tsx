@@ -4,7 +4,7 @@ import type { ReactNode } from 'react';
 import { X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { useOverlay } from '@/engine/hooks/useOverlay';
+import { useOverlay } from '@/core/hooks/useOverlay';
 
 export interface LightboxProps {
   /** Controls visibility */

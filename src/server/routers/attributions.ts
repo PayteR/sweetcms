@@ -1,7 +1,7 @@
 import { and, count, desc, eq, gte, isNotNull, lte, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
+import { parsePagination, paginatedResult } from '@/core/crud/admin-crud';
 import { saasUserAcquisitions } from '@/server/db/schema/attributions';
 import { user } from '@/server/db/schema/auth';
 import { saasPaymentTransactions } from '@/server/db/schema/billing';

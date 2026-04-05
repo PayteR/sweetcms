@@ -1,4 +1,4 @@
 export {
   getServerTranslations,
   type TranslationFn,
-} from '@/engine/lib/translations-server';
+} from '@/core/lib/translations-server';

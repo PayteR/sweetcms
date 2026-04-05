@@ -1,7 +1,7 @@
 import { db } from '@/server/db';
 import { cmsPosts, cmsCategories, cmsPortfolio, cmsShowcase } from '@/server/db/schema';
 import { eq, and, ne, isNull } from 'drizzle-orm';
-import { ContentStatus } from '@/engine/types/cms';
+import { ContentStatus } from '@/core/types/cms';
 
 /** Walk up the parent chain to build a breadcrumb trail. */
 export async function getAncestors(postId: string): Promise<{ title: string; slug: string }[]> {

@@ -3,7 +3,7 @@
 import { useAdminTranslations } from '@/lib/translations';
 import { trpc } from '@/lib/trpc/client';
 import { cn } from '@/lib/utils';
-import { formatRelativeTime } from '@/engine/lib/datetime';
+import { formatRelativeTime } from '@/core/lib/datetime';
 import { Bell, Check, Trash2 } from 'lucide-react';
 
 export default function NotificationsPage() {
@@ -67,7 +67,7 @@ export default function NotificationsPage() {
             key={n.id}
             className={cn(
               'card px-4 py-3 flex items-start gap-3',
-              !n.read && 'border-l-3 border-l-(--color-brand-500)'
+              !n.read && 'border-l-3 border-l-brand-500'
             )}
           >
             <div className="flex-1 min-w-0">

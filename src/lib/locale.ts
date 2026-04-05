@@ -1,1 +1,1 @@
-export { localePath } from '@/engine/lib/locale';
+export { localePath } from '@/core/lib/locale';

@@ -8,10 +8,10 @@ import { Info, AlertTriangle, CheckCircle, XCircle, X, Pencil, MousePointer, Pla
 import Image from 'next/image';
 import { getShortcodeDef } from '@/lib/shortcodes/registry';
 import { cn } from '@/lib/utils';
-import { ShortcodeEditDialog } from '@/engine/components/shortcodes/ShortcodeEditDialog';
+import { ShortcodeEditDialog } from '@/core/components/shortcodes/ShortcodeEditDialog';
 
 const CALLOUT_STYLES: Record<string, { icon: typeof Info; bg: string }> = {
-  info: { icon: Info, bg: 'bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.10)] border-(--color-brand-200) dark:border-[oklch(0.65_0.17_var(--brand-hue)_/_0.30)]' },
+  info: { icon: Info, bg: 'bg-brand-50 dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.10)] border-brand-200 dark:border-[oklch(0.65_0.17_var(--brand-hue)_/_0.30)]' },
   warning: { icon: AlertTriangle, bg: 'bg-yellow-50 dark:bg-yellow-500/10 border-yellow-200 dark:border-yellow-500/30' },
   success: { icon: CheckCircle, bg: 'bg-green-50 dark:bg-green-500/10 border-green-200 dark:border-green-500/30' },
   error: { icon: XCircle, bg: 'bg-red-50 dark:bg-red-500/10 border-red-200 dark:border-red-500/30' },
@@ -79,7 +79,7 @@ export function ShortcodeNodeView({ node, updateAttributes, deleteNode }: NodeVi
     return (
       <NodeViewWrapper>
         <div className="relative my-2 rounded-md border border-(--border-primary) p-3 text-center">
-          <span className="inline-block rounded bg-(--color-brand-600) px-4 py-2 text-sm font-medium text-white">
+          <span className="inline-block rounded bg-brand-600 px-4 py-2 text-sm font-medium text-white">
             {attrs.text || 'CTA Button'}
           </span>
           <p className="mt-1 text-xs text-(--text-muted)">{attrs.url || 'No URL'}</p>

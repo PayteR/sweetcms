@@ -4,10 +4,10 @@ import { memo, useRef, useState, useEffect } from 'react';
 
 import { FileText, Search } from 'lucide-react';
 
-import { useAdminTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/core/lib/translations';
 import { trpc } from '@/lib/trpc/client';
 import { cn } from '@/lib/utils';
-import { Dialog } from '@/engine/components/Dialog';
+import { Dialog } from '@/core/components/Dialog';
 
 export type TypeConfig = Record<string, { label: string; icon: typeof FileText; color: string }>;
 

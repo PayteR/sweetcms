@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { useAdminTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/core/lib/translations';
 import { cn } from '@/lib/utils';
 
 interface Props {

@@ -5,7 +5,7 @@
  *   bun run src/scripts/schedule-jobs.ts
  */
 
-import { createQueue } from '@/engine/lib/queue';
+import { createQueue } from '@/core/lib/queue';
 
 async function main() {
   const contentQueue = createQueue('content-publish');

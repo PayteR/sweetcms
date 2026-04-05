@@ -19,7 +19,7 @@ import crypto from 'crypto';
 import type { DbClient, DrizzleDB, DrizzleDBOrTx } from '@/server/db';
 import { getAffectedRows, wordSplitLike } from './drizzle-utils';
 import { cmsContentRevisions, cmsSlugRedirects } from '@/server/db/schema';
-import { ContentStatus } from '@/engine/types/cms';
+import { ContentStatus } from '@/core/types/cms';
 
 // ---------------------------------------------------------------------------
 // Column refs for generic CRUD

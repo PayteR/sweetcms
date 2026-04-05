@@ -1,6 +1,6 @@
-import type { OptionDefinition } from '@/engine/config/options';
+import type { OptionDefinition } from '@/core/config/options';
 
-export type { OptionDefinition } from '@/engine/config/options';
+export type { OptionDefinition } from '@/core/config/options';
 
 export const GROUP_LABELS: Record<string, string> = {
   general: 'General',

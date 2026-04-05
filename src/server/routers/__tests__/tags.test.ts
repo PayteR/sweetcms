@@ -12,15 +12,15 @@ vi.mock('@/lib/auth', () => ({
   },
 }));
 
-vi.mock('@/engine/lib/redis', () => ({
+vi.mock('@/core/lib/redis', () => ({
   getRedis: vi.fn().mockReturnValue(null),
 }));
 
-vi.mock('@/engine/lib/trpc-rate-limit', () => ({
+vi.mock('@/core/lib/trpc-rate-limit', () => ({
   applyRateLimit: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('@/engine/policy', () => ({
+vi.mock('@/core/policy', () => ({
   Policy: {
     for: vi.fn().mockReturnValue({
       canAccessAdmin: vi.fn().mockReturnValue(true),
@@ -35,7 +35,7 @@ vi.mock('@/engine/policy', () => ({
   },
 }));
 
-vi.mock('@/engine/crud/admin-crud', () => ({
+vi.mock('@/core/crud/admin-crud', () => ({
   buildAdminList: vi.fn().mockResolvedValue({
     results: [],
     total: 0,
@@ -76,7 +76,7 @@ vi.mock('@/engine/crud/admin-crud', () => ({
   ),
 }));
 
-vi.mock('@/engine/crud/taxonomy-helpers', () => ({
+vi.mock('@/core/crud/taxonomy-helpers', () => ({
   syncTermRelationships: vi.fn().mockResolvedValue(undefined),
   getTermRelationships: vi.fn().mockResolvedValue([]),
   deleteAllTermRelationships: vi.fn().mockResolvedValue(undefined),
@@ -86,11 +86,11 @@ vi.mock('@/engine/crud/taxonomy-helpers', () => ({
   ),
 }));
 
-vi.mock('@/engine/lib/audit', () => ({
+vi.mock('@/core/lib/audit', () => ({
   logAudit: vi.fn(),
 }));
 
-vi.mock('@/engine/lib/slug', () => ({
+vi.mock('@/core/lib/slug', () => ({
   slugify: vi.fn().mockImplementation((name: string) =>
     name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
   ),
@@ -138,10 +138,10 @@ import {
   softRestore,
   permanentDelete,
   fetchOrNotFound,
-} from '@/engine/crud/admin-crud';
-import { deleteTermRelationshipsByTerm } from '@/engine/crud/taxonomy-helpers';
-import { logAudit } from '@/engine/lib/audit';
-import { slugify } from '@/engine/lib/slug';
+} from '@/core/crud/admin-crud';
+import { deleteTermRelationshipsByTerm } from '@/core/crud/taxonomy-helpers';
+import { logAudit } from '@/core/lib/audit';
+import { slugify } from '@/core/lib/slug';
 import { createMockCtx } from './test-helpers';
 
 const MOCK_TAG = {

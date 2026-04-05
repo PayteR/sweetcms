@@ -1,5 +1,5 @@
-import '@/engine/styles/tokens-public.css';
-import '@/engine/styles/frontend/index.css';
+import '@/core/styles/tokens-public.css';
+import '@/core/styles/frontend/index.css';
 
 import { Suspense } from 'react';
 import NextLink from 'next/link';
@@ -9,12 +9,12 @@ import { Rss, Search } from 'lucide-react';
 import { siteConfig } from '@/config/site';
 import { db } from '@/server/db';
 import { cmsCategories, cmsMenus, cmsMenuItems } from '@/server/db/schema';
-import { ContentStatus } from '@/engine/types/cms';
+import { ContentStatus } from '@/core/types/cms';
 import { and, asc, eq, isNull } from 'drizzle-orm';
-import { DynamicNav } from '@/engine/components/DynamicNav';
-import { ThemeToggle } from '@/engine/components/ThemeToggle';
-import { MobileMenu } from '@/engine/components/MobileMenu';
-import { LanguageSwitcher } from '@/engine/components/LanguageSwitcher';
+import { DynamicNav } from '@/core/components/DynamicNav';
+import { ThemeToggle } from '@/core/components/ThemeToggle';
+import { MobileMenu } from '@/core/components/MobileMenu';
+import { LanguageSwitcher } from '@/core/components/LanguageSwitcher';
 import { UserMenu } from '@/components/public/UserMenu';
 import { getLocale } from '@/lib/locale-server';
 import { localePath } from '@/lib/locale';
@@ -24,8 +24,8 @@ import { AttributionCapture } from '@/components/public/AttributionCapture';
 import { AuthDialogs } from '@/components/public/AuthDialogs';
 import { SupportChatWidgetWrapper } from '@/components/public/SupportChatWidgetWrapper';
 import { getServerTranslations, type TranslationFn } from '@/lib/translations-server';
-import { LanguageSuggestionBanner } from '@/engine/components/LanguageSuggestionBanner';
-import { getLanguageSuggestion } from '@/engine/lib/language-suggestion';
+import { LanguageSuggestionBanner } from '@/core/components/LanguageSuggestionBanner';
+import { getLanguageSuggestion } from '@/core/lib/language-suggestion';
 import { dataTranslations } from '@/lib/translations';
 
 // Extraction marker — ensures the language suggestion key appears in public PO files

@@ -1,8 +1,8 @@
 'use client';
 
 import { trpc } from '@/lib/trpc/client';
-import { useAdminTranslations } from '@/engine/lib/translations';
-import { formatRelativeTime } from '@/engine/lib/datetime';
+import { useAdminTranslations } from '@/core/lib/translations';
+import { formatRelativeTime } from '@/core/lib/datetime';
 
 export default function RecentActivity() {
   const __ = useAdminTranslations();

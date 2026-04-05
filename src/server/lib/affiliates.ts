@@ -1,7 +1,7 @@
 import { eq, and, sql } from 'drizzle-orm';
 import { db } from '@/server/db';
 import { saasAffiliates, saasReferrals, saasAffiliateEvents } from '@/server/db/schema/affiliates';
-import { createLogger } from '@/engine/lib/logger';
+import { createLogger } from '@/core/lib/logger';
 
 const log = createLogger('affiliates');
 

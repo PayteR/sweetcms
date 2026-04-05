@@ -5,8 +5,8 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { useAdminTranslations } from '@/engine/lib/translations';
-import { useOverlay } from '@/engine/hooks/useOverlay';
+import { useAdminTranslations } from '@/core/lib/translations';
+import { useOverlay } from '@/core/hooks/useOverlay';
 
 const widthClasses = {
   sm: 'max-w-[384px]',

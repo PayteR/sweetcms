@@ -4,10 +4,10 @@ import { and, count, desc, eq, asc } from 'drizzle-orm';
 import { createTRPCRouter, protectedProcedure, sectionProcedure } from '../trpc';
 import { saasTickets, saasTicketMessages } from '@/server/db/schema/support';
 import { user } from '@/server/db/schema/auth';
-import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
-import { logAudit } from '@/engine/lib/audit';
+import { parsePagination, paginatedResult } from '@/core/crud/admin-crud';
+import { logAudit } from '@/core/lib/audit';
 import { sendNotification, sendOrgNotification } from '@/server/lib/notifications';
-import { NotificationType, NotificationCategory } from '@/engine/types/notifications';
+import { NotificationType, NotificationCategory } from '@/core/types/notifications';
 import { resolveOrgId } from '@/server/lib/resolve-org';
 
 /** Fire-and-forget WS broadcast (dynamic import to avoid static ws dependency) */
@@ -84,7 +84,7 @@ export const supportRouter = createTRPCRouter({
       // Must own the ticket or be staff
       const isOwner = ticket.userId === ctx.session.user.id;
       if (!isOwner) {
-        const { Policy } = await import('@/engine/policy');
+        const { Policy } = await import('@/core/policy');
         if (!Policy.for(ctx.session.user.role).can('section.settings')) {
           throw new TRPCError({ code: 'FORBIDDEN', message: 'Access denied' });
         }

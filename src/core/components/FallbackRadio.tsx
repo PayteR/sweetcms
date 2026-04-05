@@ -2,8 +2,8 @@
 
 import { useId } from 'react';
 
-import type { ContentTypeDeclaration } from '@/engine/config/content-types';
-import { useAdminTranslations } from '@/engine/lib/translations';
+import type { ContentTypeDeclaration } from '@/core/config/content-types';
+import { useAdminTranslations } from '@/core/lib/translations';
 
 interface FallbackRadioProps {
   value: boolean | null;

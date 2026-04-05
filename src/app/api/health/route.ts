@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { sql } from 'drizzle-orm';
 
 import { db } from '@/server/db';
-import { getRedis } from '@/engine/lib/redis';
+import { getRedis } from '@/core/lib/redis';
 
 export const dynamic = 'force-dynamic';
 

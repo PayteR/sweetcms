@@ -12,15 +12,15 @@ vi.mock('@/lib/auth', () => ({
   },
 }));
 
-vi.mock('@/engine/lib/redis', () => ({
+vi.mock('@/core/lib/redis', () => ({
   getRedis: vi.fn().mockReturnValue(null),
 }));
 
-vi.mock('@/engine/lib/trpc-rate-limit', () => ({
+vi.mock('@/core/lib/trpc-rate-limit', () => ({
   applyRateLimit: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('@/engine/policy', () => ({
+vi.mock('@/core/policy', () => ({
   Policy: {
     for: vi.fn().mockReturnValue({
       canAccessAdmin: vi.fn().mockReturnValue(true),
@@ -35,21 +35,21 @@ vi.mock('@/engine/policy', () => ({
   },
 }));
 
-vi.mock('@/engine/storage', () => ({
+vi.mock('@/core/storage', () => ({
   getStorage: vi.fn().mockReturnValue({
     url: vi.fn((path: string) => `/uploads/${path}`),
   }),
 }));
 
-vi.mock('@/engine/lib/slug', () => ({
+vi.mock('@/core/lib/slug', () => ({
   slugifyFilename: vi.fn((name: string) => name.toLowerCase().replace(/\s+/g, '-')),
 }));
 
-vi.mock('@/engine/lib/audit', () => ({
+vi.mock('@/core/lib/audit', () => ({
   logAudit: vi.fn(),
 }));
 
-vi.mock('@/engine/crud/admin-crud', () => ({
+vi.mock('@/core/crud/admin-crud', () => ({
   parsePagination: vi.fn().mockReturnValue({ page: 1, pageSize: 20, offset: 0 }),
   paginatedResult: vi.fn().mockImplementation(
     (items: unknown[], total: number, page: number, pageSize: number) => ({
@@ -97,10 +97,10 @@ vi.mock('@/lib/env', () => ({
 
 import { asMock } from '@/test-utils';
 import { mediaRouter } from '../media';
-import { getStorage, type StorageProvider } from '@/engine/storage';
-import { slugifyFilename } from '@/engine/lib/slug';
-import { logAudit } from '@/engine/lib/audit';
-import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
+import { getStorage, type StorageProvider } from '@/core/storage';
+import { slugifyFilename } from '@/core/lib/slug';
+import { logAudit } from '@/core/lib/audit';
+import { parsePagination, paginatedResult } from '@/core/crud/admin-crud';
 import { createMockCtx } from './test-helpers';
 
 const MOCK_MEDIA = {

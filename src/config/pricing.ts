@@ -1,7 +1,7 @@
-import type { PricingPlan, PricingFaq } from '@/engine/config/pricing';
+import type { PricingPlan, PricingFaq } from '@/core/config/pricing';
 import { PLANS } from './plans';
 
-export type { PricingPlan, PricingFaq } from '@/engine/config/pricing';
+export type { PricingPlan, PricingFaq } from '@/core/config/pricing';
 
 /** Convert a price in cents to a display string (e.g. 1900 → "$19", 0 → "$0"). */
 function centsToDisplay(cents: number): string {

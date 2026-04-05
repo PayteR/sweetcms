@@ -7,7 +7,7 @@ import Image from 'next/image';
 import { trpc } from '@/lib/trpc/client';
 import { useAdminTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
-import { SeoOverridesDialog } from '@/engine/components/SeoOverridesDialog';
+import { SeoOverridesDialog } from '@/core/components/SeoOverridesDialog';
 import { LOCALES, LOCALE_LABELS } from '@/lib/constants';
 import { GROUP_LABELS } from '@/config/options-registry';
 
@@ -255,7 +255,7 @@ export default function SettingsPage() {
                           {__(item.label)}
                         </label>
                         {item.isCustom && (
-                          <span className="rounded bg-(--color-brand-100) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] px-1.5 py-0.5 text-[10px] font-medium text-(--color-brand-700) dark:text-(--color-brand-400)">
+                          <span className="rounded bg-brand-100 dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] px-1.5 py-0.5 text-[10px] font-medium text-brand-700 dark:text-brand-400">
                             {__('Modified')}
                           </span>
                         )}

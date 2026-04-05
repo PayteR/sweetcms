@@ -2,15 +2,15 @@ import { TRPCError } from '@trpc/server';
 import { and, desc, eq, ilike, or, sql, count as drizzleCount } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { slugify } from '@/engine/lib/slug';
+import { slugify } from '@/core/lib/slug';
 import { cmsForms, cmsFormSubmissions } from '@/server/db/schema';
-import { logAudit } from '@/engine/lib/audit';
+import { logAudit } from '@/core/lib/audit';
 import {
   ensureSlugUnique,
   parsePagination,
   paginatedResult,
   fetchOrNotFound,
-} from '@/engine/crud/admin-crud';
+} from '@/core/crud/admin-crud';
 import { createTRPCRouter, publicProcedure, sectionProcedure } from '../trpc';
 
 const contentProcedure = sectionProcedure('content');

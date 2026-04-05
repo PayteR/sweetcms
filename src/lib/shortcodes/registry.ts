@@ -1,6 +1,6 @@
-import type { ShortcodeDef } from '@/engine/types/shortcodes';
+import type { ShortcodeDef } from '@/core/types/shortcodes';
 
-export type { ShortcodeAttrDef, ShortcodeDef } from '@/engine/types/shortcodes';
+export type { ShortcodeAttrDef, ShortcodeDef } from '@/core/types/shortcodes';
 
 export const SHORTCODE_REGISTRY: ShortcodeDef[] = [
   {

@@ -2,7 +2,7 @@
  * Admin navigation configuration.
  * Single source of truth — imported by AdminSidebar and CommandPalette.
  *
- * Interfaces and pure helpers live in @/engine/config/admin-nav.
+ * Interfaces and pure helpers live in @/core/config/admin-nav.
  * This file provides the project-specific navigation data array
  * and convenience wrappers that bind the array to the engine helpers.
  */
@@ -33,16 +33,16 @@ import {
   Webhook,
 } from 'lucide-react';
 
-// Re-export interfaces and type guard from engine (keeps existing imports working)
-export { isNavGroup } from '@/engine/config/admin-nav';
-export type { NavChild, NavLink, NavGroup, NavItem } from '@/engine/config/admin-nav';
+// Re-export interfaces and type guard from core (keeps existing imports working)
+export { isNavGroup } from '@/core/config/admin-nav';
+export type { NavChild, NavLink, NavGroup, NavItem } from '@/core/config/admin-nav';
 
 import {
   flatNavItems as _flatNavItems,
   getActiveSectionId as _getActiveSectionId,
   getNavItem as _getNavItem,
-} from '@/engine/config/admin-nav';
-import type { NavItem } from '@/engine/config/admin-nav';
+} from '@/core/config/admin-nav';
+import type { NavItem } from '@/core/config/admin-nav';
 import { adminRoutes, adminPanel } from '@/config/routes';
 
 export const navigation: NavItem[] = [

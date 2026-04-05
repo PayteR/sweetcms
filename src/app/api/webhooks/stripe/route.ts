@@ -9,17 +9,17 @@ import {
   updateSubscription,
   cancelSubscription,
   getOrgByProviderSubscription,
-} from '@/engine/lib/payment/subscription-service';
-import { finalizeUsage } from '@/engine/lib/payment/discount-service';
+} from '@/core/lib/payment/subscription-service';
+import { finalizeUsage } from '@/core/lib/payment/discount-service';
 import { getPlanByProviderPriceId } from '@/config/plans';
-import { logAudit } from '@/engine/lib/audit';
+import { logAudit } from '@/core/lib/audit';
 import { sendOrgNotification } from '@/server/lib/notifications';
-import { NotificationType, NotificationCategory } from '@/engine/types/notifications';
-import { createLogger } from '@/engine/lib/logger';
+import { NotificationType, NotificationCategory } from '@/core/types/notifications';
+import { createLogger } from '@/core/lib/logger';
 import { adminPanel } from '@/config/routes';
 import { recordConversion } from '@/server/lib/affiliates';
-import { invalidateStats } from '@/engine/lib/stats-cache';
-import { tagSubscriber } from '@/engine/lib/email-list/index';
+import { invalidateStats } from '@/core/lib/stats-cache';
+import { tagSubscriber } from '@/core/lib/email-list/index';
 
 const logger = createLogger('stripe-webhook');
 

@@ -129,7 +129,7 @@ vi.mock('@/server/db/schema/audit', () => ({
   },
 }));
 
-vi.mock('@/engine/lib/logger', () => ({
+vi.mock('@/core/lib/logger', () => ({
   createLogger: vi.fn().mockReturnValue({
     info: vi.fn(),
     error: vi.fn(),
@@ -138,7 +138,7 @@ vi.mock('@/engine/lib/logger', () => ({
   }),
 }));
 
-vi.mock('@/engine/lib/audit', () => ({
+vi.mock('@/core/lib/audit', () => ({
   logAudit: vi.fn(),
 }));
 
@@ -147,7 +147,7 @@ vi.mock('@/server/lib/notifications', () => ({
   sendOrgNotification: vi.fn(),
 }));
 
-vi.mock('@/engine/types/notifications', () => ({
+vi.mock('@/core/types/notifications', () => ({
   NotificationType: { INFO: 'info', SUCCESS: 'success', WARNING: 'warning', ERROR: 'error' },
   NotificationCategory: { BILLING: 'billing', ORGANIZATION: 'organization', CONTENT: 'content', SYSTEM: 'system', SECURITY: 'security' },
 }));
@@ -165,7 +165,7 @@ vi.mock('@/server/jobs/email/index', () => ({
 // ---------------------------------------------------------------------------
 
 import { checkExpiringSubscriptions, checkExpiredSubscriptions, runDunningChecks } from '../dunning';
-import { logAudit } from '@/engine/lib/audit';
+import { logAudit } from '@/core/lib/audit';
 import { sendOrgNotification } from '@/server/lib/notifications';
 import { enqueueTemplateEmail } from '@/server/jobs/email/index';
 

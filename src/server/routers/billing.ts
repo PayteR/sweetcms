@@ -3,13 +3,13 @@ import { TRPCError } from '@trpc/server';
 import { eq, and, desc, sql, gte, lte, inArray } from 'drizzle-orm';
 import { createTRPCRouter, protectedProcedure, sectionProcedure } from '../trpc';
 import { getProvider, isBillingEnabled, getEnabledProviders } from '@/server/lib/payment/factory';
-import { getSubscription } from '@/engine/lib/payment/subscription-service';
+import { getSubscription } from '@/core/lib/payment/subscription-service';
 import {
   validateCode,
   applyDiscount,
   removeDiscount,
   getActiveDiscount,
-} from '@/engine/lib/payment/discount-service';
+} from '@/core/lib/payment/discount-service';
 import { PLANS, getPlan } from '@/config/plans';
 import { member } from '@/server/db/schema';
 import {
@@ -18,8 +18,8 @@ import {
   saasDiscountCodes,
 } from '@/server/db/schema';
 import { organization } from '@/server/db/schema/organization';
-import { getStats as getCachedStats } from '@/engine/lib/stats-cache';
-import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
+import { getStats as getCachedStats } from '@/core/lib/stats-cache';
+import { parsePagination, paginatedResult } from '@/core/crud/admin-crud';
 import { saasAffiliates, saasReferrals } from '@/server/db/schema/affiliates';
 import { user } from '@/server/db/schema/auth';
 import {
@@ -27,7 +27,7 @@ import {
   addTokens,
   deductTokens,
   getTokenTransactions,
-} from '@/engine/lib/payment/token-service';
+} from '@/core/lib/payment/token-service';
 import { resolveOrgId } from '@/server/lib/resolve-org';
 
 const billingAdminProcedure = sectionProcedure('billing');
@@ -105,7 +105,7 @@ export const billingRouter = createTRPCRouter({
       }
 
       const originalPriceCents = input.interval === 'yearly' ? plan.priceYearly : plan.priceMonthly;
-      let resolvedDiscount: import('@/engine/types/payment').DiscountDefinition | undefined;
+      let resolvedDiscount: import('@/core/types/payment').DiscountDefinition | undefined;
       let finalPriceCents: number | undefined;
 
       // Validate discount code if provided

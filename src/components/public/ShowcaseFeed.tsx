@@ -7,7 +7,7 @@ import { ChevronDown, ChevronUp, Play } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { trpc } from '@/lib/trpc/client';
 import { useSession } from '@/lib/auth-client';
-import { ShortcodeRenderer } from '@/engine/components/ShortcodeRenderer';
+import { ShortcodeRenderer } from '@/core/components/ShortcodeRenderer';
 import { SHORTCODE_COMPONENTS } from '@/config/shortcodes';
 import { ShowcaseActionBar } from './ShowcaseActionBar';
 import { CommentPanel } from './CommentPanel';

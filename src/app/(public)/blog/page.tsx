@@ -3,11 +3,11 @@ import type { Metadata } from 'next';
 
 import { siteConfig } from '@/config/site';
 import { serverTRPC } from '@/lib/trpc/server';
-import { PostType } from '@/engine/types/cms';
-import { PostCard } from '@/engine/components/PostCard';
+import { PostType } from '@/core/types/cms';
+import { PostCard } from '@/core/components/PostCard';
 import { BlogSidebar } from '@/components/public/BlogSidebar';
 import { db } from '@/server/db';
-import { getCodedRouteSEO } from '@/engine/crud/page-seo';
+import { getCodedRouteSEO } from '@/core/crud/page-seo';
 import { getLocale } from '@/lib/locale-server';
 import { localePath } from '@/lib/locale';
 import { getServerTranslations } from '@/lib/translations-server';

@@ -12,15 +12,15 @@ vi.mock('@/lib/auth', () => ({
   },
 }));
 
-vi.mock('@/engine/lib/redis', () => ({
+vi.mock('@/core/lib/redis', () => ({
   getRedis: vi.fn().mockReturnValue(null),
 }));
 
-vi.mock('@/engine/lib/trpc-rate-limit', () => ({
+vi.mock('@/core/lib/trpc-rate-limit', () => ({
   applyRateLimit: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('@/engine/policy', () => ({
+vi.mock('@/core/policy', () => ({
   Policy: {
     for: vi.fn().mockReturnValue({
       canAccessAdmin: vi.fn().mockReturnValue(true),
@@ -37,7 +37,7 @@ vi.mock('@/engine/policy', () => ({
   isSuperAdmin: vi.fn((role: string | null | undefined) => role === 'superadmin'),
 }));
 
-vi.mock('@/engine/crud/admin-crud', () => ({
+vi.mock('@/core/crud/admin-crud', () => ({
   buildAdminList: vi.fn().mockResolvedValue({
     results: [],
     total: 0,
@@ -78,15 +78,15 @@ vi.mock('@/engine/crud/admin-crud', () => ({
   ),
 }));
 
-vi.mock('@/engine/lib/gdpr', () => ({
+vi.mock('@/core/lib/gdpr', () => ({
   anonymizeUser: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('@/engine/lib/audit', () => ({
+vi.mock('@/core/lib/audit', () => ({
   logAudit: vi.fn(),
 }));
 
-vi.mock('@/engine/lib/logger', () => ({
+vi.mock('@/core/lib/logger', () => ({
   createLogger: vi.fn().mockReturnValue({
     info: vi.fn(),
     error: vi.fn(),
@@ -135,10 +135,10 @@ vi.mock('@/lib/env', () => ({
 
 import { asMock } from '@/test-utils';
 import { usersRouter } from '../users';
-import { fetchOrNotFound } from '@/engine/crud/admin-crud';
-import { anonymizeUser } from '@/engine/lib/gdpr';
-import { logAudit } from '@/engine/lib/audit';
-import { isSuperAdmin } from '@/engine/policy';
+import { fetchOrNotFound } from '@/core/crud/admin-crud';
+import { anonymizeUser } from '@/core/lib/gdpr';
+import { logAudit } from '@/core/lib/audit';
+import { isSuperAdmin } from '@/core/policy';
 import { createMockCtx } from './test-helpers';
 
 // ---------------------------------------------------------------------------

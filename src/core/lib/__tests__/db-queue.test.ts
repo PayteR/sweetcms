@@ -3,7 +3,7 @@ import { asMock } from '@/test-utils';
 
 // --- Mocks ---
 
-vi.mock('@/engine/lib/logger', () => ({
+vi.mock('@/core/lib/logger', () => ({
   createLogger: () => ({
     info: vi.fn(),
     error: vi.fn(),

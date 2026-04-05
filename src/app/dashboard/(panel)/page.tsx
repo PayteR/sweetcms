@@ -6,10 +6,10 @@ import {
 
 import { trpc } from '@/lib/trpc/client';
 import { useAdminTranslations } from '@/lib/translations';
-import { PostType } from '@/engine/types/cms';
+import { PostType } from '@/core/types/cms';
 import { adminPanel } from '@/config/routes';
-import StatCard from '@/engine/components/StatCard';
-import { DashboardConfig } from '@/engine/components/DashboardConfig';
+import StatCard from '@/core/components/StatCard';
+import { DashboardConfig } from '@/core/components/DashboardConfig';
 import { DASHBOARD_WIDGETS, DEFAULT_WIDGET_ORDER, DEFAULT_HIDDEN_WIDGETS } from '@/config/dashboard-widgets';
 import { DashboardWidgetGrid } from '@/components/admin/DashboardWidgetGrid';
 

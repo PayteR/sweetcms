@@ -12,15 +12,15 @@ vi.mock('@/lib/auth', () => ({
   },
 }));
 
-vi.mock('@/engine/lib/redis', () => ({
+vi.mock('@/core/lib/redis', () => ({
   getRedis: vi.fn().mockReturnValue(null),
 }));
 
-vi.mock('@/engine/lib/trpc-rate-limit', () => ({
+vi.mock('@/core/lib/trpc-rate-limit', () => ({
   applyRateLimit: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('@/engine/lib/audit', () => ({
+vi.mock('@/core/lib/audit', () => ({
   logAudit: vi.fn(),
 }));
 
@@ -29,12 +29,12 @@ vi.mock('@/server/lib/notifications', () => ({
   sendOrgNotification: vi.fn(),
 }));
 
-vi.mock('@/engine/types/notifications', () => ({
+vi.mock('@/core/types/notifications', () => ({
   NotificationType: { INFO: 'info', SUCCESS: 'success', WARNING: 'warning', ERROR: 'error' },
   NotificationCategory: { BILLING: 'billing', ORGANIZATION: 'organization', CONTENT: 'content', SYSTEM: 'system', SECURITY: 'security' },
 }));
 
-vi.mock('@/engine/policy', () => ({
+vi.mock('@/core/policy', () => ({
   Policy: {
     for: vi.fn().mockReturnValue({
       canAccessAdmin: vi.fn().mockReturnValue(true),
@@ -49,7 +49,7 @@ vi.mock('@/engine/policy', () => ({
   },
 }));
 
-vi.mock('@/engine/crud/admin-crud', () => ({
+vi.mock('@/core/crud/admin-crud', () => ({
   parsePagination: vi.fn().mockImplementation((input: { page?: number; pageSize?: number }) => {
     const page = input?.page ?? 1;
     const pageSize = input?.pageSize ?? 20;
@@ -118,7 +118,7 @@ vi.mock('@/server/lib/resolve-org', () => ({
 
 import { asMock } from '@/test-utils';
 import { supportRouter } from '../support';
-import { logAudit } from '@/engine/lib/audit';
+import { logAudit } from '@/core/lib/audit';
 import { sendNotification, sendOrgNotification } from '@/server/lib/notifications';
 import { resolveOrgId } from '@/server/lib/resolve-org';
 

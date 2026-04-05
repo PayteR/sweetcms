@@ -3,7 +3,7 @@ import { and, desc, eq, ilike, inArray, isNull, or, sql } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { cmsTerms, cmsTermRelationships } from '@/server/db/schema';
-import { ContentStatus } from '@/engine/types/cms';
+import { ContentStatus } from '@/core/types/cms';
 import {
   buildAdminList,
   buildStatusCounts,
@@ -14,14 +14,14 @@ import {
   parsePagination,
   paginatedResult,
   fetchOrNotFound,
-} from '@/engine/crud/admin-crud';
-import { adminListInput } from '@/engine/crud/router-schemas';
+} from '@/core/crud/admin-crud';
+import { adminListInput } from '@/core/crud/router-schemas';
 import {
   deleteTermRelationshipsByTerm,
   resolveTagsForPosts,
-} from '@/engine/crud/taxonomy-helpers';
-import { slugify } from '@/engine/lib/slug';
-import { logAudit } from '@/engine/lib/audit';
+} from '@/core/crud/taxonomy-helpers';
+import { slugify } from '@/core/lib/slug';
+import { logAudit } from '@/core/lib/audit';
 import {
   createTRPCRouter,
   publicProcedure,

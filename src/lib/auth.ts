@@ -4,14 +4,14 @@ import { admin, customSession, organization } from 'better-auth/plugins';
 import { role } from 'better-auth/plugins/access';
 
 import { eq, and, count, isNull } from 'drizzle-orm';
-import { Role } from '@/engine/policy';
-import { createLogger } from '@/engine/lib/logger';
-import { slugify } from '@/engine/lib/slug';
+import { Role } from '@/core/policy';
+import { createLogger } from '@/core/lib/logger';
+import { slugify } from '@/core/lib/slug';
 import { db } from '@/server/db';
 import { organization as organizationTable, member } from '@/server/db/schema/organization';
 import { saasSupportChatSessions } from '@/server/db/schema/support';
 import { enqueueTemplateEmail } from '@/server/jobs/email';
-import { syncSubscriber } from '@/engine/lib/email-list/index';
+import { syncSubscriber } from '@/core/lib/email-list/index';
 
 const log = createLogger('auth');
 

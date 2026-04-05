@@ -8,16 +8,16 @@ import { adminPanel } from '@/config/routes';
 import { trpc } from '@/lib/trpc/client';
 import { useAdminTranslations } from '@/lib/translations';
 import { useSession } from '@/lib/auth-client';
-import { ContentStatus } from '@/engine/types/cms';
+import { ContentStatus } from '@/core/types/cms';
 import { toast } from '@/store/toast-store';
 import { DEFAULT_LOCALE, LOCALES, LOCALE_LABELS, IS_MULTILINGUAL } from '@/lib/constants';
-import { useCmsFormState, narrowRecoveredData } from '@/engine/hooks/useCmsFormState';
-import { useSlugAutoGenerate } from '@/engine/hooks/useSlugAutoGenerate';
-import { useCmsAutosave } from '@/engine/hooks/useCmsAutosave';
-import { useKeyboardShortcuts } from '@/engine/hooks/useKeyboardShortcuts';
-import AutosaveIndicator from '@/engine/components/AutosaveIndicator';
-import AutosaveRecoveryBanner from '@/engine/components/AutosaveRecoveryBanner';
-import CmsFormShell from '@/engine/components/CmsFormShell';
+import { useCmsFormState, narrowRecoveredData } from '@/core/hooks/useCmsFormState';
+import { useSlugAutoGenerate } from '@/core/hooks/useSlugAutoGenerate';
+import { useCmsAutosave } from '@/core/hooks/useCmsAutosave';
+import { useKeyboardShortcuts } from '@/core/hooks/useKeyboardShortcuts';
+import AutosaveIndicator from '@/core/components/AutosaveIndicator';
+import AutosaveRecoveryBanner from '@/core/components/AutosaveRecoveryBanner';
+import CmsFormShell from '@/core/components/CmsFormShell';
 
 interface TermFormData extends Record<string, unknown> {
   name: string;

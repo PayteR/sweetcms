@@ -3,7 +3,7 @@ import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import { AccountNav } from '@/components/public/AccountNav';
 import { EmailVerificationBanner } from '@/components/public/EmailVerificationBanner';
-import { GeoSyncer } from '@/engine/components/GeoSyncer';
+import { GeoSyncer } from '@/core/components/GeoSyncer';
 import { publicAuthRoutes, accountRoutes } from '@/config/routes';
 
 export default async function AccountLayout({ children }: { children: React.ReactNode }) {

@@ -2,8 +2,8 @@
 
 import { useCallback, useMemo } from 'react';
 
-import { usePreferencesStore } from '@/engine/store/preferences-store';
-import type { PreferenceKey } from '@/engine/types/preferences';
+import { usePreferencesStore } from '@/core/store/preferences-store';
+import type { PreferenceKey } from '@/core/types/preferences';
 
 const STORAGE_PREFIX = 'cms-col-vis:';
 const DEFAULT_VISIBLE = ['title', 'status', 'lang', 'date'];

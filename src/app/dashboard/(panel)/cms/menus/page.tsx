@@ -8,7 +8,7 @@ import { trpc } from '@/lib/trpc/client';
 import { useAdminTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
 import { adminPanel } from '@/config/routes';
-import { slugify } from '@/engine/lib/slug';
+import { slugify } from '@/core/lib/slug';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 export default function MenusPage() {
@@ -116,7 +116,7 @@ export default function MenusPage() {
                     <div className="menus-row-actions flex items-center justify-end gap-1">
                       <Link
                         href={adminPanel.menuDetail(menu.id)}
-                        className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"
+                        className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-brand-600"
                         title={__('Edit')}
                       >
                         <Pencil className="h-4 w-4" />

@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useLocale } from '@/engine/hooks/useLocale';
-import { localePath } from '@/engine/lib/locale';
+import { useLocale } from '@/core/hooks/useLocale';
+import { localePath } from '@/core/lib/locale';
 import type { ComponentProps } from 'react';
 
 type LocaleLinkProps = Omit<ComponentProps<typeof Link>, 'href'> & {

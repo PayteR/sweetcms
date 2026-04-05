@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { sectionProcedure, createTRPCRouter } from '../trpc';
 import { env } from '@/lib/env';
-import { createLogger } from '@/engine/lib/logger';
+import { createLogger } from '@/core/lib/logger';
 
 const logger = createLogger('ai');
 

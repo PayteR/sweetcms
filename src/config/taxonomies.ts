@@ -1,7 +1,7 @@
 import {
   type TaxonomyDeclaration,
   createTaxonomyHelpers,
-} from '@/engine/config/taxonomies';
+} from '@/core/config/taxonomies';
 
 /**
  * Taxonomy Registry

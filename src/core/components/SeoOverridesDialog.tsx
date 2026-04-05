@@ -3,9 +3,9 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Check, Loader2 } from 'lucide-react';
 
-import { useAdminTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/core/lib/translations';
 import { trpc } from '@/lib/trpc/client';
-import { Dialog } from '@/engine/components/Dialog';
+import { Dialog } from '@/core/components/Dialog';
 
 interface SelectedRoute {
   slug: string;

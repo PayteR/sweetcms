@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import type { PlanDefinition, PlanFeatures } from '@/engine/types/billing';
+import type { PlanDefinition, PlanFeatures } from '@/core/types/billing';
 import { getSubscription } from './subscription-service';
 
 export interface FeatureCheckResult {
@@ -29,7 +29,7 @@ export function setPlanResolver(resolver: PlanResolver): void {
 function resolver(): PlanResolver {
   if (!_resolver) {
     throw new Error(
-      'Plan resolver not configured. Call setPlanResolver() at startup — see src/engine/lib/payment/feature-gate.ts',
+      'Plan resolver not configured. Call setPlanResolver() at startup — see src/core/lib/payment/feature-gate.ts',
     );
   }
   return _resolver;

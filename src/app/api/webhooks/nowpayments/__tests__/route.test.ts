@@ -11,13 +11,13 @@ vi.mock('@/server/lib/payment/factory', () => ({
 
 // Mock subscription service
 const mockActivateSubscription = vi.fn().mockResolvedValue(undefined);
-vi.mock('@/engine/lib/payment/subscription-service', () => ({
+vi.mock('@/core/lib/payment/subscription-service', () => ({
   activateSubscription: (...args: unknown[]) => mockActivateSubscription(...args),
 }));
 
 // Mock discount service
 const mockFinalizeUsage = vi.fn().mockResolvedValue(undefined);
-vi.mock('@/engine/lib/payment/discount-service', () => ({
+vi.mock('@/core/lib/payment/discount-service', () => ({
   finalizeUsage: (...args: unknown[]) => mockFinalizeUsage(...args),
 }));
 
@@ -50,7 +50,7 @@ vi.mock('drizzle-orm', () => ({
 }));
 
 // Mock audit
-vi.mock('@/engine/lib/audit', () => ({
+vi.mock('@/core/lib/audit', () => ({
   logAudit: vi.fn(),
 }));
 
@@ -60,13 +60,13 @@ vi.mock('@/server/lib/notifications', () => ({
 }));
 
 // Mock notification types
-vi.mock('@/engine/types/notifications', () => ({
+vi.mock('@/core/types/notifications', () => ({
   NotificationType: { SUCCESS: 'success', WARNING: 'warning', ERROR: 'error' },
   NotificationCategory: { BILLING: 'billing' },
 }));
 
 // Mock logger
-vi.mock('@/engine/lib/logger', () => ({
+vi.mock('@/core/lib/logger', () => ({
   createLogger: () => ({
     info: vi.fn(),
     warn: vi.fn(),
@@ -77,7 +77,7 @@ vi.mock('@/engine/lib/logger', () => ({
 import { POST } from '../route';
 import { getProvider } from '@/server/lib/payment/factory';
 import { sendOrgNotification } from '@/server/lib/notifications';
-import { logAudit } from '@/engine/lib/audit';
+import { logAudit } from '@/core/lib/audit';
 import { asMock } from '@/test-utils';
 
 function makeRequest(body = '{}') {

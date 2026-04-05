@@ -2,9 +2,9 @@ import NextLink from 'next/link';
 import { Link } from '@/i18n/navigation';
 import { Rss } from 'lucide-react';
 
-import { PostType } from '@/engine/types/cms';
-import { PostCard } from '@/engine/components/PostCard';
-import { TagCloud } from '@/engine/components/TagCloud';
+import { PostType } from '@/core/types/cms';
+import { PostCard } from '@/core/components/PostCard';
+import { TagCloud } from '@/core/components/TagCloud';
 import { localePath } from '@/lib/locale';
 import { getLocale } from '@/lib/locale-server';
 import { getCachedTag, getCachedTRPC } from '../data';

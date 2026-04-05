@@ -1,8 +1,8 @@
-import { PostType } from '@/engine/types/cms';
+import { PostType } from '@/core/types/cms';
 import {
   type ContentTypeDeclaration,
   createContentTypeHelpers,
-} from '@/engine/config/content-types';
+} from '@/core/config/content-types';
 
 /**
  * CMS Content Types Registry

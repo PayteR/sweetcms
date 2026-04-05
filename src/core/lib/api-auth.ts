@@ -3,8 +3,8 @@ import { eq } from 'drizzle-orm';
 
 import { db } from '@/server/db';
 import { cmsOptions } from '@/server/db/schema';
-import { getRedis } from '@/engine/lib/redis';
-import { checkRateLimit as redisRateLimit } from '@/engine/lib/rate-limit';
+import { getRedis } from '@/core/lib/redis';
+import { checkRateLimit as redisRateLimit } from '@/core/lib/rate-limit';
 
 /** Validate API key from x-api-key header. Returns true if valid or if no key is configured. */
 export async function validateApiKey(request: Request): Promise<boolean> {

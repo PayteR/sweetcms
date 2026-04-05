@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server';
 
 import { db } from '@/server/db';
 import { cmsMenuItems, cmsMenus } from '@/server/db/schema';
-import { withApiRoute } from '@/engine/lib/api-route';
-import { apiHeaders } from '@/engine/lib/api-auth';
+import { withApiRoute } from '@/core/lib/api-route';
+import { apiHeaders } from '@/core/lib/api-auth';
 
 interface RouteParams {
   params: Promise<{ slug: string }>;

@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { Download, Loader2, Trash2, Undo2 } from 'lucide-react';
 
-import { useAdminTranslations } from '@/engine/lib/translations';
-import { ContentStatus } from '@/engine/types/cms';
+import { useAdminTranslations } from '@/core/lib/translations';
+import { ContentStatus } from '@/core/types/cms';
 
 interface BulkActionBarProps {
   selectedCount: number;

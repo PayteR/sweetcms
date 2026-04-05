@@ -5,8 +5,8 @@ import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useAdminTranslations } from '@/engine/lib/translations';
-import { ContentStatus } from '@/engine/types/cms';
+import { useAdminTranslations } from '@/core/lib/translations';
+import { ContentStatus } from '@/core/types/cms';
 import { cn } from '@/lib/utils';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];

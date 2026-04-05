@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { trpc } from '@/lib/trpc/client';
-import { useAdminTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/core/lib/translations';
 
 export interface ContentStatusEntry {
   /** PostType numeric value to query */

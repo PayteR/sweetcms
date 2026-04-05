@@ -4,4 +4,4 @@ export {
   useTranslations,
   dataTranslations,
   type TranslationFn,
-} from '@/engine/lib/translations';
+} from '@/core/lib/translations';

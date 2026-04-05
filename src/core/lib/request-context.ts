@@ -1,4 +1,4 @@
-import type { RequestContext } from '@/engine/types/request-context';
+import type { RequestContext } from '@/core/types/request-context';
 
 /**
  * Extract request context (IP, UA, country, referer) from headers.

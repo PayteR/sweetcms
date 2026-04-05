@@ -1,6 +1,6 @@
 'use client';
 
-import { useAdminTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/core/lib/translations';
 import { cn } from '@/lib/utils';
 
 interface SEOFieldsProps {

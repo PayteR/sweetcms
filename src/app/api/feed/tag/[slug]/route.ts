@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server';
 import { siteConfig } from '@/config/site';
 import { db } from '@/server/db';
 import { cmsPosts, cmsTerms, cmsTermRelationships } from '@/server/db/schema';
-import { ContentStatus, PostType } from '@/engine/types/cms';
+import { ContentStatus, PostType } from '@/core/types/cms';
 import { and, desc, eq, isNull } from 'drizzle-orm';
 import { DEFAULT_LOCALE, LOCALES } from '@/lib/constants';
 import type { Locale } from '@/lib/constants';

@@ -3,8 +3,8 @@ import { and, count, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { cmsPosts, cmsCategories, cmsContentRevisions } from '@/server/db/schema';
-import { getRevisions } from '@/engine/crud/content-revisions';
-import { logAudit } from '@/engine/lib/audit';
+import { getRevisions } from '@/core/crud/content-revisions';
+import { logAudit } from '@/core/lib/audit';
 import { createTRPCRouter, sectionProcedure } from '../trpc';
 
 const contentProcedure = sectionProcedure('content');

@@ -4,8 +4,8 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/server/db';
 import { cmsForms, cmsFormSubmissions } from '@/server/db/schema';
 import { enqueueEmail } from '@/server/jobs/email/index';
-import { getRedis } from '@/engine/lib/redis';
-import { checkRateLimit } from '@/engine/lib/rate-limit';
+import { getRedis } from '@/core/lib/redis';
+import { checkRateLimit } from '@/core/lib/rate-limit';
 
 interface RouteParams {
   params: Promise<{ id: string }>;

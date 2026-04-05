@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft, Loader2, Send } from 'lucide-react';
 
 import { trpc } from '@/lib/trpc/client';
-import { useChannel } from '@/engine/lib/ws-client';
+import { useChannel } from '@/core/lib/ws-client';
 import { useAdminTranslations } from '@/lib/translations';
 import { toast } from '@/store/toast-store';
 import { adminPanel } from '@/config/routes';
@@ -139,7 +139,7 @@ export default function AdminTicketDetailPage() {
     return (
       <div className="py-12 text-center">
         <p className="text-(--text-muted)">{__('Ticket not found.')}</p>
-        <Link href={adminPanel.settingsSupport} className="text-sm text-(--color-brand-500) mt-2 inline-block">
+        <Link href={adminPanel.settingsSupport} className="text-sm text-brand-500 mt-2 inline-block">
           {__('Back to tickets')}
         </Link>
       </div>
@@ -195,11 +195,11 @@ export default function AdminTicketDetailPage() {
                 key={msg.id}
                 className={cn(
                   'card p-4',
-                  msg.isStaff && 'border-l-2 border-l-(--color-brand-500)',
+                  msg.isStaff && 'border-l-2 border-l-brand-500',
                 )}
               >
                 <div className="flex items-center gap-2 mb-2 text-xs text-(--text-muted)">
-                  <span className={cn('font-medium', msg.isStaff ? 'text-(--color-brand-500)' : 'text-(--text-primary)')}>
+                  <span className={cn('font-medium', msg.isStaff ? 'text-brand-500' : 'text-(--text-primary)')}>
                     {msg.isStaff ? __('Staff') : (ticket.creator?.name ?? ticket.creator?.email ?? __('Customer'))}
                   </span>
                   <span>{new Date(msg.createdAt).toLocaleString()}</span>

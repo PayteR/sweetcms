@@ -12,23 +12,23 @@ vi.mock('@/lib/auth', () => ({
   },
 }));
 
-vi.mock('@/engine/lib/redis', () => ({
+vi.mock('@/core/lib/redis', () => ({
   getRedis: vi.fn().mockReturnValue(null),
 }));
 
-vi.mock('@/engine/lib/rate-limit', () => ({
+vi.mock('@/core/lib/rate-limit', () => ({
   checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 10, retryAfterMs: 0 }),
 }));
 
-vi.mock('@/engine/lib/trpc-rate-limit', () => ({
+vi.mock('@/core/lib/trpc-rate-limit', () => ({
   applyRateLimit: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('@/engine/lib/audit', () => ({
+vi.mock('@/core/lib/audit', () => ({
   logAudit: vi.fn(),
 }));
 
-vi.mock('@/engine/lib/logger', () => ({
+vi.mock('@/core/lib/logger', () => ({
   createLogger: vi.fn().mockReturnValue({
     info: vi.fn(),
     warn: vi.fn(),
@@ -37,17 +37,26 @@ vi.mock('@/engine/lib/logger', () => ({
   }),
 }));
 
-vi.mock('@/server/lib/notifications', () => ({
+const mockChatDeps = {
+  createTicketFromChat: vi.fn().mockResolvedValue({ ticketId: 'ticket-1' }),
+  resolveOrgId: vi.fn().mockResolvedValue('org-1'),
   sendNotification: vi.fn(),
   sendOrgNotification: vi.fn(),
+  broadcastEvent: vi.fn(),
+  lookupUsers: vi.fn().mockResolvedValue(new Map([['user-1', { id: 'user-1', name: 'Test User', email: 'test@test.com' }]])),
+  callAI: vi.fn().mockResolvedValue(null),
+};
+vi.mock('@/core-chat/deps', () => ({
+  getChatDeps: () => mockChatDeps,
+  setChatDeps: vi.fn(),
 }));
 
-vi.mock('@/engine/types/notifications', () => ({
+vi.mock('@/core/types/notifications', () => ({
   NotificationType: { INFO: 'info', SUCCESS: 'success', WARNING: 'warning', ERROR: 'error' },
   NotificationCategory: { BILLING: 'billing', ORGANIZATION: 'organization', CONTENT: 'content', SYSTEM: 'system', SECURITY: 'security' },
 }));
 
-vi.mock('@/engine/policy', () => ({
+vi.mock('@/core/policy', () => ({
   Policy: {
     for: vi.fn().mockReturnValue({
       canAccessAdmin: vi.fn().mockReturnValue(true),
@@ -62,7 +71,7 @@ vi.mock('@/engine/policy', () => ({
   },
 }));
 
-vi.mock('@/engine/crud/admin-crud', () => ({
+vi.mock('@/core/crud/admin-crud', () => ({
   parsePagination: vi.fn().mockImplementation((input: { page?: number; pageSize?: number }) => {
     const page = input?.page ?? 1;
     const pageSize = input?.pageSize ?? 20;
@@ -79,7 +88,7 @@ vi.mock('@/engine/crud/admin-crud', () => ({
   ),
 }));
 
-vi.mock('@/server/db/schema/support', () => ({
+vi.mock('@/core-chat/schema/support-chat', () => ({
   saasSupportChatSessions: {
     id: 'saas_support_chat_sessions.id',
     visitorId: 'saas_support_chat_sessions.visitor_id',
@@ -100,43 +109,9 @@ vi.mock('@/server/db/schema/support', () => ({
     metadata: 'saas_support_chat_messages.metadata',
     createdAt: 'saas_support_chat_messages.created_at',
   },
-  saasTickets: {
-    id: 'saas_tickets.id',
-    organizationId: 'saas_tickets.organization_id',
-    userId: 'saas_tickets.user_id',
-    subject: 'saas_tickets.subject',
-    status: 'saas_tickets.status',
-    priority: 'saas_tickets.priority',
-    assignedTo: 'saas_tickets.assigned_to',
-    source: 'saas_tickets.source',
-    chatSessionId: 'saas_tickets.chat_session_id',
-    closedAt: 'saas_tickets.closed_at',
-    resolvedAt: 'saas_tickets.resolved_at',
-    createdAt: 'saas_tickets.created_at',
-    updatedAt: 'saas_tickets.updated_at',
-  },
-  saasTicketMessages: {
-    id: 'saas_ticket_messages.id',
-    ticketId: 'saas_ticket_messages.ticket_id',
-    userId: 'saas_ticket_messages.user_id',
-    isStaff: 'saas_ticket_messages.is_staff',
-    body: 'saas_ticket_messages.body',
-    attachments: 'saas_ticket_messages.attachments',
-    createdAt: 'saas_ticket_messages.created_at',
-  },
 }));
 
-vi.mock('@/server/db/schema/auth', () => ({
-  user: {
-    id: 'user.id',
-    name: 'user.name',
-    email: 'user.email',
-  },
-}));
-
-// env is dynamically imported in callAI — no static mock needed
-
-vi.mock('@/config/support-chat', () => ({
+vi.mock('@/core-chat/config', () => ({
   supportChatConfig: {
     systemPrompt: 'test',
     escalationMessage: 'Escalating...',
@@ -145,20 +120,11 @@ vi.mock('@/config/support-chat', () => ({
   },
 }));
 
-vi.mock('@/server/lib/resolve-org', () => ({
-  resolveOrgId: vi.fn().mockResolvedValue('org-1'),
-}));
-
-vi.mock('@/server/lib/ws', () => ({
-  broadcastToChannel: vi.fn(),
-}));
-
 // ---------------------------------------------------------------------------
 // Imports (after mocks)
 // ---------------------------------------------------------------------------
 
-import { supportChatRouter } from '../support-chat';
-import { sendNotification } from '@/server/lib/notifications';
+import { supportChatRouter } from '@/core-chat/routers/support-chat';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -442,10 +408,16 @@ describe('supportChatRouter', () => {
         visitorId: VISITOR_ID,
       });
 
-      expect(result.ticketId).toBeDefined();
+      expect(result.ticketId).toBe('ticket-1');
       expect(result.emailCaptured).toBe(false);
-      // Should insert ticket + ticket message
-      expect(ctx.db.insert).toHaveBeenCalled();
+      // Ticket creation delegated to injected deps
+      expect(mockChatDeps.createTicketFromChat).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'admin-1',
+          orgId: 'org-1',
+          chatSessionId: SESSION_UUID,
+        })
+      );
       // Should update session to escalated
       expect(ctx.db.update).toHaveBeenCalled();
     });
@@ -617,7 +589,7 @@ describe('supportChatRouter', () => {
         body: 'We are looking into this.',
       });
 
-      expect(sendNotification).toHaveBeenCalledWith(
+      expect(mockChatDeps.sendNotification).toHaveBeenCalledWith(
         expect.objectContaining({
           userId: 'user-1',
           title: 'New message from support',

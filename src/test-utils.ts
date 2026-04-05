@@ -1,1 +1,1 @@
-export { asMock } from '@/engine/test-utils';
+export { asMock } from '@/core/test-utils';

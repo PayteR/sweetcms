@@ -2,15 +2,15 @@ import { NextResponse } from 'next/server';
 import { db } from '@/server/db';
 import { saasSubscriptionEvents } from '@/server/db/schema';
 import { getProvider } from '@/server/lib/payment/factory';
-import { activateSubscription } from '@/engine/lib/payment/subscription-service';
-import { finalizeUsage } from '@/engine/lib/payment/discount-service';
-import { logAudit } from '@/engine/lib/audit';
+import { activateSubscription } from '@/core/lib/payment/subscription-service';
+import { finalizeUsage } from '@/core/lib/payment/discount-service';
+import { logAudit } from '@/core/lib/audit';
 import { sendOrgNotification } from '@/server/lib/notifications';
-import { NotificationType, NotificationCategory } from '@/engine/types/notifications';
-import { createLogger } from '@/engine/lib/logger';
+import { NotificationType, NotificationCategory } from '@/core/types/notifications';
+import { createLogger } from '@/core/lib/logger';
 import { adminPanel } from '@/config/routes';
 import { recordConversion } from '@/server/lib/affiliates';
-import { invalidateStats } from '@/engine/lib/stats-cache';
+import { invalidateStats } from '@/core/lib/stats-cache';
 
 const logger = createLogger('nowpayments-webhook');
 

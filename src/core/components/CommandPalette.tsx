@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { FileText, Search } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { useAdminTranslations } from '@/engine/lib/translations';
+import { useAdminTranslations } from '@/core/lib/translations';
 import { trpc } from '@/lib/trpc/client';
-import { useKeyboardShortcuts } from '@/engine/hooks/useKeyboardShortcuts';
+import { useKeyboardShortcuts } from '@/core/hooks/useKeyboardShortcuts';
 
 export interface CommandPaletteNavItem {
   name: string;

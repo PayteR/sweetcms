@@ -5,7 +5,7 @@ import { TRPCError } from '@trpc/server';
 // Mocks
 // ---------------------------------------------------------------------------
 
-vi.mock('@/engine/crud/drizzle-utils', () => ({
+vi.mock('@/core/crud/drizzle-utils', () => ({
   getAffectedRows: vi.fn(),
   wordSplitLike: vi.fn().mockReturnValue('SEARCH_SQL'),
 }));
@@ -37,7 +37,7 @@ vi.mock('drizzle-orm', () => ({
   ),
 }));
 
-import { asMock } from '@/engine/test-utils';
+import { asMock } from '@/core/test-utils';
 import {
   parsePagination,
   paginatedResult,
@@ -48,7 +48,7 @@ import {
   buildStatusCounts,
   buildAdminList,
 } from '../admin-crud';
-import { getAffectedRows, wordSplitLike } from '@/engine/crud/drizzle-utils';
+import { getAffectedRows, wordSplitLike } from '@/core/crud/drizzle-utils';
 
 // ---------------------------------------------------------------------------
 // Helpers

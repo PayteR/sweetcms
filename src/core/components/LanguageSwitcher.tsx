@@ -2,8 +2,8 @@
 
 import { usePathname } from 'next/navigation';
 import { LOCALES, DEFAULT_LOCALE, LOCALE_LABELS, IS_MULTILINGUAL } from '@/lib/constants';
-import { localePath } from '@/engine/lib/locale';
-import { useLocale } from '@/engine/hooks/useLocale';
+import { localePath } from '@/core/lib/locale';
+import { useLocale } from '@/core/hooks/useLocale';
 import type { Locale } from '@/lib/constants';
 import { Globe } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
