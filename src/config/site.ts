@@ -21,4 +21,9 @@ export const siteConfig = {
     description:
       'Open-source SaaS starter kit with integrated CMS, built on Next.js, tRPC, Drizzle, and Better Auth. Multi-tenancy, Stripe billing, real-time WebSocket, and more.',
   },
+
+  /** Auto-detect locale from Accept-Language and redirect to matching prefix.
+   * When false (default), users see content in the URL's locale and get a
+   * suggestion banner instead. Set to true for apps where UX > SEO. */
+  localeAutoDetect: false,
 } as const;

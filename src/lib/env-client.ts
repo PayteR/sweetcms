@@ -16,7 +16,6 @@ const clientEnvRaw = {
   NEXT_PUBLIC_CDN_URL: process.env.NEXT_PUBLIC_CDN_URL,
   NEXT_PUBLIC_ORGANIZATIONS_VISIBLE: process.env.NEXT_PUBLIC_ORGANIZATIONS_VISIBLE,
   NEXT_PUBLIC_SUPPORT_CHAT_ENABLED: process.env.NEXT_PUBLIC_SUPPORT_CHAT_ENABLED,
-  NEXT_PUBLIC_LOCALE_AUTO_DETECT: process.env.NEXT_PUBLIC_LOCALE_AUTO_DETECT,
 } satisfies Record<keyof ClientEnv, string | undefined>;
 
 const parsed = clientEnvSchema.safeParse(clientEnvRaw);

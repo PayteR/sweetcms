@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getSessionCookie } from 'better-auth/cookies';
 import { LOCALES, DEFAULT_LOCALE } from '@/lib/constants';
+import { siteConfig } from '@/config/site';
 import type { Locale } from '@/lib/constants';
 import { DASHBOARD_PREFIX, ACCOUNT_PREFIX, PUBLIC_ADMIN_PATHS, adminRoutes, publicAuthRoutes } from '@/config/routes';
 import { auth } from '@/lib/auth';
@@ -70,7 +71,7 @@ export async function proxy(request: NextRequest) {
 
   // ── Auto-detect locale from Accept-Language (opt-in) ──
   if (
-    process.env.NEXT_PUBLIC_LOCALE_AUTO_DETECT === 'true' &&
+    siteConfig.localeAutoDetect &&
     !request.cookies.get('locale-chosen')
   ) {
     const segments = pathname.split('/');
