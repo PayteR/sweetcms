@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
+import { eq } from 'drizzle-orm';
 import { db } from '@/server/db';
-import { saasSubscriptionEvents } from '@/server/db/schema';
+import { saasSubscriptionEvents, user } from '@/server/db/schema';
+import { member } from '@/server/db/schema/organization';
 import { getProvider } from '@/server/lib/payment/factory';
 import {
   activateSubscription,
@@ -17,6 +19,7 @@ import { createLogger } from '@/engine/lib/logger';
 import { adminPanel } from '@/config/routes';
 import { recordConversion } from '@/server/lib/affiliates';
 import { invalidateStats } from '@/engine/lib/stats-cache';
+import { tagSubscriber } from '@/engine/lib/email-list/index';
 
 const logger = createLogger('stripe-webhook');
 
@@ -120,6 +123,18 @@ export async function POST(request: Request) {
           recordConversion(checkoutUserId, event.providerSubscriptionId!, amountCents).catch(() => {});
         }
 
+        // Tag subscriber in email list with plan name
+        if (checkoutUserId) {
+          const [tagUser] = await db
+            .select({ email: user.email })
+            .from(user)
+            .where(eq(user.id, checkoutUserId))
+            .limit(1);
+          if (tagUser?.email) {
+            tagSubscriber(tagUser.email, [event.planId ?? 'subscriber']);
+          }
+        }
+
         invalidateStats('billing');
         break;
       }
@@ -157,6 +172,17 @@ export async function POST(request: Request) {
             category: NotificationCategory.BILLING,
             actionUrl: adminPanel.settingsBilling,
           });
+
+          // Tag org owner as churned in email list
+          const [owner] = await db
+            .select({ email: user.email })
+            .from(member)
+            .innerJoin(user, eq(member.userId, user.id))
+            .where(eq(member.organizationId, orgId))
+            .limit(1);
+          if (owner?.email) {
+            tagSubscriber(owner.email, ['churned']);
+          }
         }
         break;
       }

@@ -52,6 +52,28 @@ export class S3Storage implements StorageProvider {
     return filepath;
   }
 
+  async download(filepath: string): Promise<Buffer> {
+    const url = `${this.endpoint}/${this.bucket}/${filepath}`;
+    const date = new Date().toUTCString();
+
+    const headers: Record<string, string> = {
+      Date: date,
+      Host: new URL(this.endpoint).host,
+    };
+
+    const signature = await this.sign('GET', filepath, headers);
+    headers['Authorization'] = signature;
+
+    const response = await fetch(url, { method: 'GET', headers });
+
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`S3 download failed (${response.status}): ${text}`);
+    }
+
+    return Buffer.from(await response.arrayBuffer());
+  }
+
   async delete(filepath: string): Promise<void> {
     const url = `${this.endpoint}/${this.bucket}/${filepath}`;
     const date = new Date().toUTCString();

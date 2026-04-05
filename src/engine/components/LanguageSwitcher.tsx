@@ -32,7 +32,7 @@ function LanguageSwitcherInner() {
     // Full page reload required — the root layout's NextIntlClientProvider
     // must re-render with the new locale's messages from the server.
     // router.push() would do a soft nav and keep stale translations.
-    window.location.href = localePath(basePath, locale);
+    window.location.assign(localePath(basePath, locale));
   }
 
   // Close on click outside

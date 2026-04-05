@@ -67,6 +67,13 @@ const serverEnvSchema = z.object({
   AI_API_URL: z.url().optional(),
   AI_MODEL: z.string().optional(),
 
+  // Email list / newsletter integration (optional)
+  EMAIL_LIST_PROVIDER: z.enum(['mailchimp', 'brevo']).optional(),
+  MAILCHIMP_API_KEY: z.string().optional(),
+  MAILCHIMP_LIST_ID: z.string().optional(),
+  BREVO_API_KEY: z.string().optional(),
+  BREVO_LIST_ID: z.string().optional(),
+
   // Server role
   SERVER_ROLE: z.enum(['all', 'frontend', 'api', 'worker']).default('all'),
   PORT: z.string().regex(/^\d+$/).default('3000'),

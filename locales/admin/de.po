@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sweetcms\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-04T23:50:27.438Z\n"
-"PO-Revision-Date: 2026-04-04T23:50:27.438Z\n"
+"POT-Creation-Date: 2026-04-05T08:52:44.695Z\n"
+"PO-Revision-Date: 2026-04-05T08:52:44.695Z\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: de\n"
 "Language: de\n"
@@ -3546,6 +3546,11 @@ msgstr[1] "{count} items {action}"
 #: src/engine/hooks/useCmsFormState.ts:49
 msgid "Please check the form for errors"
 msgstr "Bitte überprüfen Sie das Formular auf Fehler"
+
+#. REMOVED FROM CODE - PRESERVED FOR REFERENCE
+#~ msgctxt "General"
+#~ msgid "This page is available in {language}"
+#~ msgstr "This page is available in {language}"
 
 #. REMOVED FROM CODE - PRESERVED FOR REFERENCE
 #~ msgid "Option "

@@ -11,6 +11,7 @@ import { db } from '@/server/db';
 import { organization as organizationTable, member } from '@/server/db/schema/organization';
 import { saasSupportChatSessions } from '@/server/db/schema/support';
 import { enqueueTemplateEmail } from '@/server/jobs/email';
+import { syncSubscriber } from '@/engine/lib/email-list/index';
 
 const log = createLogger('auth');
 
@@ -114,14 +115,15 @@ function createAuth() {
               log.warn('Failed to link chat sessions', { email: user.email, error: String(err) });
             }
 
-            // Welcome email
-            const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
-            enqueueTemplateEmail(user.email, 'welcome', {
-              name: user.name ?? 'there',
-              appUrl,
-            }).catch((err: unknown) => {
-              log.warn('Failed to send welcome email', { email: user.email, error: String(err) });
+            // Sync to email list (fire-and-forget)
+            syncSubscriber(user.email, {
+              firstName: user.name ?? undefined,
+              tags: ['registered'],
             });
+
+            // Welcome email skipped — verification email (sendOnSignUp) serves as the welcome.
+            // The old standalone welcome email sent mixed signals ("Go to Dashboard")
+            // alongside a "verify your email" message arriving at the same time.
           },
         },
       },

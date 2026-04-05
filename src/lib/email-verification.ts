@@ -1,5 +1,5 @@
 /** Grace period (ms) — unverified users can use the app for this long after registration */
-const GRACE_PERIOD_MS = 24 * 60 * 60 * 1000;
+export const EMAIL_GRACE_PERIOD_MS = 24 * 60 * 60 * 1000;
 
 /**
  * Returns true if the user must verify their email before continuing.
@@ -11,15 +11,5 @@ export function isEmailVerificationRequired(user: {
 }): boolean {
   if (user.emailVerified) return false;
   const created = new Date(user.createdAt).getTime();
-  return Date.now() - created > GRACE_PERIOD_MS;
-}
-
-/**
- * Returns true if the user's email is unverified (regardless of grace period).
- * Used for showing the reminder banner during grace.
- */
-export function isEmailUnverified(user: {
-  emailVerified: boolean;
-}): boolean {
-  return !user.emailVerified;
+  return Date.now() - created > EMAIL_GRACE_PERIOD_MS;
 }

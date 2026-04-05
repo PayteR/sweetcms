@@ -24,6 +24,12 @@ import { AuthDialogs } from '@/components/public/AuthDialogs';
 import { SupportChatWidgetWrapper } from '@/components/public/SupportChatWidgetWrapper';
 import { getServerTranslations, type TranslationFn } from '@/lib/translations-server';
 import { LanguageSuggestionBanner } from '@/engine/components/LanguageSuggestionBanner';
+import { getLanguageSuggestion } from '@/engine/lib/language-suggestion';
+import { dataTranslations } from '@/lib/translations';
+
+// Extraction marker — ensures the language suggestion key appears in public PO files
+const _d = dataTranslations('General');
+_d('This page is available in {language}');
 
 async function getPublishedCategories(locale: Locale) {
   try {
@@ -95,8 +101,11 @@ export default async function PublicLayout({
   children: React.ReactNode;
 }) {
   const locale = await getLocale();
-  const __ = await getServerTranslations();
-  const categories = await getPublishedCategories(locale);
+  const [__, categories, langSuggestion] = await Promise.all([
+    getServerTranslations(),
+    getPublishedCategories(locale),
+    getLanguageSuggestion(locale, LOCALES, LOCALE_LABELS),
+  ]);
   const mobileItems = await getMobileNavItems(categories, locale, __);
 
   return (
@@ -157,11 +166,14 @@ export default async function PublicLayout({
         </div>
       </header>
 
-      <LanguageSuggestionBanner
-        locales={LOCALES}
-        localeLabels={LOCALE_LABELS}
-        defaultLocale={DEFAULT_LOCALE}
-      />
+      {langSuggestion && (
+        <LanguageSuggestionBanner
+          suggestedLocale={langSuggestion.suggestedLocale}
+          messageInCurrentLang={langSuggestion.messageInCurrentLang}
+          messageInSuggestedLang={langSuggestion.messageInSuggestedLang}
+          defaultLocale={DEFAULT_LOCALE}
+        />
+      )}
       <AuthDialogs />
       <main className="flex-1">{children}</main>
       <SupportChatWidgetWrapper />

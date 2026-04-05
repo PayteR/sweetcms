@@ -24,18 +24,18 @@ import { createTranslationFunction, type TranslationFn, type TranslationValues }
 export type { TranslationFn, TranslationValues } from './translation-shared';
 
 /** Client-side translation hook — wraps next-intl's useTranslations with safe fallback.
- * Falls back to identity (key as-is) if the namespace isn't loaded (e.g. component
- * accidentally rendered outside the dashboard layout). */
-export const useAdminTranslations = (
+ *
+ * Uses a two-component pattern to satisfy rules-of-hooks:
+ * `useAdminTranslations` always calls the hook unconditionally.
+ * If the context is missing, wrap the component in `<AdminTranslationsGuard>`.
+ *
+ * For components that may render outside the dashboard layout,
+ * use `useBlankTranslations()` instead.
+ */
+export function useAdminTranslations(
   namespace: string = 'General'
-): TranslationFn => {
-  let t: ReturnType<typeof useBaseTranslations>;
-  try {
-    t = useBaseTranslations(namespace);
-  } catch {
-    // Namespace not available — fall back to blank translator
-    return blankTranslator;
-  }
+): TranslationFn {
+  const t = useBaseTranslations(namespace);
   const wrapped = createTranslationFunction(t);
   const fn = ((key: string, values?: TranslationValues, formats?: Formats) => {
     try {
@@ -60,7 +60,7 @@ export const useAdminTranslations = (
     }
   };
   return fn;
-};
+}
 
 /**
  * No-op translation hook — returns the key as-is without lookup.

@@ -8,6 +8,7 @@ import { slugifyFilename } from '@/engine/lib/slug';
 import { FileType } from '@/engine/types/cms';
 import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
 import { logAudit } from '@/engine/lib/audit';
+import { enqueueMediaProcessing } from '@/server/jobs/media/index';
 import {
   createTRPCRouter,
   publicProcedure,
@@ -147,6 +148,9 @@ export const mediaRouter = createTRPCRouter({
         entityId: media!.id,
         entityTitle: safeFilename,
       });
+
+      // Enqueue image processing (thumbnail, medium, blur — fire-and-forget)
+      enqueueMediaProcessing(media!.id, input.mimeType).catch(() => {});
 
       return media!;
     }),

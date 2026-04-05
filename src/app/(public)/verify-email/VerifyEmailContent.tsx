@@ -1,16 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Mail } from 'lucide-react';
-import { authClient } from '@/lib/auth-client';
+import { Mail, LogOut } from 'lucide-react';
+import { authClient, signOut } from '@/lib/auth-client';
 import { useBlankTranslations } from '@/lib/translations';
+import { EMAIL_GRACE_PERIOD_MS } from '@/lib/email-verification';
 
 interface VerifyEmailContentProps {
   email: string;
   createdAt: string;
 }
-
-const GRACE_PERIOD_MS = 24 * 60 * 60 * 1000;
 
 export function VerifyEmailContent({ email, createdAt }: VerifyEmailContentProps) {
   const __ = useBlankTranslations();
@@ -23,7 +22,7 @@ export function VerifyEmailContent({ email, createdAt }: VerifyEmailContentProps
   useEffect(() => {
     function updateTimeLeft() {
       const created = new Date(createdAt).getTime();
-      const expiresAt = created + GRACE_PERIOD_MS;
+      const expiresAt = created + EMAIL_GRACE_PERIOD_MS;
       const remaining = expiresAt - Date.now();
 
       if (remaining <= 0) {
@@ -111,6 +110,14 @@ export function VerifyEmailContent({ email, createdAt }: VerifyEmailContentProps
       <p className="text-xs text-(--text-secondary) mt-8">
         {__("Didn't receive the email? Check your spam folder or try resending.")}
       </p>
+
+      <button
+        onClick={() => signOut({ fetchOptions: { onSuccess: () => { window.location.href = '/'; } } })}
+        className="inline-flex items-center gap-1.5 mt-4 text-xs text-(--text-secondary) hover:text-(--text-primary) transition-colors"
+      >
+        <LogOut size={14} />
+        {__('Sign out and use a different email')}
+      </button>
     </div>
   );
 }

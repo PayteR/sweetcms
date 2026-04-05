@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: sweetcms\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-04T23:50:27.416Z\n"
-"PO-Revision-Date: 2026-04-04T23:50:27.416Z\n"
+"POT-Creation-Date: 2026-04-05T08:52:44.674Z\n"
+"PO-Revision-Date: 2026-04-05T08:52:44.674Z\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: en\n"
 "Language: en\n"
@@ -109,9 +109,9 @@ msgid "Urgent"
 msgstr "Urgent"
 
 #: src/app/(public)/blog/page.tsx:54
-#: src/app/(public)/layout.tsx:80
-#: src/app/(public)/layout.tsx:127
-#: src/app/(public)/layout.tsx:196
+#: src/app/(public)/layout.tsx:87
+#: src/app/(public)/layout.tsx:137
+#: src/app/(public)/layout.tsx:214
 #: src/app/(showcase)/layout.tsx:53
 #: src/app/(showcase)/layout.tsx:73
 msgid "Blog"
@@ -144,23 +144,28 @@ msgstr "Forgot Password"
 msgid "Enter your email to receive a reset link."
 msgstr "Enter your email to receive a reset link."
 
-#: src/app/(public)/layout.tsx:85
-#: src/app/(public)/layout.tsx:197
+#: src/app/(public)/layout.tsx:32
+msgctxt "General"
+msgid "This page is available in {language}"
+msgstr "This page is available in {language}"
+
+#: src/app/(public)/layout.tsx:92
+#: src/app/(public)/layout.tsx:215
 #: src/app/(public)/portfolio/page.tsx:28
 #: src/app/(showcase)/layout.tsx:54
 #: src/app/(showcase)/layout.tsx:76
 msgid "Portfolio"
 msgstr "Portfolio"
 
-#: src/app/(public)/layout.tsx:86
-#: src/app/(public)/layout.tsx:139
-#: src/app/(public)/layout.tsx:198
+#: src/app/(public)/layout.tsx:93
+#: src/app/(public)/layout.tsx:149
+#: src/app/(public)/layout.tsx:216
 msgid "Showcase"
 msgstr "Showcase"
 
-#: src/app/(public)/layout.tsx:87
-#: src/app/(public)/layout.tsx:148
-#: src/app/(public)/layout.tsx:199
+#: src/app/(public)/layout.tsx:94
+#: src/app/(public)/layout.tsx:158
+#: src/app/(public)/layout.tsx:217
 #: src/app/(public)/search/page.tsx:127
 #: src/app/(public)/search/page.tsx:143
 #: src/app/(showcase)/showcase/search/page.tsx:66
@@ -168,33 +173,33 @@ msgstr "Showcase"
 msgid "Search"
 msgstr "Search"
 
-#: src/app/(public)/layout.tsx:109
+#: src/app/(public)/layout.tsx:119
 msgid "Blog RSS"
 msgstr "Blog RSS"
 
-#: src/app/(public)/layout.tsx:180
+#: src/app/(public)/layout.tsx:198
 #: src/app/(public)/page.tsx:148
 #: src/components/public/BlogSidebar.tsx:92
 msgid "Categories"
 msgstr "Categories"
 
-#: src/app/(public)/layout.tsx:195
+#: src/app/(public)/layout.tsx:213
 msgid "Quick Links"
 msgstr "Quick Links"
 
-#: src/app/(public)/layout.tsx:204
+#: src/app/(public)/layout.tsx:222
 msgid "More"
 msgstr "More"
 
-#: src/app/(public)/layout.tsx:207
+#: src/app/(public)/layout.tsx:225
 msgid "RSS Feed"
 msgstr "RSS Feed"
 
-#: src/app/(public)/layout.tsx:209
+#: src/app/(public)/layout.tsx:227
 msgid "Admin"
 msgstr "Admin"
 
-#: src/app/(public)/layout.tsx:215
+#: src/app/(public)/layout.tsx:233
 msgid "Powered by SweetCMS"
 msgstr "Powered by SweetCMS"
 

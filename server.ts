@@ -63,6 +63,9 @@ async function main() {
     }
   });
 
+  // Register email list providers (side-effect import)
+  await import('./src/config/email-list');
+
   // Initialize BullMQ workers
   if (enableWorkers) {
     const { startEmailWorker } = await import('./src/server/jobs/email/index');
@@ -71,11 +74,15 @@ async function main() {
     );
     const { startWebhookWorker } = await import('./src/engine/lib/webhooks');
     const { startSupportChatCleanupWorker } = await import('./src/server/jobs/support-chat/index');
+    const { startMediaWorker } = await import('./src/server/jobs/media/index');
+    const { startMaintenanceWorker } = await import('./src/server/jobs/maintenance/index');
     startEmailWorker();
     startContentWorker();
     startWebhookWorker();
     startSupportChatCleanupWorker();
-    console.log('BullMQ workers ready (email + content + webhook + support-chat-cleanup workers started)');
+    startMediaWorker();
+    startMaintenanceWorker();
+    console.log('BullMQ workers ready (email + content + webhook + support-chat-cleanup + media + maintenance workers started)');
 
     // Schedule dunning checks (daily)
     const { getRedis } = await import('./src/engine/lib/redis');
@@ -92,6 +99,15 @@ async function main() {
           await runDunningChecks();
         });
         console.log('Dunning worker ready (daily at 8 AM)');
+      }
+
+      // Schedule maintenance (daily at 3 AM)
+      const maintenanceQueue = createQueue('maintenance');
+      if (maintenanceQueue) {
+        await maintenanceQueue.add('run', {}, {
+          repeat: { pattern: '0 3 * * *' }, // Daily at 3 AM
+        });
+        console.log('Maintenance cron ready (daily at 3 AM)');
       }
     } else {
       const { startDbQueueWorker, enqueueTask } = await import('./src/engine/lib/db-queue');
@@ -120,6 +136,21 @@ async function main() {
         }
       }, 60_000);
       console.log('Dunning DB queue worker ready (daily ~8 AM UTC)');
+
+      // Maintenance via DB queue (daily at ~3 AM UTC)
+      await enqueueTask('maintenance', { action: 'run' }).catch(() => {});
+      startDbQueueWorker('maintenance', async () => {
+        const { runMaintenance } = await import('./src/server/jobs/maintenance/index');
+        await runMaintenance();
+
+        const tomorrow3am = new Date();
+        tomorrow3am.setUTCDate(tomorrow3am.getUTCDate() + 1);
+        tomorrow3am.setUTCHours(3, 0, 0, 0);
+        await enqueueTask('maintenance', { action: 'run' }, {
+          runAfter: tomorrow3am,
+        }).catch(() => {});
+      }, 60_000);
+      console.log('Maintenance DB queue worker ready (daily ~3 AM UTC)');
     }
 
     // Recover stale DB queue tasks on startup

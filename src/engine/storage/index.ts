@@ -6,6 +6,7 @@ const log = createLogger('storage');
 
 export interface StorageProvider {
   upload(filepath: string, buffer: Buffer): Promise<string>;
+  download(filepath: string): Promise<Buffer>;
   delete(filepath: string): Promise<void>;
   url(filepath: string): string;
 }
@@ -28,6 +29,11 @@ class FilesystemStorage implements StorageProvider {
     await fs.mkdir(path.dirname(fullPath), { recursive: true });
     await fs.writeFile(fullPath, buffer);
     return filepath;
+  }
+
+  async download(filepath: string): Promise<Buffer> {
+    const fullPath = path.join(this.basePath, filepath);
+    return fs.readFile(fullPath);
   }
 
   async delete(filepath: string): Promise<void> {

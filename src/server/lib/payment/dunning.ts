@@ -1,6 +1,6 @@
 import { and, eq, gte, lte, lt } from 'drizzle-orm';
 import { db } from '@/server/db';
-import { saasSubscriptions } from '@/server/db/schema/billing';
+import { saasSubscriptions, saasPaymentTransactions } from '@/server/db/schema/billing';
 import { member } from '@/server/db/schema/organization';
 import { user } from '@/server/db/schema/auth';
 import { cmsAuditLog } from '@/server/db/schema/audit';
@@ -10,6 +10,10 @@ import { sendOrgNotification } from '@/server/lib/notifications';
 import { NotificationType, NotificationCategory } from '@/engine/types/notifications';
 import { enqueueTemplateEmail } from '@/server/jobs/email/index';
 import { getPlan } from '@/config/plans';
+import {
+  reconcileStalePendingTransactions,
+  type ProviderCheckFn,
+} from '@/engine/lib/payment/reconciliation-service';
 
 const log = createLogger('dunning');
 
@@ -294,11 +298,109 @@ export async function checkLongOverdueSubscriptions(): Promise<void> {
 }
 
 /**
+ * Check Stripe for the actual status of a payment session/subscription.
+ */
+async function checkStripeTransaction(
+  providerTxId: string
+): Promise<'successful' | 'pending' | 'failed'> {
+  const stripeKey = process.env.STRIPE_SECRET_KEY;
+  if (!stripeKey) return 'pending';
+
+  // providerTxId could be a checkout session ID or subscription ID
+  const isCheckout = providerTxId.startsWith('cs_');
+
+  const url = isCheckout
+    ? `https://api.stripe.com/v1/checkout/sessions/${providerTxId}`
+    : `https://api.stripe.com/v1/subscriptions/${providerTxId}`;
+
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${stripeKey}` },
+  });
+
+  if (!res.ok) return 'failed';
+
+  const data = (await res.json()) as Record<string, unknown>;
+
+  if (isCheckout) {
+    const status = data.payment_status as string;
+    if (status === 'paid') return 'successful';
+    if (status === 'unpaid' || status === 'no_payment_required') return 'pending';
+    return 'failed';
+  }
+
+  // Subscription status
+  const subStatus = data.status as string;
+  if (subStatus === 'active' || subStatus === 'trialing') return 'successful';
+  if (subStatus === 'past_due' || subStatus === 'incomplete') return 'pending';
+  return 'failed';
+}
+
+/**
+ * Check NOWPayments for the actual status of an invoice.
+ */
+async function checkNowPaymentsTransaction(
+  providerTxId: string
+): Promise<'successful' | 'pending' | 'failed'> {
+  const apiKey = process.env.NOWPAYMENTS_API_KEY;
+  if (!apiKey) return 'pending';
+
+  const isSandbox = process.env.NOWPAYMENTS_SANDBOX !== 'false';
+  const baseUrl = isSandbox
+    ? 'https://api-sandbox.nowpayments.io/v1'
+    : 'https://api.nowpayments.io/v1';
+
+  const res = await fetch(`${baseUrl}/payment/${providerTxId}`, {
+    headers: { 'x-api-key': apiKey },
+  });
+
+  if (!res.ok) return 'failed';
+
+  const data = (await res.json()) as Record<string, unknown>;
+  const status = data.payment_status as string;
+
+  if (status === 'finished' || status === 'confirmed') return 'successful';
+  if (status === 'waiting' || status === 'confirming' || status === 'sending')
+    return 'pending';
+  return 'failed';
+}
+
+/**
+ * Reconcile stale pending payment transactions by checking with providers.
+ */
+export async function runReconciliation(): Promise<void> {
+  const providerChecks: Record<string, ProviderCheckFn> = {};
+
+  if (process.env.STRIPE_SECRET_KEY) {
+    providerChecks['stripe'] = checkStripeTransaction;
+  }
+  if (process.env.NOWPAYMENTS_API_KEY) {
+    providerChecks['nowpayments'] = checkNowPaymentsTransaction;
+  }
+
+  if (Object.keys(providerChecks).length === 0) {
+    return;
+  }
+
+  const result = await reconcileStalePendingTransactions(
+    db,
+    saasPaymentTransactions,
+    providerChecks,
+    { staleThresholdHours: 24 }
+  );
+
+  if (result.checked > 0) {
+    log.info('Reconciliation results', result);
+  }
+}
+
+/**
  * Run all dunning checks. Called by the scheduled job.
  */
 export async function runDunningChecks(): Promise<void> {
   log.info('Running dunning checks');
   try {
+    // Reconcile stale transactions first — recovered payments affect dunning
+    await runReconciliation();
     await checkExpiringSubscriptions();
     await checkExpiredSubscriptions();
     await checkGracePeriods();
