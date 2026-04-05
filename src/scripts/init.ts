@@ -1,19 +1,21 @@
 /**
- * SweetCMS Init Script
+ * Indigo Init Script
  *
  * Single command to fully set up and populate the database:
- *   bun run init
+ *   bun run init              — interactive mode
+ *   bun run init -- -y        — auto-accept all prompts (uses env/defaults)
+ *   bun run init -- -y --reset — force reset + re-seed (for demo deployments)
  *
  * What it does:
  * 1. Ensures .env exists (copies from .env.example if missing)
  * 2. Creates the database if it doesn't exist
  * 3. Runs Drizzle migrations
  * 4. Detects existing data — offers reset (TRUNCATE + re-seed)
- * 5. Creates superadmin user if none exists (interactive)
+ * 5. Creates superadmin user if none exists (interactive or from env)
  * 6. Prompts for company info (legal page templates)
  * 7. Writes site name / URL back to .env
  * 8. Seeds default site options
- * 9. Selectively seeds: CMS content, billing demo data, extras (menus, forms, audit, notifications)
+ * 9. Selectively seeds: CMS content, module data, extras
  */
 
 import postgres from 'postgres';
@@ -36,6 +38,25 @@ import { seedMedia, seedCmsContent } from './seed/cms-content';
 import { seedUsersAndOrgs } from './seed/users-orgs';
 import { seedExtras } from './seed/extras';
 import { MODULE_SEEDS } from '@/generated/module-seeds';
+
+// ─── CLI Flags ───────────────────────────────────────────────────────────────
+
+const args = process.argv.slice(2);
+const AUTO_YES = args.includes('-y') || args.includes('--yes');
+const FORCE_RESET = args.includes('--reset');
+
+/** Prompt or auto-accept. In -y mode, always returns the default value. */
+async function confirm(message: string, defaultValue = true): Promise<boolean> {
+  if (AUTO_YES) return defaultValue;
+  return promptYesNo(message, defaultValue);
+}
+
+/** Prompt or use fallback. In -y mode, returns env value or fallback. */
+async function ask(message: string, envValue?: string, fallback = ''): Promise<string> {
+  if (AUTO_YES) return envValue || fallback;
+  if (envValue) return promptWithDefault(message, envValue);
+  return (await prompt(message)) || fallback;
+}
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 
@@ -79,10 +100,6 @@ const ALL_TABLES = [
 
 // ─── Step 1: Ensure .env ──────────────────────────────────────────────────────
 
-/**
- * Returns true if .env already existed (ready to proceed).
- * Returns false if .env was just created (must restart for Bun to load it).
- */
 function ensureEnvFile(): boolean {
   if (fs.existsSync(ENV_PATH)) {
     return true;
@@ -91,8 +108,11 @@ function ensureEnvFile(): boolean {
   if (fs.existsSync(ENV_EXAMPLE_PATH)) {
     fs.copyFileSync(ENV_EXAMPLE_PATH, ENV_PATH);
     log('📄', 'Created .env from .env.example.');
-    log('📝', 'Review the file, then re-run: bun run init');
-    return false;
+    if (!AUTO_YES) {
+      log('📝', 'Review the file, then re-run: bun run init');
+      return false;
+    }
+    return true;
   }
 
   log('⚠️', 'No .env or .env.example found. Create .env with DATABASE_URL, then re-run.');
@@ -152,38 +172,37 @@ async function checkAndResetIfNeeded(
   db: ReturnType<typeof drizzle>,
   rawSql: ReturnType<typeof postgres>,
 ): Promise<ResetResult> {
-  // Check multiple tables to detect ANY seeded data (not just CMS)
   const { cmsPosts } = await import('../server/db/schema/cms');
-  const { saasSubscriptions } = await import('@/core-billing/schema/billing');
   const { cmsMenus } = await import('../server/db/schema/menu');
 
   const [postCount] = await db.select({ count: count() }).from(cmsPosts);
-  const [subCount] = await db.select({ count: count() }).from(saasSubscriptions);
   const [menuCount] = await db.select({ count: count() }).from(cmsMenus);
 
   const hasData =
     (postCount?.count ?? 0) > 0 ||
-    (subCount?.count ?? 0) > 0 ||
     (menuCount?.count ?? 0) > 0;
 
   if (!hasData) return 'no_data';
 
-  console.log('');
-  log('⚠️', 'Data already exists in the database.');
-  const shouldReset = await promptYesNo('  Reset and re-seed all data?', false);
+  // --reset flag forces reset without asking
+  if (FORCE_RESET) {
+    log('🗑️', 'Force resetting all data (--reset flag)...');
+  } else {
+    console.log('');
+    log('⚠️', 'Data already exists in the database.');
+    const shouldReset = await confirm('  Reset and re-seed all data?', false);
 
-  if (!shouldReset) {
-    log('⏭️', 'Keeping existing data.');
-    return 'skip';
+    if (!shouldReset) {
+      log('⏭️', 'Keeping existing data.');
+      return 'skip';
+    }
+
+    log('🗑️', 'Resetting all data...');
   }
 
-  log('🗑️', 'Resetting all data...');
-
-  // Use raw postgres connection for TRUNCATE (drizzle's execute is for DML)
   const tableList = ALL_TABLES.join(', ');
   await rawSql.unsafe(`TRUNCATE TABLE ${tableList} CASCADE`);
 
-  // Remove seed media files
   const seedDir = path.join(PROJECT_ROOT, 'uploads', 'seed');
   if (fs.existsSync(seedDir)) {
     fs.rmSync(seedDir, { recursive: true, force: true });
@@ -198,7 +217,6 @@ async function checkAndResetIfNeeded(
 async function ensureSuperadmin(db: ReturnType<typeof drizzle>): Promise<string> {
   const { user, account } = await import('../server/db/schema/auth');
 
-  // Check if a superadmin already exists
   const [existingAdmin] = await db
     .select({ id: user.id })
     .from(user)
@@ -210,12 +228,18 @@ async function ensureSuperadmin(db: ReturnType<typeof drizzle>): Promise<string>
     return existingAdmin.id;
   }
 
-  log('👤', 'No superadmin found. Creating one...');
-  console.log('');
+  // In auto mode, use env vars or defaults
+  const name = await ask('  Admin name: ', process.env.INIT_ADMIN_NAME, 'Admin');
+  const email = await ask('  Admin email: ', process.env.INIT_ADMIN_EMAIL, 'admin@example.com');
 
-  const name = await prompt('  Admin name: ');
-  const email = await prompt('  Admin email: ');
-  const password = await promptPassword('  Admin password (min 6 chars): ');
+  let password: string;
+  if (AUTO_YES) {
+    password = process.env.INIT_ADMIN_PASSWORD || 'demo1234';
+  } else {
+    log('👤', 'No superadmin found. Creating one...');
+    console.log('');
+    password = await promptPassword('  Admin password (min 6 chars): ');
+  }
 
   if (!name || !email || !password) {
     console.error('All fields are required.');
@@ -245,7 +269,6 @@ async function ensureSuperadmin(db: ReturnType<typeof drizzle>): Promise<string>
     password: hashedPassword,
   });
 
-  // Audit log the superadmin creation
   const { cmsAuditLog } = await import('../server/db/schema/audit');
   await db.insert(cmsAuditLog).values({
     userId,
@@ -253,39 +276,34 @@ async function ensureSuperadmin(db: ReturnType<typeof drizzle>): Promise<string>
     entityType: 'user',
     entityId: userId,
     entityTitle: name,
-  }).catch(() => {}); // Table may not have been migrated yet
+  }).catch(() => {});
 
   console.log('');
   log('✅', `Superadmin "${name}" <${email}> created.`);
   return userId;
 }
 
-// ─── Step 6: Prompt company info ────────────────────────────────────────────
+// ─── Step 6: Company info ──────────────────────────────────────────────────
 
 async function promptCompanyInfo(): Promise<CompanyInfo> {
-  log('🏢', 'Company info (used in legal page templates)...');
-  console.log('');
+  if (!AUTO_YES) {
+    log('🏢', 'Company info (used in legal page templates)...');
+    console.log('');
+  }
 
-  const envSiteName = process.env.NEXT_PUBLIC_SITE_NAME;
-  const envSiteUrl = process.env.NEXT_PUBLIC_APP_URL;
+  const siteName = await ask('  Site name: ', process.env.NEXT_PUBLIC_SITE_NAME, 'Indigo');
+  const siteUrl = await ask('  Site URL: ', process.env.NEXT_PUBLIC_APP_URL, 'http://localhost:3000');
+  const companyName = await ask('  Company legal name (e.g. "Acme Corp s.r.o."): ', undefined, 'Indigo Inc.');
+  const companyAddress = await ask('  Company address: ', undefined, '123 Main Street, City, Country');
+  const companyId = await ask('  Company registration number: ', undefined, 'N/A');
+  const companyJurisdiction = await ask(
+    '  Governing law jurisdiction (e.g. "the Slovak Republic"): ',
+    undefined,
+    'the United States',
+  );
+  const contactEmail = await ask('  Contact email: ', undefined, 'info@example.com');
 
-  const siteName = envSiteName
-    ? await promptWithDefault('  Site name', envSiteName)
-    : (await prompt('  Site name: ')) || 'SweetCMS';
-
-  const siteUrl = envSiteUrl
-    ? await promptWithDefault('  Site URL', envSiteUrl)
-    : (await prompt('  Site URL: ')) || 'http://localhost:3000';
-
-  const companyName = (await prompt('  Company legal name (e.g. "Acme Corp s.r.o."): ')) || 'SweetCMS Inc.';
-  const companyAddress = (await prompt('  Company address: ')) || '123 Main Street, City, Country';
-  const companyId = (await prompt('  Company registration number: ')) || 'N/A';
-  const companyJurisdiction =
-    (await prompt('  Governing law jurisdiction (e.g. "the Slovak Republic", "England and Wales"): ')) ||
-    'the United States';
-  const contactEmail = (await prompt('  Contact email: ')) || 'info@example.com';
-
-  console.log('');
+  if (!AUTO_YES) console.log('');
   return { siteName, siteUrl, companyName, companyAddress, companyId, companyJurisdiction, contactEmail };
 }
 
@@ -360,7 +378,6 @@ async function seedOptions(db: ReturnType<typeof drizzle>, companyInfo: CompanyI
 
   log('✅', `${Object.keys(defaults).length} default options created.`);
 
-  // Audit log options seeding (best-effort — userId may not be available yet)
   const { cmsAuditLog } = await import('../server/db/schema/audit');
   await db.insert(cmsAuditLog).values({
     userId: 'system',
@@ -376,87 +393,83 @@ async function seedOptions(db: ReturnType<typeof drizzle>, companyInfo: CompanyI
 async function main() {
   console.log('');
   console.log('  ╔═══════════════════════════════╗');
-  console.log('  ║     SweetCMS Initialization    ║');
+  console.log('  ║      Indigo Initialization     ║');
   console.log('  ╚═══════════════════════════════╝');
+  if (AUTO_YES) {
+    console.log(`  Mode: auto${FORCE_RESET ? ' + force reset' : ''}`);
+  }
   console.log('');
 
-  // Step 1: Ensure .env (Bun loads .env at startup — if we just created it, must restart)
+  // Step 1
   if (!ensureEnvFile()) {
     process.exit(0);
   }
 
-  // Step 2: Create database
+  // Step 2
   await ensureDatabase();
 
-  // Step 3: Run migrations
+  // Step 3
   runMigrations();
 
-  // Open single DB connection for all remaining steps
   const databaseUrl = getDatabaseUrl();
   const sql = postgres(databaseUrl, { max: 1 });
   const db = drizzle(sql);
 
   try {
-    // Step 4: Check for existing data, offer reset
+    // Step 4
     const resetResult = await checkAndResetIfNeeded(db, sql);
 
-    // Step 5: Ensure superadmin
+    // Step 5
     const superadminUserId = await ensureSuperadmin(db);
 
-    // Seed if: first run (no_data) or user chose to reset
     const needsSeed = resetResult !== 'skip';
 
     if (!needsSeed) {
       log('⏭️', 'Nothing to do.');
     } else {
-      // Step 6: Company info
+      // Step 6
       const companyInfo = await promptCompanyInfo();
 
-      // Step 7: Update .env
+      // Step 7
       updateEnvFile(companyInfo);
 
-      // Step 8: Seed options
+      // Step 8
       await seedOptions(db, companyInfo);
 
-      // Step 9: Ask what to seed
+      // Step 9: Seed
       console.log('');
       log('📋', 'What to seed:');
-      const wantCms = await promptYesNo('  Seed CMS content (pages, blog, portfolio, showcase)?', true);
+      const wantCms = await confirm('  Seed CMS content (pages, blog, portfolio, showcase)?', true);
 
-      // Only ask about demo users/modules if there are module seeds
       const hasModuleSeeds = MODULE_SEEDS.length > 0;
       const wantDemoUsers = hasModuleSeeds
-        ? await promptYesNo('  Seed demo users & organizations (required for module data)?', true)
+        ? await confirm('  Seed demo users & organizations (required for module data)?', true)
         : false;
 
-      // Module seeds — ask for each installed module that has seed data
       const moduleSeeds: { label: string; fn: typeof MODULE_SEEDS[number]['fn']; accepted: boolean }[] = [];
       if (wantDemoUsers) {
         for (const seed of MODULE_SEEDS) {
-          const accepted = await promptYesNo(`  Seed ${seed.label}?`, true);
+          const accepted = await confirm(`  Seed ${seed.label}?`, true);
           moduleSeeds.push({ label: seed.label, fn: seed.fn, accepted });
         }
       }
 
-      const wantExtras = await promptYesNo('  Seed extras (menus, forms, audit log, notifications)?', true);
+      const wantExtras = await confirm('  Seed extras (menus, forms, audit log, notifications)?', true);
       console.log('');
 
       let cmsResult: Awaited<ReturnType<typeof seedCmsContent>> | undefined;
 
-      // Seed CMS content
       if (wantCms) {
         await seedMedia(db);
         cmsResult = await seedCmsContent(db, companyInfo);
       }
 
-      // Seed demo users & orgs (core framework data)
       let seedContext = { userIds: [] as string[], orgIds: [] as string[] };
       if (wantDemoUsers) {
         const usersOrgsResult = await seedUsersAndOrgs(db, superadminUserId);
         seedContext = { userIds: usersOrgsResult.userIds, orgIds: usersOrgsResult.orgIds };
       }
 
-      // Run accepted module seeds with context
       const seededModules: string[] = [];
       for (const seed of moduleSeeds) {
         if (!seed.accepted) continue;
@@ -464,7 +477,6 @@ async function main() {
         seededModules.push(seed.label);
       }
 
-      // Seed extras
       if (wantExtras) {
         await seedExtras(db, {
           superadminUserId,
@@ -475,7 +487,6 @@ async function main() {
         });
       }
 
-      // Audit log seed completion
       const { cmsAuditLog } = await import('../server/db/schema/audit');
       const seeded = [
         wantCms && 'cms',
@@ -498,7 +509,7 @@ async function main() {
   }
 
   console.log('');
-  log('🚀', 'SweetCMS is ready! Run `bun run dev` to start.');
+  log('🚀', 'Indigo is ready! Run `bun run dev` to start.');
   console.log('');
 }
 

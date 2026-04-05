@@ -1,5 +1,5 @@
 /**
- * Media seeding and CMS content seeding for the SweetCMS init script.
+ * Media seeding and CMS content seeding for the Indigo init script.
  * Extracted from init.ts Steps 6 + 7 — do not change logic, only the module boundary.
  *
  * Both functions receive `db` as a parameter — they do NOT create postgres connections.
@@ -204,7 +204,7 @@ export async function seedCmsContent(db: PostgresJsDatabase, companyInfo: Compan
     status: 1,
     lang: 'en',
     slug: 'welcome',
-    title: 'Welcome to SweetCMS',
+    title: 'Welcome to Indigo',
     content: `## Your CMS is ready!
 
 This is a sample page created by the init script. You can edit or delete it from the [admin panel](/dashboard/cms/pages).
@@ -228,10 +228,10 @@ Check out the [blog](/blog) for your latest posts, or explore the [portfolio](/p
     status: 1,
     lang: 'en',
     slug: 'about',
-    title: 'About SweetCMS',
-    content: `## What is SweetCMS?
+    title: 'About Indigo',
+    content: `## What is Indigo?
 
-SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack. It combines Next.js, tRPC, Drizzle ORM, and Better Auth into a cohesive content management system that is optimized for AI-assisted development.
+Indigo is an open-source, agent-driven headless CMS built on the T3 Stack. It combines Next.js, tRPC, Drizzle ORM, and Better Auth into a cohesive content management system that is optimized for AI-assisted development.
 
 ### Key Features
 
@@ -245,9 +245,9 @@ SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack. It 
 
 ### Open Source
 
-SweetCMS is open source (AGPL-3.0) and available on GitHub. Commercial licenses available for proprietary use. Contributions are welcome!`,
-    metaDescription: 'SweetCMS is an open-source, agent-driven headless CMS built on the T3 Stack (Next.js + tRPC + Drizzle).',
-    seoTitle: 'About SweetCMS — Agent-Driven Headless CMS',
+Indigo is open source (AGPL-3.0) and available on GitHub. Commercial licenses available for proprietary use. Contributions are welcome!`,
+    metaDescription: 'Indigo is an open-source, agent-driven headless CMS built on the T3 Stack (Next.js + tRPC + Drizzle).',
+    seoTitle: 'About Indigo — Agent-Driven Headless CMS',
     publishedAt: new Date(),
     previewToken: token(),
   });
@@ -260,47 +260,47 @@ SweetCMS is open source (AGPL-3.0) and available on GitHub. Commercial licenses 
     title: 'Frequently Asked Questions',
     content: `## General Questions
 
-### What is SweetCMS?
+### What is Indigo?
 
-SweetCMS is an open-source, AI agent-driven CMS and SaaS starter built on the T3 Stack (Next.js, tRPC, Drizzle ORM, Better Auth). It provides a complete content management system with SaaS primitives like organizations, billing, and real-time notifications.
+Indigo is an open-source, AI agent-driven CMS and SaaS starter built on the T3 Stack (Next.js, tRPC, Drizzle ORM, Better Auth). It provides a complete content management system with SaaS primitives like organizations, billing, and real-time notifications.
 
-### Who is SweetCMS for?
+### Who is Indigo for?
 
-SweetCMS is designed for developers and teams building SaaS products, marketing sites, blogs, or any content-driven application. It is especially well-suited for projects that leverage AI-assisted development workflows.
+Indigo is designed for developers and teams building SaaS products, marketing sites, blogs, or any content-driven application. It is especially well-suited for projects that leverage AI-assisted development workflows.
 
-### Is SweetCMS free to use?
+### Is Indigo free to use?
 
-Yes. SweetCMS is open source under the AGPL-3.0 license. You can use it freely for any project. Commercial licenses are available if you need proprietary deployment without the AGPL requirements.
+Yes. Indigo is open source under the AGPL-3.0 license. You can use it freely for any project. Commercial licenses are available if you need proprietary deployment without the AGPL requirements.
 
 ## Technical Questions
 
-### What tech stack does SweetCMS use?
+### What tech stack does Indigo use?
 
-SweetCMS is built with Next.js 16 (App Router), TypeScript, Tailwind CSS v4, tRPC, Drizzle ORM, PostgreSQL, and Better Auth. It also supports Redis for caching and rate limiting, BullMQ for background jobs, and WebSockets for real-time features.
+Indigo is built with Next.js 16 (App Router), TypeScript, Tailwind CSS v4, tRPC, Drizzle ORM, PostgreSQL, and Better Auth. It also supports Redis for caching and rate limiting, BullMQ for background jobs, and WebSockets for real-time features.
 
-### How do I deploy SweetCMS?
+### How do I deploy Indigo?
 
-SweetCMS can be deployed anywhere that supports Node.js. Popular choices include Vercel, Railway, Fly.io, and any VPS with Docker. You will need a PostgreSQL database and optionally Redis for full functionality.
+Indigo can be deployed anywhere that supports Node.js. Popular choices include Vercel, Railway, Fly.io, and any VPS with Docker. You will need a PostgreSQL database and optionally Redis for full functionality.
 
 ### Can I customize the design?
 
-Absolutely. SweetCMS uses an OKLCH design token system with Tailwind CSS v4. You can rebrand the entire application by changing a few CSS custom properties for hue, lightness, and chroma values.
+Absolutely. Indigo uses an OKLCH design token system with Tailwind CSS v4. You can rebrand the entire application by changing a few CSS custom properties for hue, lightness, and chroma values.
 
 ## Content Management
 
 ### What content types are supported?
 
-Out of the box, SweetCMS supports pages, blog posts, portfolio items, showcase cards, categories, and tags. The content type registry is config-driven, so adding new types requires minimal code changes.
+Out of the box, Indigo supports pages, blog posts, portfolio items, showcase cards, categories, and tags. The content type registry is config-driven, so adding new types requires minimal code changes.
 
-### Does SweetCMS support multiple languages?
+### Does Indigo support multiple languages?
 
-Yes. SweetCMS has built-in i18n with proxy-rewrite locale routing, translation groups for content, and a translation bar in the admin panel. Add new locales by updating a single config array.
+Yes. Indigo has built-in i18n with proxy-rewrite locale routing, translation groups for content, and a translation bar in the admin panel. Add new locales by updating a single config array.
 
 ### Can I use a rich text editor?
 
 Yes. The admin panel includes a Tiptap-based rich text editor with support for headings, lists, images, links, code blocks, and custom shortcodes. Content is stored as Markdown for portability.`,
-    metaDescription: 'Frequently asked questions about SweetCMS — installation, customization, content management, and deployment.',
-    seoTitle: 'FAQ — SweetCMS',
+    metaDescription: 'Frequently asked questions about Indigo — installation, customization, content management, and deployment.',
+    seoTitle: 'FAQ — Indigo',
     publishedAt: new Date(),
     previewToken: token(),
   });
@@ -354,13 +354,13 @@ Yes. The admin panel includes a Tiptap-based rich text editor with support for h
 
   const portfolioRecords = await db.insert(cmsPortfolio).values([
     {
-      name: 'SweetCMS Website',
+      name: 'Indigo Website',
       slug: 'sweetcms-website',
       lang: 'en',
-      title: 'SweetCMS — Official Website',
+      title: 'Indigo — Official Website',
       text: `## Project Overview
 
-Built the official website and documentation for the SweetCMS open-source project. The site showcases the CMS features, provides getting-started guides, and hosts the project blog.
+Built the official website and documentation for the Indigo open-source project. The site showcases the CMS features, provides getting-started guides, and hosts the project blog.
 
 ## Highlights
 
@@ -374,9 +374,9 @@ Built the official website and documentation for the SweetCMS open-source projec
       clientName: 'SweetAI',
       projectUrl: 'https://github.com/sweetai/sweetcms',
       techStack: ['Next.js', 'TypeScript', 'Tailwind CSS', 'PostgreSQL', 'tRPC'],
-      metaDescription: 'Official website for the SweetCMS open-source headless CMS, built with Next.js and TypeScript.',
+      metaDescription: 'Official website for the Indigo open-source headless CMS, built with Next.js and TypeScript.',
       featuredImage: '/api/uploads/seed/portfolio-01.png',
-      featuredImageAlt: 'SweetCMS Website screenshot',
+      featuredImageAlt: 'Indigo Website screenshot',
       previewToken: token(),
     },
     {
@@ -473,7 +473,7 @@ Built a comprehensive analytics platform for DataViz Inc that processes millions
       status: 1,
       sortOrder: 0,
       publishedAt: new Date(now - 5 * 24 * 60 * 60 * 1000),
-      metaDescription: 'Introduction to the SweetCMS showcase feed.',
+      metaDescription: 'Introduction to the Indigo showcase feed.',
       previewToken: token(),
     },
     {
@@ -486,7 +486,7 @@ Built a comprehensive analytics platform for DataViz Inc that processes millions
       status: 1,
       sortOrder: 1,
       publishedAt: new Date(now - 4 * 24 * 60 * 60 * 1000),
-      metaDescription: 'Video embed demonstration in the SweetCMS showcase.',
+      metaDescription: 'Video embed demonstration in the Indigo showcase.',
       previewToken: token(),
     },
     {
@@ -507,24 +507,24 @@ Built a comprehensive analytics platform for DataViz Inc that processes millions
       title: 'Client Testimonial',
       slug: 'client-testimonial',
       lang: 'en',
-      description: `> "SweetCMS transformed our content workflow. The AI-driven approach means our team ships features twice as fast, and the built-in CMS handles all our marketing pages beautifully."\n\n— **Jane Smith**, CTO at TechStartup Inc.\n\nShowcase cards are perfect for highlighting customer success stories and building social proof.`,
+      description: `> "Indigo transformed our content workflow. The AI-driven approach means our team ships features twice as fast, and the built-in CMS handles all our marketing pages beautifully."\n\n— **Jane Smith**, CTO at TechStartup Inc.\n\nShowcase cards are perfect for highlighting customer success stories and building social proof.`,
       cardType: 'richtext',
       status: 1,
       sortOrder: 3,
       publishedAt: new Date(now - 2 * 24 * 60 * 60 * 1000),
-      metaDescription: 'Customer testimonial showcasing SweetCMS benefits.',
+      metaDescription: 'Customer testimonial showcasing Indigo benefits.',
       previewToken: token(),
     },
     {
       title: 'Product Feature Highlight',
       slug: 'product-feature-highlight',
       lang: 'en',
-      description: `## Real-Time Collaboration\n\nSweetCMS supports WebSocket-powered real-time features out of the box:\n\n- **Live notifications** — instant alerts for content updates\n- **Presence indicators** — see who is editing what\n- **Organization channels** — scoped broadcasts per team\n\nAll backed by Redis pub/sub for multi-instance deployments.`,
+      description: `## Real-Time Collaboration\n\nIndigo supports WebSocket-powered real-time features out of the box:\n\n- **Live notifications** — instant alerts for content updates\n- **Presence indicators** — see who is editing what\n- **Organization channels** — scoped broadcasts per team\n\nAll backed by Redis pub/sub for multi-instance deployments.`,
       cardType: 'richtext',
       status: 1,
       sortOrder: 4,
       publishedAt: new Date(now - 1 * 24 * 60 * 60 * 1000),
-      metaDescription: 'Highlighting real-time collaboration features in SweetCMS.',
+      metaDescription: 'Highlighting real-time collaboration features in Indigo.',
       previewToken: token(),
     },
   ]).returning();
@@ -561,7 +561,7 @@ Built a comprehensive analytics platform for DataViz Inc that processes millions
   }
 
   // Portfolio -> tag relationships
-  // Portfolio 1 (SweetCMS Website) -> Next.js, TypeScript, Tailwind CSS
+  // Portfolio 1 (Indigo Website) -> Next.js, TypeScript, Tailwind CSS
   const tagNextjs = tagRecords.find((t) => t.slug === 'nextjs');
   const tagTypescript = tagRecords.find((t) => t.slug === 'typescript');
   const tagTailwind = tagRecords.find((t) => t.slug === 'tailwind-css');

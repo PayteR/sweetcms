@@ -1,5 +1,5 @@
 /**
- * SweetCMS Promote Script
+ * Indigo Promote Script
  *
  * Promote a user to superadmin by email:
  *   bun run promote <email>

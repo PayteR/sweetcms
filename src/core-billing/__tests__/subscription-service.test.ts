@@ -85,22 +85,25 @@ import { eq, and } from 'drizzle-orm';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const m = (db as any)._mocks as Record<string, ReturnType<typeof vi.fn>>;
 
-const _MOCK_SUBSCRIPTION = {
-  id: 'sub-uuid-1',
-  organizationId: 'org-1',
-  providerId: 'stripe',
-  providerCustomerId: 'cus_123',
-  providerSubscriptionId: 'sub_stripe_123',
-  providerPriceId: 'price_pro_monthly',
-  planId: 'pro',
-  status: 'active',
-  currentPeriodStart: new Date('2026-01-01'),
-  currentPeriodEnd: new Date('2026-02-01'),
-  cancelAtPeriodEnd: false,
-  trialEnd: null,
-  createdAt: new Date('2026-01-01'),
-  updatedAt: new Date('2026-01-01'),
-};
+function mockSub(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 'sub-uuid-1',
+    organizationId: 'org-1',
+    providerId: 'stripe',
+    providerCustomerId: 'cus_123',
+    providerSubscriptionId: 'sub_stripe_123',
+    providerPriceId: 'price_pro_monthly',
+    planId: 'pro',
+    status: 'active',
+    currentPeriodStart: new Date('2026-01-01'),
+    currentPeriodEnd: new Date('2026-02-01'),
+    cancelAtPeriodEnd: false,
+    trialEnd: null,
+    createdAt: new Date('2026-01-01'),
+    updatedAt: new Date('2026-01-01'),
+    ...overrides,
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -149,7 +152,7 @@ describe('subscription-service', () => {
 
     it('keeps current plan when cancelAtPeriodEnd is true and period has not ended', async () => {
       const futureDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-      m.limit.mockResolvedValue([{ cancelAtPeriodEnd: true, currentPeriodEnd: futureDate }]);
+      m.limit.mockResolvedValue([mockSub({ cancelAtPeriodEnd: true, currentPeriodEnd: futureDate })]);
 
       await cancelSubscription('sub_stripe_123');
       const setArg = asMock(m.set).mock.calls[0]![0] as Record<string, unknown>;
@@ -159,7 +162,7 @@ describe('subscription-service', () => {
 
     it('downgrades to free when cancelAtPeriodEnd is true but period already ended', async () => {
       const pastDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      m.limit.mockResolvedValue([{ cancelAtPeriodEnd: true, currentPeriodEnd: pastDate }]);
+      m.limit.mockResolvedValue([mockSub({ cancelAtPeriodEnd: true, currentPeriodEnd: pastDate })]);
 
       await cancelSubscription('sub_stripe_123');
       expect(m.set).toHaveBeenCalledWith(

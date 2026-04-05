@@ -1,5 +1,5 @@
 /**
- * SweetCMS Change Password Script
+ * Indigo Change Password Script
  *
  * Change a user's password by email:
  *   bun run change-password <email>

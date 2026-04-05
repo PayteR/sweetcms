@@ -3,7 +3,7 @@ import { z } from 'zod';
 /** Client-safe env vars (NEXT_PUBLIC_*). Single source of truth for both env.ts and env-client.ts. */
 export const clientEnvSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.url(),
-  NEXT_PUBLIC_SITE_NAME: z.string().min(1).default('SweetCMS'),
+  NEXT_PUBLIC_SITE_NAME: z.string().min(1).default('Indigo'),
   NEXT_PUBLIC_ADMIN_REGISTRATION_ENABLED: z.coerce.boolean().default(false),
   NEXT_PUBLIC_REGISTRATION_ENABLED: z.coerce.boolean().default(true),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),

@@ -1,121 +1,130 @@
-# SweetCMS
+# Indigo
 
-**AI Agent-driven T3 SaaS starter with integrated CMS (Next.js + tRPC + Drizzle)**
+**The complete SaaS framework for Next.js** — CMS, billing, auth, real-time, and modular architecture out of the box.
 
-Open-source SaaS starter kit built for AI-assisted development. Clone, customize, ship. The comprehensive `CLAUDE.md` enables AI coding agents to understand and extend the entire codebase autonomously.
+Clone, install modules, ship. Designed for professionals who know what they're building.
 
-## Tech Stack
+## What's Included
 
-- **Next.js 16** — App Router, React 19, Turbopack
-- **tRPC** — End-to-end type-safe API with `httpBatchStreamLink`
-- **Drizzle ORM** — PostgreSQL with UUID primary keys
-- **Better Auth** — Authentication with RBAC (4 roles) + organizations
-- **Stripe** — Subscription billing with webhooks
-- **BullMQ** — Background job queue (email)
-- **WebSocket** — Real-time via `ws` + Redis pub/sub
-- **Tailwind CSS v4** — Design tokens, CSS-first config
-- **Tiptap** — Rich text editor with full toolbar
-- **Zod** — Input validation
-- **TypeScript** — Strict mode, no `any`
+### Core (free, always present)
 
-## Features
+- **Next.js 16** App Router + React 19 + Turbopack
+- **CMS** — config-driven content types, revision history, media library, shortcodes, SEO, sitemap, RSS
+- **Auth** — Better Auth with RBAC (4 roles), organizations, social login
+- **Real-time** — WebSocket via `ws` + Redis pub/sub
+- **Background jobs** — BullMQ (Redis) or DB queue fallback
+- **i18n** — multi-locale with proxy-rewrite routing
+- **Admin panel** — full dashboard with content calendar, audit log, form builder, custom fields
+- **tRPC** — end-to-end type-safe API
+- **Drizzle ORM** — PostgreSQL, UUID primary keys
+- **Tailwind CSS v4** — OKLCH design tokens
+- **REST API v1** — OpenAPI 3.1 spec at `/api/v1/openapi`
 
-### CMS
-- Config-driven content types (pages, blog posts, portfolio, categories, tags)
-- Revision history with JSONB snapshots
-- Automatic slug redirects on rename
-- Media library with upload/serve pipeline
-- Role-based admin panel (editor, admin, superadmin)
-- Email queue with HTML templates
-- Dynamic sitemap generation
-- Preview mode with tokens
-- SEO fields (meta description, JSON-LD, noindex)
-- Custom server with `SERVER_ROLE` for production scaling
-- Pluggable storage (filesystem, S3-compatible)
-- Content search across all types (for internal linking)
-- Menu management with hierarchical items
-- Form builder with submissions
-- Custom fields (polymorphic, per content type)
-- Audit logging
-- Webhooks for content events
-- REST API v1 (posts, categories, tags, menus) with [OpenAPI 3.1 spec](/api/v1/openapi)
-- RSS feeds (blog, tag)
-- Health check endpoint (`/api/health`) with DB + Redis status
-- Structured logging (JSON in production, human-readable in dev)
-- GDPR data export
-- Content calendar view
-- Shortcode system (callout, CTA, gallery, YouTube embed)
+### Modules
 
-### SaaS
-- **Multi-tenancy** — Better Auth organizations with roles (owner, admin, member), invitations, org switching
-- **Stripe billing** — Checkout sessions, customer portal, webhook sync, subscription lifecycle, plan-based feature flags
-- **Real-time WebSocket** — Channel-based pub/sub, Redis broadcast for multi-instance, auto-reconnect client
-- **In-app notifications** — DB-backed with real-time delivery, bell icon + dropdown, mark read/unread
-- **Redis rate limiting** — Sliding window (ZADD/ZRANGEBYSCORE), fail-open, per-IP and per-user limits on tRPC + REST API
-- **Customer auth** — Login, register, forgot/reset password, social login (Google, Discord)
-- **Account pages** — Profile settings, security (password change, session management), billing portal
-- **Pricing page** — Plan comparison cards, monthly/yearly toggle, FAQ accordion
+| Module | Status | Description |
+|--------|--------|-------------|
+| `core-billing` | Free | Stripe subscriptions, tokens, discounts, dunning |
+| `core-billing-crypto` | Paid | NOWPayments crypto provider |
+| `core-support` | Paid | AI support chat + ticket system + live agent |
+| `core-affiliates` | Paid | Referral tracking, attribution, commissions |
+| `core-ai-writer` | Paid | AI content generation, SEO, translation |
+| `core-import` | Paid | WordPress/Ghost/CSV migration tools |
+| `core-docs` | Free | Documentation system (CMS + MDX, LLM export) |
+| `core-store` | Paid | E-commerce (products, cart, checkout, orders, EU VAT) |
+
+Modules are self-contained git subtrees. Install with `bun run indigo add <module>`, remove with `bun run indigo remove <module>`. Each module brings its own routers, schema, seeds, and admin pages.
 
 ## Quick Start
 
 ### Prerequisites
 
 - [Bun](https://bun.sh) (v1.1+)
-- [Docker](https://docker.com) (for PostgreSQL + Redis)
+- PostgreSQL + Redis (or `docker compose up -d`)
 
-### 1. Clone and install
+### Setup
 
 ```bash
-git clone https://github.com/sweetai/sweetcms.git
-cd sweetcms
+git clone https://github.com/indigo-fw/starter.git my-app
+cd my-app
 bun install
+cp .env.example .env    # edit DATABASE_URL if needed
+bun run init            # creates DB, runs migrations, seeds demo data
+bun run dev             # http://localhost:3000
 ```
 
-### 2. Start services
+The init script is interactive — it asks what to seed. For non-interactive setup:
 
 ```bash
-docker compose up -d
+# Auto-accept all prompts (CI, Docker, demo deployments)
+bun run init -- -y
+
+# Force reset + re-seed (demo server cron)
+bun run init -- -y --reset
 ```
 
-This starts PostgreSQL (port 5433) and Redis (port 6379).
+**Admin panel:** [localhost:3000/dashboard](http://localhost:3000/dashboard)
 
-### 3. Configure environment
+### Environment variables for auto mode
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `INIT_ADMIN_NAME` | Admin | Superadmin display name |
+| `INIT_ADMIN_EMAIL` | admin@example.com | Superadmin email |
+| `INIT_ADMIN_PASSWORD` | demo1234 | Superadmin password |
+
+## Module System
+
+Modules are managed via the Indigo CLI:
 
 ```bash
-cp .env.example .env
+bun run indigo list              # show installed + available modules
+bun run indigo add core-support  # install module (subtree + scaffold + migrate)
+bun run indigo remove core-support  # remove module
+bun run indigo sync              # regenerate glue files after manual config edits
 ```
 
-Edit `.env` — the defaults work with `docker compose`. Generate a secret:
+Each module declares its integration in `module.config.ts`:
+- **Routers** — auto-registered in tRPC
+- **Schema** — auto-exported for Drizzle
+- **Server init** — dependency injection at startup
+- **Jobs** — background workers
+- **Seeds** — demo data for `bun run init`
+- **Layout widgets** — components injected into public layout
 
-```bash
-openssl rand -hex 32
+All wiring is auto-generated in `src/generated/` by `bun run indigo:sync`.
+
+## Architecture
+
+```
+src/
+  core/                 Base framework (git subtree from indigo-fw/core)
+  core-billing/         Free module: payments
+  core-support/         Paid module: support chat
+  core-*/               Other modules...
+  generated/            Auto-generated glue (DO NOT EDIT)
+  config/               Project customization (plans, routes, deps)
+  server/               DB schema, tRPC routers, jobs
+  app/                  Next.js pages (public, dashboard, API)
+  components/           Project-specific UI
 ```
 
-### 4. Initialize database
+### Module Dependency Injection
 
-```bash
-bun run init
+Modules don't hardcode project-specific behavior. Each module defines a `deps.ts` interface, and the project provides implementations at startup:
+
+```typescript
+// src/config/payments-deps.ts
+setPaymentsDeps({
+  getPlans: () => plans,
+  resolveOrgId: (activeOrgId, userId) => resolveOrgId(activeOrgId, userId),
+  sendOrgNotification: (orgId, params) => sendOrgNotification(orgId, params),
+});
 ```
 
-Creates the database, runs migrations, prompts for a superadmin account and company info, then selectively seeds demo content: CMS (13 pages, 101 blog posts, 6 categories, 12 tags, 4 portfolio items, 5 showcase items), billing (20 users, 12 orgs, subscriptions), and extras (menus, forms, audit log, notifications). Supports reset on re-run.
+### Content Types
 
-### 5. Start development server
-
-```bash
-bun run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) — your app is ready.
-
-- **Admin panel:** [http://localhost:3000/dashboard](http://localhost:3000/dashboard)
-- **Blog:** [http://localhost:3000/blog](http://localhost:3000/blog)
-- **Pricing:** [http://localhost:3000/pricing](http://localhost:3000/pricing)
-- **API docs:** [http://localhost:3000/api/v1/openapi](http://localhost:3000/api/v1/openapi)
-- **Health:** [http://localhost:3000/api/health](http://localhost:3000/api/health)
-
-## Content Types
-
-Registered in `src/config/cms.ts`. Currently includes:
+Registered in `src/config/cms.ts`. Add new types by extending the array — no core code changes.
 
 | Type | URL Pattern | Admin Path |
 |------|-------------|------------|
@@ -125,147 +134,63 @@ Registered in `src/config/cms.ts`. Currently includes:
 | Category | `/category/{slug}` | `/dashboard/cms/categories` |
 | Tag | `/tag/{slug}` | `/dashboard/cms/tags` |
 
-Add new types by extending the `CONTENT_TYPES` array — no core code changes needed.
+### Roles & Permissions
 
-## Roles & Permissions
-
-| Role | Dashboard | Content | Media | Users | Settings | Billing | Orgs |
-|------|-----------|---------|-------|-------|----------|---------|------|
-| user | — | — | — | — | — | — | — |
-| editor | yes | yes | yes | — | — | — | — |
-| admin | yes | yes | yes | yes | yes | yes | yes |
-| superadmin | yes | yes | yes | yes | yes | yes | yes |
-
-## SaaS Configuration
-
-All SaaS features are opt-in. The CMS works standalone without any of these:
-
-```env
-# Stripe billing (disabled without STRIPE_SECRET_KEY)
-STRIPE_SECRET_KEY=sk_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_...
-
-# WebSocket (default: true, requires custom server)
-WS_ENABLED=true
-
-# Customer registration (default: true)
-NEXT_PUBLIC_REGISTRATION_ENABLED=true
-```
-
-Organizations are included by default (Better Auth plugin). If you don't need multi-tenancy, remove the org schema, router, and UI — see CLAUDE.md for the full list of files.
+| Role | Dashboard | Content | Media | Users | Settings | Billing |
+|------|-----------|---------|-------|-------|----------|---------|
+| user | — | — | — | — | — | — |
+| editor | yes | yes | yes | — | — | — |
+| admin | yes | yes | yes | yes | yes | yes |
+| superadmin | yes | yes | yes | yes | yes | yes |
 
 ## Scripts
 
 | Command | Description |
 |---------|-------------|
-| `bun run dev` | Start dev server (Turbopack + BullMQ + WebSocket) |
+| `bun run dev` | Dev server (Turbopack + BullMQ + WebSocket) |
 | `bun run build` | Production build |
-| `bun run start` | Start production server |
-| `bun run init` | Initialize DB + seed content |
+| `bun run start` | Production server |
+| `bun run init` | Initialize DB + seed (`-y` for auto, `--reset` for force) |
+| `bun run indigo <cmd>` | Module CLI (add, remove, list, sync) |
 | `bun run promote <email>` | Promote user to superadmin |
-| `bun run change-password <email>` | Change a user's password |
 | `bun run typecheck` | TypeScript type check |
 | `bun run db:generate` | Generate Drizzle migrations |
 | `bun run db:migrate` | Apply migrations |
-| `bun run db:studio` | Open Drizzle Studio |
+| `bun run db:studio` | Drizzle Studio |
 
-## Project Structure
-
-```
-src/
-├── app/
-│   ├── (public)/        Public content, pricing, customer auth, account pages
-│   ├── api/             Auth, tRPC, upload, Stripe webhooks
-│   └── dashboard/       Admin panel (CMS, media, users, settings, billing, orgs)
-├── components/
-│   ├── admin/           PostForm, CategoryForm, OrgSwitcher, NotificationBell, etc.
-│   ├── public/          UserMenu, PricingToggle, SocialLoginButtons, AccountSidebar, etc.
-│   └── ui/              ConfirmDialog, Toaster
-├── config/              Content types, taxonomies, plans, pricing, site config
-├── engine/              Reusable CMS infrastructure (git subtree)
-├── lib/                 Auth, policy, slug, translations, tRPC, WebSocket client
-├── server/
-│   ├── db/schema/       Drizzle schema (auth, CMS, billing, notifications, orgs)
-│   ├── jobs/            Email queue (BullMQ + nodemailer)
-│   ├── lib/             Redis, Stripe, WebSocket server, notifications
-│   ├── routers/         tRPC routers (20+ routers)
-│   ├── storage/         Pluggable storage providers (filesystem, S3)
-│   └── utils/           Admin CRUD, revisions, CMS helpers
-└── store/               Zustand stores (toast, theme, sidebar)
-```
-
-## Production Deployment
+## Production
 
 ### SERVER_ROLE
 
-Scale independently with the same Docker image:
+Scale with the same Docker image:
 
-| Role | Next.js | tRPC | BullMQ | WebSocket | Use case |
-|------|---------|------|--------|-----------|----------|
-| `all` (default) | yes | yes | yes | yes | Single instance |
-| `frontend` | yes | — | — | — | Pages only |
-| `api` | yes | yes | — | yes | API + WebSocket |
-| `worker` | — | — | yes | — | Background jobs |
+| Role | Next.js | tRPC | BullMQ | WebSocket |
+|------|---------|------|--------|-----------|
+| `all` (default) | yes | yes | yes | yes |
+| `frontend` | yes | — | — | — |
+| `api` | yes | yes | — | yes |
+| `worker` | — | — | yes | — |
 
-### Storage
+### Demo Deployment
 
-Set `STORAGE_BACKEND=s3` with S3-compatible credentials for production file storage. Works with AWS S3, MinIO, Cloudflare R2, and DigitalOcean Spaces.
+Run a live demo that resets automatically:
 
-### WebSocket
-
-WebSocket requires the custom server (`server.ts`). Not available in serverless deployments. Redis pub/sub enables multi-instance broadcasting.
-
-## REST API
-
-All endpoints require an API key via `X-API-Key` header (configurable via `API_KEY` env var). Rate limited to 100 req/min per IP.
-
-| Endpoint | Description |
-|----------|-------------|
-| `GET /api/v1/posts` | List published posts (paginated, filterable by lang/type) |
-| `GET /api/v1/posts/{slug}` | Get single post by slug (supports preview tokens) |
-| `GET /api/v1/categories` | List published categories |
-| `GET /api/v1/categories/{slug}` | Get single category |
-| `GET /api/v1/tags` | List tags (filterable by taxonomyId) |
-| `GET /api/v1/menus/{slug}` | Get menu with nested item tree |
-| `GET /api/v1/openapi` | OpenAPI 3.1 specification |
-
-## Monitoring
-
-`GET /api/health` returns service status with per-check latency:
-
-```json
-{
-  "status": "healthy",
-  "uptime": 3600.5,
-  "checks": {
-    "database": { "status": "ok", "latencyMs": 2 },
-    "redis": { "status": "ok", "latencyMs": 1 }
-  }
-}
+```bash
+# Cron every 60 minutes
+bun run init -- -y --reset
 ```
 
-Returns `200` when healthy, `503` when degraded. Error details stripped in production.
+Set `INIT_ADMIN_EMAIL` and `INIT_ADMIN_PASSWORD` in env for the demo login credentials.
 
 ## Agent-Driven Development
 
-SweetCMS is designed for AI coding agents. The `CLAUDE.md` file contains:
-
-- Complete architecture overview (CMS + SaaS primitives)
-- All tRPC router documentation
-- Database schema details (auth, CMS, billing, notifications, organizations)
-- CSS class reference
-- Coding standards and patterns
-- Engine/project boundary rules
-- Troubleshooting guide
-
-Point your AI agent at the repo and it can understand, modify, and extend the platform autonomously.
+Indigo is designed for AI coding agents. Comprehensive `CLAUDE.md` files at every level (root, core, modules, server, config, app) enable agents to understand and extend the codebase autonomously.
 
 ## License
 
-SweetCMS is dual-licensed:
+Dual-licensed:
 
-- **Open Source:** [AGPL-3.0](LICENSE) — free for open-source use. If you modify and deploy over a network, you must release your source code under AGPL-3.0.
-- **Commercial:** [Commercial License](COMMERCIAL-LICENSE.md) — for proprietary use without AGPL obligations. [Contact us](mailto:peter@visual.sk) for pricing.
+- **Open Source:** [AGPL-3.0](LICENSE) — free for open-source use
+- **Commercial:** [Commercial License](COMMERCIAL-LICENSE.md) — for proprietary use. [Contact us](mailto:peter@visual.sk)
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for contributor license agreement details.

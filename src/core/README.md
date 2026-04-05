@@ -1,19 +1,19 @@
-# sweetcms-engine
+# Indigo Core
 
-Shared CMS engine for [SweetCMS](https://github.com/PayteR/sweetcms). Provides reusable infrastructure: components, hooks, CRUD utilities, RBAC policy, design tokens, and type definitions.
+Core framework for [Indigo](https://github.com/indigo-fw/starter). Provides reusable infrastructure: components, hooks, CRUD utilities, RBAC policy, design tokens, and type definitions.
 
-This repo is consumed via `git subtree` in SweetCMS projects. You don't install it as a package.
+This repo is consumed via `git subtree` in Indigo projects. You don't install it as a package.
 
 ## Usage
 
-In a SweetCMS project:
+In an Indigo project:
 
 ```bash
-# Add engine as subtree (first time)
-git subtree add --prefix=src/engine git@github.com:PayteR/sweetcms-engine.git main --squash
+# Add core as subtree (first time)
+git subtree add --prefix=src/core git@github.com:indigo-fw/core.git main --squash
 
-# Pull engine updates
-git subtree pull --prefix=src/engine git@github.com:PayteR/sweetcms-engine.git main --squash
+# Pull core updates
+git subtree pull --prefix=src/core git@github.com:indigo-fw/core.git main --squash
 ```
 
 ## Structure
@@ -23,13 +23,13 @@ components/   — CmsFormShell, RichTextEditor, SEOFields, TagInput, MediaPicker
 config/       — ContentTypeDeclaration, TaxonomyDeclaration interfaces + factory helpers
 crud/         — admin-crud, taxonomy-helpers, cms-helpers, content-revisions, slug-redirects
 hooks/        — useCmsFormState, useCmsAutosave, useListViewState, useBulkActions, etc.
-lib/          — slug, markdown, audit, webhooks
+lib/          — slug, markdown, audit, webhooks, queue, redis, logger, payment services
 policy/       — Role, Policy, Capability, isSuperAdmin
-store/        — preferences-store (Zustand)
-styles/       — tokens.css (OKLCH design tokens), admin.css, admin-table.css, frontend.css
-types/        — PostType, ContentStatus, FileType, ContentSnapshot
+store/        — preferences-store, theme-store, sidebar-store, toast-store (Zustand)
+styles/       — tokens.css (OKLCH design tokens), admin.css, overlay.css
+types/        — PostType, ContentStatus, FileType, ContentSnapshot, billing, notifications
 ```
 
 ## License
 
-[AGPL-3.0](LICENSE) — same as SweetCMS. See [COMMERCIAL-LICENSE.md](https://github.com/PayteR/sweetcms/blob/main/COMMERCIAL-LICENSE.md) for proprietary use.
+[AGPL-3.0](LICENSE) — same as Indigo. See [COMMERCIAL-LICENSE.md](https://github.com/indigo-fw/starter/blob/main/COMMERCIAL-LICENSE.md) for proprietary use.

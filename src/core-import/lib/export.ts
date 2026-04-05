@@ -13,7 +13,7 @@ interface ExportData {
 
 /**
  * Export all CMS content as a JSON-serializable object.
- * Used for backup and migration between SweetCMS instances.
+ * Used for backup and migration between Indigo instances.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function exportContent(db: any): Promise<ExportData> {

@@ -46,7 +46,7 @@ export default function LoginPage() {
     <div className="auth-login-card rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm">
       <h1 className="text-2xl font-bold text-(--text-primary)">Sign In</h1>
       <p className="mt-1 text-sm text-(--text-muted)">
-        Sign in to your SweetCMS account
+        Sign in to your Indigo account
       </p>
 
       {error && (
@@ -103,7 +103,7 @@ export default function LoginPage() {
       </form>
 
       <div className="auth-login-forgot-link mt-4 text-center">
-        <Link href={adminRoutes.forgotPassword} className="text-sm text-(--text-muted) hover:text-(--color-brand-600)">
+        <Link href={adminRoutes.forgotPassword} className="text-sm text-(--text-muted) hover:text-brand-600">
           Forgot your password?
         </Link>
       </div>
@@ -111,7 +111,7 @@ export default function LoginPage() {
       {registrationEnabled && (
         <p className="auth-login-alt-action mt-4 text-center text-sm text-(--text-muted)">
           Don&apos;t have an account?{' '}
-          <Link href={adminRoutes.register} className="font-medium text-(--color-brand-600) hover:text-(--color-brand-500)">
+          <Link href={adminRoutes.register} className="font-medium text-brand-600 hover:text-brand-500">
             Sign up
           </Link>
         </p>

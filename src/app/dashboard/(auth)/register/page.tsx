@@ -28,7 +28,7 @@ export default function RegisterPage() {
         </p>
         <Link
           href={adminRoutes.login}
-          className="mt-6 inline-block text-sm font-medium text-(--color-brand-600) hover:text-(--color-brand-500)"
+          className="mt-6 inline-block text-sm font-medium text-brand-600 hover:text-brand-500"
         >
           Back to Sign In
         </Link>
@@ -59,7 +59,7 @@ export default function RegisterPage() {
     <div className="auth-register-card rounded-lg border border-(--border-primary) bg-(--surface-primary) p-8 shadow-sm">
       <h1 className="text-2xl font-bold text-(--text-primary)">Create Account</h1>
       <p className="mt-1 text-sm text-(--text-muted)">
-        Get started with SweetCMS
+        Get started with Indigo
       </p>
 
       {error && (
@@ -135,7 +135,7 @@ export default function RegisterPage() {
 
       <p className="auth-register-alt-action mt-6 text-center text-sm text-(--text-muted)">
         Already have an account?{' '}
-        <Link href={adminRoutes.login} className="font-medium text-(--color-brand-600) hover:text-(--color-brand-500)">
+        <Link href={adminRoutes.login} className="font-medium text-brand-600 hover:text-brand-500">
           Sign in
         </Link>
       </p>

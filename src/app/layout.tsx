@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'SweetCMS',
+  title: 'Indigo',
   description: 'Agent-driven headless CMS for T3 Stack',
 };
 

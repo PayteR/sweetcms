@@ -229,7 +229,7 @@ export default async function PublicLayout({
 
           <div className="footer-bottom">
             <span>&copy; {new Date().getFullYear()} {siteConfig.name}</span>
-            <span>{__('Powered by SweetCMS')}</span>
+            <span>{__('Powered by Indigo')}</span>
           </div>
         </div>
       </footer>

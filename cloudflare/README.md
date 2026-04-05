@@ -1,6 +1,6 @@
 # Cloudflare Configuration
 
-Recommended Cloudflare settings for SweetCMS deployments. Rules in `rules.json` are API-ready for the [Cloudflare API](https://developers.cloudflare.com/api/).
+Recommended Cloudflare settings for Indigo deployments. Rules in `rules.json` are API-ready for the [Cloudflare API](https://developers.cloudflare.com/api/).
 
 ## Quick Setup
 

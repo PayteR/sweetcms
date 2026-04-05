@@ -1,4 +1,4 @@
-# Contributing to SweetCMS
+# Contributing to Indigo
 
 Thanks for your interest in contributing! This guide will help you get started.
 
@@ -35,7 +35,7 @@ See `CLAUDE.md` for the full coding standards and architecture guide.
 
 ## Adding a Content Type
 
-SweetCMS is config-driven. To add a new content type:
+Indigo is config-driven. To add a new content type:
 
 1. Add config entry in `src/config/cms.ts`
 2. For post-backed types: auto-registered via `cms_posts.type`. For others: create schema table + router
@@ -60,6 +60,6 @@ Use GitHub Issues. Include:
 
 ## License & CLA
 
-SweetCMS is dual-licensed under [AGPL-3.0](LICENSE) and a [commercial license](COMMERCIAL-LICENSE.md).
+Indigo is dual-licensed under [AGPL-3.0](LICENSE) and a [commercial license](COMMERCIAL-LICENSE.md).
 
-By submitting a pull request, you agree to the [Contributor License Agreement (CLA)](CLA.md). This grants the project maintainers the right to include your contributions in both the open-source and commercially licensed versions of SweetCMS. Your Git commit metadata (name and email) serves as your electronic signature.
+By submitting a pull request, you agree to the [Contributor License Agreement (CLA)](CLA.md). This grants the project maintainers the right to include your contributions in both the open-source and commercially licensed versions of Indigo. Your Git commit metadata (name and email) serves as your electronic signature.

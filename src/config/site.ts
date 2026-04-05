@@ -1,9 +1,9 @@
 /** Site configuration — branding and defaults */
 
 export const siteDefaults = {
-  siteName: 'SweetCMS',
+  siteName: 'Indigo',
   siteUrl: 'http://localhost:3000',
-  contactEmail: 'admin@sweetcms.dev',
+  contactEmail: 'admin@indigo-fw.dev',
 } as const;
 
 export const clientEnv = {

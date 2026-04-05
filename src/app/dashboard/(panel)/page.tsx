@@ -29,7 +29,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-(--text-primary)">{__('Dashboard')}</h1>
-          <p className="mt-2 text-(--text-secondary)">{__('Welcome to SweetCMS admin panel.')}</p>
+          <p className="mt-2 text-(--text-secondary)">{__('Welcome to Indigo admin panel.')}</p>
         </div>
         <DashboardConfig
           widgets={DASHBOARD_WIDGETS}
