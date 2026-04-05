@@ -1,5 +1,6 @@
 import 'server-only';
 import { headers } from 'next/headers';
+import { IS_MULTILINGUAL } from '@/lib/constants';
 
 interface LanguageSuggestion {
   suggestedLocale: string;
@@ -24,6 +25,8 @@ export async function getLanguageSuggestion(
   locales: readonly string[],
   localeLabels: Record<string, string>,
 ): Promise<LanguageSuggestion | null> {
+  if (!IS_MULTILINGUAL) return null;
+
   // Read Accept-Language header
   const h = await headers();
   const acceptLang = h.get('accept-language');

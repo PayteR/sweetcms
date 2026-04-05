@@ -3,7 +3,8 @@ import { cmsPosts } from '@/server/db/schema';
 import { ContentStatus } from '@/engine/types/cms';
 import { CONTENT_TYPES } from '@/config/cms';
 import { and, desc, eq, ilike, isNull, or, sql } from 'drizzle-orm';
-import Link from 'next/link';
+import NextLink from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { getLocale } from '@/lib/locale-server';
 import { localePath } from '@/lib/locale';
 import { getServerTranslations } from '@/lib/translations-server';
@@ -154,12 +155,12 @@ export default async function SearchPage({ searchParams }: Props) {
       <div className="mt-6 space-y-6">
         {results.map((result) => (
           <article key={result.id}>
-            <Link
+            <NextLink
               href={result.url}
               className="text-lg font-medium text-brand-700 dark:text-brand-400 hover:underline"
             >
               {result.title}
-            </Link>
+            </NextLink>
             <p className="mt-0.5 text-xs text-green-700 dark:text-green-400">
               {result.url}
             </p>
@@ -177,7 +178,7 @@ export default async function SearchPage({ searchParams }: Props) {
         <div className="mt-8 flex items-center justify-center gap-2">
           {page > 1 && (
             <Link
-              href={`${localePath('/search', locale)}?q=${encodeURIComponent(query)}&page=${page - 1}`}
+              href={{ pathname: '/search', query: { q: query, page: String(page - 1) } }}
               className="rounded-md border border-(--border-primary) px-3 py-1.5 text-sm"
             >
               {__('Previous')}
@@ -188,7 +189,7 @@ export default async function SearchPage({ searchParams }: Props) {
           </span>
           {page < totalPages && (
             <Link
-              href={`${localePath('/search', locale)}?q=${encodeURIComponent(query)}&page=${page + 1}`}
+              href={{ pathname: '/search', query: { q: query, page: String(page + 1) } }}
               className="rounded-md border border-(--border-primary) px-3 py-1.5 text-sm"
             >
               {__('Next')}

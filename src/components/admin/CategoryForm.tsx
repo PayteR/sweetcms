@@ -11,7 +11,7 @@ import { useAdminTranslations } from '@/lib/translations';
 import { useSession } from '@/lib/auth-client';
 import { ContentStatus } from '@/engine/types/cms';
 import { toast } from '@/store/toast-store';
-import { DEFAULT_LOCALE, LOCALES, LOCALE_LABELS } from '@/lib/constants';
+import { DEFAULT_LOCALE, LOCALES, LOCALE_LABELS, IS_MULTILINGUAL } from '@/lib/constants';
 import { convertUTCToLocal, convertLocalToUTC } from '@/engine/lib/datetime';
 import { useCmsFormState, narrowRecoveredData } from '@/engine/hooks/useCmsFormState';
 import { useSlugAutoGenerate } from '@/engine/hooks/useSlugAutoGenerate';
@@ -477,6 +477,7 @@ export function CategoryForm({ categoryId }: Props) {
                     className="input mt-1"
                   />
                 </div>
+                {IS_MULTILINGUAL && (
                 <div className="field-group">
                   {cat && translationSiblings.data ? (
                     <TranslationBar
@@ -514,6 +515,7 @@ export function CategoryForm({ categoryId }: Props) {
                     </div>
                   )}
                 </div>
+                )}
 
                 {cat && (
                   <FallbackRadio

@@ -36,7 +36,7 @@ import { trpc } from '@/lib/trpc/client';
 import { useAdminTranslations } from '@/lib/translations';
 import { ContentStatus, PostType } from '@/engine/types/cms';
 import { toast } from '@/store/toast-store';
-import { DEFAULT_LOCALE, LOCALES, LOCALE_LABELS } from '@/lib/constants';
+import { DEFAULT_LOCALE, LOCALES, LOCALE_LABELS, IS_MULTILINGUAL } from '@/lib/constants';
 import { convertUTCToLocal, convertLocalToUTC } from '@/engine/lib/datetime';
 import { useCmsFormState, narrowRecoveredData } from '@/engine/hooks/useCmsFormState';
 import { useSlugAutoGenerate } from '@/engine/hooks/useSlugAutoGenerate';
@@ -525,8 +525,14 @@ export function PostForm({ contentType, postId }: Props) {
   }, [savedMainOrder, savedSidebarOrder]);
 
   // Visible panels (filter hidden)
-  const visibleMainIds = columns.main.filter((id) => !hiddenPanels.includes(id));
-  const visibleSidebarIds = columns.sidebar.filter((id) => !hiddenPanels.includes(id));
+  const visibleMainIds = columns.main.filter((id) => {
+    if (id === 'language' && !IS_MULTILINGUAL) return false;
+    return !hiddenPanels.includes(id);
+  });
+  const visibleSidebarIds = columns.sidebar.filter((id) => {
+    if (id === 'language' && !IS_MULTILINGUAL) return false;
+    return !hiddenPanels.includes(id);
+  });
 
   // Find which container an item is in (reads from latest state via setter)
   function findContainerIn(cols: Columns, id: string): 'main' | 'sidebar' | null {
@@ -884,7 +890,7 @@ export function PostForm({ contentType, postId }: Props) {
                 placeholder={__('{label} title', { label: contentType.label })}
               />
               <div
-                className="flex items-center gap-1 rounded-b-[var(--radius-md)] border border-t-0 border-(--border-primary) bg-(--surface-inset) px-3 py-1.5 text-sm text-(--text-muted) focus-within:border-(--color-accent-500)"
+                className="flex items-center gap-1 rounded-b-[var(--radius-md)] border border-t-0 border-(--border-primary) bg-(--surface-inset) px-3 py-1.5 text-sm text-(--text-muted) focus-within:border-accent-500"
               >
                 <span className="shrink-0 text-xs">/</span>
                 <input

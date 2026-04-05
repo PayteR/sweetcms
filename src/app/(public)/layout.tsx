@@ -2,7 +2,8 @@ import '@/engine/styles/tokens-public.css';
 import '@/engine/styles/frontend/index.css';
 
 import { Suspense } from 'react';
-import Link from 'next/link';
+import NextLink from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { Rss, Search } from 'lucide-react';
 
 import { siteConfig } from '@/config/site';
@@ -123,7 +124,7 @@ export default async function PublicLayout({
       {/* ═══ Header ═══ */}
       <header className="header">
         <div className="header-inner">
-          <Link href={localePath('/', locale)} className="header-logo">
+          <Link href="/" className="header-logo">
             {siteConfig.name}
           </Link>
 
@@ -133,19 +134,19 @@ export default async function PublicLayout({
               menuSlug="main"
               fallback={
                 <>
-                  <Link href={localePath(contentRoutes.blog, locale)} className="header-link">
+                  <Link href="/blog" className="header-link">
                     {__('Blog')}
                   </Link>
                   {categories.map((cat) => (
                     <Link
                       key={cat.slug}
-                      href={localePath(`/category/${cat.slug}`, locale)}
+                      href={{ pathname: '/category/[slug]', params: { slug: cat.slug } }}
                       className="header-link"
                     >
                       {cat.name}
                     </Link>
                   ))}
-                  <Link href={localePath(contentRoutes.showcase, locale)} className="header-link">
+                  <Link href="/showcase" className="header-link">
                     {__('Showcase')}
                   </Link>
                 </>
@@ -155,7 +156,7 @@ export default async function PublicLayout({
 
           {/* Actions */}
           <div className="header-actions">
-            <Link href={localePath(contentRoutes.search, locale)} className="header-icon-btn" title={__('Search')}>
+            <Link href="/search" className="header-icon-btn" title={__('Search')}>
               <Search className="h-4 w-4" />
             </Link>
             <LanguageSwitcher />
@@ -199,7 +200,7 @@ export default async function PublicLayout({
                 {categories.map((cat) => (
                   <Link
                     key={cat.slug}
-                    href={localePath(`/category/${cat.slug}`, locale)}
+                    href={{ pathname: '/category/[slug]', params: { slug: cat.slug } }}
                     className="footer-link"
                   >
                     {cat.name}
@@ -211,20 +212,20 @@ export default async function PublicLayout({
             {/* Col 3: Quick Links */}
             <div>
               <h4 className="footer-col-title">{__('Quick Links')}</h4>
-              <Link href={localePath(contentRoutes.blog, locale)} className="footer-link">{__('Blog')}</Link>
-              <Link href={localePath(contentRoutes.portfolio, locale)} className="footer-link">{__('Portfolio')}</Link>
-              <Link href={localePath(contentRoutes.showcase, locale)} className="footer-link">{__('Showcase')}</Link>
-              <Link href={localePath(contentRoutes.search, locale)} className="footer-link">{__('Search')}</Link>
+              <Link href="/blog" className="footer-link">{__('Blog')}</Link>
+              <Link href="/portfolio" className="footer-link">{__('Portfolio')}</Link>
+              <Link href="/showcase" className="footer-link">{__('Showcase')}</Link>
+              <Link href="/search" className="footer-link">{__('Search')}</Link>
             </div>
 
             {/* Col 4: More */}
             <div>
               <h4 className="footer-col-title">{__('More')}</h4>
-              <Link href={apiRoutes.feedBlog} className="footer-link inline-flex items-center gap-1">
+              <NextLink href={apiRoutes.feedBlog} className="footer-link inline-flex items-center gap-1">
                 <Rss className="h-3.5 w-3.5" />
                 {__('RSS Feed')}
-              </Link>
-              <Link href={adminRoutes.home} className="footer-link">{__('Admin')}</Link>
+              </NextLink>
+              <NextLink href={adminRoutes.home} className="footer-link">{__('Admin')}</NextLink>
             </div>
           </div>
 

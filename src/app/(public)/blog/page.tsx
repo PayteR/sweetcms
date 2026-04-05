@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import type { Metadata } from 'next';
 
 import { siteConfig } from '@/config/site';
@@ -72,7 +72,7 @@ export default async function BlogListPage({ searchParams }: Props) {
                 <div className="pagination">
                   {page > 1 && (
                     <Link
-                      href={`${localePath('/blog', locale)}?page=${page - 1}`}
+                      href={{ pathname: '/blog', query: { page: String(page - 1) } }}
                       className="pagination-btn"
                     >
                       {__('Previous')}
@@ -83,7 +83,7 @@ export default async function BlogListPage({ searchParams }: Props) {
                   </span>
                   {page < data.totalPages && (
                     <Link
-                      href={`${localePath('/blog', locale)}?page=${page + 1}`}
+                      href={{ pathname: '/blog', query: { page: String(page + 1) } }}
                       className="pagination-btn"
                     >
                       {__('Next')}

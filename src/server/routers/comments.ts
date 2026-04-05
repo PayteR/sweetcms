@@ -5,8 +5,6 @@ import { z } from 'zod';
 import { cmsComments, user } from '@/server/db/schema';
 import { parsePagination, paginatedResult } from '@/engine/crud/admin-crud';
 import { Policy } from '@/engine/policy';
-import { checkContent } from '@/engine/lib/content-moderation';
-import { getBlockedWords } from '@/config/moderation';
 import {
   createTRPCRouter,
   publicProcedure,
@@ -150,15 +148,6 @@ export const commentsRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      // Content moderation check
-      const moderation = checkContent(input.body, getBlockedWords());
-      if (moderation.blocked) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Comment contains inappropriate content',
-        });
-      }
-
       // Verify parent exists if replying
       if (input.parentId) {
         const [parent] = await ctx.db

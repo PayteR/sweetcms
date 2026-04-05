@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { LOCALES, DEFAULT_LOCALE, LOCALE_LABELS } from '@/lib/constants';
+import { LOCALES, DEFAULT_LOCALE, LOCALE_LABELS, IS_MULTILINGUAL } from '@/lib/constants';
 import { localePath } from '@/engine/lib/locale';
 import { useLocale } from '@/engine/hooks/useLocale';
 import type { Locale } from '@/lib/constants';
@@ -10,7 +10,7 @@ import { useState, useRef, useEffect } from 'react';
 
 /** Only render when there are multiple locales configured */
 export function LanguageSwitcher() {
-  if (LOCALES.length <= 1) return null;
+  if (!IS_MULTILINGUAL) return null;
 
   return <LanguageSwitcherInner />;
 }

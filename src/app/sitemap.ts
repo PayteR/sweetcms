@@ -3,25 +3,24 @@ import { and, desc, eq, isNull } from 'drizzle-orm';
 
 import { siteConfig } from '@/config/site';
 import { CONTENT_TYPES } from '@/config/cms';
-import { LOCALES, DEFAULT_LOCALE } from '@/lib/constants';
+import { LOCALES, DEFAULT_LOCALE, IS_MULTILINGUAL } from '@/lib/constants';
 import type { Locale } from '@/lib/constants';
+import { localePath } from '@/lib/locale';
 import { PostType, ContentStatus } from '@/engine/types/cms';
 import { db } from '@/server/db';
 import { cmsPosts, cmsCategories, cmsPortfolio, cmsShowcase, cmsTerms } from '@/server/db/schema';
 
 export const dynamic = 'force-dynamic';
 
-/** Build absolute URL with optional locale prefix */
-function localeUrl(path: string, locale: Locale): string {
-  if (locale === DEFAULT_LOCALE) return `${siteConfig.url}${path}`;
-  return `${siteConfig.url}/${locale}${path}`;
+function absoluteUrl(path: string, locale: Locale): string {
+  return `${siteConfig.url}${localePath(path, locale)}`;
 }
 
-/** Build hreflang alternates map for a given path across all locales */
-function buildAlternates(path: string): Record<string, string> {
+function alternatesMap(path: string): Record<string, string> | undefined {
+  if (!IS_MULTILINGUAL) return undefined;
   const languages: Record<string, string> = {};
   for (const locale of LOCALES) {
-    languages[locale] = localeUrl(path, locale);
+    languages[locale] = absoluteUrl(path, locale);
   }
   return languages;
 }
@@ -121,43 +120,43 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Static pages — per locale
   for (const locale of LOCALES) {
     entries.push({
-      url: localeUrl('/', locale),
+      url: absoluteUrl('/', locale),
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: locale === DEFAULT_LOCALE ? 1 : 0.9,
-      alternates: { languages: buildAlternates('/') },
+      ...(IS_MULTILINGUAL && { alternates: { languages: alternatesMap('/') } }),
     });
 
     entries.push({
-      url: localeUrl('/blog', locale),
+      url: absoluteUrl('/blog', locale),
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: locale === DEFAULT_LOCALE ? 0.8 : 0.7,
-      alternates: { languages: buildAlternates('/blog') },
+      ...(IS_MULTILINGUAL && { alternates: { languages: alternatesMap('/blog') } }),
     });
 
     entries.push({
-      url: localeUrl('/portfolio', locale),
+      url: absoluteUrl('/portfolio', locale),
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: locale === DEFAULT_LOCALE ? 0.7 : 0.6,
-      alternates: { languages: buildAlternates('/portfolio') },
+      ...(IS_MULTILINGUAL && { alternates: { languages: alternatesMap('/portfolio') } }),
     });
 
     entries.push({
-      url: localeUrl('/showcase', locale),
+      url: absoluteUrl('/showcase', locale),
       lastModified: new Date(),
       changeFrequency: 'weekly',
       priority: locale === DEFAULT_LOCALE ? 0.7 : 0.6,
-      alternates: { languages: buildAlternates('/showcase') },
+      ...(IS_MULTILINGUAL && { alternates: { languages: alternatesMap('/showcase') } }),
     });
 
     entries.push({
-      url: localeUrl('/pricing', locale),
+      url: absoluteUrl('/pricing', locale),
       lastModified: new Date(),
       changeFrequency: 'monthly',
       priority: locale === DEFAULT_LOCALE ? 0.8 : 0.7,
-      alternates: { languages: buildAlternates('/pricing') },
+      ...(IS_MULTILINGUAL && { alternates: { languages: alternatesMap('/pricing') } }),
     });
   }
 
@@ -173,11 +172,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         const path = ct.urlPrefix === '/' ? `/${entry.slug}` : `${ct.urlPrefix}${entry.slug}`;
 
         entries.push({
-          url: localeUrl(path, locale),
+          url: absoluteUrl(path, locale),
           lastModified: entry.updatedAt ?? undefined,
           changeFrequency: config.changeFrequency,
           priority: config.priority,
-          alternates: { languages: buildAlternates(path) },
+          ...(IS_MULTILINGUAL && { alternates: { languages: alternatesMap(path) } }),
         });
       }
     }

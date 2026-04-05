@@ -1,6 +1,6 @@
 import { CONTENT_TYPES } from '@/config/cms';
 import { localePath } from '@/lib/locale';
-import { LOCALES } from '@/lib/constants';
+import { LOCALES, IS_MULTILINGUAL } from '@/lib/constants';
 import type { Locale } from '@/lib/constants';
 import type { ContentTypeDeclaration } from '@/config/cms';
 
@@ -49,7 +49,7 @@ export function buildAlternates(
   currentSlug: string,
   urlPrefix: string
 ): Record<string, string> | undefined {
-  if (LOCALES.length <= 1) return undefined;
+  if (!IS_MULTILINGUAL) return undefined;
 
   const languages: Record<string, string> = {};
 

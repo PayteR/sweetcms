@@ -1,10 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Search, X, ArrowLeft } from 'lucide-react';
-import { useLocale } from '@/engine/hooks/useLocale';
-import { localePath } from '@/engine/lib/locale';
+import { useRouter } from '@/i18n/navigation';
 import { useTranslations } from '@/lib/translations';
 
 /**
@@ -22,7 +20,6 @@ export function ExpandableSearch() {
   const mobileInputRef = useRef<HTMLInputElement>(null);
   const desktopInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const locale = useLocale();
   const __ = useTranslations();
 
   const open = useCallback(() => {
@@ -66,7 +63,7 @@ export function ExpandableSearch() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!query.trim()) return;
-    router.push(localePath(`/showcase/search?q=${encodeURIComponent(query.trim())}`, locale));
+    router.push({ pathname: '/showcase/search', query: { q: query.trim() } });
     close();
   }
 

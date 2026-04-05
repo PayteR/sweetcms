@@ -75,14 +75,12 @@ async function main() {
     const { startWebhookWorker } = await import('./src/engine/lib/webhooks');
     const { startSupportChatCleanupWorker } = await import('./src/server/jobs/support-chat/index');
     const { startMediaWorker } = await import('./src/server/jobs/media/index');
-    const { startMaintenanceWorker } = await import('./src/server/jobs/maintenance/index');
     startEmailWorker();
     startContentWorker();
     startWebhookWorker();
     startSupportChatCleanupWorker();
     startMediaWorker();
-    startMaintenanceWorker();
-    console.log('BullMQ workers ready (email + content + webhook + support-chat-cleanup + media + maintenance workers started)');
+    console.log('BullMQ workers ready (email + content + webhook + support-chat-cleanup + media workers started)');
 
     // Schedule dunning checks (daily)
     const { getRedis } = await import('./src/engine/lib/redis');
@@ -102,13 +100,15 @@ async function main() {
       }
 
       // Schedule maintenance (daily at 3 AM)
+      const { startMaintenanceWorker } = await import('./src/server/jobs/maintenance/index');
+      startMaintenanceWorker();
       const maintenanceQueue = createQueue('maintenance');
       if (maintenanceQueue) {
         await maintenanceQueue.add('run', {}, {
           repeat: { pattern: '0 3 * * *' }, // Daily at 3 AM
         });
-        console.log('Maintenance cron ready (daily at 3 AM)');
       }
+      console.log('Maintenance worker ready (daily at 3 AM)');
     } else {
       const { startDbQueueWorker, enqueueTask } = await import('./src/engine/lib/db-queue');
 

@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 
 import { PostType } from '@/engine/types/cms';
 import { PostCard } from '@/engine/components/PostCard';
@@ -48,7 +48,7 @@ export async function PostDetail({ slug, postType, preview }: Props) {
         <nav className="mb-6 text-sm text-(--text-muted)">
           {ancestors.map((a, i) => (
             <span key={a.slug}>
-              <Link href={localePath(`/${a.slug}`, locale)} className="hover:text-(--text-secondary) hover:underline">
+              <Link href={{ pathname: '/[slug]', params: { slug: a.slug } }} className="hover:text-(--text-secondary) hover:underline">
                 {a.title}
               </Link>
               {i < ancestors.length && <span className="mx-1.5">/</span>}
@@ -87,7 +87,7 @@ export async function PostDetail({ slug, postType, preview }: Props) {
       {postTags.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-1.5">
           {postTags.map((tag) => (
-            <Link key={tag.slug} href={localePath(`/tag/${tag.slug}`, locale)} className="tag">
+            <Link key={tag.slug} href={{ pathname: '/tag/[slug]', params: { slug: tag.slug } }} className="tag">
               {tag.name}
             </Link>
           ))}

@@ -5,6 +5,7 @@ export type { OptionDefinition } from '@/engine/config/options';
 export const GROUP_LABELS: Record<string, string> = {
   general: 'General',
   branding: 'Branding',
+  email: 'Email Branding',
   social: 'Social & Analytics',
   ga4: 'Google Analytics 4 (Dashboard)',
   reading: 'Reading',
@@ -20,6 +21,13 @@ export const OPTION_REGISTRY: OptionDefinition[] = [
   // ─── Branding ───────────────────────────────────────────────────────────────
   { key: 'site.logo', label: 'Logo URL', group: 'branding', type: 'url', defaultValue: '' },
   { key: 'site.favicon', label: 'Favicon URL', group: 'branding', type: 'url', defaultValue: '' },
+
+  // ─── Email Branding (overrides site.* in emails) ────────────────────────────
+  { key: 'email.site_name', label: 'Email Site Name', description: 'Overrides Site Name in emails. Leave blank to use Site Name.', group: 'email', type: 'text', defaultValue: '' },
+  { key: 'email.site_url', label: 'Email Site URL', description: 'Overrides Site URL in emails. Leave blank to use Site URL.', group: 'email', type: 'url', defaultValue: '' },
+  { key: 'email.contact_email', label: 'Contact Email', description: 'Shown in email footer. Defaults to FROM_EMAIL env var.', group: 'email', type: 'text', defaultValue: '' },
+  { key: 'email.logo_url', label: 'Email Logo URL', description: 'Logo shown in email header. Overrides site logo. Leave blank for text-only header.', group: 'email', type: 'url', defaultValue: '' },
+  { key: 'email.brand_color', label: 'Email Brand Color', description: 'Primary button/accent color in emails (hex). Default: #e91e63', group: 'email', type: 'text', defaultValue: '#e91e63' },
 
   // ─── Social & Analytics ─────────────────────────────────────────────────────
   { key: 'site.social.twitter', label: 'Twitter / X Handle', group: 'social', type: 'text', defaultValue: '' },

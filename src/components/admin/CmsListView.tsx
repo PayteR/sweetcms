@@ -23,7 +23,7 @@ import { adminPanel } from '@/config/routes';
 import { trpc } from '@/lib/trpc/client';
 import { useAdminTranslations, dataTranslations } from '@/lib/translations';
 import { ContentStatus } from '@/engine/types/cms';
-import { LOCALES, LOCALE_LABELS } from '@/lib/constants';
+import { LOCALES, LOCALE_LABELS, IS_MULTILINGUAL } from '@/lib/constants';
 import { cn } from '@/lib/utils';
 import { toast } from '@/store/toast-store';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
@@ -45,7 +45,7 @@ const STATUS_LABELS: Record<number, string> = {
 const STATUS_COLORS: Record<number, string> = {
   [ContentStatus.DRAFT]: 'bg-(--surface-secondary) text-(--text-secondary)',
   [ContentStatus.PUBLISHED]: 'bg-green-100 dark:bg-green-500/20 text-green-700 dark:text-green-400',
-  [ContentStatus.SCHEDULED]: 'bg-(--color-brand-100) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-(--color-brand-700) dark:text-(--color-brand-400)',
+  [ContentStatus.SCHEDULED]: 'bg-brand-100 dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-brand-700 dark:text-brand-400',
 };
 
 const COLUMNS = [
@@ -645,7 +645,7 @@ export function CmsListView({ contentType }: Props) {
             className={cn(
               'border-b-2 px-3 pb-2 text-sm font-medium transition-colors',
               tab === t.key
-                ? 'border-(--color-brand-600) text-(--color-brand-600)'
+                ? 'border-brand-600 text-brand-600'
                 : 'border-transparent text-(--text-muted) hover:border-(--border-primary) hover:text-(--text-primary)'
             )}
           >
@@ -678,18 +678,20 @@ export function CmsListView({ contentType }: Props) {
             </button>
           )}
         </div>
-        <select
-          value={selectedLang}
-          onChange={(e) => handleLangChange(e.target.value)}
-          className="filter-select w-auto shrink-0"
-        >
-          <option value="all">{__('All langs')}</option>
-          {LOCALES.map((loc) => (
-            <option key={loc} value={loc}>
-              {loc.toUpperCase()}
-            </option>
-          ))}
-        </select>
+        {IS_MULTILINGUAL && (
+          <select
+            value={selectedLang}
+            onChange={(e) => handleLangChange(e.target.value)}
+            className="filter-select w-auto shrink-0"
+          >
+            <option value="all">{__('All langs')}</option>
+            {LOCALES.map((loc) => (
+              <option key={loc} value={loc}>
+                {loc.toUpperCase()}
+              </option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* Bulk action bar (all content types) */}
@@ -736,7 +738,7 @@ export function CmsListView({ contentType }: Props) {
                 {isColVisible('status') && (
                   <th className="th w-24">{__('Status')}</th>
                 )}
-                {isColVisible('lang') && (
+                {IS_MULTILINGUAL && isColVisible('lang') && (
                   <th className="th w-20">{__('Lang')}</th>
                 )}
                 {isColVisible('date') && (
@@ -816,7 +818,7 @@ export function CmsListView({ contentType }: Props) {
                       <td className="td">
                         <Link
                           href={adminPanel.cmsItem(contentType.adminSlug, item.id)}
-                          className="font-medium text-(--text-primary) hover:text-(--color-brand-600)"
+                          className="font-medium text-(--text-primary) hover:text-brand-600"
                         >
                           {item.title || __('(untitled)')}
                         </Link>
@@ -826,7 +828,7 @@ export function CmsListView({ contentType }: Props) {
                             {item.slug || __('(homepage)')}
                           </span>
                           {contentType.canOverrideCodedRouteSEO && seoOverrideSlugs.has(item.slug) && (
-                            <span className="inline-block rounded bg-(--color-brand-100) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] px-1.5 py-0.5 text-[10px] font-semibold uppercase text-(--color-brand-700) dark:text-(--color-brand-400)">
+                            <span className="inline-block rounded bg-brand-100 dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] px-1.5 py-0.5 text-[10px] font-semibold uppercase text-brand-700 dark:text-brand-400">
                               {__('SEO')}
                             </span>
                           )}
@@ -845,7 +847,7 @@ export function CmsListView({ contentType }: Props) {
                         </span>
                       </td>
                     )}
-                    {isColVisible('lang') && (
+                    {IS_MULTILINGUAL && isColVisible('lang') && (
                       <td className="td text-xs uppercase">{item.lang}</td>
                     )}
                     {isColVisible('date') && (
@@ -905,7 +907,7 @@ export function CmsListView({ contentType }: Props) {
                             )}
                             <Link
                               href={adminPanel.cmsItem(contentType.adminSlug, item.id)}
-                              className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-(--color-brand-600)"
+                              className="rounded p-1.5 text-(--text-muted) hover:bg-(--surface-secondary) hover:text-brand-600"
                               title={__('Edit')}
                             >
                               <Pencil className="h-4 w-4" />

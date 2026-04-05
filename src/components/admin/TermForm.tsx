@@ -10,7 +10,7 @@ import { useAdminTranslations } from '@/lib/translations';
 import { useSession } from '@/lib/auth-client';
 import { ContentStatus } from '@/engine/types/cms';
 import { toast } from '@/store/toast-store';
-import { DEFAULT_LOCALE, LOCALES, LOCALE_LABELS } from '@/lib/constants';
+import { DEFAULT_LOCALE, LOCALES, LOCALE_LABELS, IS_MULTILINGUAL } from '@/lib/constants';
 import { useCmsFormState, narrowRecoveredData } from '@/engine/hooks/useCmsFormState';
 import { useSlugAutoGenerate } from '@/engine/hooks/useSlugAutoGenerate';
 import { useCmsAutosave } from '@/engine/hooks/useCmsAutosave';
@@ -290,6 +290,7 @@ export function TermForm({ tagId }: Props) {
                     className="input mt-1"
                   />
                 </div>
+                {IS_MULTILINGUAL && (
                 <div>
                   <label className="block text-sm font-medium text-(--text-secondary)">
                     {__('Language')}
@@ -305,6 +306,7 @@ export function TermForm({ tagId }: Props) {
                     ))}
                   </select>
                 </div>
+                )}
               </div>
             </div>
           </div>

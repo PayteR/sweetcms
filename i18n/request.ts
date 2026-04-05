@@ -1,6 +1,7 @@
 import { headers } from 'next/headers';
 import { getRequestConfig } from 'next-intl/server';
 import { DEFAULT_LOCALE, LOCALES, type Locale } from '@/lib/constants';
+import { routing } from '../src/i18n/routing';
 
 export default getRequestConfig(async () => {
   const h = await headers();
@@ -21,6 +22,7 @@ export default getRequestConfig(async () => {
   return {
     locale,
     messages,
+    routing,
 
     // Graceful fallback: return the raw key instead of crashing on missing translations.
     // In dev this logs a warning; in prod it silently falls back to the key string.

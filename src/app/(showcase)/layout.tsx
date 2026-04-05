@@ -2,7 +2,7 @@ import '@/engine/styles/tokens-public.css';
 import '@/engine/styles/frontend/index.css';
 import '@/engine/styles/frontend/app-layout.css';
 
-import Link from 'next/link';
+import { Link, getPathname } from '@/i18n/navigation';
 import { Compass, BookOpen, Briefcase, Home } from 'lucide-react';
 
 import { siteConfig } from '@/config/site';
@@ -17,8 +17,6 @@ import {
   AppSidebarDrawer,
 } from '@/components/public/AppSidebar';
 import { getLocale } from '@/lib/locale-server';
-import { localePath } from '@/lib/locale';
-import { contentRoutes } from '@/config/routes';
 import { AuthDialogs } from '@/components/public/AuthDialogs';
 import { getServerTranslations } from '@/lib/translations-server';
 
@@ -48,10 +46,10 @@ export default async function ShowcaseLayout({
   const __ = await getServerTranslations();
 
   const sidebarItems = [
-    { label: __('Home'), href: localePath('/', locale), icon: <Home className="h-4 w-4" /> },
-    { label: __('Feed'), href: localePath(contentRoutes.showcase, locale), icon: <Compass className="h-4 w-4" /> },
-    { label: __('Blog'), href: localePath(contentRoutes.blog, locale), icon: <BookOpen className="h-4 w-4" /> },
-    { label: __('Portfolio'), href: localePath(contentRoutes.portfolio, locale), icon: <Briefcase className="h-4 w-4" /> },
+    { label: __('Home'), href: getPathname({ locale, href: '/' }), icon: <Home className="h-4 w-4" /> },
+    { label: __('Feed'), href: getPathname({ locale, href: '/showcase' }), icon: <Compass className="h-4 w-4" /> },
+    { label: __('Blog'), href: getPathname({ locale, href: '/blog' }), icon: <BookOpen className="h-4 w-4" /> },
+    { label: __('Portfolio'), href: getPathname({ locale, href: '/portfolio' }), icon: <Briefcase className="h-4 w-4" /> },
   ];
 
   return (
@@ -61,18 +59,18 @@ export default async function ShowcaseLayout({
           <div className="app-toolbar">
             <AppSidebarToggle />
 
-            <Link href={localePath('/', locale)} className="app-logo">
+            <Link href="/" className="app-logo">
               {siteConfig.name}
             </Link>
 
             <nav className="app-nav hidden lg:flex">
-              <Link href={localePath(contentRoutes.showcase, locale)} className="app-nav-link">
+              <Link href="/showcase" className="app-nav-link">
                 {__('Feed')}
               </Link>
-              <Link href={localePath(contentRoutes.blog, locale)} className="app-nav-link">
+              <Link href="/blog" className="app-nav-link">
                 {__('Blog')}
               </Link>
-              <Link href={localePath(contentRoutes.portfolio, locale)} className="app-nav-link">
+              <Link href="/portfolio" className="app-nav-link">
                 {__('Portfolio')}
               </Link>
             </nav>

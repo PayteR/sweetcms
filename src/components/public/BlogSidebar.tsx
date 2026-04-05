@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link, getPathname } from '@/i18n/navigation';
 
 import { getServerTranslations } from '@/lib/translations-server';
 import { db } from '@/server/db';
@@ -6,7 +6,6 @@ import { cmsCategories, cmsPosts, cmsTermRelationships } from '@/server/db/schem
 import { ContentStatus } from '@/engine/types/cms';
 import { and, count, eq, isNull } from 'drizzle-orm';
 import { serverTRPC } from '@/lib/trpc/server';
-import { localePath } from '@/engine/lib/locale';
 import { DEFAULT_LOCALE } from '@/lib/constants';
 import type { Locale } from '@/lib/constants';
 
@@ -76,7 +75,7 @@ export async function BlogSidebar({ lang = DEFAULT_LOCALE }: Props) {
       {/* Search */}
       <div>
         <h3 className="sidebar-title">{__('Search')}</h3>
-        <form action={localePath('/search', locale)} method="GET">
+        <form action={getPathname({ locale, href: '/search' })} method="GET">
           <input
             type="text"
             name="q"
@@ -94,7 +93,7 @@ export async function BlogSidebar({ lang = DEFAULT_LOCALE }: Props) {
             {categories.map((cat) => (
               <Link
                 key={cat.slug}
-                href={localePath(`/category/${cat.slug}`, locale)}
+                href={{ pathname: '/category/[slug]', params: { slug: cat.slug } }}
                 className="sidebar-link"
               >
                 <span>{cat.name}</span>
@@ -113,7 +112,7 @@ export async function BlogSidebar({ lang = DEFAULT_LOCALE }: Props) {
           <h3 className="sidebar-title">{__('Tags')}</h3>
           <div className="flex flex-wrap gap-1.5">
             {tags.map((tag) => (
-              <Link key={tag.id} href={localePath(`/tag/${tag.slug}`, locale)} className="tag">
+              <Link key={tag.id} href={{ pathname: '/tag/[slug]', params: { slug: tag.slug } }} className="tag">
                 {tag.name}
               </Link>
             ))}

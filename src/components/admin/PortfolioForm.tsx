@@ -11,7 +11,7 @@ import { useAdminTranslations } from '@/lib/translations';
 import { useSession } from '@/lib/auth-client';
 import { ContentStatus } from '@/engine/types/cms';
 import { toast } from '@/store/toast-store';
-import { DEFAULT_LOCALE, LOCALES, LOCALE_LABELS } from '@/lib/constants';
+import { DEFAULT_LOCALE, LOCALES, LOCALE_LABELS, IS_MULTILINGUAL } from '@/lib/constants';
 import { convertUTCToLocal, convertLocalToUTC } from '@/engine/lib/datetime';
 import { useCmsFormState, narrowRecoveredData } from '@/engine/hooks/useCmsFormState';
 import { useSlugAutoGenerate } from '@/engine/hooks/useSlugAutoGenerate';
@@ -427,13 +427,13 @@ export function PortfolioForm({ portfolioId }: Props) {
                     {formData.techStack.map((tech, i) => (
                       <span
                         key={i}
-                        className="tag-chip inline-flex items-center gap-1 rounded-full bg-(--color-brand-50) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2.5 py-0.5 text-xs font-medium text-(--color-brand-700) dark:text-(--color-brand-400)"
+                        className="tag-chip inline-flex items-center gap-1 rounded-full bg-brand-50 dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.12)] px-2.5 py-0.5 text-xs font-medium text-brand-700 dark:text-brand-400"
                       >
                         {tech}
                         <button
                           type="button"
                           onClick={() => removeTechItem(i)}
-                          className="ml-0.5 rounded-full p-0.5 hover:bg-(--color-brand-100) dark:hover:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)]"
+                          className="ml-0.5 rounded-full p-0.5 hover:bg-brand-100 dark:hover:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)]"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -570,6 +570,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                     </option>
                   </select>
                 </div>
+                {IS_MULTILINGUAL && (
                 <div className="field-group">
                   {item && translationSiblings.data ? (
                     <TranslationBar
@@ -607,6 +608,7 @@ export function PortfolioForm({ portfolioId }: Props) {
                     </div>
                   )}
                 </div>
+                )}
 
                 {item && (
                   <FallbackRadio

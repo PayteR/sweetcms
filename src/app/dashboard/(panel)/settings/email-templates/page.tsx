@@ -14,7 +14,12 @@ const TEMPLATES: { name: TemplateName; label: string; variables: string[] }[] = 
   {
     name: 'welcome',
     label: 'Welcome',
-    variables: ['name', 'email', 'siteName', 'loginUrl'],
+    variables: ['siteName', 'appUrl'],
+  },
+  {
+    name: 'verify-email',
+    label: 'Email Verification',
+    variables: ['name', 'verifyUrl', 'siteName'],
   },
   {
     name: 'password-reset',
@@ -24,17 +29,27 @@ const TEMPLATES: { name: TemplateName; label: string; variables: string[] }[] = 
   {
     name: 'invitation',
     label: 'Organization Invitation',
-    variables: ['organizationName', 'inviteUrl', 'appUrl'],
+    variables: ['organizationName', 'inviteUrl', 'siteName'],
   },
   {
     name: 'payment-failed',
     label: 'Payment Failed',
-    variables: ['planName', 'billingUrl', 'appUrl'],
+    variables: ['billingUrl', 'siteName'],
   },
   {
     name: 'subscription-activated',
     label: 'Subscription Activated',
-    variables: ['planName', 'billingUrl', 'appUrl'],
+    variables: ['planName', 'dashboardUrl', 'siteName'],
+  },
+  {
+    name: 'subscription-expiring',
+    label: 'Subscription Expiring',
+    variables: ['planName', 'daysLeft', 'billingUrl', 'siteName'],
+  },
+  {
+    name: 'subscription-expired',
+    label: 'Subscription Expired',
+    variables: ['planName', 'billingUrl', 'siteName'],
   },
 ];
 
@@ -96,7 +111,7 @@ function TemplateEditor({
 
   function handleSave() {
     setOption.mutate({
-      key: `email.template.${templateName}`,
+      key: `email.template.en.${templateName}`,
       value: { subject, html },
     });
   }
@@ -240,7 +255,7 @@ export default function EmailTemplatesPage() {
   }, [templateOptions.data]);
 
   function getOverrideStatus(name: TemplateName): boolean {
-    return !!overrideData[`email.template.${name}`];
+    return !!overrideData[`email.template.en.${name}`];
   }
 
   if (templateOptions.isLoading) {
@@ -252,7 +267,7 @@ export default function EmailTemplatesPage() {
   }
 
   if (editing) {
-    const override = overrideData[`email.template.${editing}`] as
+    const override = overrideData[`email.template.en.${editing}`] as
       | { subject?: string; html?: string }
       | undefined;
     return (
@@ -288,7 +303,7 @@ export default function EmailTemplatesPage() {
             <button
               key={t.name}
               onClick={() => setEditing(t.name)}
-              className="card p-4 text-left transition-shadow hover:ring-1 hover:ring-(--color-brand-400)"
+              className="card p-4 text-left transition-shadow hover:ring-1 hover:ring-brand-400"
             >
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-(--text-primary)">
@@ -298,7 +313,7 @@ export default function EmailTemplatesPage() {
                   className={cn(
                     'rounded-full px-2 py-0.5 text-xs font-medium',
                     hasOverride
-                      ? 'bg-(--color-brand-100) dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-(--color-brand-700) dark:text-(--color-brand-400)'
+                      ? 'bg-brand-100 dark:bg-[oklch(0.65_0.17_var(--brand-hue)_/_0.15)] text-brand-700 dark:text-brand-400'
                       : 'bg-(--surface-secondary) text-(--text-muted)'
                   )}
                 >

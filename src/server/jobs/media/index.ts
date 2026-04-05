@@ -13,22 +13,34 @@ const log = createLogger('media-worker');
 
 const _mediaQueue = createQueue('media-processing');
 
+/** Max file size for image processing (50 MB) */
+const MAX_PROCESSING_SIZE = 50 * 1024 * 1024;
+
+/** MIME types that Sharp can process */
+const PROCESSABLE_TYPES = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+  'image/avif',
+  'image/tiff',
+]);
+
 interface MediaProcessingPayload {
   mediaId: string;
 }
 
 /**
  * Enqueue a media file for processing (thumbnail, medium, WebP, blur).
- * Only enqueues image files.
+ * Only enqueues processable image files under the size limit.
  */
 export async function enqueueMediaProcessing(
   mediaId: string,
-  mimeType: string
+  mimeType: string,
+  fileSize: number
 ): Promise<void> {
-  if (!mimeType.startsWith('image/')) return;
-
-  // Skip SVGs — they don't benefit from raster processing
-  if (mimeType === 'image/svg+xml') return;
+  if (!PROCESSABLE_TYPES.has(mimeType)) return;
+  if (fileSize > MAX_PROCESSING_SIZE) return;
 
   await enqueue('media-processing', { mediaId } satisfies MediaProcessingPayload);
 }
@@ -54,6 +66,20 @@ async function processMediaJob(payload: MediaProcessingPayload): Promise<void> {
     return;
   }
 
+  // Guard: skip files that are too large
+  if (media.fileSize > MAX_PROCESSING_SIZE) {
+    log.warn('Media file too large for processing', {
+      mediaId: media.id,
+      fileSize: media.fileSize,
+    });
+    return;
+  }
+
+  // Guard: skip non-processable MIME types
+  if (!PROCESSABLE_TYPES.has(media.mimeType)) {
+    return;
+  }
+
   const storage = getStorage();
 
   let buffer: Buffer;
@@ -65,10 +91,22 @@ async function processMediaJob(payload: MediaProcessingPayload): Promise<void> {
       filepath: media.filepath,
       error: String(err),
     });
-    return;
+    throw err; // Let BullMQ retry
   }
 
-  const result = await processImage(buffer);
+  let result;
+  try {
+    result = await processImage(buffer);
+  } catch (err) {
+    log.error('Sharp processing failed', {
+      mediaId: media.id,
+      mimeType: media.mimeType,
+      fileSize: media.fileSize,
+      error: String(err),
+    });
+    // Don't retry — if Sharp can't process it, it won't succeed next time either
+    return;
+  }
 
   // Derive paths from the original filepath
   const dir = media.filepath.substring(0, media.filepath.lastIndexOf('/'));
@@ -78,10 +116,18 @@ async function processMediaJob(payload: MediaProcessingPayload): Promise<void> {
   const mediumPath = `${dir}/medium-${baseName}.webp`;
 
   // Upload generated variants
-  await Promise.all([
-    storage.upload(thumbPath, result.thumbnail),
-    storage.upload(mediumPath, result.medium),
-  ]);
+  try {
+    await Promise.all([
+      storage.upload(thumbPath, result.thumbnail),
+      storage.upload(mediumPath, result.medium),
+    ]);
+  } catch (err) {
+    log.error('Failed to upload processed variants', {
+      mediaId: media.id,
+      error: String(err),
+    });
+    throw err; // Let BullMQ retry
+  }
 
   // Update the media record
   await db

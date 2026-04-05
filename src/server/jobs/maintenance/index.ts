@@ -83,9 +83,13 @@ async function cleanupExpiredSessions(): Promise<void> {
 
 /**
  * Delete old audit logs beyond retention period.
- * @param retentionDays - Days to keep (default 90)
+ * Reads AUDIT_LOG_RETENTION_DAYS from env. Set to 0 to disable.
+ * Disabled by default — audit logs may be required for compliance.
  */
-async function cleanupOldAuditLogs(retentionDays = 90): Promise<void> {
+async function cleanupOldAuditLogs(): Promise<void> {
+  const retentionDays = parseInt(process.env.AUDIT_LOG_RETENTION_DAYS ?? '0', 10);
+  if (!retentionDays || retentionDays <= 0) return; // Disabled by default
+
   const cutoff = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000);
 
   // Batch delete to avoid lock contention
@@ -195,7 +199,7 @@ export async function runMaintenance(): Promise<void> {
   const tasks: Array<{ name: string; fn: () => Promise<void> }> = [
     { name: 'cleanupOrphanedMedia', fn: cleanupOrphanedMedia },
     { name: 'cleanupExpiredSessions', fn: cleanupExpiredSessions },
-    { name: 'cleanupOldAuditLogs', fn: () => cleanupOldAuditLogs(90) },
+    { name: 'cleanupOldAuditLogs', fn: cleanupOldAuditLogs },
     { name: 'cleanupExpiredNotifications', fn: cleanupExpiredNotifications },
     { name: 'cleanupDeadTasks', fn: cleanupDeadTasks },
     { name: 'permanentDeleteTrash', fn: permanentDeleteTrash },

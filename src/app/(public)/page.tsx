@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 import type { Metadata } from 'next';
 import { ArrowRight } from 'lucide-react';
 
@@ -77,13 +77,13 @@ export default async function HomePage() {
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-4">
             <Link
-              href={localePath('/blog', locale)}
+              href="/blog"
               className="btn btn-primary rounded-lg px-6 py-3 text-sm shadow-sm"
             >
               {__('Read the Blog')}
             </Link>
             <Link
-              href={localePath('/portfolio', locale)}
+              href="/portfolio"
               className="btn btn-secondary rounded-lg px-6 py-3 text-sm shadow-sm"
             >
               {__('View Portfolio')}
@@ -99,7 +99,7 @@ export default async function HomePage() {
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold text-(--text-primary)">{__('Recent Posts')}</h2>
               <Link
-                href={localePath('/blog', locale)}
+                href="/blog"
                 className="flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-500"
               >
                 {__('View all')}
@@ -150,7 +150,7 @@ export default async function HomePage() {
               {categories.map((cat) => (
                 <Link
                   key={cat.slug}
-                  href={localePath(`/category/${cat.slug}`, locale)}
+                  href={{ pathname: '/category/[slug]', params: { slug: cat.slug } }}
                   className="rounded-lg border border-(--border-primary) bg-(--surface-secondary) p-4 text-center text-sm font-medium text-(--text-primary) transition-colors hover:border-brand-300 hover:text-brand-600"
                 >
                   {cat.name}

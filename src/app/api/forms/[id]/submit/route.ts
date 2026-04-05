@@ -6,8 +6,6 @@ import { cmsForms, cmsFormSubmissions } from '@/server/db/schema';
 import { enqueueEmail } from '@/server/jobs/email/index';
 import { getRedis } from '@/engine/lib/redis';
 import { checkRateLimit } from '@/engine/lib/rate-limit';
-import { checkContent } from '@/engine/lib/content-moderation';
-import { getBlockedWords } from '@/config/moderation';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
@@ -65,21 +63,6 @@ export async function POST(request: Request, { params }: RouteParams) {
       if (field.required && !body[field.id]) {
         return NextResponse.json(
           { error: `${field.label} is required` },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Content moderation check on text fields
-    const textValues = fields
-      .filter((f) => f.type === 'text' || f.type === 'textarea' || f.type === 'email')
-      .map((f) => String(body[f.id] ?? ''))
-      .join(' ');
-    if (textValues) {
-      const moderation = checkContent(textValues, getBlockedWords());
-      if (moderation.blocked) {
-        return NextResponse.json(
-          { error: 'Submission contains inappropriate content' },
           { status: 400 }
         );
       }

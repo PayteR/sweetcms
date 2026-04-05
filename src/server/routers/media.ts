@@ -150,7 +150,7 @@ export const mediaRouter = createTRPCRouter({
       });
 
       // Enqueue image processing (thumbnail, medium, blur — fire-and-forget)
-      enqueueMediaProcessing(media!.id, input.mimeType).catch(() => {});
+      enqueueMediaProcessing(media!.id, input.mimeType, input.fileSize).catch(() => {});
 
       return media!;
     }),

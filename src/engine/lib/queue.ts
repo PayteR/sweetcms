@@ -17,12 +17,18 @@ export function createQueue(name: string): Queue | null {
 /** Create a BullMQ worker with shared Redis connection */
 export function createWorker(
   name: string,
-  processor: Processor
+  processor: Processor,
+  concurrency?: number,
+  opts?: { limiter?: { max: number; duration: number } },
 ): Worker | null {
   const conn = getRedis();
   if (!conn) return null;
 
-  const worker = new Worker(name, processor, { connection: conn });
+  const worker = new Worker(name, processor, {
+    connection: conn,
+    concurrency: concurrency ?? 1,
+    limiter: opts?.limiter,
+  });
   workers.push(worker);
   return worker;
 }

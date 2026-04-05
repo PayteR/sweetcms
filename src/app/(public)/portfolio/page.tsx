@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
 
 import { siteConfig } from '@/config/site';
 import { serverTRPC } from '@/lib/trpc/server';
 import { getLocale } from '@/lib/locale-server';
-import { localePath } from '@/lib/locale';
+
 import { getServerTranslations } from '@/lib/translations-server';
 
 export const metadata: Metadata = {
@@ -36,7 +36,7 @@ export default async function PortfolioListPage() {
           {items.map((item) => (
             <Link
               key={item.id}
-              href={localePath(`/portfolio/${item.slug}`, locale)}
+              href={{ pathname: '/portfolio/[slug]', params: { slug: item.slug } }}
               className="group overflow-hidden rounded-lg border border-(--border-primary) bg-(--surface-primary) transition-shadow hover:shadow-md"
             >
               {item.featuredImage && (

@@ -3,10 +3,10 @@ import { cmsPosts } from '@/server/db/schema';
 import { ContentStatus } from '@/engine/types/cms';
 import { CONTENT_TYPES } from '@/config/cms';
 import { and, desc, eq, ilike, isNull, or } from 'drizzle-orm';
-import Link from 'next/link';
+import NextLink from 'next/link';
 import { Search } from 'lucide-react';
 import { getLocale } from '@/lib/locale-server';
-import { localePath } from '@/lib/locale';
+
 import { getServerTranslations } from '@/lib/translations-server';
 
 interface Props {
@@ -73,9 +73,9 @@ export default async function ShowcaseSearchPage({ searchParams }: Props) {
       {results.length > 0 && (
         <div className="mt-6 space-y-4">
           {results.map((item) => (
-            <Link
+            <NextLink
               key={item.id}
-              href={localePath(item.url, locale)}
+              href={item.url}
               className="block rounded-lg border border-(--border-primary) p-4 transition-colors hover:bg-(--surface-secondary)"
             >
               <h2 className="font-semibold text-(--text-primary)">{item.title}</h2>
@@ -85,7 +85,7 @@ export default async function ShowcaseSearchPage({ searchParams }: Props) {
                 </p>
               )}
               <p className="mt-1 text-xs text-(--text-muted)">{item.url}</p>
-            </Link>
+            </NextLink>
           ))}
         </div>
       )}

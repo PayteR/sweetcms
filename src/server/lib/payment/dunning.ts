@@ -297,6 +297,9 @@ export async function checkLongOverdueSubscriptions(): Promise<void> {
   }
 }
 
+/** 10-second timeout for provider API calls */
+const PROVIDER_TIMEOUT_MS = 10_000;
+
 /**
  * Check Stripe for the actual status of a payment session/subscription.
  */
@@ -315,9 +318,15 @@ async function checkStripeTransaction(
 
   const res = await fetch(url, {
     headers: { Authorization: `Bearer ${stripeKey}` },
+    signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
   });
 
-  if (!res.ok) return 'failed';
+  // Rate limited or auth failure — don't mark as failed, try again later
+  if (res.status === 429 || res.status === 401) return 'pending';
+  // 404 means the resource doesn't exist at Stripe — genuinely failed/expired
+  if (res.status === 404) return 'failed';
+  // Other server errors — don't make assumptions, keep as pending
+  if (!res.ok) return 'pending';
 
   const data = (await res.json()) as Record<string, unknown>;
 
@@ -351,9 +360,13 @@ async function checkNowPaymentsTransaction(
 
   const res = await fetch(`${baseUrl}/payment/${providerTxId}`, {
     headers: { 'x-api-key': apiKey },
+    signal: AbortSignal.timeout(PROVIDER_TIMEOUT_MS),
   });
 
-  if (!res.ok) return 'failed';
+  // Rate limited or auth failure — keep as pending, try again later
+  if (res.status === 429 || res.status === 401 || res.status === 403) return 'pending';
+  if (res.status === 404) return 'failed';
+  if (!res.ok) return 'pending';
 
   const data = (await res.json()) as Record<string, unknown>;
   const status = data.payment_status as string;

@@ -1,4 +1,5 @@
-import Link from 'next/link';
+import NextLink from 'next/link';
+import { Link } from '@/i18n/navigation';
 import { Rss } from 'lucide-react';
 
 import { PostType } from '@/engine/types/cms';
@@ -42,7 +43,6 @@ export async function TagDetail({ slug, currentPage }: Props) {
 
   const allResults = [...blogPosts.results, ...pagePosts.results];
   const totalPages = blogPosts.totalPages;
-  const basePath = localePath(`/tag/${slug}`, locale);
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
@@ -50,13 +50,13 @@ export async function TagDetail({ slug, currentPage }: Props) {
         <h1 className="text-3xl font-bold text-(--text-primary) sm:text-4xl">
           Tag: {tag.name}
         </h1>
-        <Link
+        <NextLink
           href={`/api/feed/tag/${tag.slug}?lang=${locale}`}
           className="rounded-full p-1.5 text-(--text-muted) transition-colors hover:bg-orange-50 dark:hover:bg-orange-500/15 hover:text-orange-500"
           title="RSS Feed"
         >
           <Rss className="h-5 w-5" />
-        </Link>
+        </NextLink>
       </div>
 
       {allResults.length > 0 || portfolioItems.results.length > 0 ? (
@@ -94,8 +94,8 @@ export async function TagDetail({ slug, currentPage }: Props) {
             <nav className="flex items-center justify-between pt-4">
               {currentPage > 1 ? (
                 <Link
-                  href={`${basePath}?page=${currentPage - 1}`}
-                  className="text-sm font-medium text-(--color-brand-600) hover:text-(--color-brand-700)"
+                  href={{ pathname: '/tag/[slug]', params: { slug }, query: { page: String(currentPage - 1) } }}
+                  className="text-sm font-medium text-brand-600 hover:text-brand-700"
                 >
                   &larr; Previous
                 </Link>
@@ -107,8 +107,8 @@ export async function TagDetail({ slug, currentPage }: Props) {
               </span>
               {currentPage < totalPages ? (
                 <Link
-                  href={`${basePath}?page=${currentPage + 1}`}
-                  className="text-sm font-medium text-(--color-brand-600) hover:text-(--color-brand-700)"
+                  href={{ pathname: '/tag/[slug]', params: { slug }, query: { page: String(currentPage + 1) } }}
+                  className="text-sm font-medium text-brand-600 hover:text-brand-700"
                 >
                   Next &rarr;
                 </Link>
