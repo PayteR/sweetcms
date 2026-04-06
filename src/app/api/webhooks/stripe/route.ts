@@ -3,14 +3,14 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/server/db';
 import { saasSubscriptionEvents, user } from '@/server/db/schema';
 import { member } from '@/server/db/schema/organization';
-import { getProvider } from '@/core-billing/lib/factory';
+import { getProvider } from '@/core-payments/lib/factory';
 import {
   activateSubscription,
   updateSubscription,
   cancelSubscription,
   getOrgByProviderSubscription,
-} from '@/core-billing/lib/subscription-service';
-import { finalizeUsage } from '@/core-billing/lib/discount-service';
+} from '@/core-subscriptions/lib/subscription-service';
+import { finalizeUsage } from '@/core-subscriptions/lib/discount-service';
 import { getPlanByProviderPriceId } from '@/config/plans';
 import { logAudit } from '@/core/lib/audit';
 import { sendOrgNotification } from '@/server/lib/notifications';

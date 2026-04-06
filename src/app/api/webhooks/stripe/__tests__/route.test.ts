@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock payment factory
 const mockHandleWebhook = vi.fn();
-vi.mock('@/core-billing/lib/factory', () => ({
+vi.mock('@/core-payments/lib/factory', () => ({
   getProvider: vi.fn().mockReturnValue({
     handleWebhook: (...args: unknown[]) => mockHandleWebhook(...args),
     config: { id: 'stripe' },
@@ -14,7 +14,7 @@ const mockActivateSubscription = vi.fn().mockResolvedValue(undefined);
 const mockUpdateSubscription = vi.fn().mockResolvedValue(undefined);
 const mockCancelSubscription = vi.fn().mockResolvedValue(undefined);
 const mockGetOrgByProviderSubscription = vi.fn().mockResolvedValue(null);
-vi.mock('@/core-billing/lib/subscription-service', () => ({
+vi.mock('@/core-subscriptions/lib/subscription-service', () => ({
   activateSubscription: (...args: unknown[]) => mockActivateSubscription(...args),
   updateSubscription: (...args: unknown[]) => mockUpdateSubscription(...args),
   cancelSubscription: (...args: unknown[]) => mockCancelSubscription(...args),
@@ -92,7 +92,7 @@ vi.mock('@/config/routes', () => ({
   adminPanel: { settingsBilling: '/dashboard/settings/billing' },
 }));
 
-vi.mock('@/core-billing/lib/discount-service', () => ({
+vi.mock('@/core-subscriptions/lib/discount-service', () => ({
   finalizeUsage: vi.fn().mockResolvedValue(undefined),
 }));
 
@@ -127,7 +127,7 @@ vi.mock('@/core/lib/logger', () => ({
 }));
 
 import { POST } from '../route';
-import { getProvider } from '@/core-billing/lib/factory';
+import { getProvider } from '@/core-payments/lib/factory';
 import { sendOrgNotification } from '@/server/lib/notifications';
 import { logAudit } from '@/core/lib/audit';
 import { asMock } from '@/test-utils';

@@ -3,7 +3,7 @@
  * Imported as a side-effect in server.ts.
  */
 import { setStoreDeps } from '@/core-store/deps';
-import { getProvider } from '@/core-billing/lib/factory';
+import { getProvider } from '@/core-payments/lib/factory';
 import { sendNotification } from '@/server/lib/notifications';
 import { NotificationType, NotificationCategory } from '@/core/types/notifications';
 import { enqueueTemplateEmail } from '@/server/jobs/email/index';

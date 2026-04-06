@@ -4,7 +4,7 @@
  * Registers the NOWPayments crypto payment provider with the core-billing factory.
  * Import this as a side-effect in server.ts to enable crypto payments.
  */
-import { registerPaymentProvider } from '@/core-billing/lib/factory';
+import { registerPaymentProvider } from '@/core-payments/lib/factory';
 
 registerPaymentProvider('nowpayments', async () => {
   if (!process.env.NOWPAYMENTS_API_KEY) return null;

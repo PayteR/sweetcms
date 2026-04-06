@@ -1,10 +1,10 @@
 import crypto from 'crypto';
 import { eq } from 'drizzle-orm';
-import type { PaymentProvider, CheckoutParams, CheckoutResult, WebhookEvent } from '@/core-billing/types/payment';
-import { TransactionStatus } from '@/core-billing/types/payment';
+import type { PaymentProvider, CheckoutParams, CheckoutResult, WebhookEvent } from '@/core-payments/types/payment';
+import { TransactionStatus } from '@/core-payments/types/payment';
 import { db } from '@/server/db';
-import { saasPaymentTransactions } from '@/core-billing/schema/billing';
-import { getPaymentsDeps } from '@/core-billing/deps';
+import { saasPaymentTransactions } from '@/core-payments/schema/payments';
+import { getPaymentsDeps } from '@/core-payments/deps';
 import { createLogger } from '@/core/lib/logger';
 
 const logger = createLogger('nowpayments');

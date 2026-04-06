@@ -1,4 +1,4 @@
-import type { PaymentProviderConfig } from '@/core-billing/types/payment';
+import type { PaymentProviderConfig } from '@/core-payments/types/payment';
 
 export const PAYMENT_PROVIDERS: PaymentProviderConfig[] = [
   {

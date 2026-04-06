@@ -3,7 +3,7 @@
 
 import type { PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 
-import { seedBilling } from '@/core-billing/seed';
+import { seedBilling } from '@/core-subscriptions/seed';
 import { seedAffiliates } from '@/core-affiliates/seed';
 
 export interface SeedContext {

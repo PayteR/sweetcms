@@ -1,6 +1,6 @@
-# core-billing-crypto — CLAUDE.md
+# core-billing-crypto -- CLAUDE.md
 
-Paid module. NOWPayments cryptocurrency payment provider for the core-billing billing system.
+Paid module. NOWPayments cryptocurrency payment provider for the core-payments system.
 
 ## Module Boundary
 
@@ -10,10 +10,10 @@ Paid module. NOWPayments cryptocurrency payment provider for the core-billing bi
 
 ## Import Rules
 
-- Imports from `@/core-billing/*` (types, schema)
+- Imports from `@/core-payments/*` (types, schema, factory)
 - Imports framework conventions: `@/server/db`, `@/core/lib/logger`
 - Project imports from `@/core-billing-crypto/*`
-- Depends on core-billing being installed
+- Depends on core-payments being installed
 
 ## Wiring Into a Project
 

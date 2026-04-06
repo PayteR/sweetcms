@@ -105,7 +105,7 @@ async function main() {
           repeat: { pattern: '0 8 * * *' }, // Daily at 8 AM
         });
         createWorker('dunning', async () => {
-          const { runDunningChecks } = await import('./src/core-billing/lib/dunning');
+          const { runDunningChecks } = await import('./src/core-subscriptions/lib/dunning');
           await runDunningChecks();
         });
         console.log('Dunning worker ready (daily at 8 AM)');
@@ -128,7 +128,7 @@ async function main() {
       await enqueueTask('dunning', { action: 'check' }).catch(() => {});
 
       startDbQueueWorker('dunning', async () => {
-        const { runDunningChecks } = await import('./src/core-billing/lib/dunning');
+        const { runDunningChecks } = await import('./src/core-subscriptions/lib/dunning');
         await runDunningChecks();
 
         // Re-enqueue for next day at ~8 AM UTC

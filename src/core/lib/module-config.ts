@@ -10,7 +10,7 @@ export interface RouterEntry {
   name: string;
   /** Key in the tRPC router map (e.g. 'billing') */
   key: string;
-  /** Import path (e.g. '@/core-billing/routers/billing') */
+  /** Import path (e.g. '@/core-subscriptions/routers/billing') */
   from: string;
 }
 

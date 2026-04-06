@@ -9,7 +9,8 @@
 import type { ModuleConfig } from '@/core/lib/module-config';
 
 // ─── Installed modules (managed by `bun run indigo add/remove`) ─────────────
-import coreBilling from './src/core-billing/module.config';
+import corePayments from './src/core-payments/module.config';
+import coreSubscriptions from './src/core-subscriptions/module.config';
 import coreBillingCrypto from './src/core-billing-crypto/module.config';
 import coreSupport from './src/core-support/module.config';
 import coreAffiliates from './src/core-affiliates/module.config';
@@ -19,7 +20,8 @@ import coreDocs from './src/core-docs/module.config';
 import coreStore from './src/core-store/module.config';
 
 const modules: ModuleConfig[] = [
-  coreBilling,
+  corePayments,
+  coreSubscriptions,
   coreBillingCrypto,
   coreSupport,
   coreAffiliates,
