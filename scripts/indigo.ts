@@ -183,7 +183,7 @@ async function add(id: string) {
     console.log('  - Set STRIPE_SECRET_KEY + STRIPE_WEBHOOK_SECRET in .env');
     console.log('  - Configure plans in src/config/plans.ts');
   }
-  if (entry.id === 'core-billing-crypto') {
+  if (entry.id === 'core-payments-crypto') {
     console.log('\n  Next steps:');
     console.log('  - Set NOWPAYMENTS_API_KEY + NOWPAYMENTS_IPN_SECRET in .env');
   }

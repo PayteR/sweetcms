@@ -3,7 +3,7 @@
  *
  * TODO: Create these GitHub repos under the indigo-fw org:
  *   - indigo-fw/core-billing
- *   - indigo-fw/core-billing-crypto
+ *   - indigo-fw/core-payments-crypto
  *   - indigo-fw/core-support
  *   - indigo-fw/core-affiliates
  * Until repos exist, `indigo add` will fail on git subtree pull.
@@ -34,8 +34,8 @@ export const REGISTRY: ModuleRegistryEntry[] = [
     description: 'Payment system: subscriptions, tokens, discounts, Stripe, dunning',
   },
   {
-    id: 'core-billing-crypto',
-    repo: 'git@github.com:indigo-fw/core-billing-crypto.git',
+    id: 'core-payments-crypto',
+    repo: 'git@github.com:indigo-fw/core-payments-crypto.git',
     importName: 'coreBillingCrypto',
     requires: ['core-billing'],
     description: 'Cryptocurrency payments via NOWPayments',

@@ -8,7 +8,7 @@
 export async function initModuleDeps(): Promise<void> {
   await import('@/config/payments-deps');
   await import('@/config/subscriptions-deps');
-  await import('@/core-billing-crypto/register');
+  await import('@/core-payments-crypto/register');
   await import('@/config/support-deps');
   await import('@/config/affiliates-deps');
   await import('@/config/store-deps');

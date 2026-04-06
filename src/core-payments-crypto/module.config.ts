@@ -1,11 +1,11 @@
 import type { ModuleConfig } from '@/core/lib/module-config';
 
 const config: ModuleConfig = {
-  id: 'core-billing-crypto',
+  id: 'core-payments-crypto',
   routers: [],
   schema: [],
   serverInit: [
-    '@/core-billing-crypto/register',
+    '@/core-payments-crypto/register',
   ],
   jobs: [],
   seed: [],

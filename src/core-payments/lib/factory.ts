@@ -63,4 +63,4 @@ registerPaymentProvider('stripe', async () => {
   return new StripeProvider();
 });
 
-// NOWPayments provider registered by core-billing-crypto module (if installed)
+// NOWPayments provider registered by core-payments-crypto module (if installed)
